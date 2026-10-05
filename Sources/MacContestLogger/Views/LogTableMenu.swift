@@ -56,6 +56,23 @@ extension LogTableCoordinator: NSMenuDelegate {
             menuItem.isEnabled = item.isEnabled
             menu.addItem(menuItem)
         }
+        let lookups: [LogTableModel.LookupItem] = model.lookupItems(forRow: id)
+        if !lookups.isEmpty {
+            menu.addItem(.separator())
+        }
+        for item in lookups {
+            let menuItem = NSMenuItem(title: language.text(item.title), action: #selector(lookupChosen(_:)),
+                                      keyEquivalent: "")
+            menuItem.target = self
+            menuItem.representedObject = LookupPick(item: item)
+            menuItem.isEnabled = item.isEnabled
+            menu.addItem(menuItem)
+        }
+    }
+
+    @objc func lookupChosen(_ sender: NSMenuItem) {
+        guard let pick = sender.representedObject as? LookupPick else { return }
+        tableModel?.perform(pick.item)
     }
 
     @objc func menuChosen(_ sender: NSMenuItem) {
@@ -72,5 +89,14 @@ private final class MenuPick: NSObject {
     init(item: LogTableModel.MenuItem, id: Int64) {
         self.item = item
         self.id = id
+    }
+}
+
+/// A callbook lookup entry of the context menu.
+private final class LookupPick: NSObject {
+    let item: LogTableModel.LookupItem
+
+    init(item: LogTableModel.LookupItem) {
+        self.item = item
     }
 }

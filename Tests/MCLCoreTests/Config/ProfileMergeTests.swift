@@ -72,7 +72,7 @@ import Testing
         #expect(error.javaClass == "com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException")
         let message = try #require(error.javaMessage)
         #expect(message.hasPrefix("Unrecognized field \"unknownKey\" (class cz.ok1xoe.maccontestlogger.config.AppConfig),"
-                                  + " not marked as ignorable (72 known properties: \"windowGeometry\", \"recordContest\""))
+                                  + " not marked as ignorable (73 known properties: \"windowGeometry\", \"recordContest\""))
         #expect(message.hasSuffix("\"rotatorPort\" [truncated])\n at " + Self.source + "line: 1, column: 32]"
                                   + " (through reference chain: cz.ok1xoe.maccontestlogger.config.AppConfig[\"unknownKey\"])"))
         #expect(error.partial.language == "de")

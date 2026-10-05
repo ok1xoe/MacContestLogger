@@ -68,8 +68,17 @@ public final class LogTableModel {
     @ObservationIgnored private var work: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored private var workCounter: Int = 0
 
+    /// „Dohledat na …": looks a call up on a callbook and shows the result window.
+    @ObservationIgnored private let lookupCall: @MainActor (String, CallbookService) -> Void
+    /// Does the callbook have credentials?
+    @ObservationIgnored private let isConfigured: @MainActor (CallbookService) -> Bool
+
     public init(logbook: LogbookModel, windows: WindowsModel, status: StatusModel,
-                playRecording: @escaping @MainActor (Qso) -> Void = { _ in }) {
+                playRecording: @escaping @MainActor (Qso) -> Void = { _ in },
+                lookupCall: @escaping @MainActor (String, CallbookService) -> Void = { _, _ in },
+                isConfigured: @escaping @MainActor (CallbookService) -> Bool = { _ in false }) {
+        self.lookupCall = lookupCall
+        self.isConfigured = isConfigured
         self.logbook = logbook
         self.windows = windows
         self.status = status
@@ -78,7 +87,11 @@ public final class LogTableModel {
 
     public convenience init(app: AppModel) {
         self.init(logbook: app.logbook, windows: app.windows, status: app.status,
-                  playRecording: { [weak recording = app.recording] qso in recording?.playQsoRecording(qso) })
+                  playRecording: { [weak recording = app.recording] qso in recording?.playQsoRecording(qso) },
+                  lookupCall: { [weak callbook = app.callbook] call, service in
+                      callbook?.lookupInWindow(call, service: service)
+                  },
+                  isConfigured: { [weak callbook = app.callbook] service in callbook?.isConfigured(service) ?? false })
     }
 
     // MARK: - selection
@@ -213,6 +226,30 @@ public final class LogTableModel {
             return BulkAction.allCases.map { MenuItem.bulk($0) } + [.deleteSelection]
         }
         return [.toggleXqso(isXqso: qso.xqso), .playRecording, .deleteOne]
+    }
+
+    /// „Dohledat na HamQTH" / „Dohledat na QRZ.com" of the row's menu: the row's call, each greyed without the
+    /// service's credentials. Read-only — nothing is written to the logbook.
+    public func lookupItems(forRow id: Int64?) -> [LookupItem] {
+        guard let id, let qso = row(id), !KotlinStrings.isBlank(qso.call) else { return [] }
+        return CallbookService.allCases.map { LookupItem(service: $0, isEnabled: isConfigured($0), call: qso.call) }
+    }
+
+    /// One lookup entry of the context menu.
+    public struct LookupItem: Equatable, Sendable {
+        public let service: CallbookService
+        public let isEnabled: Bool
+        public let call: String
+
+        public var title: ContestMessage {
+            ContestMessage("Dohledat na %s", .string(service.displayName))
+        }
+    }
+
+    /// Runs a lookup entry of the context menu.
+    public func perform(_ item: LookupItem) {
+        guard item.isEnabled else { return }
+        lookupCall(item.call, item.service)
     }
 
     /// Runs a context menu item chosen on the row `id`.

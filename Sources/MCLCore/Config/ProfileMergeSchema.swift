@@ -16,11 +16,13 @@ enum ProfileMergeSchema {
     static let root: String = "cz.ok1xoe.maccontestlogger.config.AppConfig"
 
     /// Hand-maintained Swift-only properties by owning Java class (see the type's documentation): the two switches
-    /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`).
+    /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`) and the preferred online callbook
+    /// (`preferredCallbook`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
             Property("nPlusOneEnabled", .boolean, .fieldDefault),
+            Property("preferredCallbook", .string, .fieldDefault),
         ],
     ]
 

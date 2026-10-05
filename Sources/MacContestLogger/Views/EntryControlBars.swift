@@ -154,14 +154,14 @@ struct FunctionKeyBar: View {
     }
 }
 
-/// The action bar (`EP:1352-1375`, labels verbatim): Esc: Stop, Wipe, Log It, Mark, Store and Spot It act; Edit and QRZ have no action in Kotlin either (disabled). „Log It" is
+/// The action bar (`EP:1352-1375`, labels verbatim): Esc: Stop, Wipe, Log It, Mark, Store and Spot It act; Edit has no action in Kotlin either (disabled). The last button looks the typed call up on the preferred online callbook (HamQTH or QRZ.com). „Log It" is
 /// highlighted, with the strong border when ESM logs on the next Enter.
 struct EntryActionBar: View {
     let app: AppModel
     let panel: EntryPanel
     let focus: EntryFocusController
 
-    private static let labels: [String] = ["Esc: Stop", "Wipe", "Log It", "Edit", "Mark", "Store", "Spot It", "QRZ"]
+    private static let labels: [String] = ["Esc: Stop", "Wipe", "Log It", "Edit", "Mark", "Store", "Spot It"]
 
     var body: some View {
         let logNext: Bool = panel.entry.esmStep?.log == true
@@ -173,7 +173,36 @@ struct EntryActionBar: View {
                     action?()
                 }
             }
+            lookupButton
         }
+    }
+
+    /// The manual callbook lookup: labelled by the preferred service, greyed without its credentials or a call.
+    @ViewBuilder private var lookupButton: some View {
+        let callbook: CallbookModel = app.callbook
+        let service: CallbookService = callbook.preferredService
+        let configured: Bool = callbook.isConfigured(service)
+        let call: String = panel.suggestions.currentCall
+        let hasCall: Bool = !CallbookPolicy.key(call).isEmpty
+        let language: LanguageModel = app.language
+        NkButton(label: service.displayName, highlighted: false, next: false, enabled: configured && hasCall,
+                 help: lookupHelp(service: service, configured: configured, hasCall: hasCall, language: language)) {
+            let suggestions: SuggestionsModel = panel.suggestions
+            callbook.lookupNow(call, service: service, typedCall: { suggestions.currentCall })
+        }
+        .accessibilityIdentifier("entry.callbookLookup")
+    }
+
+    private func lookupHelp(service: CallbookService, configured: Bool, hasCall: Bool,
+                            language: LanguageModel) -> String {
+        if !configured {
+            return language.tr("Nejsou vyplněné přihlašovací údaje %s (Nastavení → Online callbooky).",
+                               .string(service.displayName))
+        }
+        if !hasCall {
+            return language.tr("Nejdřív zadej volačku.")
+        }
+        return language.tr("Dohledat volačku na %s.", .string(service.displayName))
     }
 
     private func action(_ label: String) -> (@MainActor () -> Void)? {
@@ -208,6 +237,7 @@ private struct NkButton: View {
     let highlighted: Bool
     let next: Bool
     let enabled: Bool
+    var help: String?
     let action: @MainActor () -> Void
 
     /// The ideal width at the default font: the row's share comes from the column, not from this.
@@ -235,6 +265,7 @@ private struct NkButton: View {
         .buttonStyle(.plain)
         .disabled(!enabled)
         .accessibilityLabel(Text(verbatim: label))
+        .help(help ?? "")
     }
 
     private var background: Color {

@@ -107,6 +107,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var callHistoryFile: String = ""
     public var scpSuggestionsEnabled: Bool = true
     public var nPlusOneEnabled: Bool = true
+    /// The online callbook of the entry window's lookup button (`CallbookService.rawValue`).
+    public var preferredCallbook: String = CallbookService.hamQth.rawValue
     public var clEnabled: Bool = false
     public var clEmail: String = ""
     public var clPassword: String = ""
@@ -346,6 +348,7 @@ extension ConfigurerDraft {
         callHistoryFile = config.callHistoryFile
         scpSuggestionsEnabled = config.scpSuggestionsEnabled
         nPlusOneEnabled = config.nPlusOneEnabled
+        preferredCallbook = config.preferredCallbook
         clEnabled = config.clubLog.enabled
         clEmail = config.clubLog.email
         clPassword = config.clubLog.appPassword

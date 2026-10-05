@@ -1090,5 +1090,19 @@
  "Check partial (SCP)": "Check Partial (SCP)",
  "N+1 (volačky o jeden znak vedle)": "N+1 (Rufzeichen mit einem abweichenden Zeichen)",
  "Zobrazovat SCP (Check partial)": "SCP (Check partial) anzeigen",
- "Zobrazovat N+1": "N+1 anzeigen"
+ "Zobrazovat N+1": "N+1 anzeigen",
+ "Preferovaný online callbook": "Bevorzugtes Online-Callbook",
+ "Tlačítko v okně zadávání dohledá volačku na této službě, i mimo vybrané módy. Vyžaduje přihlašovací údaje.": "Die Schaltfläche im Eingabefenster sucht das Rufzeichen bei diesem Dienst, auch außerhalb der gewählten Modi. Zugangsdaten erforderlich.",
+ "Nejsou vyplněné přihlašovací údaje %s (Nastavení → Online callbooky).": "Keine Zugangsdaten für %s eingetragen (Einstellungen → Online-Callbooks).",
+ "Nejdřív zadej volačku.": "Gib zuerst ein Rufzeichen ein.",
+ "Dohledat volačku na %s.": "Rufzeichen bei %s nachschlagen.",
+ "Dohledat na %s": "Bei %s nachschlagen",
+ "Dohledávám…": "Suche läuft…",
+ "Dohledání volačky": "Rufzeichen-Suche",
+ "Otevřít na webu": "Im Web öffnen",
+ "Volačka nenalezena": "Rufzeichen nicht gefunden",
+ "Chybné přihlášení (%s)": "Anmeldung fehlgeschlagen (%s)",
+ "Chyba sítě (%s)": "Netzwerkfehler (%s)",
+ "Síť je vypnutá (MCL_INERT_NETWORK)": "Netzwerk ist deaktiviert (MCL_INERT_NETWORK)",
+ "Chybí přihlašovací údaje": "Zugangsdaten fehlen"
 }

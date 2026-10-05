@@ -44,6 +44,26 @@ import Testing
         #expect(loaded.scpFile == "/tmp/master.scp")
     }
 
+    @Test func preferredCallbookDefaultsToHamQthAndRoundTrips() throws {
+        #expect(AppConfig().preferredCallbook == "hamqth")
+        let old = try JSONDecoder().decode(AppConfig.self, from: Data(#"{"scpFile":"/x"}"#.utf8))
+        #expect(old.preferredCallbook == "hamqth")
+        // An unknown value falls back to the default, the case is forgiven.
+        let odd = try JSONDecoder().decode(AppConfig.self, from: Data(#"{"preferredCallbook":"foo"}"#.utf8))
+        #expect(odd.preferredCallbook == "hamqth")
+        let upper = try JSONDecoder().decode(AppConfig.self, from: Data(#"{"preferredCallbook":"QRZ"}"#.utf8))
+        #expect(upper.preferredCallbook == "qrz")
+        let file = tempFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        let store = ConfigStore(file: file)
+        var cfg = AppConfig()
+        cfg.preferredCallbook = "qrz"
+        store.save(cfg)
+        #expect(store.load().preferredCallbook == "qrz")
+        #expect(CallbookService(configValue: "qrz").pageURL(call: " dl1abc ") == "https://www.qrz.com/db/DL1ABC")
+        #expect(CallbookService.hamQth.pageURL(call: "ok1xoe") == "https://www.hamqth.com/OK1XOE")
+    }
+
     @Test func suggestionSwitchesDefaultOnAndRoundTrip() throws {
         #expect(AppConfig().scpSuggestionsEnabled && AppConfig().nPlusOneEnabled)
         // An existing config without the keys keeps the behaviour (both on).

@@ -1090,5 +1090,19 @@
  "Check partial (SCP)": "Check partial (SCP)",
  "N+1 (volačky o jeden znak vedle)": "N+1 (calls one character off)",
  "Zobrazovat SCP (Check partial)": "Show SCP (Check partial)",
- "Zobrazovat N+1": "Show N+1"
+ "Zobrazovat N+1": "Show N+1",
+ "Preferovaný online callbook": "Preferred online callbook",
+ "Tlačítko v okně zadávání dohledá volačku na této službě, i mimo vybrané módy. Vyžaduje přihlašovací údaje.": "The button in the entry window looks the call up on this service, even outside the selected modes. Needs credentials.",
+ "Nejsou vyplněné přihlašovací údaje %s (Nastavení → Online callbooky).": "No credentials set for %s (Settings → Online callbooks).",
+ "Nejdřív zadej volačku.": "Enter a call first.",
+ "Dohledat volačku na %s.": "Look the call up on %s.",
+ "Dohledat na %s": "Look up on %s",
+ "Dohledávám…": "Looking up…",
+ "Dohledání volačky": "Call lookup",
+ "Otevřít na webu": "Open on the web",
+ "Volačka nenalezena": "Call not found",
+ "Chybné přihlášení (%s)": "Login failed (%s)",
+ "Chyba sítě (%s)": "Network error (%s)",
+ "Síť je vypnutá (MCL_INERT_NETWORK)": "Network is disabled (MCL_INERT_NETWORK)",
+ "Chybí přihlašovací údaje": "Credentials missing"
 }

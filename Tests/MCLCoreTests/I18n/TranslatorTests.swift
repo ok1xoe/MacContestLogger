@@ -128,10 +128,11 @@ import Testing
         // Java v1.1.1 ships 1,006 entries; the Swift file adds 61 keys of the Swift UI and the 20
         // `menu.json` labels Java leaves out and 1 key of the post-port QO-100
         // tooltip line (a deliberate divergence from Java v1.1.1) and 2 accessibility labels of the SCP and N+1 rows (section 73) and
-        // 2 Settings labels of the SCP and N+1 switches (section 73).
-        #expect(map.count == 1_092)
+        // 2 Settings labels of the SCP and N+1 switches (section 73) and
+        // 14 keys of the manual callbook lookups.
+        #expect(map.count == 1_106)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_092)
+        #expect(german.count == 1_106)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

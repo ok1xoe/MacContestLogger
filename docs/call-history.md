@@ -81,3 +81,22 @@ typing the callsign the following is looked up:
 
 Results are stored in a cache shared with the spot lookup, and the program does
 not ask twice for the same callsign.
+
+### Manual lookups
+
+The automatic lookup waits for a pause in typing and respects the "Volat … pro módy"
+(Call … for modes) settings. A lookup can also be asked for by hand; it ignores the
+mode restriction and the pause, but still needs the service's user name and password:
+
+- **Settings → Online callbooks → "Preferovaný online callbook"** (Preferred online
+  callbook) chooses HamQTH (default) or QRZ.com (config key `preferredCallbook`).
+- The last button of the entry window's action bar is labelled with that service. It
+  looks up the call in the call field at once. The result goes to the `Callbook:` line and
+  prefills the exchange like the automatic lookup; when nothing is found, the line says why
+  (not found, login failed, network error). The button is greyed, with a tooltip, when the
+  service has no credentials or the call field is empty. It works in the VFO B window too.
+- The log window's row menu ("Přehled spojení") and the bandmap's spot menu have
+  **Dohledat na HamQTH** and **Dohledat na QRZ.com** (Look up on …), each greyed without
+  that service's credentials. The result (name, country, locator, CQ and ITU zone, or the
+  error) opens in a small window with **Otevřít na webu** (Open on the web), which opens the
+  service's page of the call. Nothing is written to the log.

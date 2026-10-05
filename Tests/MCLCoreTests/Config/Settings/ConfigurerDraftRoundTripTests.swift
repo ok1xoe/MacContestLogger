@@ -110,10 +110,11 @@ import Testing
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Fixtures/jvm-probes/full-config.json")
         let decoded = try JSONDecoder().decode(AppConfig.self, from: try Data(contentsOf: url))
-        // The two SCP / N+1 switches are Swift-only keys (v1.1.1 would reject them), so the probe file has neither.
+        // The two SCP / N+1 switches and the preferred callbook are Swift-only keys (v1.1.1 would reject them), so the probe file has neither.
         var expected = Self.fullConfig()
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
+        expected.preferredCallbook = "hamqth"
         #expect(decoded == expected)
     }
 
@@ -232,6 +233,7 @@ import Testing
         w.same(\.scpFile, \.scpFile, "/data/master.scp")
         w.same(\.scpSuggestionsEnabled, \.scpSuggestionsEnabled, false)
         w.same(\.nPlusOneEnabled, \.nPlusOneEnabled, false)
+        w.same(\.preferredCallbook, \.preferredCallbook, "qrz")
         w.same(\.callHistoryFile, \.callHistoryFile, "/data/history.txt")
         w.same(\.clEnabled, \.clubLog.enabled, true)
         w.same(\.clEmail, \.clubLog.email, "cl@example.org")
