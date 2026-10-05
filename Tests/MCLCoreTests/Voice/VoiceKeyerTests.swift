@@ -10,7 +10,7 @@ import Testing
 /// Without success time bounds: the audio stand-in "plays" until the message cancels it, the test `await`s an event
 /// (`Events.waitFor`) or a completion listener (`Done`) — no `DispatchTime` deadlines or semaphores. The only
 /// time condition is the lower bound of the PTT delay (load can only lengthen it). Only a guard protects against hangs
-/// the suite's `timeLimit` (`.ioSafetyNet`, 5 min).
+/// the suite's `timeLimit` (`.ioSafetyNet`, 30 min).
 @Suite(.ioSafetyNet) struct VoiceKeyerTests {
 
     struct Failure: Error, CustomStringConvertible {
