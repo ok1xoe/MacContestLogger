@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Assembles MacContestLogger.app (ad-hoc signed, without a sandbox) and optionally an unsigned DMG.
+# Assembles MacContestLogger.app (ad-hoc signed by default, without a sandbox) and optionally a DMG.
 #
 #   scripts/bundle.sh [--config debug|release] [--version vX.Y.Z] [--file-version NAME] [--universal] [--dmg]
-#                     [--skip-build] [--out DIR]
+#                     [--skip-build] [--out DIR] [--sign IDENTITY [--entitlements FILE] [--timestamp]]
 #
 # Steps: `swift build --product MacContestLogger` → Contents/MacOS, Info.plist from packaging/Info.plist.in
 # (`plutil -lint`), every SwiftPM resource bundle of the app's targets into Contents/Resources (the app reads them
@@ -16,6 +16,25 @@
 # is checked with `hdiutil verify` and gets a `<dmg>.sha256` next to it (`shasum -c` format). Without --universal
 # nothing changes. --file-version overrides only the version in the DMG file name (CI: `dev-<sha7>` for builds
 # that are not from a tag; the bundle version stays 0.0.1).
+#
+# Signing. Without --sign (local, dev and pull-request builds) the app is ad-hoc signed (`codesign --deep -s -`)
+# exactly as before and the DMG is not signed. With --sign IDENTITY (a "Developer ID Application" identity, its
+# SHA-1 hash, or `-` for an ad-hoc dry run of the same path) the app gets the hardened runtime and the
+# entitlements of --entitlements (default packaging/MacContestLogger.entitlements): nested code is signed inside-out
+# (any Mach-O file or code bundle under Contents/ other than the main executable; today there is none — the SwiftPM
+# resource bundle holds only data), then the app itself, without --deep. --timestamp adds a secure timestamp from
+# Apple (required for notarization; ignored for `-`). The DMG is signed with the same identity (not for `-`).
+# Notarization and stapling are left to the caller (.github/workflows/release.yml), since they need Apple's service.
+#
+# Entitlements (packaging/MacContestLogger.entitlements; a plist has no comments, so the reasons are here):
+# - com.apple.security.device.audio-input: the hardened runtime blocks the microphone without it — voice keyer
+#   recording, contest recording, the CW reader and the waterfall read the input via AVAudioEngine.
+# - Nothing else, on purpose: no library-validation or JIT exceptions (the app loads no non-system dylib, uses no
+#   dlopen and no JIT; resource bundles are data only), no Apple Events (no NSAppleScript/osascript). Child
+#   processes (rigctld, plugin scripts, `/bin/sh` fallback) need no entitlement under the hardened runtime; serial
+#   ports (termios/IOKit) and the network need none outside the sandbox.
+# - The app is NOT sandboxed (no com.apple.security.app-sandbox): a sandbox would block arbitrary serial devices,
+#   spawning rigctld and user plugin scripts, and reading the reference data outside the container.
 #
 # App Transport Security in Info.plist (a plist has no comments, so the reasons are here):
 # - NSAllowsArbitraryLoads: parity with the JVM app, which loads any URL the user types in — a scoreboard URL
@@ -43,9 +62,12 @@ UNIVERSAL=0
 DMG=0
 SKIP_BUILD=0
 OUT=build/app
+SIGN_IDENTITY=""
+ENTITLEMENTS=""
+TIMESTAMP=0
 
 usage() {
-  echo "usage: $0 [--config debug|release] [--version vX.Y.Z] [--file-version NAME] [--universal] [--dmg] [--skip-build] [--out DIR]" >&2
+  echo "usage: $0 [--config debug|release] [--version vX.Y.Z] [--file-version NAME] [--universal] [--dmg] [--skip-build] [--out DIR] [--sign IDENTITY [--entitlements FILE] [--timestamp]]" >&2
   exit 2
 }
 
@@ -58,6 +80,9 @@ while [ $# -gt 0 ]; do
     --dmg) DMG=1; shift ;;
     --skip-build) SKIP_BUILD=1; shift ;;
     --out) [ $# -ge 2 ] || usage; OUT="$2"; shift 2 ;;
+    --sign) [ $# -ge 2 ] || usage; SIGN_IDENTITY="$2"; shift 2 ;;
+    --entitlements) [ $# -ge 2 ] || usage; ENTITLEMENTS="$2"; shift 2 ;;
+    --timestamp) TIMESTAMP=1; shift ;;
     -h|--help) usage ;;
     *) echo "unknown option: $1" >&2; usage ;;
   esac
@@ -89,8 +114,23 @@ if [ -n "$FILE_VERSION_ARG" ]; then
   FILE_VERSION="$FILE_VERSION_ARG"
 fi
 
+if [ -z "$SIGN_IDENTITY" ] && { [ -n "$ENTITLEMENTS" ] || [ "$TIMESTAMP" -eq 1 ]; }; then
+  echo "--entitlements and --timestamp need --sign" >&2
+  exit 2
+fi
+if [ -n "$ENTITLEMENTS" ] && [ ! -f "$ENTITLEMENTS" ]; then
+  echo "--entitlements '$ENTITLEMENTS': no such file" >&2
+  exit 2
+fi
+if [ -n "$ENTITLEMENTS" ]; then
+  ENTITLEMENTS="$(cd "$(dirname "$ENTITLEMENTS")" && pwd)/$(basename "$ENTITLEMENTS")"
+fi
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+if [ -n "$SIGN_IDENTITY" ] && [ -z "$ENTITLEMENTS" ]; then
+  ENTITLEMENTS="$ROOT/packaging/MacContestLogger.entitlements"
+fi
 
 ARM_TRIPLE=arm64-apple-macosx14.0
 X86_TRIPLE=x86_64-apple-macosx14.0
@@ -163,8 +203,49 @@ for name in "${RESOURCE_BUNDLES[@]}"; do
   echo "resource bundle: $name"
 done
 
-codesign --force --deep -s - "$APP"
+if [ -z "$SIGN_IDENTITY" ]; then
+  codesign --force --deep -s - "$APP"
+else
+  plutil -lint "$ENTITLEMENTS"
+  SIGN_ARGS=(--force --options runtime -s "$SIGN_IDENTITY")
+  if [ "$TIMESTAMP" -eq 1 ] && [ "$SIGN_IDENTITY" != "-" ]; then
+    SIGN_ARGS+=(--timestamp)
+  elif [ "$SIGN_IDENTITY" != "-" ]; then
+    echo "warning: signing without --timestamp; the result cannot be notarized" >&2
+  fi
+  # Inside-out: the deepest nested code first, the app last. Code bundles (with Contents/MacOS or a framework
+  # layout) are signed as a whole, loose Mach-O files one by one.
+  MAIN_EXE="$APP/Contents/MacOS/MacContestLogger"
+  NESTED=()
+  while IFS= read -r -d '' f; do
+    [ "$f" = "$MAIN_EXE" ] && continue
+    if file -b "$f" | grep -q 'Mach-O'; then
+      NESTED+=("$f")
+    fi
+  done < <(find "$APP/Contents" -type f -print0)
+  while IFS= read -r -d '' b; do
+    if [ -d "$b/Contents/MacOS" ] || [ -d "$b/Versions" ]; then
+      NESTED+=("$b")
+    fi
+  done < <(find "$APP/Contents" -mindepth 1 -type d \( -name '*.framework' -o -name '*.bundle' -o -name '*.app' -o -name '*.xpc' -o -name '*.appex' \) -print0)
+  if [ "${#NESTED[@]}" -gt 0 ]; then
+    # Deeper paths first (more slashes = deeper).
+    while IFS= read -r item; do
+      echo "signing nested: ${item#"$APP/"}"
+      codesign "${SIGN_ARGS[@]}" "$item"
+    done < <(for item in "${NESTED[@]}"; do printf '%s\t%s\n' "$(printf '%s' "$item" | tr -cd '/' | wc -c)" "$item"; done \
+      | sort -t $'\t' -k1,1nr | cut -f2-)
+  else
+    echo "signing nested: none"
+  fi
+  codesign "${SIGN_ARGS[@]}" --entitlements "$ENTITLEMENTS" "$APP"
+fi
 codesign --verify --deep --strict "$APP"
+if [ -n "$SIGN_IDENTITY" ]; then
+  # Identity, team, flags (runtime), timestamp — no secrets in this output.
+  codesign -dv "$APP" 2>&1 | grep -E '^(Identifier|Format|CodeDirectory|Signature|Authority|TeamIdentifier|Timestamp|Runtime Version)'
+  codesign -d --entitlements - --xml "$APP" 2>/dev/null | plutil -p - || true
+fi
 
 "$APP/Contents/MacOS/MacContestLogger" --self-check
 echo "self-check passed: $APP"
@@ -182,6 +263,15 @@ if [ "$DMG" -eq 1 ]; then
   ln -s /Applications "$STAGE/Applications"
   hdiutil create -volname MacContestLogger -srcfolder "$STAGE" -format UDZO -ov "$DMG_FILE"
   rm -rf "$STAGE"
+  if [ -n "$SIGN_IDENTITY" ] && [ "$SIGN_IDENTITY" != "-" ]; then
+    DMG_SIGN_ARGS=(--force -s "$SIGN_IDENTITY")
+    if [ "$TIMESTAMP" -eq 1 ]; then
+      DMG_SIGN_ARGS+=(--timestamp)
+    fi
+    codesign "${DMG_SIGN_ARGS[@]}" "$DMG_FILE"
+    codesign --verify --strict "$DMG_FILE"
+    codesign -dv "$DMG_FILE" 2>&1 | grep -E '^(Identifier|Authority|TeamIdentifier|Timestamp)'
+  fi
   if [ "$UNIVERSAL" -eq 1 ]; then
     hdiutil verify "$DMG_FILE"
     (cd "$OUT" && shasum -a 256 "$(basename "$DMG_FILE")" > "$(basename "$DMG_FILE").sha256")

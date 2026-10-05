@@ -1,10 +1,17 @@
-# Universal (arm64 + x86_64) unsigned DMG.
+# Universal (arm64 + x86_64) DMG, signed with Developer ID and notarized when the signing secrets are set.
 #
 # - Tag `v*`           : build, verify on Intel, create a DRAFT GitHub release (the owner publishes it).
 # - workflow_dispatch  : build + verify, artifacts only (never a release); optional `version` input.
 # - pull_request       : the same dry run, only when a release-related file changes; artifacts only.
 # The tag is a version such as v0.9.0 or v1.2.3 (not all zero); a suffix (-rc1) stays in the file name and is cut off from the bundle version
-# (see scripts/release-version.sh). No signing, no notarization.
+# (see scripts/release-version.sh).
+#
+# Signing: when all six secrets MACOS_CERT_P12_BASE64, MACOS_CERT_PASSWORD, NOTARY_KEY_P8_BASE64, NOTARY_KEY_ID,
+# NOTARY_ISSUER_ID and APPLE_TEAM_ID are set, the package job imports the certificate into a temporary keychain,
+# signs the app (hardened runtime, packaging/MacContestLogger.entitlements) and the DMG, notarizes the DMG with
+# notarytool, staples it and checks it with spctl. Without them (forks, a repository without the secrets) the build
+# is exactly the unsigned one: ad-hoc signed app, unsigned DMG. A partial set is an error. Secrets live only in the
+# package job, only in the steps that need them, and are never printed (no `set -x`).
 name: Release
 
 on:
@@ -41,6 +48,7 @@ jobs:
       contents: read
     outputs:
       dmg: ${{ steps.ver.outputs.dmgName }}
+      signed: ${{ steps.mode.outputs.signed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,17 +74,146 @@ jobs:
           scripts/release-version.sh "$GITHUB_REF_TYPE" "$GITHUB_REF_NAME" "$GITHUB_SHA" "${INPUT_VERSION:-}" | tee -a "$GITHUB_OUTPUT"
           fileVersion="$(grep '^fileVersion=' "$GITHUB_OUTPUT" | tail -n1 | cut -d= -f2-)"
           echo "dmgName=MacContestLogger-${fileVersion}-macos-universal.dmg" >> "$GITHUB_OUTPUT"
+      - name: Signing mode
+        id: mode
+        env:
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          NOTARY_KEY_P8_BASE64: ${{ secrets.NOTARY_KEY_P8_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          set_count=0
+          missing=()
+          for name in MACOS_CERT_P12_BASE64 MACOS_CERT_PASSWORD NOTARY_KEY_P8_BASE64 NOTARY_KEY_ID NOTARY_ISSUER_ID APPLE_TEAM_ID; do
+            if [ -n "${!name:-}" ]; then
+              set_count=$((set_count + 1))
+            else
+              missing+=("$name")
+            fi
+          done
+          if [ "$set_count" -eq 6 ]; then
+            echo "signed build (Developer ID, hardened runtime, notarization)"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          elif [ "$set_count" -eq 0 ]; then
+            echo "unsigned build (signing secrets not set)"
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::signing secrets are only partly set; missing: ${missing[*]}"
+            exit 1
+          fi
+      - name: Import signing certificate
+        id: keychain
+        if: steps.mode.outputs.signed == 'true'
+        env:
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/mcl-signing.keychain-db"
+          P12="$RUNNER_TEMP/mcl-signing.p12"
+          trap 'rm -f "$P12"' EXIT
+          # A random password for the throwaway keychain; it never leaves this step.
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          (umask 077 && printf '%s' "$MACOS_CERT_P12_BASE64" | base64 --decode > "$P12")
+          security import "$P12" -k "$KEYCHAIN" -f pkcs12 -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign > /dev/null
+          rm -f "$P12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          # Put the temporary keychain first in the user search list, keep the others.
+          existing=()
+          while IFS= read -r kc; do
+            kc="${kc#"${kc%%[![:space:]]*}"}"
+            kc="${kc#\"}"; kc="${kc%\"}"
+            if [ -n "$kc" ]; then
+              existing+=("$kc")
+            fi
+          done < <(security list-keychains -d user)
+          security list-keychains -d user -s "$KEYCHAIN" "${existing[@]}"
+          # The identity by its SHA-1 hash: unambiguous even if the keychain holds more certificates.
+          team="$(printf '%s' "$APPLE_TEAM_ID" | tr -d '[:space:]')"
+          identities="$(security find-identity -v -p codesigning "$KEYCHAIN" || true)"
+          identity="$(printf '%s\n' "$identities" | grep 'Developer ID Application' | grep -F "($team)" \
+            | head -n1 | awk '{print $2}' || true)"
+          if [ -z "$identity" ]; then
+            # Only the certificate kinds (the part before ':'), not names or team IDs.
+            echo "valid code-signing identities in the imported certificate, by kind:"
+            printf '%s\n' "$identities" | sed -n 's/^ *[0-9][0-9]*) [0-9A-F]* "\([^:]*\):.*/  \1/p' | sort | uniq -c || true
+            echo "::error::no valid 'Developer ID Application' identity for APPLE_TEAM_ID in the imported certificate"
+            exit 1
+          fi
+          echo "Developer ID Application identity found"
+          echo "identity=$identity" >> "$GITHUB_OUTPUT"
       - name: Bundle universal app and DMG
         env:
           VERSION_ARG: ${{ steps.ver.outputs.versionArg }}
           FILE_VERSION: ${{ steps.ver.outputs.fileVersion }}
+          SIGN_IDENTITY: ${{ steps.keychain.outputs.identity }}
         run: |
           set -euo pipefail
           args=(--config release --universal --dmg --out build/release --file-version "$FILE_VERSION")
           if [ -n "$VERSION_ARG" ]; then
             args+=(--version "$VERSION_ARG")
           fi
+          if [ -n "$SIGN_IDENTITY" ]; then
+            args+=(--sign "$SIGN_IDENTITY" --entitlements packaging/MacContestLogger.entitlements --timestamp)
+          else
+            echo "unsigned build (signing secrets not set)"
+          fi
           scripts/bundle.sh "${args[@]}"
+      - name: Notarize and staple DMG
+        if: steps.mode.outputs.signed == 'true'
+        env:
+          NOTARY_KEY_P8_BASE64: ${{ secrets.NOTARY_KEY_P8_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+          DMG: ${{ steps.ver.outputs.dmgName }}
+        run: |
+          set -euo pipefail
+          P8="$RUNNER_TEMP/mcl-notary.p8"
+          RESULT="$RUNNER_TEMP/mcl-notary.json"
+          trap 'rm -f "$P8"' EXIT
+          (umask 077 && printf '%s' "$NOTARY_KEY_P8_BASE64" | base64 --decode > "$P8")
+          chmod 600 "$P8"
+          auth=(--key "$P8" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID")
+          cd build/release
+          submit_rc=0
+          xcrun notarytool submit "$DMG" "${auth[@]}" --wait --timeout 1h --output-format json > "$RESULT" || submit_rc=$?
+          sub_id="$(plutil -extract id raw -o - "$RESULT" 2>/dev/null || true)"
+          status="$(plutil -extract status raw -o - "$RESULT" 2>/dev/null || true)"
+          echo "notarization submission: ${sub_id:-?}, status: ${status:-?} (exit $submit_rc)"
+          if [ "$submit_rc" -ne 0 ] || [ "$status" != "Accepted" ]; then
+            if [ -n "$sub_id" ]; then
+              echo "notary log:"
+              xcrun notarytool log "$sub_id" "${auth[@]}" || true
+            fi
+            echo "::error::notarization failed (status: ${status:-unknown})"
+            exit 1
+          fi
+          rm -f "$P8"
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate "$DMG"
+          # Stapling changes the DMG, so the checksum file is written again (same `shasum -c` format).
+          shasum -a 256 "$DMG" > "$DMG.sha256"
+      - name: Gatekeeper assessment
+        if: steps.mode.outputs.signed == 'true'
+        env:
+          DMG: ${{ steps.ver.outputs.dmgName }}
+        run: |
+          set -euo pipefail
+          spctl --assess --type open --context context:primary-signature -vv "build/release/$DMG"
+          MNT="$RUNNER_TEMP/mcl-dmg-check"
+          mkdir -p "$MNT"
+          hdiutil attach -readonly -nobrowse -mountpoint "$MNT" "build/release/$DMG"
+          trap 'hdiutil detach "$MNT" -force || true' EXIT
+          codesign --verify --deep --strict "$MNT/MacContestLogger.app"
+          codesign -dv "$MNT/MacContestLogger.app" 2>&1 | grep -E '^(Authority|TeamIdentifier|Timestamp|CodeDirectory)'
+          spctl -a -vv "$MNT/MacContestLogger.app"
       - name: Check DMG and checksum
         env:
           DMG: ${{ steps.ver.outputs.dmgName }}
@@ -92,6 +229,12 @@ jobs:
             build/release/${{ steps.ver.outputs.dmgName }}
             build/release/${{ steps.ver.outputs.dmgName }}.sha256
           if-no-files-found: error
+      # Always, also after a failure halfway through the import (the keychain path is fixed, not a step output).
+      - name: Remove signing keychain
+        if: always() && steps.mode.outputs.signed == 'true'
+        run: |
+          security delete-keychain "$RUNNER_TEMP/mcl-signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/mcl-signing.p12" "$RUNNER_TEMP/mcl-notary.p8"
 
   verify-intel:
     name: Launch check on Intel
@@ -111,9 +254,10 @@ jobs:
           set -euo pipefail
           cd dist
           shasum -a 256 -c "$DMG.sha256"
-      - name: Mount, check architectures, self-check
+      - name: Mount, check architectures, signature, self-check
         env:
           DMG: ${{ needs.package.outputs.dmg }}
+          SIGNED: ${{ needs.package.outputs.signed }}
         run: |
           set -euo pipefail
           uname -m
@@ -123,6 +267,11 @@ jobs:
           trap 'hdiutil detach "$MNT" -force || true' EXIT
           BIN="$MNT/MacContestLogger.app/Contents/MacOS/MacContestLogger"
           codesign --verify --deep --strict "$MNT/MacContestLogger.app"
+          if [ "$SIGNED" = "true" ]; then
+            xcrun stapler validate "dist/$DMG"
+            spctl --assess --type open --context context:primary-signature -vv "dist/$DMG"
+            spctl -a -vv "$MNT/MacContestLogger.app"
+          fi
           lipo -archs "$BIN"
           [ "$(lipo -archs "$BIN")" = "x86_64 arm64" ]
           [ "$(uname -m)" = "x86_64" ]

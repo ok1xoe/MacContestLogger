@@ -108,14 +108,39 @@ SIGTERM, SIGINT and SIGHUP run the regular quit, and the transmitter is released
 ## Release
 
 A release is built by `.github/workflows/release.yml`: pushing a version tag such as `v0.9.0` builds a
-universal (arm64 and x86_64) unsigned DMG, checks it on an Intel runner and creates a draft GitHub
+universal (arm64 and x86_64) DMG, checks it on an Intel runner and creates a draft GitHub
 release with `MacContestLogger-<version>-macos-universal.dmg` and its `.sha256`. A suffix such as
 `-rc1` stays in the file name; the bundle version is `0.9.0`. The version rules are in
 `scripts/release-version.sh`. Locally:
 
     scripts/bundle.sh --config release --universal --version v0.9.0 --dmg --out <dir>
 
-The DMG is neither signed nor notarized, and it uses the same bundle identifier as the Java app.
+The app uses the same bundle identifier as the Java app.
+
+### Signing and notarization
+
+When the repository has the six secrets below, the release workflow signs the app with a Developer ID
+Application certificate (hardened runtime, `packaging/MacContestLogger.entitlements`: microphone only, no
+App Sandbox, which would block serial ports, `rigctld` and plugin scripts), signs the DMG, notarizes it with
+`notarytool`, staples the ticket and checks the result with `spctl` (also on the Intel runner). Without the
+secrets (forks, pull requests from forks) the workflow builds the same DMG unsigned, with an ad-hoc signed app,
+and says "unsigned build (signing secrets not set)"; a partial set fails the build.
+
+| Secret | Content |
+| --- | --- |
+| `MACOS_CERT_P12_BASE64` | Developer ID Application certificate with its private key, exported from Keychain Access as `.p12`, then `base64 -i cert.p12` |
+| `MACOS_CERT_PASSWORD` | the password chosen for that `.p12` export |
+| `NOTARY_KEY_P8_BASE64` | App Store Connect API key (Users and Access → Integrations → Team Keys, role Developer), the downloaded `AuthKey_<id>.p8` as `base64 -i AuthKey_<id>.p8` |
+| `NOTARY_KEY_ID` | the key ID of that API key |
+| `NOTARY_ISSUER_ID` | the issuer ID shown above the team keys list |
+| `APPLE_TEAM_ID` | the ten-character team ID; it selects the Developer ID identity |
+
+Set them with `gh secret set <NAME>` (reads the value from standard input). Locally, a signed build is
+
+    scripts/bundle.sh --config release --universal --dmg --sign "Developer ID Application: <name> (<team id>)" --timestamp
+
+and `--sign -` runs the same hardened-runtime path with an ad-hoc signature (no notarization). Without `--sign`,
+`scripts/bundle.sh` signs ad-hoc as before.
 
 ## Architecture
 
