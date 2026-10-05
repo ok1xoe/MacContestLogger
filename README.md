@@ -107,13 +107,13 @@ SIGTERM, SIGINT and SIGHUP run the regular quit, and the transmitter is released
 
 ## Release
 
-A release is built by `.github/workflows/release.yml`: pushing a tag `v1.x.x` (or newer) builds a
+A release is built by `.github/workflows/release.yml`: pushing a version tag such as `v0.9.0` builds a
 universal (arm64 and x86_64) unsigned DMG, checks it on an Intel runner and creates a draft GitHub
 release with `MacContestLogger-<version>-macos-universal.dmg` and its `.sha256`. A suffix such as
-`-rc1` stays in the file name; the bundle version is `1.2.3`. The version rules are in
+`-rc1` stays in the file name; the bundle version is `0.9.0`. The version rules are in
 `scripts/release-version.sh`. Locally:
 
-    scripts/bundle.sh --config release --universal --version v1.2.3 --dmg --out <dir>
+    scripts/bundle.sh --config release --universal --version v0.9.0 --dmg --out <dir>
 
 The DMG is neither signed nor notarized, and it uses the same bundle identifier as the Java app.
 

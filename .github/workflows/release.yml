@@ -3,7 +3,7 @@
 # - Tag `v*`           : build, verify on Intel, create a DRAFT GitHub release (the owner publishes it).
 # - workflow_dispatch  : build + verify, artifacts only (never a release); optional `version` input.
 # - pull_request       : the same dry run, only when a release-related file changes; artifacts only.
-# The tag must be v1.x.x or newer; a suffix (-rc1) stays in the file name and is cut off from the bundle version
+# The tag is a version such as v0.9.0 or v1.2.3 (not all zero); a suffix (-rc1) stays in the file name and is cut off from the bundle version
 # (see scripts/release-version.sh). No signing, no notarization.
 name: Release
 

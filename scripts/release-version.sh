@@ -5,7 +5,7 @@
 #   scripts/release-version.sh --self-test
 #
 # Prints key=value lines (append them to $GITHUB_OUTPUT):
-#   versionArg     the version to pass to `bundle.sh --version` (empty = bundle.sh default 1.0.0)
+#   versionArg     the version to pass to `bundle.sh --version` (empty = bundle.sh default 0.0.1)
 #   bundleVersion  CFBundleShortVersionString / CFBundleVersion (suffix cut off)
 #   fileVersion    version in the file name (a suffix such as -rc1 stays)
 #   release        true only for ref_type "tag"; a manual run with an input version is never a release
@@ -17,7 +17,7 @@
 # A non-empty input_version on a tag ref must equal the tag (it cannot silently be ignored).
 #
 # The version is the tag (or, for a non-tag run, the optional input_version); `v` optional, 1 to 3 dot-separated
-# numbers, the first at least 1, an optional `-suffix`. Without a tag and without input: 1.0.0, file name
+# numbers, not all zero (0.9.0 is fine), an optional `-suffix`. Without a tag and without input: 0.0.1, file name
 # `dev-<first 7 of sha>`. An invalid version exits 2.
 set -euo pipefail
 
@@ -38,7 +38,7 @@ derive() {
   fi
   if [ -z "$arg" ]; then
     echo "versionArg="
-    echo "bundleVersion=1.0.0"
+    echo "bundleVersion=0.0.1"
     echo "fileVersion=dev-${sha:0:7}"
     echo "release=$release"
     return 0
@@ -59,8 +59,12 @@ derive() {
     fi
     norm+=("$((10#$part))")
   done
-  if [ "${norm[0]}" -lt 1 ]; then
-    echo "version '$arg': the first number must be at least 1" >&2
+  local nonzero=0
+  for n in "${norm[@]}"; do
+    [ "$n" -gt 0 ] && nonzero=1
+  done
+  if [ "$nonzero" -eq 0 ]; then
+    echo "version '$arg': at least one number must be greater than 0" >&2
     return 2
   fi
   core="$(IFS=.; echo "${norm[*]}")"
@@ -95,26 +99,29 @@ self_test() {
   check tag v2 "" "versionArg=v2;bundleVersion=2;fileVersion=2;release=true"
   check tag v1.0.0-beta.2 "" "versionArg=v1.0.0-beta.2;bundleVersion=1.0.0;fileVersion=1.0.0-beta.2;release=true"
   check tag v01.2.3 "" "versionArg=v01.2.3;bundleVersion=1.2.3;fileVersion=01.2.3;release=true"
-  check tag v0.1.0 "" ERR
-  check tag v00.1.0 "" ERR
+  check tag v0.1.0 "" "versionArg=v0.1.0;bundleVersion=0.1.0;fileVersion=0.1.0;release=true"
+  check tag v00.1.0 "" "versionArg=v00.1.0;bundleVersion=0.1.0;fileVersion=00.1.0;release=true"
   check tag v99999999999999999999.1 "" ERR
   check tag v1.2.3 v1.2.3 "versionArg=v1.2.3;bundleVersion=1.2.3;fileVersion=1.2.3;release=true"
   check tag v1.2.3 v1.2.4 ERR
   check workflow_dispatch main "  v1.2.3  " "versionArg=v1.2.3;bundleVersion=1.2.3;fileVersion=1.2.3;release=false"
-  check workflow_dispatch main "   " "versionArg=;bundleVersion=1.0.0;fileVersion=dev-0123456;release=false"
+  check workflow_dispatch main "   " "versionArg=;bundleVersion=0.0.1;fileVersion=dev-0123456;release=false"
   check workflow_dispatch main v1.2.3+b1 ERR
-  check tag v0.9.0-rc1 "" ERR
+  check tag v0.9.0-rc1 "" "versionArg=v0.9.0-rc1;bundleVersion=0.9.0;fileVersion=0.9.0-rc1;release=true"
+  check tag v0.9.0 "" "versionArg=v0.9.0;bundleVersion=0.9.0;fileVersion=0.9.0;release=true"
+  check tag v0.0.0 "" ERR
+  check tag v0 "" ERR
   check tag v1.2.3.4 "" ERR
   check tag vfoo "" ERR
   check tag v1.x "" ERR
   check tag v "" ERR
-  check branch main "" "versionArg=;bundleVersion=1.0.0;fileVersion=dev-0123456;release=false"
-  check workflow_dispatch main "" "versionArg=;bundleVersion=1.0.0;fileVersion=dev-0123456;release=false"
+  check branch main "" "versionArg=;bundleVersion=0.0.1;fileVersion=dev-0123456;release=false"
+  check workflow_dispatch main "" "versionArg=;bundleVersion=0.0.1;fileVersion=dev-0123456;release=false"
   check workflow_dispatch main v1.2.3-rc1 "versionArg=v1.2.3-rc1;bundleVersion=1.2.3;fileVersion=1.2.3-rc1;release=false"
-  check pull_request 7/merge "" "versionArg=;bundleVersion=1.0.0;fileVersion=dev-0123456;release=false"
-  check workflow_dispatch main v0.5.0 ERR
+  check pull_request 7/merge "" "versionArg=;bundleVersion=0.0.1;fileVersion=dev-0123456;release=false"
+  check workflow_dispatch main v0.5.0 "versionArg=v0.5.0;bundleVersion=0.5.0;fileVersion=0.5.0;release=false"
   # a branch named like a tag must not become a release or a version
-  check branch v1.2.3 "" "versionArg=;bundleVersion=1.0.0;fileVersion=dev-0123456;release=false"
+  check branch v1.2.3 "" "versionArg=;bundleVersion=0.0.1;fileVersion=dev-0123456;release=false"
   if [ "$fails" -ne 0 ]; then
     echo "release-version self-test: $fails failure(s)" >&2
     return 1
