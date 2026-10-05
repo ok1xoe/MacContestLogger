@@ -8,8 +8,25 @@ rewrite of the Java application (version 1.1.1) and shares its data format: cont
 
 - macOS 14 or newer
 - Swift 5.10+ toolchain (Xcode or the Command Line Tools) to build from source
-- Optional: [Hamlib](https://hamlib.github.io/) `rigctld` for CAT control, `~/dxcc-json` and
-  `~/dxcc-world-map` as external reference data for DXCC lookup and the world map
+- Optional: [Hamlib](https://hamlib.github.io/) `rigctld` for CAT control
+- Recommended: two public reference data sets in your home directory (see below)
+
+## Reference data (DXCC and world map)
+
+The app does not ship country data or map outlines. It reads them from two folders in your home
+directory, each a clone of a separate public repository:
+
+```bash
+git clone https://github.com/k0swe/dxcc-json ~/dxcc-json
+git clone https://github.com/amazingproducer/dxcc-world-map ~/dxcc-world-map
+```
+
+| Folder | Used for | Without it |
+|---|---|---|
+| `~/dxcc-json` (`dxcc.json`, `cty.dat`) | DXCC country, continent and CQ/ITU zones of a callsign — needed for most contest multipliers and for the DXCC recalculation | countries and zones are not resolved; "Přepočet DXCC" reports missing country data |
+| `~/dxcc-world-map` (`dxcc.geojson`) | country outlines in the world map window | the map is drawn without country outlines |
+
+Update them now and then with `git pull` in each folder; restart the app afterwards.
 
 ## Features
 
