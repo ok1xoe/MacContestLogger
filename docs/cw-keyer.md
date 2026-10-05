@@ -18,6 +18,14 @@ For CAT the transceiver must be connected (icon in the info bar) and **the rig
 must be in CW mode**. Otherwise hamlib refuses to transmit. The speed is set on
 the rig automatically before the message.
 
+**The rig must also have break-in switched on.** With CW via CAT the rig keys
+itself when it receives the text, and most rigs only do that with break-in on;
+with break-in off the message is accepted without an error (the CAT log shows
+`RPRT 0`) but the rig only plays the sidetone, or nothing, and does not transmit.
+On the Kenwood TS-590S/SG press **VOX** in CW mode ("BK-IN" lights up); semi or
+full break-in and the delay are set in the rig's CW menu. If the F-keys "do
+nothing" on the air, check break-in first.
+
 Other options:
 - **Speed (WPM):** default 28. In the entry window you change it with the
   **PgUp / PgDn** keys (±2 WPM) or with the spinner. It is saved when the program quits.
