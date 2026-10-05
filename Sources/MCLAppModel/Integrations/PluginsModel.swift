@@ -127,8 +127,13 @@ public final class PluginsModel {
     /// The quit's last step: queued runs are skipped, the one in flight finishes (its 10 s limit) — after the
     /// database was closed.
     func drain() async {
+        startQuitDeadline()
+        await lane.close()
+    }
+
+    /// Sets the quit deadline: from now on a plugin that has not started yet is not started.
+    func startQuitDeadline() {
         let end = Date(timeIntervalSinceNow: Double(quitBoundMs) / 1000.0)
         quitDeadline.withLock { $0 = end }
-        await lane.close()
     }
 }

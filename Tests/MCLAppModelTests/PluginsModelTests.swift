@@ -210,9 +210,14 @@ final class ListingRunner: PluginRunning, @unchecked Sendable {
         let app = try await IntegrationApp.make()
         let dir: URL = app.app.dir.child("marks")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        // Each plugin holds until the test releases the gate, so the first one is still running when the quit
+        // deadline is set, however slow the machine is.
+        let gate: String = dir.appendingPathComponent("gate").path
         for name in ["p1.sh", "p2.sh", "p3.sh"] {
             try Self.plugin(app, event: "qso-logged", name: name,
-                            body: "touch '\(dir.path)/\(name).start'\nsleep 1\ntouch '\(dir.path)/\(name).end'")
+                            body: "touch '\(dir.path)/\(name).start'\n"
+                                + "while [ ! -e '\(gate)' ]; do sleep 0.05; done\n"
+                                + "touch '\(dir.path)/\(name).end'")
         }
         app.plugins.quitBoundMs = 0
         try await app.app.startCqWwCw()
@@ -220,6 +225,8 @@ final class ListingRunner: PluginRunning, @unchecked Sendable {
         await eventually("first plugin running") {
             FileManager.default.fileExists(atPath: dir.appendingPathComponent("p1.sh.start").path)
         }
+        app.plugins.startQuitDeadline()
+        FileManager.default.createFile(atPath: gate, contents: nil)
         await app.plugins.drain()
         #expect(FileManager.default.fileExists(atPath: dir.appendingPathComponent("p1.sh.end").path))
         #expect(!FileManager.default.fileExists(atPath: dir.appendingPathComponent("p2.sh.start").path))
