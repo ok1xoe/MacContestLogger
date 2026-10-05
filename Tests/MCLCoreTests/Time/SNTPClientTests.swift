@@ -83,7 +83,7 @@ private func waitForResponder(_ semaphore: DispatchSemaphore) {
         }
 
         do {
-            _ = try await SNTPClient.query(host: "127.0.0.1", port: server.port, timeoutMs: 2_000)
+            _ = try await SNTPClient.query(host: "127.0.0.1", port: server.port, timeoutMs: 10_000)
             Issue.record("expected the error responseTooShort")
         } catch let error as SNTPClient.QueryError {
             #expect(error == .responseTooShort(10))

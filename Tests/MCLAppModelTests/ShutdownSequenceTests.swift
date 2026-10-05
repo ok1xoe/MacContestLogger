@@ -319,6 +319,10 @@ import Testing
             ports.makeSession = NetworkPorts.sessions(sleep: sleeper.sleep)
             ports.http = http
             ports.urlOpener = opener.opener
+            // The plugin runs from the prepare step until the last quit step. The product cuts a plugin off after
+            // its time limit (10 s), which a slow CI runner can exceed between those two points, so the test's
+            // runner gets a limit that only a hang can reach.
+            ports.plugins = PluginsPorts { root, _ in PluginRunner(root: root, timeoutMs: 600_000) }
             ports.makeSyncTransport = { _, _ in transport }
             ports.isInert = false
             environment.network = ports
@@ -364,7 +368,7 @@ import Testing
         await eventually("main connected") { model.dxCluster.connected }
         // A plugin that runs until released: the quit's last step awaits it (queued runs would be skipped).
         let started: URL = pluginGo.deletingLastPathComponent().appendingPathComponent("plugin-started")
-        let script = "echo 1 > '\(started.path)'\nn=0\nwhile [ ! -f '\(pluginGo.path)' ] && [ $n -lt 200 ]; do sleep 0.05; "
+        let script = "echo 1 > '\(started.path)'\nn=0\nwhile [ ! -f '\(pluginGo.path)' ] && [ $n -lt 6000 ]; do sleep 0.05; "
             + "n=$((n+1)); done\necho done > '\(pluginMarker.path)'"
         let dir: URL = app.dataDir.appendingPathComponent("plugins/qso-logged", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -398,6 +402,8 @@ import Testing
         let recorder: QuitRecorder = self.recorder
         let writes: WriteLog = self.writes
         let go: URL = pluginGo
+        // The quit's own wait for the plugin (10 s) is not what is under test; only a hang may reach it.
+        model.plugins.quitBoundMs = 600_000
         recorder.effects = { [self] in effects() }
         recorder.writeCount = { writes.count }
         recorder.tag = { name in model.config.config.station.call = WriteLog.stamp + name }

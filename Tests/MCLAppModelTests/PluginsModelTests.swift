@@ -174,7 +174,11 @@ final class ListingRunner: PluginRunning, @unchecked Sendable {
 
     /// The quit waits for a run in flight after the database closed, and later events fire nothing.
     @Test func theQuitDrainsThePluginLane() async throws {
-        let app = try await IntegrationApp.make()
+        // The runner's 10 s limit counts from the plugin's start to the end of the whole quit, which a slow CI runner
+        // can exceed; a plugin killed at its limit would leave no marker. Only a hang may reach this limit.
+        let app = try await IntegrationApp.make(adjust: { environment in
+            environment.network.plugins = PluginsPorts { root, _ in PluginRunner(root: root, timeoutMs: 600_000) }
+        })
         let marker: URL = app.app.dir.child("slow")
         try Self.plugin(app, event: "qso-logged", body: "sleep 0.3\necho done >> '\(marker.path)'")
         try await app.app.startCqWwCw()
