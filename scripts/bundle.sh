@@ -15,7 +15,7 @@
 # (`lipo -archs` must say `x86_64 arm64`). A DMG is then named MacContestLogger-<file version>-macos-universal.dmg,
 # is checked with `hdiutil verify` and gets a `<dmg>.sha256` next to it (`shasum -c` format). Without --universal
 # nothing changes. --file-version overrides only the version in the DMG file name (CI: `dev-<sha7>` for builds
-# that are not from a tag; the bundle version stays 1.0.0).
+# that are not from a tag; the bundle version stays 0.0.1).
 #
 # App Transport Security in Info.plist (a plist has no comments, so the reasons are here):
 # - NSAllowsArbitraryLoads: parity with the JVM app, which loads any URL the user types in — a scoreboard URL
@@ -69,9 +69,9 @@ case "$CONFIG" in
 esac
 
 # Version rules (v optional, 1 to 3 numbers, first at least 1, a suffix only in the file name) live in
-# scripts/release-version.sh, the single source. Without --version: 1.0.0.
-VERSION=1.0.0
-FILE_VERSION=1.0.0
+# scripts/release-version.sh, the single source. Without --version: 0.0.1.
+VERSION=0.0.1
+FILE_VERSION=0.0.1
 if [ -n "$VERSION_ARG" ]; then
   if ! DERIVED="$("$(dirname "$0")/release-version.sh" branch local 0000000 "$VERSION_ARG")"; then
     echo "--version '$VERSION_ARG' rejected" >&2
