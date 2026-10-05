@@ -130,14 +130,21 @@ jobs:
           while IFS= read -r kc; do
             kc="${kc#"${kc%%[![:space:]]*}"}"
             kc="${kc#\"}"; kc="${kc%\"}"
-            [ -n "$kc" ] && existing+=("$kc")
+            if [ -n "$kc" ]; then
+              existing+=("$kc")
+            fi
           done < <(security list-keychains -d user)
           security list-keychains -d user -s "$KEYCHAIN" "${existing[@]}"
           # The identity by its SHA-1 hash: unambiguous even if the keychain holds more certificates.
-          identity="$(security find-identity -v -p codesigning "$KEYCHAIN" \
-            | grep 'Developer ID Application' | grep -F "($APPLE_TEAM_ID)" | head -n1 | awk '{print $2}')"
+          team="$(printf '%s' "$APPLE_TEAM_ID" | tr -d '[:space:]')"
+          identities="$(security find-identity -v -p codesigning "$KEYCHAIN" || true)"
+          identity="$(printf '%s\n' "$identities" | grep 'Developer ID Application' | grep -F "($team)" \
+            | head -n1 | awk '{print $2}' || true)"
           if [ -z "$identity" ]; then
-            echo "::error::no valid 'Developer ID Application' identity for the team in the imported certificate"
+            # Only the certificate kinds (the part before ':'), not names or team IDs.
+            echo "valid code-signing identities in the imported certificate, by kind:"
+            printf '%s\n' "$identities" | sed -n 's/^ *[0-9][0-9]*) [0-9A-F]* "\([^:]*\):.*/  \1/p' | sort | uniq -c || true
+            echo "::error::no valid 'Developer ID Application' identity for APPLE_TEAM_ID in the imported certificate"
             exit 1
           fi
           echo "Developer ID Application identity found"
