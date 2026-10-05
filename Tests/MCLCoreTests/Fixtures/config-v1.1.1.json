@@ -1,0 +1,787 @@
+{
+  "rig" : {
+    "mode" : "CONNECT_RUNNING",
+    "model" : 2037,
+    "modelLabel" : "2037 — Kenwood TS-590SG",
+    "device" : "/dev/cu.SLAB_USBtoUART",
+    "baud" : 115200,
+    "host" : "localhost",
+    "port" : 4532,
+    "dataBits" : 8,
+    "stopBits" : 1,
+    "parity" : "NONE",
+    "flowControl" : "AUTO",
+    "dtr" : "UNSET",
+    "rts" : "UNSET"
+  },
+  "station" : {
+    "call" : "OK1K",
+    "operator" : "OK1XOE",
+    "gridSquare" : "JN88WX",
+    "name" : "Tomas",
+    "address1" : "",
+    "address2" : "",
+    "city" : "",
+    "state" : "",
+    "zip" : "",
+    "country" : "",
+    "cqZone" : "15",
+    "ituZone" : "28",
+    "license" : "A",
+    "latitude" : "48.97",
+    "longitude" : "17.87",
+    "stationTxRx" : "",
+    "power" : "",
+    "antenna" : "",
+    "antHeight" : "",
+    "asl" : "",
+    "arrlSection" : "DX",
+    "roverQth" : "JN79",
+    "club" : "CzechContest Club",
+    "email" : ""
+  },
+  "cluster" : {
+    "enabled" : false,
+    "brokerHost" : "",
+    "port" : 1883,
+    "username" : "",
+    "password" : "",
+    "stationId" : "",
+    "tls" : false,
+    "shareSpots" : true,
+    "interlock" : "NONE",
+    "stationType" : "NONE",
+    "ruleEnforcement" : "WARN",
+    "serialServer" : false
+  },
+  "dxCluster" : {
+    "favorites" : [ {
+      "name" : "hamqth.com",
+      "host" : "hamqth.com",
+      "port" : 7300,
+      "login" : "",
+      "password" : "",
+      "parallel" : false
+    } ],
+    "commands" : [ {
+      "label" : "TEST 10",
+      "command" : "SH/DX 10"
+    }, {
+      "label" : "SH/DX 25",
+      "command" : "SH/DX 25"
+    }, {
+      "label" : "SH/DX 20m",
+      "command" : "SH/DX ON 20M"
+    }, {
+      "label" : "SH/DX 40m",
+      "command" : "SH/DX ON 40M"
+    }, {
+      "label" : "WWV",
+      "command" : "SH/WWV"
+    }, {
+      "label" : "WCY",
+      "command" : "SH/WCY"
+    }, {
+      "label" : "Uživatelé",
+      "command" : "SH/USERS"
+    }, {
+      "label" : "Cluster",
+      "command" : "SH/CLUSTER"
+    }, {
+      "label" : "Moje info",
+      "command" : "SH/STATION"
+    }, {
+      "label" : "Nápověda",
+      "command" : "HELP"
+    } ],
+    "lastFavorite" : "",
+    "spotBufferMinutes" : 90,
+    "autoSplit" : true,
+    "showBandPlan" : true,
+    "minSkimmers" : 1,
+    "wheelStepHz" : 100,
+    "wheelStepShiftHz" : 1000,
+    "selfSpotThresholdHz" : 2500,
+    "blacklistedCalls" : [ ],
+    "blacklistedSpotters" : [ ],
+    "callBlacklist" : [ ],
+    "spotterBlacklist" : [ ]
+  },
+  "hamQth" : {
+    "enabled" : true,
+    "username" : "",
+    "password" : "",
+    "callModes" : [ "DIGI" ],
+    "fetchFields" : [ "grid", "cqZone", "ituZone", "name" ]
+  },
+  "qrz" : {
+    "enabled" : true,
+    "username" : "",
+    "password" : "",
+    "callModes" : [ "DIGI" ],
+    "fetchFields" : [ "grid", "cqZone", "ituZone", "name" ]
+  },
+  "map" : {
+    "scheme" : "green",
+    "political" : false
+  },
+  "infoWindow" : {
+    "trendMinutes" : 20,
+    "showTimers" : true,
+    "offTimeMode" : "sinceLastQso",
+    "showCallframeSpot" : true,
+    "showCountryInfo" : true,
+    "showSunTimes" : true,
+    "showWwv" : true,
+    "showGoals" : true,
+    "showMessages" : true
+  },
+  "broadcast" : {
+    "contactsEnabled" : false,
+    "contactsTargets" : "",
+    "radioEnabled" : false,
+    "radioTargets" : "",
+    "scoreEnabled" : false,
+    "scoreTargets" : "",
+    "appInfoEnabled" : false,
+    "appInfoTargets" : ""
+  },
+  "wsjtx" : {
+    "receiveEnabled" : false,
+    "receiveBind" : "0.0.0.0:2237",
+    "sendEnabled" : false,
+    "sendTargets" : ""
+  },
+  "n1mmRecv" : {
+    "receiveEnabled" : false,
+    "receiveBind" : "0.0.0.0:12061"
+  },
+  "adifUdp" : {
+    "receiveEnabled" : false,
+    "receiveBind" : "0.0.0.0:2333"
+  },
+  "voiceKeyer" : {
+    "outputDevice" : "Default Audio Device",
+    "inputDevice" : "Default Audio Device",
+    "pttViaCat" : true,
+    "pttDelayMs" : 150,
+    "maxRecordSeconds" : 30,
+    "wavDir" : "",
+    "lettersPath" : "LettersFiles/{OPERATOR}",
+    "runMessages" : [ {
+      "label" : "CQ",
+      "text" : "{OPERATOR}/CQ.wav"
+    }, {
+      "label" : "Exch",
+      "text" : "{OPERATOR}/Exchange.wav"
+    }, {
+      "label" : "TU",
+      "text" : "{OPERATOR}/Thanks.wav"
+    }, {
+      "label" : "{MYCALL}",
+      "text" : "{OPERATOR}/Mycall.wav"
+    }, {
+      "label" : "His Call",
+      "text" : ""
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    }, {
+      "label" : "QRZ?",
+      "text" : "{OPERATOR}/QRZ.wav"
+    }, {
+      "label" : "Agn?",
+      "text" : "{OPERATOR}/AllAgain.wav"
+    }, {
+      "label" : "Exch?",
+      "text" : "{OPERATOR}/ExchangeQuery.wav"
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    } ],
+    "spMessages" : [ {
+      "label" : "CQ",
+      "text" : "{OPERATOR}/CQ.wav"
+    }, {
+      "label" : "Exch",
+      "text" : "{OPERATOR}/SPExchange.wav"
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    }, {
+      "label" : "{MYCALL}",
+      "text" : "{OPERATOR}/Mycall.wav"
+    }, {
+      "label" : "His Call",
+      "text" : ""
+    }, {
+      "label" : "{MYCALL}",
+      "text" : "{OPERATOR}/Mycall.wav"
+    }, {
+      "label" : "Rpt Exch",
+      "text" : "{OPERATOR}/RepeatExchange.wav"
+    }, {
+      "label" : "Agn?",
+      "text" : "{OPERATOR}/AllAgain.wav"
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    }, {
+      "label" : "Spare",
+      "text" : ""
+    } ]
+  },
+  "cwKeyer" : {
+    "method" : "CAT",
+    "winkeyerPort" : "",
+    "speed" : 28,
+    "cutNumbers" : false,
+    "leadingZeros" : false,
+    "cutStyle" : "TN",
+    "runMessages" : [ {
+      "label" : "Cq",
+      "text" : "cq test {MYCALL} {MYCALL} test"
+    }, {
+      "label" : "Exch",
+      "text" : "{SENTRSTCUT} {EXCH}"
+    }, {
+      "label" : "Tu",
+      "text" : "tu {MYCALL} test"
+    }, {
+      "label" : "{MYCALL}",
+      "text" : "{MYCALL}"
+    }, {
+      "label" : "His Call",
+      "text" : "!"
+    }, {
+      "label" : "Repeat",
+      "text" : "{SENTRSTCUT} {EXCH} {EXCH}"
+    }, {
+      "label" : "Empty",
+      "text" : ""
+    }, {
+      "label" : "Agn?",
+      "text" : "agn?"
+    }, {
+      "label" : "Nr?",
+      "text" : "nr?"
+    }, {
+      "label" : "Call?",
+      "text" : "cl?"
+    }, {
+      "label" : "Empty",
+      "text" : ""
+    }, {
+      "label" : "Wipe",
+      "text" : "{WIPE}"
+    } ],
+    "spMessages" : [ {
+      "label" : "Qrl?",
+      "text" : "qrl? de {MYCALL}"
+    }, {
+      "label" : "Exch",
+      "text" : "{SENTRSTCUT} {EXCH}"
+    }, {
+      "label" : "Tu",
+      "text" : "tu"
+    }, {
+      "label" : "{MYCALL}",
+      "text" : "{MYCALL}"
+    }, {
+      "label" : "His Call",
+      "text" : "!"
+    }, {
+      "label" : "Repeat",
+      "text" : "{SENTRSTCUT} {EXCH} {EXCH}"
+    }, {
+      "label" : "Empty",
+      "text" : ""
+    }, {
+      "label" : "Agn?",
+      "text" : "agn?"
+    }, {
+      "label" : "Nr?",
+      "text" : "nr?"
+    }, {
+      "label" : "Call?",
+      "text" : "cl?"
+    }, {
+      "label" : "Empty",
+      "text" : ""
+    }, {
+      "label" : "Wipe",
+      "text" : "{WIPE}"
+    } ]
+  },
+  "digital" : {
+    "engine" : "FLDIGI",
+    "fldigiHost" : "127.0.0.1",
+    "fldigiPort" : 7362,
+    "runMessages" : [ {
+      "label" : "Cq",
+      "text" : "CQ TEST {MYCALL} {MYCALL} CQ"
+    }, {
+      "label" : "Exch",
+      "text" : "! {SENTRST} {EXCH} {EXCH} !"
+    }, {
+      "label" : "Tu",
+      "text" : "TU {MYCALL} {LOG} TEST"
+    }, {
+      "label" : "{MYCALL}",
+      "text" : "{MYCALL}"
+    }, {
+      "label" : "His Call",
+      "text" : "!"
+    }, {
+      "label" : "Repeat",
+      "text" : "{EXCH} {EXCH}"
+    }, {
+      "label" : "Empty",
+      "text" : ""
+    }, {
+      "label" : "Agn?",
+      "text" : "AGN AGN"
+    }, {
+      "label" : "Nr?",
+      "text" : "NR? NR?"
+    }, {
+      "label" : "Call?",
+      "text" : "CALL? CALL?"
+    }, {
+      "label" : "Empty",
+      "text" : ""
+    }, {
+      "label" : "Wipe",
+      "text" : "{WIPE}"
+    } ],
+    "spMessages" : [ {
+      "label" : "Qrl?",
+      "text" : "QRL? DE {MYCALL}"
+    }, {
+      "label" : "Exch",
+      "text" : "TU {SENTRST} {EXCH} {EXCH}"
+    }, {
+      "label" : "Tu",
+      "text" : "TU"
+    }, {
+      "label" : "{MYCALL}",
+      "text" : "{MYCALL} {MYCALL}"
+    }, {
+      "label" : "His Call",
+      "text" : "!"
+    }, {
+      "label" : "Repeat",
+      "text" : "{EXCH} {EXCH}"
+    }, {
+      "label" : "Empty",
+      "text" : ""
+    }, {
+      "label" : "Agn?",
+      "text" : "AGN AGN"
+    }, {
+      "label" : "Nr?",
+      "text" : "NR? NR?"
+    }, {
+      "label" : "Call?",
+      "text" : "CALL? CALL?"
+    }, {
+      "label" : "Empty",
+      "text" : ""
+    }, {
+      "label" : "Wipe",
+      "text" : "{WIPE}"
+    } ]
+  },
+  "esm" : {
+    "enabled" : true,
+    "spCallOnce" : false,
+    "workDupes" : true
+  },
+  "runMode" : {
+    "autoSwitch" : true,
+    "runOnCqFrequency" : true,
+    "repeatSeconds" : 2.0
+  },
+  "keyBindings" : { },
+  "autoReloadLastContest" : false,
+  "contestSetups" : {
+    "cq-ww-cw" : {
+      "category" : {
+        "TRANSMITTER" : "ONE",
+        "STATION" : "FIXED",
+        "OPERATOR" : "SINGLE-OP",
+        "MODE" : "CW",
+        "ASSISTED" : "NON-ASSISTED",
+        "POWER" : "LOW",
+        "TIME" : "N/A",
+        "BAND" : "ALL",
+        "OVERLAY" : "N/A"
+      },
+      "sentExchange" : {
+        "zone" : "1515"
+      },
+      "operators" : "OK1DXX",
+      "soapbox" : "",
+      "startedAt" : "2026-09-20 00:00",
+      "endedAt" : "2026-09-22 00:00",
+      "tour" : "",
+      "skeds" : [ ],
+      "bonusStations" : [ ]
+    },
+    "arrl-dx-cw" : {
+      "category" : {
+        "TRANSMITTER" : "ONE",
+        "STATION" : "FIXED",
+        "OPERATOR" : "SINGLE-OP",
+        "MODE" : "CW",
+        "ASSISTED" : "NON-ASSISTED",
+        "POWER" : "LOW",
+        "TIME" : "N/A",
+        "BAND" : "ALL",
+        "OVERLAY" : "N/A"
+      },
+      "sentExchange" : {
+        "power" : "100"
+      },
+      "operators" : "OK1DXX",
+      "soapbox" : "",
+      "startedAt" : "2026-09-21 00:00",
+      "endedAt" : "2026-09-23 00:00",
+      "tour" : "",
+      "skeds" : [ ],
+      "bonusStations" : [ ]
+    },
+    "cq-wpx-rtty" : {
+      "category" : {
+        "TRANSMITTER" : "ONE",
+        "STATION" : "FIXED",
+        "OPERATOR" : "SINGLE-OP",
+        "MODE" : "RTTY",
+        "ASSISTED" : "NON-ASSISTED",
+        "POWER" : "LOW",
+        "TIME" : "N/A",
+        "BAND" : "ALL",
+        "OVERLAY" : "N/A"
+      },
+      "sentExchange" : { },
+      "operators" : "ok1xoe",
+      "soapbox" : "",
+      "startedAt" : "2026-09-27 00:00",
+      "endedAt" : "2026-09-29 00:00",
+      "tour" : "",
+      "skeds" : [ ],
+      "bonusStations" : [ ]
+    },
+    "cq-ww-rtty" : {
+      "category" : {
+        "TRANSMITTER" : "ONE",
+        "STATION" : "FIXED",
+        "OPERATOR" : "SINGLE-OP",
+        "MODE" : "RTTY",
+        "ASSISTED" : "NON-ASSISTED",
+        "POWER" : "LOW",
+        "TIME" : "N/A",
+        "BAND" : "ALL",
+        "OVERLAY" : "N/A"
+      },
+      "sentExchange" : {
+        "zone" : "15",
+        "state" : ""
+      },
+      "operators" : "OK1K",
+      "soapbox" : "",
+      "startedAt" : "2026-09-27 00:00",
+      "endedAt" : "2026-09-29 00:00",
+      "tour" : "",
+      "skeds" : [ ],
+      "bonusStations" : [ ]
+    }
+  },
+  "contestDataDir" : "/Users/example/MacContestLogger/contest-data",
+  "scpFile" : "/Users/example/Library/Application Support/MacContestLogger/MASTER.SCP",
+  "ttsVoice" : "",
+  "recordContest" : false,
+  "recordingsDir" : "",
+  "rxAudioDevice" : "",
+  "cwPitchHz" : 600,
+  "antennas" : [ ],
+  "antennaViaRig" : false,
+  "clubLog" : {
+    "enabled" : false,
+    "email" : "",
+    "appPassword" : "",
+    "callsign" : "",
+    "apiKey" : ""
+  },
+  "scoreReportingEnabled" : false,
+  "scoreReportingUrl" : "https://contestonlinescore.com/post/",
+  "scoreReportingMinutes" : 2,
+  "scoreReportingBreakdown" : true,
+  "autoBackupMinutes" : 15,
+  "autoBackupKeep" : 10,
+  "autoBackupDir" : "",
+  "bandNotes" : [ ],
+  "footswitchPort" : "",
+  "footswitchPin" : "CTS",
+  "footswitchAction" : "PTT",
+  "transverters" : [ ],
+  "rotatorHost" : "",
+  "rotatorPort" : 4533,
+  "rotorUdpHost" : "",
+  "rotorUdpPort" : 12040,
+  "rotorUdpName" : "",
+  "rig2" : {
+    "mode" : "CONNECT_RUNNING",
+    "model" : 1,
+    "modelLabel" : "Rig 2 (rigctld :4534)",
+    "device" : "",
+    "baud" : 9600,
+    "host" : "localhost",
+    "port" : 4534,
+    "dataBits" : 8,
+    "stopBits" : 1,
+    "parity" : "NONE",
+    "flowControl" : "AUTO",
+    "dtr" : "UNSET",
+    "rts" : "UNSET"
+  },
+  "otrspPort" : "",
+  "radioMode" : "SO1V",
+  "ntpServer" : "pool.ntp.org",
+  "ntpCorrectQsoTime" : false,
+  "language" : "cs",
+  "themeMode" : "SYSTEM",
+  "themeAccent" : "TEAL",
+  "modeRule" : "RADIO",
+  "modeAlways" : "RTTY",
+  "dataMode" : "RTTY",
+  "rttyAfsk" : false,
+  "cwSpeedStep" : 2,
+  "tuneStepCwHz" : 20,
+  "tuneStepSsbHz" : 100,
+  "beepOnDupe" : false,
+  "ritClearAfterLog" : true,
+  "callHistoryFile" : "/Users/example/Library/Application Support/MacContestLogger/CALLHISTORY.txt",
+  "databasesDir" : "/Users/example/Library/Application Support/MacContestLogger/databases",
+  "lastDatabase" : "Deník",
+  "windowGeometry" : {
+    "log" : {
+      "x" : 80,
+      "y" : 80,
+      "width" : 621,
+      "height" : 450
+    },
+    "main" : {
+      "x" : 80,
+      "y" : 80,
+      "width" : 0,
+      "height" : 0
+    },
+    "score" : {
+      "x" : 0,
+      "y" : 493,
+      "width" : 825,
+      "height" : 279
+    },
+    "defeditor" : {
+      "x" : 88,
+      "y" : 108,
+      "width" : 1100,
+      "height" : 720
+    },
+    "rate" : {
+      "x" : 1200,
+      "y" : 150,
+      "width" : 700,
+      "height" : 500
+    },
+    "startup" : {
+      "x" : 120,
+      "y" : 79,
+      "width" : 460,
+      "height" : 330
+    },
+    "dupesheet" : {
+      "x" : 1660,
+      "y" : 774,
+      "width" : 900,
+      "height" : 600
+    },
+    "contests" : {
+      "x" : 88,
+      "y" : 108,
+      "width" : 620,
+      "height" : 520
+    },
+    "movemults" : {
+      "x" : 1250,
+      "y" : 760,
+      "width" : 900,
+      "height" : 500
+    },
+    "worldmap" : {
+      "x" : 245,
+      "y" : 99,
+      "width" : 969,
+      "height" : 587
+    },
+    "dxCluster" : {
+      "x" : 0,
+      "y" : 31,
+      "width" : 760,
+      "height" : 560
+    },
+    "bandmap" : {
+      "x" : 1451,
+      "y" : 38,
+      "width" : 308,
+      "height" : 1250
+    },
+    "availMult" : {
+      "x" : 683,
+      "y" : 35,
+      "width" : 720,
+      "height" : 520
+    },
+    "blacklist" : {
+      "x" : 1200,
+      "y" : 700,
+      "width" : 640,
+      "height" : 480
+    },
+    "rotator" : {
+      "x" : 1500,
+      "y" : 700,
+      "width" : 360,
+      "height" : 460
+    },
+    "entry-vfob" : {
+      "x" : 40,
+      "y" : 620,
+      "width" : 900,
+      "height" : 360
+    },
+    "catLog" : {
+      "x" : 1400,
+      "y" : 700,
+      "width" : 740,
+      "height" : 440
+    },
+    "cwkeyboard" : {
+      "x" : 1400,
+      "y" : 199,
+      "width" : 560,
+      "height" : 220
+    },
+    "simulator" : {
+      "x" : 1940,
+      "y" : 854,
+      "width" : 620,
+      "height" : 520
+    },
+    "wsjtxdecodes" : {
+      "x" : 1350,
+      "y" : 291,
+      "width" : 640,
+      "height" : 460
+    },
+    "statistics" : {
+      "x" : 1200,
+      "y" : 150,
+      "width" : 820,
+      "height" : 560
+    },
+    "propagation" : {
+      "x" : 1200,
+      "y" : 760,
+      "width" : 720,
+      "height" : 360
+    },
+    "bandnotes" : {
+      "x" : 1200,
+      "y" : 760,
+      "width" : 560,
+      "height" : 420
+    },
+    "goals" : {
+      "x" : 1200,
+      "y" : 700,
+      "width" : 420,
+      "height" : 560
+    },
+    "goals-from-log" : {
+      "x" : 1200,
+      "y" : 700,
+      "width" : 560,
+      "height" : 460
+    },
+    "netstatus" : {
+      "x" : 1200,
+      "y" : 700,
+      "width" : 760,
+      "height" : 320
+    },
+    "chat" : {
+      "x" : 1200,
+      "y" : 700,
+      "width" : 560,
+      "height" : 380
+    },
+    "partner" : {
+      "x" : 1250,
+      "y" : 250,
+      "width" : 520,
+      "height" : 280
+    },
+    "profiles" : {
+      "x" : 1250,
+      "y" : 300,
+      "width" : 480,
+      "height" : 380
+    },
+    "digitalinterface" : {
+      "x" : 400,
+      "y" : 120,
+      "width" : 826,
+      "height" : 455
+    },
+    "waterfall" : {
+      "x" : 1291,
+      "y" : 247,
+      "width" : 760,
+      "height" : 380
+    },
+    "mult-dxcc" : {
+      "x" : 826,
+      "y" : 497,
+      "width" : 620,
+      "height" : 871
+    },
+    "skeds" : {
+      "x" : 48,
+      "y" : 79,
+      "width" : 640,
+      "height" : 420
+    },
+    "qtc" : {
+      "x" : 48,
+      "y" : 78,
+      "width" : 620,
+      "height" : 560
+    }
+  },
+  "openWindows" : [ "bandmap", "movemults", "dupesheet", "statistics", "propagation", "cwkeyboard", "netstatus", "chat", "partner", "waterfall" ],
+  "goals" : { }
+}

@@ -1,0 +1,45 @@
+schemaVersion: 1
+id: cq-ww-rtty
+metadata:
+  name: "CQ WW RTTY DX Contest"
+  organizer: "CQ Magazine"
+period: { durationHours: 48 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+stationClasses:
+  # dxccIn = countryCode entity: ISO (dxcc.json) i primární prefix (cty.dat)
+  - { id: wve, when: { dxccIn: [US, CA, K, VE] } }
+  - { id: dx,  when: { not: { dxccIn: [US, CA, K, VE] } } }
+
+exchange:
+  sent:
+    - { id: rst,   type: RST,     source: AUTO_RST }
+    - { id: zone,  type: CQ_ZONE, source: FROM_STATION }
+    - { id: state, type: TEXT,    source: FROM_STATION }   # W/VE: stát/provincie, DX: nepoužito
+  received:
+    - { id: rst,   type: RST,     required: true }
+    - { id: zone,  type: CQ_ZONE, required: true, validation: { min: 1, max: 40 }, estimate: cqZone }
+    - { id: state, type: STATE,   required: true, appliesWhen: { workedClass: wve } }   # W/VE: stát/provincie
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },        value: { fixed: 1 } }   # vlastní země = 1 (POZN: ověřit)
+      - { when: { sameContinent: true },  value: { fixed: 2 } }
+      - { when: { otherContinent: true }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: zones,     set: cq_zones,      from: zone,     scope: PER_BAND }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+  - { id: states,    set: na_areas,      from: state,    scope: PER_BAND }   # státy/DC/provincie (W/VE)
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: CQ-WW-RTTY, sentOrder: [rst, zone, state], receivedOrder: [rst, zone, state] }
+ui:
+  entryOrder: [call, zone, state]
+  logColumns: [time, call, band, mode, rst, zone, state, points, mult]

@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: ok_om_districts
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "OK/OM okresy"
+  description: "NEÚPLNÉ — placeholder. Doplnit oficiální seznam okresů OK-OM DX Contestu."
+valuesFile: ok_om_districts.csv

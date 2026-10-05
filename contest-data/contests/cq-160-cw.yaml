@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: cq-160-cw
+metadata:
+  name: "CQ 160-Meter Contest — CW"
+  organizer: "CQ Magazine"
+period: { durationHours: 48 }
+bands: [160m]
+modes: [CW]
+
+stationClasses:
+  # dxccIn = countryCode entity: ISO (dxcc.json) i primární prefix (cty.dat)
+  - { id: wve, when: { dxccIn: [US, CA, K, VE] } }
+  - { id: dx,  when: { not: { dxccIn: [US, CA, K, VE] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: qth, type: TEXT, source: FROM_STATION }       # má stanice: stát/provincie nebo zóna
+  received:
+    - { id: rst,   type: RST,   required: true }
+    - { id: state, type: STATE, required: true, appliesWhen: { workedClass: wve } }   # W/VE: stát/provincie
+    - { id: zone,  type: CQ_ZONE, required: true, appliesWhen: { workedClass: dx }, estimate: cqZone }  # DX: CQ zóna
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },        value: { fixed: 2 } }    # POZN: ověřit přesné body
+      - { when: { sameContinent: true },  value: { fixed: 5 } }
+      - { when: { otherContinent: true }, value: { fixed: 10 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # W/VE se počítá přes státy/provincie; USA a Kanada se NEpočítají jako DXCC země
+  # (countries jen pro DX, tj. workedClass dx = mimo US/CA/K/VE).
+  - { id: areas,     set: na_areas,      from: state,    scope: ONCE }   # státy/DC/provincie (W/VE)
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE, appliesWhen: { workedClass: dx } }   # DXCC země (mimo US/CA)
+
+dupe: { scope: ONCE }
+
+cabrillo: { contestName: CQ-160-CW, sentOrder: [rst, qth], receivedOrder: [rst, state, zone] }
+ui:
+  entryOrder: [call, state, zone]
+  logColumns: [time, call, mode, rst, state, zone, points, mult]
+operating:
+  # „Maximum operating time is 30 hours" ze 48 hodin závodu → 18 hodin přestávek.
+  # „Off times must be a minimum of 30 minutes in length for all categories."
+  offTime:
+    minimumMinutes: 30
+    requiredMinutes: 1080

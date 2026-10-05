@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+defaultValue: 3
+extra:
+  nested: [1, 2]

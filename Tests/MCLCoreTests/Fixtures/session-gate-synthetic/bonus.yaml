@@ -1,0 +1,48 @@
+# Syntetická definice jen pro bránu session (`JavaSessionParityTests`, úkol 7 podetapy P3d).
+# Skutečné definice `contest-data/` bonusy nemají, takže tady jsou všechny čtyři scope
+# (i chybějící = ONCE), všechny druhy hodnoty (fixed, expr, perKm), bonusová stanice,
+# QTC, sezení TOUR z definice, rover okres v odeslané výměně a dvě místa, kde javová
+# session hodí až po částečném zápisu: bonus `boom` (15 m) až po násobičích a dřívějších
+# bonusech, binding `nosuch` (třída `ve`) až po prvních dvou bindingech. Není to skutečný závod.
+schemaVersion: 1
+id: gate-session-bonus
+period:
+  durationHours: 24
+  sessions: {start: "0000", minutes: 60}
+bands: [80m, 40m, 20m, 15m]
+modes: [CW, SSB]
+stationClasses:
+  - id: ve
+    when: {dxccIn: [CA]}
+  - id: other
+    when: {}
+exchange:
+  sent:
+    - {id: rst, type: RST, source: AUTO_RST}
+    - {id: qth, type: DISTRICT, source: ROVER_QTH}
+  received:
+    - {id: rst, type: RST}
+    - {id: zone, type: CQ_ZONE, required: true}
+    - {id: loc, type: LOCATOR}
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - when: {otherContinent: true}
+        value: {fixed: 3}
+      - when: {sameDxcc: true}
+        value: {fixed: 0}
+  bonuses:
+    - {id: station, when: {bonusStation: true}, value: {fixed: 100}}
+    - {id: perband, scope: PER_BAND, when: {continentIs: NA}, value: {fixed: 10}}
+    - {id: permode, scope: PER_MODE, when: {fieldPresent: zone}, value: {expr: "zone * 2"}}
+    - {id: perbm, scope: PER_BAND_MODE, when: {otherContinent: true}, value: {perKm: {field: loc, factor: 0.01, round: floor}}}
+    - {id: boom, scope: ONCE, when: {bandIn: [15m], expr: "matches(call, '[')"}, value: {fixed: 1}}
+  qtc: {points: 2, maxPerStation: 10, groupSize: 10}
+  total: "(qsoPoints + bonusPoints + qtcPoints) * multTotal"
+multipliers:
+  - {id: zones, set: cq_zones, from: zone, scope: PER_BAND, label: Zóny}
+  - {id: dx, set: dxcc_entities, from: callsign, scope: ONCE, label: ""}
+  - {id: nosuch, set: no_such_set, from: callsign, scope: ONCE, appliesWhen: {workedClass: ve}}
+dupe: {scope: PER_BAND, dupeWorthZero: false}

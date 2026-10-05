@@ -1,0 +1,36 @@
+# Test fixture for the post-port microwave bands: the UHF definition with the bands up to 3 cm
+# (known-divergences section 76). Not a copy of any contest-data file.
+schemaVersion: 1
+id: uhf-microwave
+metadata:
+  name: "UHF/Microwave Contest (test fixture)"
+  organizer: "Test fixture"
+  description: "1 bod za každý km mezi lokátory (6 znaků); bez násobičů."
+period: { durationHours: 24 }
+bands: [70cm, 23cm, 13cm, 9cm, 6cm, 3cm]
+modes: [CW, SSB]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: nr,  type: SERIAL,  source: AUTO_SERIAL }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: nr,  type: SERIAL,  required: true }
+    - { id: loc, type: LOCATOR, required: true, validation: { regex: "^[A-Ra-r]{2}[0-9]{2}[A-Xa-x]{2}$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: {}, value: { perKm: { field: loc, factor: 1, round: CEIL, min: 1 } } }
+  total: "qsoPoints"
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: UHF-MICROWAVE, sentOrder: [rst, nr, loc], receivedOrder: [rst, nr, loc] }
+ui:
+  entryOrder: [call, nr, loc]
+  logColumns: [time, call, band, mode, rst, nr, loc, points]

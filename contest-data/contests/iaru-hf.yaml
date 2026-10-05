@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: iaru-hf
+metadata:
+  name: "IARU HF Championship"
+  organizer: "IARU"
+period: { durationHours: 24 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+exchange:
+  sent:
+    # exch = moje ITU zóna (běžná stanice) nebo HQ zkratka (HQ stanice/official)
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: exch, type: TEXT, source: FROM_STATION }
+  received:
+    - { id: rst,  type: RST,  required: true }
+    # exch = ITU zóna (číslo 1-75) NEBO HQ zkratka (ARRL, DARC, AC, R1…)
+    # estimate iaruExch: pro barvu spotu se HQ stanice odhadne jako society zkratka
+    # (dle iaru_hq calls), ostatní jako ITU zóna z volačky (cty.dat)
+    - { id: exch, type: TEXT, required: true, estimate: iaruExch }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      # HQ stanice / IARU officials (exch obsahuje písmeno) = 1 bod
+      - { when: { expr: "matches(exch, '[A-Za-z]')" }, value: { fixed: 1 } }
+      # vlastní ITU zóna (i přes oceán) = 1 bod
+      - { when: { expr: "exch == ownItuZone" }, value: { fixed: 1 } }
+      # jiná ITU zóna, stejný kontinent = 3 body
+      - { when: { expr: "workedContinent == ownContinent" }, value: { fixed: 3 } }
+      # jiná ITU zóna, jiný kontinent = 5 bodů
+      - { when: { expr: "workedContinent != ownContinent" }, value: { fixed: 5 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # Jedno pole exch, dva bindingy — validace sady rozliší zónu (číslo) vs HQ (text).
+  - { id: zones, set: itu_zones, from: exch, scope: PER_BAND }
+  - { id: hq,    set: iaru_hq,   from: exch, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: IARU-HF, sentOrder: [rst, exch], receivedOrder: [rst, exch] }
+ui:
+  entryOrder: [call, exch]
+  logColumns: [time, call, band, mode, rst, exch, points, mult]

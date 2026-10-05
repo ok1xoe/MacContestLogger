@@ -1,0 +1,5 @@
+schemaVersion: 1
+id: s
+kind: FIXED
+keyType: INTEGER
+range: { min: 1.9, max: 40 }

@@ -1,0 +1,44 @@
+schemaVersion: 1
+id: ok-om-dx-ssb
+metadata:
+  name: "OK-OM DX Contest — SSB"
+  organizer: "ČRK"
+period: { durationHours: 24 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+stationClasses:
+  # dxccIn = countryCode entity: ISO (dxcc.json) i primární prefix (cty.dat)
+  - { id: okom, when: { dxccIn: [CZ, SK, OK, OM] } }
+  - { id: dx,   when: { not: { dxccIn: [CZ, SK, OK, OM] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: out, type: TEXT, source: FROM_STATION }       # OK/OM: okres; DX: pořadové číslo
+  received:
+    - { id: rst,      type: RST,      required: true }
+    - { id: district, type: DISTRICT, required: true, appliesWhen: { workedClass: okom } }   # OK/OM okres
+    - { id: nr,       type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }      # DX pořadí
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },        value: { fixed: 0 } }
+      - { when: { workedClass: okom },    value: { fixed: 5 } }    # QSO s OK/OM (POZN: ověřit)
+      - { when: { otherContinent: true }, value: { fixed: 3 } }
+      - { when: { sameContinent: true },  value: { fixed: 1 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: districts, set: ok_om_districts, from: district, scope: PER_BAND }
+  - { id: countries, set: dxcc_entities,   from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: OK-OM-DX-SSB, sentOrder: [rst, out], receivedOrder: [rst, district, nr] }
+ui:
+  entryOrder: [call, district, nr]
+  logColumns: [time, call, band, mode, rst, district, nr, points, mult]

@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1.9 }
+  total: "qsoPoints"

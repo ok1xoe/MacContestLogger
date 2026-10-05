@@ -1,0 +1,14 @@
+schemaVersion: 1
+id: iaru_hq
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "IARU HQ / Officials"
+  description: "Society zkratky (klíč = co HQ posílá místo ITU zóny) + HQ volačky.
+    Seznam se DODÁVÁ externě v iaru_hq.csv (key=zkratka, label, calls=volačky oddělené ';'),
+    ať jde aktualizovat každý ročník bez zásahu do kódu. keyPattern vylučuje čistá čísla."
+# keyPattern: aspoň jedno písmeno (odliší HQ zkratku od číselné ITU zóny)
+validation: { keyPattern: "^(?=.*[A-Za-z])[A-Za-z0-9/]{1,12}$" }
+# HQ zkratky + volačky se načítají z externího CSV (dodej/aktualizuj podle ročníku)
+valuesFile: iaru_hq.csv

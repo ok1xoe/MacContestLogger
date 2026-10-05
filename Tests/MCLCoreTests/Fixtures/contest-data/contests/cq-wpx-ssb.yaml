@@ -1,0 +1,57 @@
+schemaVersion: 1
+id: cq-wpx-ssb
+metadata:
+  name: "CQ WPX Contest — SSB"
+  organizer: "CQ Magazine"
+period: { durationHours: 48 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+exchange:
+  sent:
+    - { id: rst, type: RS,     source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RS,     required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: { ownDxcc: true },                                 value: { fixed: 1 } }   # stejná země = 1, vždy
+      - { when: { otherContinent: true, bandIn: [160m, 80m, 40m] }, value: { fixed: 6 } }
+      - { when: { otherContinent: true },                          value: { fixed: 3 } }   # 20/15/10
+      # NA výjimka: obě stanice v NA → 2 b. HF / 4 b. LF (i různé země, např. W↔VE)
+      - { when: { ownContinentIs: NA, continentIs: NA, bandIn: [160m, 80m, 40m] }, value: { fixed: 4 } }
+      - { when: { ownContinentIs: NA, continentIs: NA },           value: { fixed: 2 } }
+      - { when: { sameContinent: true,  bandIn: [160m, 80m, 40m] }, value: { fixed: 2 } }
+      - { when: { sameContinent: true },                           value: { fixed: 1 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: prefixes, set: wpx_prefixes, from: callsign, scope: ONCE }   # WPX = prefix jednou za závod
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: CQ-WPX-SSB, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points, mult]
+operating:
+  rules:
+  # Pravidlo VI.C.1: „A maximum of ten (10) band changes may be made in any
+  # clock hour (00 through 59 minutes)."
+  - when:
+      OPERATOR: "MULTI-OP"
+      TRANSMITTER: "ONE"
+    bandChange:
+      perHour: 10
+  # Pravidlo II: „Single Operator stations may operate 36 of the 48 hours –
+  # off times must be a minimum of 60 minutes during which no QSO is logged."
+  - when:
+      OPERATOR: "SINGLE-OP"
+    offTime:
+      minimumMinutes: 60
+      requiredMinutes: 720

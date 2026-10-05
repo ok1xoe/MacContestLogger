@@ -1,0 +1,130 @@
+import MCLAppModel
+import MCLCore
+import SwiftUI
+
+/// Kotlin `KeysTab` (`KT:45-109`, N1MM Key Mapper): every `ShortcutAction` with its keys (bold = remapped, red = in
+/// conflict), „Změnit" waits for a new combination (Esc cancels, the window's `KeyCaptureMonitor` takes the keys),
+/// „Výchozí" back to the N1MM key, „Žádná" no key, and „Vše na výchozí (N1MM)". The capture and its hint are the
+/// tab's own state (Kotlin `remember`).
+struct KeysTab: View {
+    let app: AppModel
+    @Binding var draft: ConfigurerDraft
+
+    @EnvironmentObject private var keys: KeyCaptureMonitor
+    @StateObject private var capturingState = ViewState<ShortcutAction?>(nil)
+    private var capturing: ShortcutAction? {
+        get { capturingState.value }
+        nonmutating set { capturingState.value = newValue }
+    }
+    @StateObject private var hintState = ViewState<String>("")
+    private var hint: String {
+        get { hintState.value }
+        nonmutating set { hintState.value = newValue }
+    }
+
+    private var language: LanguageModel { app.language }
+
+    var body: some View {
+        let rows: [KeyCaptureRules.Row] = KeyCaptureRules.rows(overrides: draft.keyOverrides)
+        SettingsGroup(title: language.tr("Klávesové zkratky zadávacího okna")) {
+            HStack(spacing: 0) {
+                Text(verbatim: "Akce")
+                    .windowFont(12, weight: .bold)
+                    .frame(width: 300, alignment: .leading)
+                Text(verbatim: language.tr("Klávesy"))
+                    .windowFont(12, weight: .bold)
+                    .frame(width: 170, alignment: .leading)
+            }
+            ForEach(rows, id: \.action) { row in
+                rowView(row)
+            }
+            if !hint.isEmpty {
+                SettingsText(hint, size: 12, isError: true)
+                    .padding(.top, 4)
+            }
+            SettingsButton(language.tr("Vše na výchozí (N1MM)")) {
+                KeyCaptureRules.resetAll(&draft.keyOverrides)
+            }
+            .padding(.top, 6)
+            footnote
+        }
+        .onDisappear { keys.stopCapture() }
+    }
+
+    private func rowView(_ row: KeyCaptureRules.Row) -> some View {
+        HStack(spacing: 0) {
+            Text(verbatim: row.action.label)
+                .windowFont(13)
+                .frame(width: 300, alignment: .leading)
+            keysCell(row)
+                .frame(width: 170, alignment: .leading)
+            SettingsButton(language.tr("Změnit"), borderless: true) { startCapture(row.action) }
+            SettingsButton(language.tr("Výchozí"), borderless: true) {
+                KeyCaptureRules.resetToDefault(row.action, in: &draft.keyOverrides)
+            }
+            .disabled(!row.isCustom)
+            .padding(.leading, 8)
+            SettingsButton(language.tr("Žádná"), borderless: true) {
+                KeyCaptureRules.setNone(row.action, in: &draft.keyOverrides)
+            }
+            .padding(.leading, 8)
+            if let conflict = row.conflictText {
+                SettingsText(conflict, size: 12, isError: true)
+                    .padding(.leading, 8)
+            }
+        }
+        .padding(.vertical, 1)
+    }
+
+    @ViewBuilder private func keysCell(_ row: KeyCaptureRules.Row) -> some View {
+        if capturing == row.action {
+            Text(verbatim: language.tr(SettingsTexts.capturePrompt))
+                .windowFont(13)
+                .foregroundStyle(.tint)
+        } else {
+            SettingsText(row.keys, weight: row.isCustom ? .bold : .regular, isError: !row.conflicts.isEmpty)
+        }
+    }
+
+    private var footnote: some View {
+        let first: String = language.tr(
+            "Tučně = přemapováno. Při kolizi platí přemapovaná akce. Na Macu je Alt klávesa Option (⌥); ")
+        let second: String = language.tr(
+            "Ctrl+šipky bere macOS pro Mission Control — skoky na spoty jde přemapovat třeba na Cmd+↓/↑. ")
+        let third: String = language.tr(
+            "F1–F12 (zprávy), Enter, Esc, Tab, mezerník a šipky pro ladění se nepřemapovávají.")
+        return SettingsCaption(first + second + third)
+            .padding(.top, 4)
+    }
+
+    /// „Změnit": the next key press is captured for `action` (`KT:61-80`).
+    private func startCapture(_ action: ShortcutAction) {
+        capturing = action
+        hint = ""
+        keys.startCapture { result in
+            switch result {
+            case .cancelled:
+                finishCapture()
+            case .ignored:
+                break
+            case .accepted(let text):
+                KeyCaptureRules.assign(text, to: action, in: &draft.keyOverrides)
+                finishCapture()
+            case .rejected(let key, let args):
+                let values: [Translator.Arg] = args.map { .string($0) }
+                hint = translate(key, values)
+            }
+        }
+    }
+
+    private func finishCapture() {
+        capturing = nil
+        hint = ""
+        keys.stopCapture()
+    }
+
+    private func translate(_ key: String, _ args: [Translator.Arg]) -> String {
+        guard let first = args.first else { return language.tr(key) }
+        return language.tr(key, first)
+    }
+}

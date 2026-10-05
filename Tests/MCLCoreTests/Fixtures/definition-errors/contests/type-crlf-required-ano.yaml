@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+exchange:
+  received:
+    - { id: nr, type: SERIAL, required: ano }

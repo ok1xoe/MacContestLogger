@@ -1,0 +1,14 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - when:
+          allOf:
+            - { otherContinent: true }
+            - { not: { ownDxcc: ano } }
+        value: { fixed: 3 }

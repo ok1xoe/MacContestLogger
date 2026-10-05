@@ -1,0 +1,57 @@
+schemaVersion: 1
+id: cq-ww-ssb
+metadata:
+  name: "CQ WW DX Contest — SSB"
+  organizer: "CQ Magazine"
+period: { durationHours: 48 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+exchange:
+  sent:
+    - { id: rst,  type: RS,      source: AUTO_RST }
+    - { id: zone, type: CQ_ZONE, source: FROM_STATION }
+  received:
+    - { id: rst,  type: RS,      required: true }
+    - { id: zone, type: CQ_ZONE, required: true, validation: { min: 1, max: 40 }, estimate: cqZone }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },                         value: { fixed: 0 } }
+      - { when: { sameContinent: true, continentIs: NA },  value: { fixed: 2 } }
+      - { when: { sameContinent: true },                   value: { fixed: 1 } }
+      - { when: { otherContinent: true },                  value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: zones,     set: cq_zones,      from: zone,     scope: PER_BAND }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: CQ-WW-SSB, sentOrder: [rst, zone], receivedOrder: [rst, zone] }
+ui:
+  entryOrder: [call, zone]
+  logColumns: [time, call, band, mode, rst, zone, points, mult]
+operating:
+  # CQ WW, pravidla III a VI. Běžný Single Operator dobu provozu omezenou nemá.
+  rules:
+  # Multi-Single: „Only one transmitted signal on one band permitted during any
+  # 10-minute period." Limit 8 změn pásma za hodinu se v propozicích týká
+  # multiplikátorové stanice, kterou aplikace zatím nerozlišuje — proto tu není.
+  - when:
+      OPERATOR: "MULTI-OP"
+      TRANSMITTER: "ONE"
+    bandChange:
+      minimumMinutes: 10
+  # Classic overlay: „may operate up to 24 of the 48 hours – off times are
+  # a minimum of 60 minutes" → 24 hodin přestávek celkem.
+  - when:
+      OPERATOR: "SINGLE-OP"
+      OVERLAY: "CLASSIC"
+    offTime:
+      minimumMinutes: 60
+      requiredMinutes: 1440

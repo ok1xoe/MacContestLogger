@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: na_areas
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "US States / DC / Canadian Provinces" }
+valuesFile: na_areas.csv

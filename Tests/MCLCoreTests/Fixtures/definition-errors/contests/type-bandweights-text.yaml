@@ -1,0 +1,10 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+multipliers:
+  - id: wae
+    set: dxcc_entities
+    from: callsign
+    scope: PER_BAND
+    bandWeights: { 80m: 4, 40m: tri }

@@ -1,0 +1,254 @@
+recv	type=CHAT;id=id;from=OP2;op=;to=;text=hello;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Chat OP2: hello] unread=1 lines=[1234|OP2||hello|false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op=Tom;to=OP1;text=hi there;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Chat OP2: hi there] unread=1 lines=[1234|OP2 (Tom)|OP1|hi there|false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op= ;to=;text=blank op;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Chat OP2: blank op] unread=1 lines=[1234|OP2||blank op|false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op=\u00a0;to=;text=nbsp op;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Chat OP2: nbsp op] unread=1 lines=[1234|OP2||nbsp op|false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op=<null>;to=<null>;text=<null>;call=<null>;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Chat OP2: null] unread=1 lines=[1234|OP2|||false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=<null>;op=<null>;to=;text=no sender;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Chat null: no sender] unread=1 lines=[1234|null||no sender|false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op=Ann;to=;text=bad time;call=;freq=0;mode=;ts=garbage;cat=<null>;tuned=0	status=[Chat OP2: bad time] unread=1 lines=[NOW|OP2 (Ann)||bad time|false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op=;to=;text= padded text ;call=;freq=0;mode=;ts=2026-10-04T23:59:59.999Z;cat=<null>;tuned=0	status=[Chat OP2:  padded text ] unread=1 lines=[2359|OP2|| padded text |false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op=;to=;text=tz offset;call=;freq=0;mode=;ts=2026-10-04T12:34:56+02:00;cat=<null>;tuned=0	status=[Chat OP2: tz offset] unread=1 lines=[1034|OP2||tz offset|false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op=;to=;text=before epoch;call=;freq=0;mode=;ts=1969-12-31T23:59:00Z;cat=<null>;tuned=0	status=[Chat OP2: before epoch] unread=1 lines=[2359|OP2||before epoch|false;] spots=[] stack=[]
+recv	type=CHAT;id=id;from=OP2;op=;to=;text=no time;call=;freq=0;mode=;ts=<null>;cat=<null>;tuned=0	status=[Chat OP2: no time] unread=1 lines=[NOW|OP2||no time|false;] spots=[] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=OP1;text=u mě 14025.0;call=ok1abc;freq=14025000;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: ok1abc na 14025.0 kHz (v bandmapě)] unread=1 lines=[1234|OP2|OP1|PASS ok1abc → 14025.0 u mě 14025.0|false;] spots=[PASS-OP2|14025000|ok1abc|pass u mě 14025.0;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=Tom;to=;text=;call=OK1ABC;freq=7030500;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: OK1ABC na 7030.5 kHz (v bandmapě)] unread=1 lines=[1234|OP2 (Tom)||PASS OK1ABC → 7030.5|false;] spots=[PASS-OP2|7030500|OK1ABC|pass;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=from cat;call=ok1abc;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=14195250;tuned=21000000	status=[Pass od OP2: ok1abc na 14195.3 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 14195.3 from cat|false;] spots=[PASS-OP2|14195250|ok1abc|pass from cat;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=from tuned;call=ok1abc;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=3523456	status=[Pass od OP2: ok1abc na 3523.5 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 3523.5 from tuned|false;] spots=[PASS-OP2|3523456|ok1abc|pass from tuned;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=cat zero wins;call=ok1abc;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=0;tuned=21000000	status=[Pass od OP2: ok1abc na 0.0 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 0.0 cat zero wins|false;] spots=[] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=nothing;call=ok1abc;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: ok1abc na 0.0 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 0.0 nothing|false;] spots=[] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=;call=ok1abc;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: ok1abc na 0.0 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 0.0|false;] spots=[] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=negative;call=ok1abc;freq=-5;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=1800000	status=[Pass od OP2: ok1abc na 1800.0 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 1800.0 negative|false;] spots=[PASS-OP2|1800000|ok1abc|pass negative;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=<null>;call=<null>;freq=14000050;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	EXC NullPointerException status=[] unread=0 lines=[] spots=[] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=<null>;call=<null>;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: null na 0.0 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS null → 0.0|false;] spots=[] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text= spaced ;call= ok1abc ;freq=14000050;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2:  ok1abc  na 14000.1 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS  ok1abc  → 14000.1  spaced|false;] spots=[PASS-OP2|14000050| ok1abc |pass  spaced;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=rounding;call=ok1abc;freq=14025049;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: ok1abc na 14025.0 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 14025.0 rounding|false;] spots=[PASS-OP2|14025049|ok1abc|pass rounding;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=rounding up;call=ok1abc;freq=14025050;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: ok1abc na 14025.1 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 14025.1 rounding up|false;] spots=[PASS-OP2|14025050|ok1abc|pass rounding up;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=tie even;call=ok1abc;freq=14025150;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: ok1abc na 14025.2 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 14025.2 tie even|false;] spots=[PASS-OP2|14025150|ok1abc|pass tie even;] stack=[]
+recv	type=PASS;id=id;from=<null>;op=;to=;text=no sender;call=ok1abc;freq=14025000;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od null: ok1abc na 14025.0 kHz (v bandmapě)] unread=1 lines=[1234|null||PASS ok1abc → 14025.0 no sender|false;] spots=[PASS-null|14025000|ok1abc|pass no sender;] stack=[]
+recv	type=PASS;id=id;from=OP2;op=;to=;text=huge;call=ok1abc;freq=9999999999999;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Pass od OP2: ok1abc na 10000000000.0 kHz (v bandmapě)] unread=1 lines=[1234|OP2||PASS ok1abc → 10000000000.0 huge|false;] spots=[PASS-OP2|9999999999999|ok1abc|pass huge;] stack=[]
+recv	type=STACK;id=id;from=OP2;op=;to=OP1;text=;call=ok1abc;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Zásobník od OP2: OK1ABC (Ctrl+Alt+K vloží)] unread=0 lines=[] spots=[] stack=[OK1ABC,]
+recv	type=STACK;id=id;from=OP2;op=Tom;to=OP1;text=;call= dl1xyz/p ;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Zásobník od OP2:  DL1XYZ/P  (Ctrl+Alt+K vloží)] unread=0 lines=[] spots=[] stack=[ DL1XYZ/P ,]
+recv	type=STACK;id=id;from=OP2;op=;to=OP1;text=;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Zásobník od OP2:  (Ctrl+Alt+K vloží)] unread=0 lines=[] spots=[] stack=[]
+recv	type=STACK;id=id;from=OP2;op=;to=OP1;text=;call= ;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Zásobník od OP2:   (Ctrl+Alt+K vloží)] unread=0 lines=[] spots=[] stack=[]
+recv	type=STACK;id=id;from=OP2;op=;to=OP1;text=;call=<null>;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Zásobník od OP2:  (Ctrl+Alt+K vloží)] unread=0 lines=[] spots=[] stack=[]
+recv	type=STACK;id=id;from=<null>;op=;to=OP1;text=;call=ok1abc;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Zásobník od null: OK1ABC (Ctrl+Alt+K vloží)] unread=0 lines=[] spots=[] stack=[OK1ABC,]
+recv	type=STACK;id=id;from=OP2;op=;to=OP1;text=;call=straße;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Zásobník od OP2: STRASSE (Ctrl+Alt+K vloží)] unread=0 lines=[] spots=[] stack=[STRASSE,]
+recv	type=STACK;id=id;from=OP2;op=;to=OP1;text=;call=\u00a0ok1\u00a0;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[Zásobník od OP2: \u00a0OK1\u00a0 (Ctrl+Alt+K vloží)] unread=0 lines=[] spots=[] stack=[\u00a0OK1\u00a0,]
+recv	type=PING;id=id;from=OP2;op=;to=;text=some text;call=ok1abc;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[] unread=0 lines=[1234|OP2||[PING] ok1abc some text|false;] spots=[] stack=[]
+recv	type=PING;id=id;from=OP2;op=Tom;to=OP1;text=;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[] unread=0 lines=[1234|OP2 (Tom)|OP1|[PING]|false;] spots=[] stack=[]
+recv	type=;id=id;from=OP2;op=;to=;text=empty type;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[] unread=0 lines=[1234|OP2||[]  empty type|false;] spots=[] stack=[]
+recv	type=<null>;id=id;from=OP2;op=;to=;text=<null>;call=<null>;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[] unread=0 lines=[1234|OP2||[null] null null|false;] spots=[] stack=[]
+recv	type=chat;id=id;from=OP2;op=;to=;text=lowercase type;call=;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[] unread=0 lines=[1234|OP2||[chat]  lowercase type|false;] spots=[] stack=[]
+recv	type=STACK ;id=id;from=OP2;op=;to=;text=type with space;call=x;freq=0;mode=;ts=2026-10-04T12:34:56Z;cat=<null>;tuned=0	status=[] unread=0 lines=[1234|OP2||[STACK ] x type with space|false;] spots=[] stack=[]
+stackseq	c1..c12,C12,c3,C2	C1, / C1,C2, / C1,C2,C3, / C1,C2,C3,C4, / C1,C2,C3,C4,C5, / C1,C2,C3,C4,C5,C6, / C1,C2,C3,C4,C5,C6,C7, / C1,C2,C3,C4,C5,C6,C7,C8, / C1,C2,C3,C4,C5,C6,C7,C8,C9, / C1,C2,C3,C4,C5,C6,C7,C8,C9,C10, / C2,C3,C4,C5,C6,C7,C8,C9,C10,C11, / C3,C4,C5,C6,C7,C8,C9,C10,C11,C12, / C3,C4,C5,C6,C7,C8,C9,C10,C11,C12, / C3,C4,C5,C6,C7,C8,C9,C10,C11,C12, / C4,C5,C6,C7,C8,C9,C10,C11,C12,C2,
+chatcap	505 chat messages	size=500 first=1234|OP2||m6|false last=1234|OP2||m505|false unread=505
+mixed	CHAT,PASS,PING,STACK,CHAT	status=[Chat OP3: five] unread=3 lines=[1234|OP2||one|false;1234|OP2||PASS ok1abc → 14025.0 two|false;1234|OP2||[PING]  three|false;1234|OP3||five|false;] spots=[PASS-OP2|14025000|ok1abc|pass two;] stack=[OK1ABC,]
+chatTime	2026-10-04T12:34:56Z	1234
+chatTime	2026-10-04T00:00:00Z	0000
+chatTime	2026-10-04T23:59:59.999999999Z	2359
+chatTime	1969-12-31T23:59:00Z	2359
+chatTime	1970-01-01T00:00:00Z	0000
+chatTime	2026-10-04T12:34:56+02:00	1034
+chatTime	2026-10-04T12:34:56-05:30	1804
+chatTime	2026-10-04T01:05:00.5Z	0105
+chatTime	+10000-01-01T00:00:00Z	0000
+chatTime	-0001-12-31T23:59:59Z	2359
+chatTime	2026-10-04T24:00:00Z	0000
+chatTime	2026-10-04T12:34:56	NOW
+chatTime	2026-10-04 12:34:56Z	NOW
+chatTime	 2026-10-04T12:34:56Z	NOW
+chatTime		NOW
+chatTime	x	NOW
+chatTime	2026-02-30T10:00:00Z	NOW
+chatTime	2026-10-04t12:34:56z	1234
+chatTime	2026-10-04T12:34Z	NOW
+chatTime	<null>	NOW
+status	cat=<null>;tuned=0;run=SEARCH_AND_POUNCE;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=;mode=;freq=0;run=S&P;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=14025000;run=RUN;qsos=12;voice=false;cw=false;type=RUN;typed= ok1abc ;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=RUN;band=20m;mode=;freq=14025000;run=RUN;qso=12;tx=false;online=true;ts=<null>;entry=OK1ABC
+status	cat=7030000/CW;tuned=14025000;run=SEARCH_AND_POUNCE;qsos=340;voice=true;cw=false;type=MULT;typed=dl1/xyz;op=;id=OP2	id=OP2;op=;type=MULT;band=40m;mode=CW;freq=7030000;run=S&P;qso=340;tx=true;online=true;ts=<null>;entry=DL1/XYZ
+status	cat=0/SSB;tuned=14025000;run=RUN;qsos=1;voice=false;cw=true;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=;mode=SSB;freq=0;run=RUN;qso=1;tx=true;online=true;ts=<null>;entry=
+status	cat=14350000/FM;tuned=0;run=RUN;qsos=5;voice=true;cw=true;type=NONE;typed=\u00a0x\u00a0;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=FM;freq=14350000;run=RUN;qso=5;tx=true;online=true;ts=<null>;entry=X
+status	cat=14350001/FT8;tuned=0;run=RUN;qsos=5;voice=false;cw=false;type=NONE;typed=straße;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=;mode=FT8;freq=14350001;run=RUN;qso=5;tx=false;online=true;ts=<null>;entry=STRASSE
+status	cat=1810000/<null>;tuned=0;run=SEARCH_AND_POUNCE;qsos=2147483647;voice=false;cw=false;type=NONE;typed=A;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=160m;mode=;freq=1810000;run=S&P;qso=2147483647;tx=false;online=true;ts=<null>;entry=A
+status	cat=<null>;tuned=144300000;run=SEARCH_AND_POUNCE;qsos=0;voice=false;cw=false;type=NONE;typed=\u0001ab\u0001;op=;id=	id=;op=;type=;band=2m;mode=;freq=144300000;run=S&P;qso=0;tx=false;online=true;ts=<null>;entry=\u0001AB\u0001
+status	cat=<null>;tuned=3500000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=ok1\u0009abc;op=ok1xoe;id=opé	id=opé;op=ok1xoe;type=;band=80m;mode=;freq=3500000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=OK1\u0009ABC
+status	cat=14074000/CW;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=CW;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/SSB;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=SSB;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/FM;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=FM;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/AM;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=AM;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/RTTY;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=RTTY;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/PSK;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=PSK;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/FT8;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=FT8;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/FT4;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=FT4;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/JT65;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=JT65;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=14074000/DIGITAL;tuned=0;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=20m;mode=DIGITAL;freq=14074000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=1800000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=160m;mode=;freq=1800000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=1799999;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=;mode=;freq=1799999;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=2000000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=160m;mode=;freq=2000000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=3500000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=80m;mode=;freq=3500000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=3800000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=80m;mode=;freq=3800000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=5351500;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=60m;mode=;freq=5351500;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=7000000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=40m;mode=;freq=7000000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=10100000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=30m;mode=;freq=10100000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=18068000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=17m;mode=;freq=18068000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=21000000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=15m;mode=;freq=21000000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=24890000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=12m;mode=;freq=24890000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=28000000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=10m;mode=;freq=28000000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=50000000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=6m;mode=;freq=50000000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=70000000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=;mode=;freq=70000000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+status	cat=<null>;tuned=144000000;run=RUN;qsos=0;voice=false;cw=false;type=NONE;typed=;op=OK1XOE;id=OP1	id=OP1;op=OK1XOE;type=;band=2m;mode=;freq=144000000;run=RUN;qso=0;tx=false;online=true;ts=<null>;entry=
+serialTick	enabled=true;reserved=null;reqId=<null>;age=1;net=true	requests=1 requestId=new stamped=true untouched=false sent=id reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=1;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=1000;net=true	requests=1 requestId=new stamped=true untouched=false sent=id reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=1000;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=2500;net=true	requests=1 requestId=new stamped=true untouched=false sent=id reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=2500;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=3500;net=true	requests=1 requestId=new stamped=true untouched=false sent=id reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=3500;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=10000;net=true	requests=1 requestId=new stamped=true untouched=false sent=id reserved=null
+serialTick	enabled=true;reserved=null;reqId=<null>;age=10000;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=1;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=1;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=1000;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=1000;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=2500;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=2500;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=3500;net=true	requests=1 requestId=new stamped=true untouched=false sent=id reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=3500;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=10000;net=true	requests=1 requestId=new stamped=true untouched=false sent=id reserved=null
+serialTick	enabled=true;reserved=null;reqId=r1;age=10000;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=true;reserved=5;reqId=<null>;age=1;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=1;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=1000;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=1000;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=2500;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=2500;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=3500;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=3500;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=10000;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=<null>;age=10000;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=1;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=1;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=1000;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=1000;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=2500;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=2500;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=3500;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=3500;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=10000;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=true;reserved=5;reqId=r1;age=10000;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=null;reqId=<null>;age=1;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=1;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=1000;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=1000;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=2500;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=2500;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=3500;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=3500;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=10000;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=<null>;age=10000;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=1;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=1;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=1000;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=1000;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=2500;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=2500;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=3500;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=3500;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=10000;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=null;reqId=r1;age=10000;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=null
+serialTick	enabled=false;reserved=5;reqId=<null>;age=1;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=1;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=1000;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=1000;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=2500;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=2500;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=3500;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=3500;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=10000;net=true	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=<null>;age=10000;net=false	requests=0 requestId=<null> stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=1;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=1;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=1000;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=1000;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=2500;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=2500;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=3500;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=3500;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=10000;net=true	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialTick	enabled=false;reserved=5;reqId=r1;age=10000;net=false	requests=0 requestId=same stamped=false untouched=true sent=<none> reserved=5
+serialReply	pending=<null>;reply=r1;serial=42	reserved=null pending=<null>
+serialReply	pending=<null>;reply=other;serial=42	reserved=null pending=<null>
+serialReply	pending=<null>;reply=<null>;serial=42	reserved=42 pending=<null>
+serialReply	pending=r1;reply=r1;serial=42	reserved=42 pending=<null>
+serialReply	pending=r1;reply=other;serial=42	reserved=null pending=r1
+serialReply	pending=r1;reply=<null>;serial=42	reserved=null pending=r1
+serialRound	tick then reply	reserved=1 pending=<null>
+serialRound	tick while reserved	requests=1
+sendChat	net=true;to=;text=hello;fail=false;failMessage=boom	status=[] lines=[1234|OP1||hello|true;] pending=[] showNet=false sent=[CHAT|OP1|OK1XOE||hello||0||2026-10-04T12:34:56Z;] stack=[] prefill=[]
+sendChat	net=true;to=OP2;text=  hi there  ;fail=false;failMessage=boom	status=[] lines=[1234|OP1|OP2|hi there|true;] pending=[] showNet=false sent=[CHAT|OP1|OK1XOE|OP2|hi there||0||2026-10-04T12:34:56Z;] stack=[] prefill=[]
+sendChat	net=true;to=OP2;text=;fail=false;failMessage=boom	status=[] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+sendChat	net=true;to=OP2;text=   ;fail=false;failMessage=boom	status=[] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+sendChat	net=true;to=OP2;text=\u00a0;fail=false;failMessage=boom	status=[] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+sendChat	net=false;to=;text=no net;fail=false;failMessage=boom	status=[Chat: síťový deník není připojený] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+sendChat	net=false;to=;text=;fail=false;failMessage=boom	status=[Chat: síťový deník není připojený] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+sendChat	net=true;to=;text=fails;fail=true;failMessage=boom	status=[Chat: boom] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+sendChat	net=true;to=;text=fails without a message;fail=true;failMessage=<null>	status=[Chat: null] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+sendChat	net=true;to=;text=x\u0009y;fail=false;failMessage=boom	status=[] lines=[1234|OP1||x\u0009y|true;] pending=[] showNet=false sent=[CHAT|OP1|OK1XOE||x\u0009y||0||2026-10-04T12:34:56Z;] stack=[] prefill=[]
+startPass	typed=;pending=;net=true;op2=true;op3=false;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass: napiš volačku, kterou chceš předat] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+startPass	typed=  ;pending=;net=true;op2=true;op3=false;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass: napiš volačku, kterou chceš předat] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=false;op2=false;op3=false;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass: síťový deník není připojený] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=true;op2=true;op3=false;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass: OK1ABC předáno stanici OP2] lines=[1234|OP1|OP2|PASS OK1ABC|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2||OK1ABC|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+startPass	typed= ok1abc/p ;pending=;net=true;op2=true;op3=false;op4=false;op5=false;cat=14195000;tuned=7000000	status=[Pass: OK1ABC/P předáno stanici OP2] lines=[1234|OP1|OP2|PASS OK1ABC/P|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2|u mě 14195.0|OK1ABC/P|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=true;op2=false;op3=true;op4=false;op5=false;cat=<null>;tuned=3500000	status=[Pass: OK1ABC předáno stanici OP3] lines=[1234|OP1|OP3|PASS OK1ABC|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP3|u mě 3500.0|OK1ABC|21300000|SSB|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=true;op2=false;op3=false;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass OK1ABC: vyber stanici v okně Stav sítě] lines=[] pending=[OK1ABC] showNet=true sent=[] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass OK1ABC: vyber stanici v okně Stav sítě] lines=[] pending=[OK1ABC] showNet=true sent=[] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=true;op2=true;op3=false;op4=true;op5=false;cat=<null>;tuned=0	status=[Pass: OK1ABC předáno stanici OP2] lines=[1234|OP1|OP2|PASS OK1ABC|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2||OK1ABC|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=true;op2=true;op3=false;op4=false;op5=true;cat=<null>;tuned=0	status=[Pass: OK1ABC předáno stanici OP2] lines=[1236|OP1|OP2|PASS OK1ABC|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2||OK1ABC|14025000|CW|2026-10-04T12:36:37Z;] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=true;op2=false;op3=false;op4=true;op5=true;cat=<null>;tuned=0	status=[Pass OK1ABC: vyber stanici v okně Stav sítě] lines=[] pending=[OK1ABC] showNet=true sent=[] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=;net=true;op2=true;op3=true;op4=true;op5=true;cat=<null>;tuned=0	status=[Pass OK1ABC: vyber stanici v okně Stav sítě] lines=[] pending=[OK1ABC] showNet=true sent=[] stack=[] prefill=[]
+startPass	typed=straße;pending=;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass STRASSE: vyber stanici v okně Stav sítě] lines=[] pending=[STRASSE] showNet=true sent=[] stack=[] prefill=[]
+startPass	typed=\u00a0x\u00a0;pending=;net=true;op2=true;op3=false;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass: X předáno stanici OP2] lines=[1234|OP1|OP2|PASS X|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2||X|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=OLD;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass OK1ABC: vyber stanici v okně Stav sítě] lines=[] pending=[OK1ABC] showNet=true sent=[] stack=[] prefill=[]
+startPass	typed=ok1abc;pending=OLD;net=true;op2=true;op3=false;op4=false;op5=false;cat=<null>;tuned=0	status=[Pass: OK1ABC předáno stanici OP2] lines=[1234|OP1|OP2|PASS OK1ABC|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2||OK1ABC|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=0;fail=false;pending=PEND	status=[Pass: ok1abc předáno stanici OP2] lines=[1234|OP1|OP2|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2||ok1abc|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=14025000;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP2] lines=[1234|OP1|OP2|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2|u mě 14025.0|ok1abc|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=14195000;tuned=7000000;fail=false;pending=PEND	status=[Pass: ok1abc předáno stanici OP2] lines=[1234|OP1|OP2|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2|u mě 14195.0|ok1abc|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=0;tuned=7000000;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP2] lines=[1234|OP1|OP2|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2||ok1abc|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP3;call=dl1xyz;net=true;op2=true;op3=true;op4=false;op5=false;cat=21300499;tuned=0;fail=false;pending=	status=[Pass: dl1xyz předáno stanici OP3] lines=[1234|OP1|OP3|PASS dl1xyz|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP3|u mě 21300.5|dl1xyz|21300000|SSB|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP3;call=dl1xyz;net=true;op2=true;op3=true;op4=false;op5=false;cat=21300500;tuned=0;fail=false;pending=	status=[Pass: dl1xyz předáno stanici OP3] lines=[1234|OP1|OP3|PASS dl1xyz|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP3|u mě 21300.5|dl1xyz|21300000|SSB|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP4;call=ok1abc;net=true;op2=true;op3=true;op4=true;op5=false;cat=<null>;tuned=3525000;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP4] lines=[1234|OP1|OP4|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP4|u mě 3525.0|ok1abc|3525000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP5;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=true;cat=<null>;tuned=3525000;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP5] lines=[1236|OP1|OP5|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP5|u mě 3525.0|ok1abc|7020000|CW|2026-10-04T12:36:37Z;] stack=[] prefill=[]
+passCall	to=OP9;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=3525000;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP9] lines=[1234|OP1|OP9|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP9|u mě 3525.0|ok1abc|0||2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=3525000;fail=false;pending=	status=[Pass: ok1abc předáno stanici ] lines=[1234|OP1||PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE||u mě 3525.0|ok1abc|0||2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=3525000;fail=false;pending=PEND	status=[] lines=[] pending=[PEND] showNet=false sent=[] stack=[] prefill=[]
+passCall	to=OP2;call=  ;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=3525000;fail=false;pending=PEND	status=[] lines=[] pending=[PEND] showNet=false sent=[] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=false;op2=false;op3=false;op4=false;op5=false;cat=<null>;tuned=3525000;fail=false;pending=PEND	status=[] lines=[] pending=[PEND] showNet=false sent=[] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=3525000;fail=true;pending=PEND	status=[Pass: boom] lines=[] pending=[PEND] showNet=false sent=[] stack=[] prefill=[]
+passCall	to=OP2;call= ok1abc ;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=14025000;fail=false;pending=	status=[Pass:  ok1abc  předáno stanici OP2] lines=[1234|OP1|OP2|PASS  ok1abc |true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2|u mě 14025.0| ok1abc |14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=14025049;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP2] lines=[1234|OP1|OP2|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2|u mě 14025.0|ok1abc|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=14025050;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP2] lines=[1234|OP1|OP2|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2|u mě 14025.1|ok1abc|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=14025150;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP2] lines=[1234|OP1|OP2|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2|u mě 14025.2|ok1abc|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+passCall	to=OP2;call=ok1abc;net=true;op2=true;op3=true;op4=false;op5=false;cat=<null>;tuned=1;fail=false;pending=	status=[Pass: ok1abc předáno stanici OP2] lines=[1234|OP1|OP2|PASS ok1abc|true;] pending=[] showNet=false sent=[PASS|OP1|OK1XOE|OP2|u mě 0.0|ok1abc|14025000|CW|2026-10-04T12:34:57Z;] stack=[] prefill=[]
+stackCall	to=OP2;call=ok1abc;net=true;fail=false	status=[Partner: OK1ABC → zásobník OP2] lines=[] pending=[] showNet=false sent=[STACK|OP1|OK1XOE|OP2||OK1ABC|0||2026-10-04T12:34:56Z;] stack=[] prefill=[]
+stackCall	to=OP2;call= dl1xyz/p ;net=true;fail=false	status=[Partner: DL1XYZ/P → zásobník OP2] lines=[] pending=[] showNet=false sent=[STACK|OP1|OK1XOE|OP2||DL1XYZ/P|0||2026-10-04T12:34:56Z;] stack=[] prefill=[]
+stackCall	to=OP2;call=;net=true;fail=false	status=[] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+stackCall	to=OP2;call=  ;net=true;fail=false	status=[] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+stackCall	to=;call=ok1abc;net=true;fail=false	status=[] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+stackCall	to= ;call=ok1abc;net=true;fail=false	status=[] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+stackCall	to=OP2;call=ok1abc;net=false;fail=false	status=[Partner: síťový deník není připojený] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+stackCall	to=;call=;net=false;fail=false	status=[Partner: síťový deník není připojený] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+stackCall	to=OP2;call=ok1abc;net=true;fail=true	status=[Partner: boom] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+stackCall	to=OP2;call=straße;net=true;fail=false	status=[Partner: STRASSE → zásobník OP2] lines=[] pending=[] showNet=false sent=[STACK|OP1|OK1XOE|OP2||STRASSE|0||2026-10-04T12:34:56Z;] stack=[] prefill=[]
+popStack	empty	status=[Zásobník volaček je prázdný] lines=[] pending=[] showNet=false sent=[] stack=[] prefill=[]
+popStack	pop 1 of 3	stack=[BBB,CCC,] prefill=[AAA] status=[Zásobník od OP2: CCC (Ctrl+Alt+K vloží)]
+popStack	pop 2 of 3	stack=[CCC,] prefill=[BBB] status=[Zásobník od OP2: CCC (Ctrl+Alt+K vloží)]
+popStack	pop 3 of 3	stack=[] prefill=[CCC] status=[Zásobník od OP2: CCC (Ctrl+Alt+K vloží)]
+popStack	pop 4 of 3	stack=[] prefill=[CCC] status=[Zásobník volaček je prázdný]
+networkOn	host=;id=OP1	status=[Síť není nastavená — vyplň Nastavení → Cluster] enabled=false outcome=returned
+networkOn	host= ;id=OP1	status=[Síť není nastavená — vyplň Nastavení → Cluster] enabled=false outcome=returned
+networkOn	host=broker.example;id=	status=[Síť není nastavená — vyplň Nastavení → Cluster] enabled=false outcome=returned
+networkOn	host=broker.example;id=  	status=[Síť není nastavená — vyplň Nastavení → Cluster] enabled=false outcome=returned
+networkOn	host=\u00a0;id=OP1	status=[Síť není nastavená — vyplň Nastavení → Cluster] enabled=false outcome=returned
+networkOn	host=broker.example;id=OP1	status=[] enabled=true outcome=EXC NullPointerException
+networkOn	running	status=[Síťová synchronizace už běží] enabled=false
+networkOff	enabled	status=[Síťová synchronizace vypnuta — loguji lokálně] enabled=false outcome=returned reserved=null pending=<null>

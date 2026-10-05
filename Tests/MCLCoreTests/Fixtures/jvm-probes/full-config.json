@@ -1,0 +1,657 @@
+{
+  "adifUdp" : {
+    "receiveBind" : "127.0.0.1:2334",
+    "receiveEnabled" : true
+  },
+  "antennaViaRig" : true,
+  "antennas" : [
+    {
+      "bands" : "20",
+      "code" : 2,
+      "name" : "Yagi 20",
+      "sector" : "0-90"
+    },
+    {
+      "bands" : "40,80",
+      "code" : 15,
+      "name" : "Vertical",
+      "sector" : ""
+    }
+  ],
+  "autoBackupDir" : "/data/backups-own",
+  "autoBackupKeep" : 4,
+  "autoBackupMinutes" : 20,
+  "autoReloadLastContest" : true,
+  "bandNotes" : [
+
+  ],
+  "beepOnDupe" : true,
+  "broadcast" : {
+    "appInfoEnabled" : true,
+    "appInfoTargets" : "10.0.0.4:12060",
+    "contactsEnabled" : true,
+    "contactsTargets" : "10.0.0.1:12060",
+    "radioEnabled" : true,
+    "radioTargets" : "10.0.0.2:12060",
+    "scoreEnabled" : true,
+    "scoreTargets" : "10.0.0.3:12060"
+  },
+  "callHistoryFile" : "/data/history.txt",
+  "clubLog" : {
+    "apiKey" : "api-key",
+    "appPassword" : "clpw",
+    "callsign" : "OK1CLB",
+    "email" : "cl@example.org",
+    "enabled" : true
+  },
+  "cluster" : {
+    "brokerHost" : "broker.lan",
+    "enabled" : true,
+    "interlock" : "SAME_BAND",
+    "password" : "secret",
+    "port" : 1900,
+    "ruleEnforcement" : "BLOCK",
+    "serialServer" : true,
+    "shareSpots" : false,
+    "stationId" : "RUN1",
+    "stationType" : "MULT",
+    "tls" : true,
+    "username" : "mquser"
+  },
+  "contestDataDir" : "/data/contest-own",
+  "contestSetups" : {
+
+  },
+  "cwKeyer" : {
+    "cutNumbers" : true,
+    "cutStyle" : "ALL_O",
+    "leadingZeros" : true,
+    "method" : "WINKEYER",
+    "runMessages" : [
+      {
+        "label" : "cwr1",
+        "text" : "cwr text 1"
+      },
+      {
+        "label" : "cwr2",
+        "text" : "cwr text 2"
+      },
+      {
+        "label" : "cwr3",
+        "text" : "cwr text 3"
+      },
+      {
+        "label" : "cwr4",
+        "text" : "cwr text 4"
+      },
+      {
+        "label" : "cwr5",
+        "text" : "cwr text 5"
+      },
+      {
+        "label" : "cwr6",
+        "text" : "cwr text 6"
+      },
+      {
+        "label" : "cwr7",
+        "text" : "cwr text 7"
+      },
+      {
+        "label" : "cwr8",
+        "text" : "cwr text 8"
+      },
+      {
+        "label" : "cwr9",
+        "text" : "cwr text 9"
+      },
+      {
+        "label" : "cwr10",
+        "text" : "cwr text 10"
+      },
+      {
+        "label" : "cwr11",
+        "text" : "cwr text 11"
+      },
+      {
+        "label" : "cwr12",
+        "text" : "cwr text 12"
+      }
+    ],
+    "spMessages" : [
+      {
+        "label" : "cws1",
+        "text" : "cws text 1"
+      },
+      {
+        "label" : "cws2",
+        "text" : "cws text 2"
+      },
+      {
+        "label" : "cws3",
+        "text" : "cws text 3"
+      },
+      {
+        "label" : "cws4",
+        "text" : "cws text 4"
+      },
+      {
+        "label" : "cws5",
+        "text" : "cws text 5"
+      },
+      {
+        "label" : "cws6",
+        "text" : "cws text 6"
+      },
+      {
+        "label" : "cws7",
+        "text" : "cws text 7"
+      },
+      {
+        "label" : "cws8",
+        "text" : "cws text 8"
+      },
+      {
+        "label" : "cws9",
+        "text" : "cws text 9"
+      },
+      {
+        "label" : "cws10",
+        "text" : "cws text 10"
+      },
+      {
+        "label" : "cws11",
+        "text" : "cws text 11"
+      },
+      {
+        "label" : "cws12",
+        "text" : "cws text 12"
+      }
+    ],
+    "speed" : 33,
+    "winkeyerPort" : "/dev/cu.wk"
+  },
+  "cwPitchHz" : 650,
+  "cwSpeedStep" : 6,
+  "dataMode" : "FT8",
+  "databasesDir" : "",
+  "digital" : {
+    "engine" : "FLDIGI",
+    "fldigiHost" : "fldigi.host",
+    "fldigiPort" : 7400,
+    "runMessages" : [
+      {
+        "label" : "dgr1",
+        "text" : "dgr text 1"
+      },
+      {
+        "label" : "dgr2",
+        "text" : "dgr text 2"
+      },
+      {
+        "label" : "dgr3",
+        "text" : "dgr text 3"
+      },
+      {
+        "label" : "dgr4",
+        "text" : "dgr text 4"
+      },
+      {
+        "label" : "dgr5",
+        "text" : "dgr text 5"
+      },
+      {
+        "label" : "dgr6",
+        "text" : "dgr text 6"
+      },
+      {
+        "label" : "dgr7",
+        "text" : "dgr text 7"
+      },
+      {
+        "label" : "dgr8",
+        "text" : "dgr text 8"
+      },
+      {
+        "label" : "dgr9",
+        "text" : "dgr text 9"
+      },
+      {
+        "label" : "dgr10",
+        "text" : "dgr text 10"
+      },
+      {
+        "label" : "dgr11",
+        "text" : "dgr text 11"
+      },
+      {
+        "label" : "dgr12",
+        "text" : "dgr text 12"
+      }
+    ],
+    "spMessages" : [
+      {
+        "label" : "dgs1",
+        "text" : "dgs text 1"
+      },
+      {
+        "label" : "dgs2",
+        "text" : "dgs text 2"
+      },
+      {
+        "label" : "dgs3",
+        "text" : "dgs text 3"
+      },
+      {
+        "label" : "dgs4",
+        "text" : "dgs text 4"
+      },
+      {
+        "label" : "dgs5",
+        "text" : "dgs text 5"
+      },
+      {
+        "label" : "dgs6",
+        "text" : "dgs text 6"
+      },
+      {
+        "label" : "dgs7",
+        "text" : "dgs text 7"
+      },
+      {
+        "label" : "dgs8",
+        "text" : "dgs text 8"
+      },
+      {
+        "label" : "dgs9",
+        "text" : "dgs text 9"
+      },
+      {
+        "label" : "dgs10",
+        "text" : "dgs text 10"
+      },
+      {
+        "label" : "dgs11",
+        "text" : "dgs text 11"
+      },
+      {
+        "label" : "dgs12",
+        "text" : "dgs text 12"
+      }
+    ]
+  },
+  "dxCluster" : {
+    "autoSplit" : false,
+    "blacklistedCalls" : [
+
+    ],
+    "blacklistedSpotters" : [
+
+    ],
+    "callBlacklist" : [
+      {
+        "addedAtUtc" : "2026-09-21T14:13:20Z",
+        "note" : "",
+        "value" : "OK1BAD"
+      }
+    ],
+    "commands" : [
+      {
+        "command" : "SH/DX",
+        "label" : "SH/DX"
+      },
+      {
+        "command" : "SH/DX 25",
+        "label" : "SH/DX 25"
+      },
+      {
+        "command" : "SH/DX ON 20M",
+        "label" : "SH/DX 20m"
+      },
+      {
+        "command" : "SH/DX ON 40M",
+        "label" : "SH/DX 40m"
+      },
+      {
+        "command" : "SH/WWV",
+        "label" : "WWV"
+      },
+      {
+        "command" : "SH/WCY",
+        "label" : "WCY"
+      },
+      {
+        "command" : "SH/USERS",
+        "label" : "Uživatelé"
+      },
+      {
+        "command" : "SH/CLUSTER",
+        "label" : "Cluster"
+      },
+      {
+        "command" : "SH/STATION",
+        "label" : "Moje info"
+      },
+      {
+        "command" : "HELP",
+        "label" : "Nápověda"
+      }
+    ],
+    "favorites" : [
+      {
+        "host" : "dx.example",
+        "login" : "OK1TST",
+        "name" : "Node A",
+        "parallel" : true,
+        "password" : "dxpw",
+        "port" : 8000
+      },
+      {
+        "host" : "dx2.example",
+        "login" : "OK1TST-2",
+        "name" : "Node B",
+        "parallel" : false,
+        "password" : "",
+        "port" : 7373
+      }
+    ],
+    "lastFavorite" : "",
+    "minSkimmers" : 3,
+    "selfSpotThresholdHz" : 3000,
+    "showBandPlan" : false,
+    "spotBufferMinutes" : 45,
+    "spotterBlacklist" : [
+      {
+        "addedAtUtc" : "2026-09-21T14:13:20Z",
+        "note" : "",
+        "value" : "DL1BAD"
+      }
+    ],
+    "wheelStepHz" : 25,
+    "wheelStepShiftHz" : 250
+  },
+  "esm" : {
+    "enabled" : true,
+    "spCallOnce" : true,
+    "workDupes" : false
+  },
+  "footswitchAction" : "F1",
+  "footswitchPin" : "DSR",
+  "footswitchPort" : "/dev/cu.foot",
+  "goals" : {
+
+  },
+  "hamQth" : {
+    "callModes" : [
+      "CW",
+      "SSB"
+    ],
+    "enabled" : false,
+    "fetchFields" : [
+      "grid"
+    ],
+    "password" : "hqpw",
+    "username" : "hquser"
+  },
+  "infoWindow" : {
+    "offTimeMode" : "sinceLastQso",
+    "showCallframeSpot" : true,
+    "showCountryInfo" : true,
+    "showGoals" : true,
+    "showMessages" : true,
+    "showSunTimes" : true,
+    "showTimers" : true,
+    "showWwv" : true,
+    "trendMinutes" : 20
+  },
+  "keyBindings" : {
+    "log" : "Ctrl+Alt+L",
+    "wipe" : ""
+  },
+  "language" : "en",
+  "lastDatabase" : "",
+  "map" : {
+    "political" : true,
+    "scheme" : "sepia"
+  },
+  "modeAlways" : "PSK",
+  "modeRule" : "BANDPLAN",
+  "n1mmRecv" : {
+    "receiveBind" : "127.0.0.1:12062",
+    "receiveEnabled" : true
+  },
+  "ntpCorrectQsoTime" : true,
+  "ntpServer" : "ntp.example",
+  "openWindows" : [
+    "log"
+  ],
+  "otrspPort" : "/dev/cu.otrsp",
+  "qrz" : {
+    "callModes" : [
+      "SSB",
+      "DIGI"
+    ],
+    "enabled" : false,
+    "fetchFields" : [
+      "name",
+      "cqZone"
+    ],
+    "password" : "qzpw",
+    "username" : "qzuser"
+  },
+  "radioMode" : "SO2R",
+  "recordContest" : false,
+  "recordingsDir" : "",
+  "rig" : {
+    "baud" : 19200,
+    "dataBits" : 7,
+    "device" : "/dev/cu.rig",
+    "dtr" : "ON",
+    "flowControl" : "HARDWARE",
+    "host" : "rig.host",
+    "mode" : "CONNECT_RUNNING",
+    "model" : 3073,
+    "modelLabel" : "3073 — IC-7300",
+    "parity" : "EVEN",
+    "port" : 4600,
+    "rts" : "OFF",
+    "stopBits" : 2
+  },
+  "rig2" : {
+    "baud" : 9600,
+    "dataBits" : 8,
+    "device" : "",
+    "dtr" : "UNSET",
+    "flowControl" : "AUTO",
+    "host" : "rig2.host",
+    "mode" : "CONNECT_RUNNING",
+    "model" : 1,
+    "modelLabel" : "Rig 2 (rigctld :4534)",
+    "parity" : "NONE",
+    "port" : 4541,
+    "rts" : "UNSET",
+    "stopBits" : 1
+  },
+  "ritClearAfterLog" : false,
+  "rotatorHost" : "rot.host",
+  "rotatorPort" : 4540,
+  "rotorUdpHost" : "udp.rot",
+  "rotorUdpName" : "Rotor A",
+  "rotorUdpPort" : 12041,
+  "rttyAfsk" : true,
+  "runMode" : {
+    "autoSwitch" : false,
+    "repeatSeconds" : 3.5,
+    "runOnCqFrequency" : false
+  },
+  "rxAudioDevice" : "Line In Z",
+  "scoreReportingBreakdown" : false,
+  "scoreReportingEnabled" : true,
+  "scoreReportingMinutes" : 7,
+  "scoreReportingUrl" : "https://cqcontest.net/post.php",
+  "scpFile" : "/data/master.scp",
+  "station" : {
+    "address1" : "Street 1",
+    "address2" : "Street 2",
+    "antHeight" : "12m",
+    "antenna" : "Dipole",
+    "arrlSection" : "DX",
+    "asl" : "300m",
+    "call" : "OK1TST",
+    "city" : "Praha",
+    "club" : "OK1KHL",
+    "country" : "Czech Republic",
+    "cqZone" : "15",
+    "email" : "tst@example.org",
+    "gridSquare" : "JN79FX",
+    "ituZone" : "28",
+    "latitude" : "49.9792",
+    "license" : "LIC-1",
+    "longitude" : "14.4583",
+    "name" : "Name Tst",
+    "operator" : "OK1OPR",
+    "power" : "100W",
+    "roverQth" : "JEF",
+    "state" : "CZ-PR",
+    "stationTxRx" : "IC-7300",
+    "zip" : "11000"
+  },
+  "themeAccent" : "ORANGE",
+  "themeMode" : "DARK",
+  "transverters" : [
+    {
+      "enabled" : true,
+      "ifHighKHz" : 30000,
+      "ifLowKHz" : 28000,
+      "name" : "2m",
+      "offsetKHz" : 116000
+    },
+    {
+      "enabled" : false,
+      "ifHighKHz" : 146000,
+      "ifLowKHz" : 144000,
+      "name" : "70cm",
+      "offsetKHz" : 288000
+    }
+  ],
+  "ttsVoice" : "Zuzana",
+  "tuneStepCwHz" : 30,
+  "tuneStepSsbHz" : 200,
+  "voiceKeyer" : {
+    "inputDevice" : "Mic Y",
+    "lettersPath" : "Letters/{CALL}",
+    "maxRecordSeconds" : 50,
+    "outputDevice" : "Speakers X",
+    "pttDelayMs" : 175,
+    "pttViaCat" : false,
+    "runMessages" : [
+      {
+        "label" : "vkr1",
+        "text" : "vkr text 1"
+      },
+      {
+        "label" : "vkr2",
+        "text" : "vkr text 2"
+      },
+      {
+        "label" : "vkr3",
+        "text" : "vkr text 3"
+      },
+      {
+        "label" : "vkr4",
+        "text" : "vkr text 4"
+      },
+      {
+        "label" : "vkr5",
+        "text" : "vkr text 5"
+      },
+      {
+        "label" : "vkr6",
+        "text" : "vkr text 6"
+      },
+      {
+        "label" : "vkr7",
+        "text" : "vkr text 7"
+      },
+      {
+        "label" : "vkr8",
+        "text" : "vkr text 8"
+      },
+      {
+        "label" : "vkr9",
+        "text" : "vkr text 9"
+      },
+      {
+        "label" : "vkr10",
+        "text" : "vkr text 10"
+      },
+      {
+        "label" : "vkr11",
+        "text" : "vkr text 11"
+      },
+      {
+        "label" : "vkr12",
+        "text" : "vkr text 12"
+      }
+    ],
+    "spMessages" : [
+      {
+        "label" : "vks1",
+        "text" : "vks text 1"
+      },
+      {
+        "label" : "vks2",
+        "text" : "vks text 2"
+      },
+      {
+        "label" : "vks3",
+        "text" : "vks text 3"
+      },
+      {
+        "label" : "vks4",
+        "text" : "vks text 4"
+      },
+      {
+        "label" : "vks5",
+        "text" : "vks text 5"
+      },
+      {
+        "label" : "vks6",
+        "text" : "vks text 6"
+      },
+      {
+        "label" : "vks7",
+        "text" : "vks text 7"
+      },
+      {
+        "label" : "vks8",
+        "text" : "vks text 8"
+      },
+      {
+        "label" : "vks9",
+        "text" : "vks text 9"
+      },
+      {
+        "label" : "vks10",
+        "text" : "vks text 10"
+      },
+      {
+        "label" : "vks11",
+        "text" : "vks text 11"
+      },
+      {
+        "label" : "vks12",
+        "text" : "vks text 12"
+      }
+    ],
+    "wavDir" : "/data/wav-own"
+  },
+  "windowGeometry" : {
+
+  },
+  "wsjtx" : {
+    "receiveBind" : "127.0.0.1:2238",
+    "receiveEnabled" : true,
+    "sendEnabled" : true,
+    "sendTargets" : "127.0.0.1:2239"
+  }
+}

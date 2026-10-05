@@ -1,0 +1,8 @@
+schemaVersion: 1
+id: cq_zones
+kind: FIXED
+keyType: INTEGER
+enumerable: true
+metadata: { name: "CQ Zones", description: "40 CQ zón" }
+range: { min: 1, max: 40 }
+validation: { keyPattern: "^([1-9]|[1-3][0-9]|40)$" }

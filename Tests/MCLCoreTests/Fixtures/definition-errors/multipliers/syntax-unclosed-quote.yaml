@@ -1,0 +1,5 @@
+schemaVersion: 1
+id: s
+kind: FIXED
+values:
+  - { key: A, label: "Alfa }

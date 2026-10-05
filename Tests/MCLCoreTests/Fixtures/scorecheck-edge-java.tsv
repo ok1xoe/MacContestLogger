@@ -1,0 +1,328 @@
+java.version	21.0.2
+dxcc	json	json
+L	json	01-zaklad-ok.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	02-claimed-jine.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	999	false	0	\N	\N
+L	json	03-bom-na-zacatku.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	04-nbsp-za-dvojteckou.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	05-bom-a-nbsp-okolo-hodnoty.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	06-bom-pred-klicem.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	07-klic-malymi-pismeny.log	OK	cq-ww-ssb	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	08-dve-hlavicky-contest.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	09-chybi-contest.log	ERR	\N	0	0	0		0	16	false	0	\N	chyb\u00ed hlavi\u010dka CONTEST
+L	json	10-prazdny-contest.log	ERR		0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: 
+L	json	11-neznamy-zavod.log	ERR	NEZNAMY	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: NEZNAMY
+L	json	12-rok-mezerou.log	OK	CQ-WW-SSB 2005	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	13-rok-pomlckou.log	OK	CQ-WW-SSB-2005	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	14-rok-oddelovace-a-mezery.log	OK	CQ-WW-SSB - 2019	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	15-rok-1899-neodrizne.log	ERR	CQ-WW-SSB 1899	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: CQ-WW-SSB 1899
+L	json	16-jen-rok.log	ERR	2005	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: 2005
+L	json	17-rok-pred-nel.log	ERR	CQ-WW-SSB 2005\u0085	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: CQ-WW-SSB 2005\u0085
+L	json	18-rok-unicode-cislice.log	ERR	CQ-WW-SSB 20\u0661\u0665	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: CQ-WW-SSB 20\u0661\u0665
+L	json	19-podle-id.log	OK	wae-ssb	2	1	2	countries=2	2	16	false	0	\N	\N
+L	json	20-rok-za-id.log	OK	WAE-SSB 2024	2	1	2	countries=2	2	16	false	0	\N	\N
+L	json	21-tecka-misto-i-v-klici.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	22-checklog.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	checklog	\N
+L	json	23-checklog-category.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	checklog	\N
+L	json	24-claimed-carky.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	25-claimed-tecky-text.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	26-claimed-chybi.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	json	27-claimed-pomlcka.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	json	28-claimed-minus-uprostred.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	json	29-claimed-preteceni.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	json	30-claimed-long-min.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	-9223372036854775808	false	0	\N	\N
+L	json	31-claimed-plus.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	32-claimed-unicode-cislice.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	json	33-claimed-prazdne.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	json	34-claimed-nbsp.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	35-crlf.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	36-osamocene-cr.log	ERR	\N	0	0	0		0	\N	false	0	bez CLAIMED-SCORE	chyb\u00ed hlavi\u010dka CONTEST
+L	json	37-osamocene-cr-od-contest.log	ERR	CQ-WW-SSB\u000dCALLSIGN: OK1XOE\u000dCLAIMED-SCORE: 16\u000dQSO: 14042 PH 2026-06-17 1200 OK1XOE 59 14 DL1ABC 59 14\u000dQSO: 14042 PH 2026-06-17 1201 OK1XOE 59 14 W1AW 59 05\u000dEND-OF-LOG:	0	0	0		0	\N	false	0	bez CLAIMED-SCORE	nezn\u00e1m\u00fd z\u00e1vod: CQ-WW-SSB\u000dCALLSIGN: OK1XOE\u000dCLAIMED-SCORE: 16\u000dQSO: 14042 PH 2026-06-17 1200 OK1XOE 59 14 DL1ABC 59 14\u000dQSO: 14042 PH 2026-06-17 1201 OK1XOE 59 14 W1AW 59 05\u000dEND-OF-LOG:
+L	json	38-cr-uvnitr-qso.log	OK	CQ-WW-SSB	1	1	2	zones=1,countries=1	2	4	false	0	\N	\N
+L	json	39-cr-cr-lf.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	40-nbsp-v-qso.log	OK	CQ-WW-SSB	1	3	1	zones=0,countries=1	3	16	false	1	\N	\N
+L	json	41-tabulatory-a-mezery.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	42-x-qso-a-kratky.log	OK	CQ-WW-SSB	2	4	3	zones=1,countries=2	12	16	false	0	\N	\N
+L	json	43-qso-s-dlouhym-s.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	44-frekvence-pripony.log	OK	CQ-WW-SSB	3	7	4	zones=2,countries=2	28	16	false	0	\N	\N
+L	json	45-frekvence-nan-inf.log	OK	CQ-WW-SSB	0	0	0	zones=0,countries=0	0	16	false	0	\N	\N
+L	json	46-frekvence-hranice.log	OK	CQ-WW-SSB	3	7	6	zones=3,countries=3	42	16	false	0	\N	\N
+L	json	47-mody.log	OK	CQ-WW-SSB	6	12	6	zones=3,countries=3	72	16	false	0	\N	\N
+L	json	48-nerozpoznane-dxcc.log	OK	CQ-WW-SSB	3	3	3	zones=2,countries=1	9	16	false	2	\N	\N
+L	json	49-chybejici-zona.log	OK	CQ-WW-SSB	2	4	2	zones=0,countries=2	8	16	false	0	\N	\N
+L	json	50-dupe-a-poradi.log	OK	CQ-WW-SSB	4	7	6	zones=3,countries=3	42	16	false	0	\N	\N
+L	json	51-wpx-ok.log	OK	CQ-WPX-CW	4	10	4	prefixes=4	40	40	true	0	\N	\N
+L	json	52-wpx-preteceni-cisla.log	EXC	\N	0	0	0		0	\N	false	0	\N	NumberFormatException: For input string: "4294967295"
+L	json	53-wpx-preteceni-na-zacatku.log	EXC	\N	0	0	0		0	\N	false	0	\N	NumberFormatException: For input string: "2147483648"
+L	json	54-wpx-int-max.log	OK	CQ-WPX-CW	5	11	5	prefixes=5	55	40	false	1	\N	\N
+L	json	55-wpx-preteceni-bez-pasma.log	EXC	\N	0	0	0		0	\N	false	0	\N	NumberFormatException: For input string: "99999999999"
+L	json	56-wpx-preteceni-kratky-radek.log	OK	CQ-WPX-CW	5	11	5	prefixes=5	55	40	false	1	\N	\N
+L	json	57-digi-zaklad.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	json	58-digi-grid-az-ve-druhem.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	json	59-digi-sesti-znakovy.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	json	60-digi-neplatny-grid.log	OK	WW-DIGI	3	3	2	grids=2	6	8	false	0	\N	\N
+L	json	61-digi-bez-gridu.log	OK	WW-DIGI	2	2	0	grids=0	0	8	false	2	\N	\N
+L	json	62-digi-grid-jen-v-x-qso.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	json	63-digi-ft8-a-pasma.log	OK	WW-DIGI	3	7	3	grids=3	21	8	false	0	\N	\N
+L	json	64-digi-fullwidth-grid.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	json	65-latin1-nbsp.log	UNREADABLE	\N	0	0	0		0	\N	false	0	\N	nelze na\u010d\u00edst
+L	json	66-neplatne-utf8.log	UNREADABLE	\N	0	0	0		0	\N	false	0	\N	nelze na\u010d\u00edst
+L	json	67-surrogat-v-utf8.log	UNREADABLE	\N	0	0	0		0	\N	false	0	\N	nelze na\u010d\u00edst
+L	json	68-overlong-utf8.log	UNREADABLE	\N	0	0	0		0	\N	false	0	\N	nelze na\u010d\u00edst
+L	json	69-prazdny-soubor.log	ERR	\N	0	0	0		0	\N	false	0	bez CLAIMED-SCORE	chyb\u00ed hlavi\u010dka CONTEST
+L	json	70-utf8-ne-ascii-volacka.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	71-contest-ligatura-st.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	json	72-contest-ligatura-konec.log	EXC	\N	0	0	0		0	\N	false	0	\N	StringIndexOutOfBoundsException: Range [8, 7) out of bounds for length 7
+L	json	73-contest-ligatura-bez-mezery.log	ERR	Q-WW-SSB	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: Q-WW-SSB
+L	json	74-poradi-mimo-cas.log	OK	WW-DIGI	3	2	2	grids=2	4	2	false	0	\N	\N
+dxcc	cty	cty
+L	cty	01-zaklad-ok.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	02-claimed-jine.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	999	false	0	\N	\N
+L	cty	03-bom-na-zacatku.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	04-nbsp-za-dvojteckou.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	05-bom-a-nbsp-okolo-hodnoty.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	06-bom-pred-klicem.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	07-klic-malymi-pismeny.log	OK	cq-ww-ssb	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	08-dve-hlavicky-contest.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	09-chybi-contest.log	ERR	\N	0	0	0		0	16	false	0	\N	chyb\u00ed hlavi\u010dka CONTEST
+L	cty	10-prazdny-contest.log	ERR		0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: 
+L	cty	11-neznamy-zavod.log	ERR	NEZNAMY	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: NEZNAMY
+L	cty	12-rok-mezerou.log	OK	CQ-WW-SSB 2005	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	13-rok-pomlckou.log	OK	CQ-WW-SSB-2005	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	14-rok-oddelovace-a-mezery.log	OK	CQ-WW-SSB - 2019	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	15-rok-1899-neodrizne.log	ERR	CQ-WW-SSB 1899	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: CQ-WW-SSB 1899
+L	cty	16-jen-rok.log	ERR	2005	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: 2005
+L	cty	17-rok-pred-nel.log	ERR	CQ-WW-SSB 2005\u0085	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: CQ-WW-SSB 2005\u0085
+L	cty	18-rok-unicode-cislice.log	ERR	CQ-WW-SSB 20\u0661\u0665	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: CQ-WW-SSB 20\u0661\u0665
+L	cty	19-podle-id.log	OK	wae-ssb	2	1	2	countries=2	2	16	false	0	\N	\N
+L	cty	20-rok-za-id.log	OK	WAE-SSB 2024	2	1	2	countries=2	2	16	false	0	\N	\N
+L	cty	21-tecka-misto-i-v-klici.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	22-checklog.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	checklog	\N
+L	cty	23-checklog-category.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	checklog	\N
+L	cty	24-claimed-carky.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	25-claimed-tecky-text.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	26-claimed-chybi.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	cty	27-claimed-pomlcka.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	cty	28-claimed-minus-uprostred.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	cty	29-claimed-preteceni.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	cty	30-claimed-long-min.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	-9223372036854775808	false	0	\N	\N
+L	cty	31-claimed-plus.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	32-claimed-unicode-cislice.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	cty	33-claimed-prazdne.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	\N	false	0	bez CLAIMED-SCORE	\N
+L	cty	34-claimed-nbsp.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	35-crlf.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	36-osamocene-cr.log	ERR	\N	0	0	0		0	\N	false	0	bez CLAIMED-SCORE	chyb\u00ed hlavi\u010dka CONTEST
+L	cty	37-osamocene-cr-od-contest.log	ERR	CQ-WW-SSB\u000dCALLSIGN: OK1XOE\u000dCLAIMED-SCORE: 16\u000dQSO: 14042 PH 2026-06-17 1200 OK1XOE 59 14 DL1ABC 59 14\u000dQSO: 14042 PH 2026-06-17 1201 OK1XOE 59 14 W1AW 59 05\u000dEND-OF-LOG:	0	0	0		0	\N	false	0	bez CLAIMED-SCORE	nezn\u00e1m\u00fd z\u00e1vod: CQ-WW-SSB\u000dCALLSIGN: OK1XOE\u000dCLAIMED-SCORE: 16\u000dQSO: 14042 PH 2026-06-17 1200 OK1XOE 59 14 DL1ABC 59 14\u000dQSO: 14042 PH 2026-06-17 1201 OK1XOE 59 14 W1AW 59 05\u000dEND-OF-LOG:
+L	cty	38-cr-uvnitr-qso.log	OK	CQ-WW-SSB	1	1	2	zones=1,countries=1	2	4	false	0	\N	\N
+L	cty	39-cr-cr-lf.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	40-nbsp-v-qso.log	OK	CQ-WW-SSB	1	3	1	zones=0,countries=1	3	16	false	1	\N	\N
+L	cty	41-tabulatory-a-mezery.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	42-x-qso-a-kratky.log	OK	CQ-WW-SSB	2	4	3	zones=1,countries=2	12	16	false	0	\N	\N
+L	cty	43-qso-s-dlouhym-s.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	44-frekvence-pripony.log	OK	CQ-WW-SSB	3	7	4	zones=2,countries=2	28	16	false	0	\N	\N
+L	cty	45-frekvence-nan-inf.log	OK	CQ-WW-SSB	0	0	0	zones=0,countries=0	0	16	false	0	\N	\N
+L	cty	46-frekvence-hranice.log	OK	CQ-WW-SSB	3	7	6	zones=3,countries=3	42	16	false	0	\N	\N
+L	cty	47-mody.log	OK	CQ-WW-SSB	6	12	6	zones=3,countries=3	72	16	false	0	\N	\N
+L	cty	48-nerozpoznane-dxcc.log	OK	CQ-WW-SSB	3	3	3	zones=2,countries=1	9	16	false	2	\N	\N
+L	cty	49-chybejici-zona.log	OK	CQ-WW-SSB	2	4	2	zones=0,countries=2	8	16	false	0	\N	\N
+L	cty	50-dupe-a-poradi.log	OK	CQ-WW-SSB	4	7	6	zones=3,countries=3	42	16	false	0	\N	\N
+L	cty	51-wpx-ok.log	OK	CQ-WPX-CW	4	10	4	prefixes=4	40	40	true	0	\N	\N
+L	cty	52-wpx-preteceni-cisla.log	EXC	\N	0	0	0		0	\N	false	0	\N	NumberFormatException: For input string: "4294967295"
+L	cty	53-wpx-preteceni-na-zacatku.log	EXC	\N	0	0	0		0	\N	false	0	\N	NumberFormatException: For input string: "2147483648"
+L	cty	54-wpx-int-max.log	OK	CQ-WPX-CW	5	13	5	prefixes=5	65	40	false	0	\N	\N
+L	cty	55-wpx-preteceni-bez-pasma.log	EXC	\N	0	0	0		0	\N	false	0	\N	NumberFormatException: For input string: "99999999999"
+L	cty	56-wpx-preteceni-kratky-radek.log	OK	CQ-WPX-CW	5	13	5	prefixes=5	65	40	false	0	\N	\N
+L	cty	57-digi-zaklad.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	cty	58-digi-grid-az-ve-druhem.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	cty	59-digi-sesti-znakovy.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	cty	60-digi-neplatny-grid.log	OK	WW-DIGI	3	3	2	grids=2	6	8	false	0	\N	\N
+L	cty	61-digi-bez-gridu.log	OK	WW-DIGI	2	2	0	grids=0	0	8	false	2	\N	\N
+L	cty	62-digi-grid-jen-v-x-qso.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	cty	63-digi-ft8-a-pasma.log	OK	WW-DIGI	3	7	3	grids=3	21	8	false	0	\N	\N
+L	cty	64-digi-fullwidth-grid.log	OK	WW-DIGI	2	4	2	grids=2	8	8	true	0	\N	\N
+L	cty	65-latin1-nbsp.log	UNREADABLE	\N	0	0	0		0	\N	false	0	\N	nelze na\u010d\u00edst
+L	cty	66-neplatne-utf8.log	UNREADABLE	\N	0	0	0		0	\N	false	0	\N	nelze na\u010d\u00edst
+L	cty	67-surrogat-v-utf8.log	UNREADABLE	\N	0	0	0		0	\N	false	0	\N	nelze na\u010d\u00edst
+L	cty	68-overlong-utf8.log	UNREADABLE	\N	0	0	0		0	\N	false	0	\N	nelze na\u010d\u00edst
+L	cty	69-prazdny-soubor.log	ERR	\N	0	0	0		0	\N	false	0	bez CLAIMED-SCORE	chyb\u00ed hlavi\u010dka CONTEST
+L	cty	70-utf8-ne-ascii-volacka.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	71-contest-ligatura-st.log	OK	CQ-WW-SSB	2	4	4	zones=2,countries=2	16	16	true	0	\N	\N
+L	cty	72-contest-ligatura-konec.log	EXC	\N	0	0	0		0	\N	false	0	\N	StringIndexOutOfBoundsException: Range [8, 7) out of bounds for length 7
+L	cty	73-contest-ligatura-bez-mezery.log	ERR	Q-WW-SSB	0	0	0		0	16	false	0	\N	nezn\u00e1m\u00fd z\u00e1vod: Q-WW-SSB
+L	cty	74-poradi-mimo-cas.log	OK	WW-DIGI	3	2	2	grids=2	4	2	false	0	\N	\N
+F	stripBlank	  CQ-WPX-SSB	CQ-WPX-SSB
+F	stripBlank	\u00a0CQ-WPX-SSB	CQ-WPX-SSB
+F	stripBlank	\ufeffX\u00a0	X
+F	stripBlank	  Y  	Y
+F	stripBlank	\u2007A\u202f	A
+F	stripBlank	\u3000B\u2028	B
+F	stripBlank	\u0085C\u0085	\u0085C\u0085
+F	stripBlank	\u0001D\u001f	\u0001D
+F	stripBlank	\u200bE\u200b	\u200bE\u200b
+F	stripBlank		
+F	stripBlank	\u00a0\ufeff 	
+F	stripBlank	\u1680F\u205f	F
+F	stripBlank	\u180eG\u180e	\u180eG\u180e
+F	stripBlank	\u2000H\u200a	H
+F	stripBlank	\u2029I\u001c	I
+F	stripBlank	\ud83d\ude00J\ud83d\ude00	\ud83d\ude00J\ud83d\ude00
+F	stripTrailingYear	CQ-WW-SSB 2005	CQ-WW-SSB
+F	stripTrailingYear	CQ-WW-SSB-2005	CQ-WW-SSB
+F	stripTrailingYear	CQ-WW-SSB - 2019  	CQ-WW-SSB
+F	stripTrailingYear	CQ-WW-SSB 1899	CQ-WW-SSB 1899
+F	stripTrailingYear	CQ-WW-SSB2005	CQ-WW-SSB2005
+F	stripTrailingYear	2005	2005
+F	stripTrailingYear	 2005	
+F	stripTrailingYear	CQ-WW-SSB 2005 2006	CQ-WW-SSB 2005
+F	stripTrailingYear	CQ-WW-SSB 20055	CQ-WW-SSB 20055
+F	stripTrailingYear	CQ-WW-SSB 2005\u0085	CQ-WW-SSB\u0085
+F	stripTrailingYear	CQ-WW-SSB 2005\u000a	CQ-WW-SSB
+F	stripTrailingYear	CQ-WW-SSB 2005\u000d\u000a	CQ-WW-SSB
+F	stripTrailingYear	CQ-WW-SSB 2005\u00a0	CQ-WW-SSB 2005\u00a0
+F	stripTrailingYear	CQ-WW-SSB\u00a02005	CQ-WW-SSB\u00a02005
+F	stripTrailingYear	CQ-WW-SSB\u00092005\u0009	CQ-WW-SSB
+F	stripTrailingYear	CQ-WW-SSB 20\u0661\u0665	CQ-WW-SSB 20\u0661\u0665
+F	stripTrailingYear	CQ-WW-SSB --2099	CQ-WW-SSB
+F	stripTrailingYear	 CQ-WW-SSB 2005	CQ-WW-SSB
+F	stripTrailingYear		
+F	parseLong	1,234,567	1234567
+F	parseLong	1.234	1234
+F	parseLong	-	\N
+F	parseLong	12-3	\N
+F	parseLong	--5	\N
+F	parseLong	-5	-5
+F	parseLong	+5	5
+F	parseLong	abc	\N
+F	parseLong		\N
+F	parseLong	   	\N
+F	parseLong	\u00a0	\N
+F	parseLong	9223372036854775807	9223372036854775807
+F	parseLong	9223372036854775808	\N
+F	parseLong	-9223372036854775808	-9223372036854775808
+F	parseLong	-9223372036854775809	\N
+F	parseLong	00042	42
+F	parseLong	\u0661\u0662	\N
+F	parseLong	\uff11\uff12	\N
+F	parseLong	1 234 pts	1234
+F	parseLong	1e3	13
+F	parseLong	-0	0
+F	parseLong	5-	\N
+F	band	14042	20m
+F	band	14042d	20m
+F	band	14042D	20m
+F	band	1.4042e4F	20m
+F	band	0x1.b6ap13	20m
+F	band	0X1.B6AP13d	20m
+F	band	NaN	
+F	band	-NaN	
+F	band	Infinity	
+F	band	-Infinity	
+F	band	-14042	
+F	band	14,042	
+F	band	14350.0004	20m
+F	band	14350.0005	
+F	band	13999.9995	20m
+F	band	13999.9994	
+F	band	1800	160m
+F	band	2000	160m
+F	band	2000.0005	
+F	band	50000	6m
+F	band	144300	2m
+F	band	432200	70cm
+F	band	5351	60m
+F	band	10120	30m
+F	band	0	
+F	band		
+F	band	.	
+F	band	1e	
+F	band	14042..0	
+F	band	\u0661\u0664	
+F	band	1_4042	
+F	band	14042\u00a0	
+F	band	99999999999999999999999	
+F	band	1e400	
+F	band	4.9e-324	
+F	mode	CW	CW
+F	mode	cw	CW
+F	mode	PH	SSB
+F	mode	ph	SSB
+F	mode	SSB	SSB
+F	mode	USB	SSB
+F	mode	LSB	SSB
+F	mode	usb	SSB
+F	mode	FM	FM
+F	mode	RY	RTTY
+F	mode	RTTY	RTTY
+F	mode	ry	RTTY
+F	mode	DG	DG
+F	mode	FT8	FT8
+F	mode	ft4	FT4
+F	mode	PSK	PSK
+F	mode	AM	AM
+F	mode	DIGITAL	DIGITAL
+F	mode	JT65	JT65
+F	mode	XYZ	XYZ
+F	mode	\u00dfB	SSB
+F	mode	\u0001CW	CW
+F	mode	CW\u0001	CW
+F	mode	\u00a0CW	\u00a0CW
+F	mode		
+F	mode	\u0131	I
+F	mode	stra\u00dfe	STRASSE
+F	header	CONTEST: A\u000aCONTEST: B	CONTEST	A
+F	header	CONTE\ufb06: X	CONTEST	X
+F	header	CONTE\ufb06:X	CONTEST	
+F	header	CONTE\ufb06:	CONTEST	EXC StringIndexOutOfBoundsException: Range [8, 7) out of bounds for length 7
+F	header	CONTE\ufb05:\u000aCONTEST: Y	CONTEST	EXC StringIndexOutOfBoundsException: Range [8, 7) out of bounds for length 7
+F	header	\ufb06\u017fCONTEST: X	CONTEST	\N
+F	header	CATEGORY: \ufb00	CATEGORY	\ufb00
+F	header	\u00dfCONTEST: X	CONTEST	\N
+F	header	contest:a	CONTEST	a
+F	header	 \ufeffCONTEST:\u00a0X\u00a0	CONTEST	X
+F	header	XCONTEST: A\u000aCONTEST: B	CONTEST	B
+F	header	CONTESTANT: A	CONTEST	\N
+F	header	CONTEST:	CONTEST	
+F	header	CONTEST	CONTEST	\N
+F	header	CALLS\u0131GN: OK1XOE	CALLSIGN	OK1XOE
+F	header	CALL\u017fIGN: OK1XOE	CALLSIGN	OK1XOE
+F	header	CONTEST: A\u000dCALLSIGN: B	CALLSIGN	\N
+F	header	CONTEST: A\u000d\u000aCALLSIGN: B\u000d\u000a	CALLSIGN	B
+F	header	CONTEST: A\u2028CALLSIGN: B	CALLSIGN	\N
+F	header	CONTEST: A\u0085CALLSIGN: B	CONTEST	A\u0085CALLSIGN: B
+F	header	CLAIMED-SCORE: 1,234	CLAIMED-SCORE	1,234
+F	header	claimed-score:	CLAIMED-SCORE	
+F	header	\u00a0\u00a0CLAIMED-SCORE:\u00095\u0009	CLAIMED-SCORE	5
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE JO70 W1AW FN31	1	JO70
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE jo70ab W1AW FN31	1	JO70AB
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE JS70 W1AW FN31\u000aQSO: 14074 DG 2025-08-30 1200 OK1XOE AR09XX W1AW FN31	1	AR09XX
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE AR09XY W1AW FN31	1	\N
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE JO70A W1AW FN31	1	\N
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE	1	\N
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE 59 001 JO70 W1AW	3	JO70
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE 59 JO70 001 W1AW	3	JO70
+F	detectOwnGrid	X-QSO: 14074 DG 2025-08-30 1200 OK1XOE JO70 W1AW\u000aqso: 1 DG 2025-08-30 1200 OK1XOE IO91 W1AW	1	IO91
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE \uff2a\uff2f70 W1AW	1	\N
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE JO70 W1AW	0	\N
+F	detectOwnGrid	QSO:14074 DG 2025-08-30 1200 OK1XOE JO70 W1AW	1	JO70
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE JO\u00a070 W1AW	1	\N
+F	detectOwnGrid	QSO: 14074 DG 2025-08-30 1200 OK1XOE JO70\u000dQSO: 14074 DG 2025-08-30 1200 OK1XOE IO91 W1AW	1	JO70
+F	isChecklog	CONTEST: CQ-WW-SSB\u000aCATEGORY-OPERATOR: CHECKLOG\u000a	true
+F	isChecklog	CATEGORY: CHECKLOG\u000a	true
+F	isChecklog	CATEGORY-POWER: HIGH\u000a	false
+F	isChecklog	  category-operator: checklog	true
+F	isChecklog	X-CATEGORY: CHECKLOG	false
+F	isChecklog	SOAPBOX: CATEGORY CHECKLOG	false
+F	isChecklog	CATEGORY-OPERATOR: CHECK LOG	false
+F	isChecklog	CATEGORY-OPERATOR: SINGLE-OP CHECKLOGX	true
+F	isChecklog	\u00a0CATEGORY: CHECKLOG	false
+F	isChecklog	category: \u0441heckLOG	false
+F	isChecklog	CATEGORY-OPERATOR: checklo\u0261	false
+F	isChecklog	\u0001CATEGORY: CHECKLOG\u0001	true
+F	isChecklog	CAT\u0395GORY: CHECKLOG	false
+F	isChecklog	CATEGORY: SINGLE\u000dCHECKLOG	true
+F	isChecklog	CATEGORY-OPERATOR: \ufb00CHECKLOG	true
+F	skipReason	CATEGORY: CHECKLOG\u000aCLAIMED-SCORE: 100\u000a	checklog
+F	skipReason	CONTEST: CQ-WW-SSB\u000aQSO: x\u000a	bez CLAIMED-SCORE
+F	skipReason	CONTEST: CQ-WW-SSB\u000aCLAIMED-SCORE: 100\u000aQSO: x\u000a	\N
+F	skipReason	CLAIMED-SCORE: -\u000a	bez CLAIMED-SCORE
+F	skipReason	CLAIMED-SCORE: 99999999999999999999\u000a	bez CLAIMED-SCORE
+F	skipReason	CLAIMED-SCORE: 0\u000a	\N

@@ -1,0 +1,541 @@
+# Skripty rozhovorového ramene brány P7b (Tools/net-ref-gen/NetConversationGen.java,
+# Tests/MCLCoreTests/Net/NetConversationParityTests.swift). Oba je čtou z tohoto souboru; každý řádek scénáře
+# je vstupem položky (otisk), změna = „PŘEGENERUJ REFERENCI".
+#
+# Řádek = slovo TAB pole TAB pole…; jen ASCII, žádné bílé znaky na okrajích řádku. Escapy v polích:
+# \n \r \t \\, \xNN = znak U+00NN (bajt NN tam, kde jde o bajty), \uXXXX = UTF-16 jednotka (jen texty volání).
+# <empty> = prázdné pole. <base> v textu = http://127.0.0.1:<port náhrady HTTP>.
+# Náhrady běží v tomtéž procesu jen na 127.0.0.1 s porty od OS (nikdy 4532/4533), žádné skutečné služby.
+# Skript řídí jedno vlákno (strana náhrady i volání klienta) — pořadí je dané, čekání mají jen velkorysou
+# pojistku (20 s), po níž se zapíše <timeout> a scénář skončí (VADA, nikdy pomalý stroj).
+#
+# section telnet (DxClusterClient proti řádkovému serveru)
+#   scenario <jméno> [port=free] [host=<host>]
+#   connect                 klient se připojí (výsledek OK / EXC)
+#   accept                  náhrada přijme spojení
+#   srv <bajty>             náhrada pošle bajty;  srvrep <bajty> <n> = n× totéž
+#   recv                    náhrada čte do CRLF (výsledek = přijaté bajty)
+#   await <n>               čekat, až klient doručí n událostí (řádky + chyby); výsledek = počet
+#   send <text>             DxClusterClient.send
+#   connected               isConnected()
+#   eof | rst | srvclose    náhrada: shutdownOutput (FIN) | RST (SO_LINGER 0) | zavřít
+#   close                   DxClusterClient.close
+#
+# section udp-rx (WsjtxListener, AdifUdpListener, N1mmListener; odesílač náhrady na 127.0.0.1)
+#   listen <wsjtx|adif|n1mm> <host> <0|taken|same>   taken = port drží náhrada, same = port posluchače 0
+#   opts <i>                volby soketu posluchače i
+#   dgram <asm>             datagram na port posluchače 0;  await <n>
+#   reply <asm>             WsjtxListener.send na adresu posledního Decode; náhrada přijme (bajty, zdrojový port)
+#   Datagram <asm> = tokeny po mezeře: i32:<n> i64:<n> u8:<n> f64:<číslo> qs:<text> (QString UTF-8)
+#   qnull (QString null) qsh:<hex> (QString se surovými bajty) hex:<hex> txt:<text UTF-8>; mezera v textu \x20.
+#
+# section udp-mcast (jako udp-rx; multicast posluchači se přihlásí do skupiny jen na lo0 — Swift přes testovací
+#   index rozhraní, Java přesunem členství na lo0; runner, který na lo0 multicast neumí, položku přeskočí)
+#
+# section udp-tx (UdpBroadcaster; přijímače náhrady R0, R1 na 127.0.0.1, R6 na [::1])
+#   opts | send <text> <cíl>… (R0, R1, R6 = přijímač; jinak host:port doslova) | get <R> | close
+#
+# section http (HamQthClient, QrzClient, ClubLogClient, ScorePoster proti náhradě HTTP/1.1)
+#   scenario <jméno> [port=free]
+#   resp <stav|close> <Content-Type> <tělo> [Location]   odpověď na k-tý požadavek (poslední se opakuje)
+#   client <hamqth|qrz> <jméno> <heslo>;  lookup <volačka>
+#   clublog <email> <heslo> <volačka> <api> <adif>;  score <cesta> <xml>
+#   Callbooky jdou na https://www.hamqth.com / https://xmldata.qrz.com přepsané na <base>.
+#
+# section mqtt (MqttSyncTransport proti skriptovanému brokeru; strana brokeru ruční)
+#   scenario <jméno> [user=<u>] [pass=<p>] [offline=<json StationStatusWire>]
+#   bg <volání> [json] / join   volání na pozadí (connect, close, insert, update, delete, status, spot, msg,
+#                           serial) / jeho výsledek;  call <volání> [json] = hned
+#   accept | expect <TYP> (paket klienta, bajty) | expectset <n> (n paketů v pořadí nezávislém na vláknech
+#   Paho, seřazené) | connack <sp> <rc> | suback <kódy hex> (na poslední SUBSCRIBE) | puback [rc] (na poslední PUBLISH)
+#   publish <qos> <retain> <téma> <payload> (id brokeru 1, 2, …) | disconnect <rc> | drop (FIN)
+#   connected | waitoffline (dokud isConnected) | await <n> (události posluchačů)
+#   gate | release           posluchači čekají na uvolnění | uvolnit;  pending = bajty od klienta právě teď
+
+section	telnet
+
+scenario	loginFlow
+connect
+accept
+srv	login:\x20
+send	OK1XOE
+recv
+srv	\r\nHello OK1XOE, this is DXSpider\r\nDX de OK1RR:     14025.0  DL1AAA       cw                  1200Z\r\n
+await	3
+send	sh/dx 5
+recv
+srv	bye\r\n
+eof
+await	5
+connected
+close
+connected
+end
+
+scenario	bytesAndLineEnds
+connect
+accept
+srv	caf\xE9 \xFF\xFB\x01 x\x00y\r\na\rb\r\nc\n\r\nd
+eof
+await	7
+end
+
+scenario	longLine
+connect
+accept
+srvrep	ABCDEFGHIJ	1000
+srv	\r\n
+await	1
+close
+end
+
+scenario	sendNonAscii
+connect
+accept
+send	sh/dx \u010Dau \u2603 \uD83D\uDE00
+recv
+send	<empty>
+recv
+close
+end
+
+scenario	resetByPeer
+connect
+accept
+srv	x\r\n
+await	1
+rst
+await	2
+connected
+close
+end
+
+scenario	refused	port=free
+connect
+end
+
+scenario	badHost	host=[::1
+connect
+end
+
+scenario	closeMidStream
+connect
+accept
+srv	a\r\n
+await	1
+close
+srv	b\r\n
+connected
+send	x
+end
+
+section	udp-rx
+
+scenario	wsjtxDecodeReply
+listen	wsjtx	127.0.0.1	0
+opts	0
+dgram	i32:0xadbccbda i32:2 i32:2 qs:WSJT-X u8:1 i32:45000 i32:-12 f64:0.3 i32:1234 qs:~ qs:CQ\x20OK1ABC\x20JO70 u8:0 u8:0
+await	1
+reply	i32:0xadbccbda i32:2 i32:4 qs:WSJT-X i32:45000 i32:-12 f64:0.3 i32:1234 qs:~ qs:CQ\x20OK1ABC\x20JO70 u8:0 u8:0
+end
+
+scenario	wsjtxAllTypes
+listen	wsjtx	127.0.0.1	0
+dgram	i32:0xadbccbda i32:2 i32:0 qs:WSJT-X i32:3 qs:2.7.0 qs:abc
+dgram	hex:00010203
+dgram	i32:0x12345678 i32:2 i32:3 qs:WSJT-X
+dgram	i32:0xadbccbda i32:2 i32:1 qs:WSJT-X i64:14074000 qs:FT8 qs:DL1AAA qs:-10 qs:FT8 u8:1 u8:0 u8:0 i32:1500
+dgram	i32:0xadbccbda i32:2 i32:3 qs:JTDX
+dgram	i32:0xadbccbda i32:3 i32:2 qnull u8:0 i32:0 i32:5 f64:-0.0 i32:-7 qs:+ qsh:c3a96ec3
+dgram	i32:0xadbccbda i32:2 i32:2 qs:WSJT-X u8:1 i32:86399999 i32:30 f64:1e300 i32:2999 qs:` qs:OK1ABC\x20DL1AAA\x20R-05 u8:1 u8:1
+dgram	i32:0xadbccbda i32:2 i32:12 qs:WSJT-X qs:<call:6>OK1ABC\x20<gridsquare:4>JO70\x20<eor>
+dgram	i32:0xadbccbda i32:2 i32:12 qs:WSJT-X qnull
+dgram	i32:0xadbccbda i32:2 i32:2 qs:WSJT-X u8:1 i32:1
+await	6
+end
+
+scenario	wsjtxPortTaken
+listen	wsjtx	127.0.0.1	taken
+end
+
+scenario	wsjtxBadHost
+listen	wsjtx	[127.0.0.1]	0
+end
+
+scenario	adifFilter
+listen	adif	127.0.0.1	0
+opts	0
+dgram	txt:hello
+dgram	txt:<call:6>OK1ABC\x20<band:3>20m\x20<eor>
+dgram	hex:3c63616c6c3a333e4f4b31ff3c656f723e
+dgram	txt:\x20\x20<EOR>
+await	2
+end
+
+scenario	n1mmUnicast
+listen	n1mm	127.0.0.1	0
+opts	0
+dgram	txt:<RadioInfo><Freq>1402500</Freq></RadioInfo>
+dgram	txt:<contactinfo><app>N1MM</app><call>OK1ABC</call><mode>CW</mode><txfreq>1402500</txfreq><snt>599</snt><rcv>579</rcv><sntnr>1</sntnr><rcvnr>5</rcvnr><timestamp>2026-02-30\x2012:00:00</timestamp><StationName>PC1</StationName><gridsquare>JO70</gridsquare></contactinfo>
+dgram	txt:<contactinfo><call>DL1AAA</call><mode>USB</mode><rxfreq>710000</rxfreq><timestamp>2026-04-31\x2024:00:00</timestamp></contactinfo>
+dgram	txt:<CONTACTINFO><call>X</call></CONTACTINFO>
+dgram	txt:<contactinfo><call>\x20</call><timestamp>2026-13-01\x2000:00:00</timestamp></contactinfo>
+dgram	hex:3c636f6e74616374696e666f3e3c63616c6c3e4f4bff3c2f63616c6c3e
+await	8
+end
+
+section	udp-mcast
+
+scenario	n1mmMulticastShared
+listen	n1mm	239.255.0.42	0
+listen	n1mm	239.255.0.42	same
+opts	0
+listen	n1mm	127.0.0.1	same
+end
+
+section	udp-tx
+
+scenario	fanout
+opts
+send	<contactinfo>\u010D</contactinfo>	R0	R1	R6
+get	R0
+get	R1
+get	R6
+send	<x/>	[::1:9	127.0.0.1:0	127.0.0.1:70000	R1
+get	R1
+end
+
+scenario	loopbackBroadcast
+send	<b/>	127.255.255.255:R0
+send	<marker/>	R0
+get	R0
+close
+send	<late/>	R0
+end
+
+section	http
+
+scenario	hamqthSessionExpired
+resp	200	text/xml	<?xml version="1.0"?><HamQTH version="2.8"><session><session_id>s-1</session_id></session></HamQTH>
+resp	200	text/xml	<HamQTH><session><error>Session does not exist or expired</error></session></HamQTH>
+resp	200	text/xml	<HamQTH><session><session_id>s-2</session_id></session></HamQTH>
+resp	200	text/xml	<HamQTH><search><callsign>ok1abc</callsign><nick>Petr</nick><grid>JO70fc</grid><cq>15</cq><itu>28</itu></search></HamQTH>
+client	hamqth	op1user	se cret&p=x
+lookup	ok1abc
+lookup	\x20dl1aaa\x20
+end
+
+scenario	hamqthHttpError
+resp	500	text/plain	boom
+client	hamqth	op1user	secret
+lookup	OK1ABC
+end
+
+scenario	hamqthRefused	port=free
+client	hamqth	op1user	secret
+lookup	OK1ABC
+end
+
+scenario	qrzTimeoutAndNotFound
+resp	200	text/xml	<QRZDatabase><Session><Key>k1</Key></Session></QRZDatabase>
+resp	200	text/xml	<QRZDatabase><Session><Error>Session Timeout</Error></Session></QRZDatabase>
+resp	200	text/xml	<QRZDatabase><Session><Key>k2</Key></Session></QRZDatabase>
+resp	200	text/xml	<QRZDatabase><Callsign><call>OK1ABC</call><grid>JO70</grid><cqzone>15</cqzone><ituzone>28</ituzone><fname>Petr</fname></Callsign><Session><Key>k2</Key></Session></QRZDatabase>
+resp	200	text/xml	<QRZDatabase><Session><Error>Not found: XX1XX</Error><Key>k2</Key></Session></QRZDatabase>
+client	qrz	op1user	pa;ss
+lookup	ok1abc
+lookup	xx1xx
+end
+
+scenario	clublogOutcomes
+resp	200	text/plain	OK
+resp	400	text/plain	bad
+resp	403	text/plain	login
+resp	500	text/plain	later
+resp	close	text/plain	<empty>
+clublog	op1@example.invalid	p&s=1	OK1ABC	key 1	<call:6>OK1ABC <band:3>20m <eor>
+clublog	op1@example.invalid	p	OK1ABC	k	<eor>
+clublog	op1@example.invalid	p	OK1ABC	k	<eor>
+clublog	op1@example.invalid	p	OK1ABC	k	<eor>
+clublog	op1@example.invalid	p	OK1ABC	k	<eor>
+end
+
+scenario	clublogRefused	port=free
+clublog	op1@example.invalid	p	OK1ABC	k	<eor>
+end
+
+scenario	scoreRedirects
+resp	200	text/plain	ok
+resp	302	text/plain	moved	<base>/next
+resp	200	text/plain	ok
+resp	307	text/plain	moved	/keep
+resp	200	text/plain	ok
+resp	301	text/plain	moved	/perm
+resp	204	text/plain	<empty>
+score	/post/	<score><call>OK1ABC</call><total>1 234</total></score>
+score	/post/	<a>\u010D</a>
+score	/post/	<b/>
+score	/post/	<c/>
+end
+
+scenario	scoreRefused	port=free
+score	/post/	<score/>
+end
+
+section	mqtt
+
+scenario	connectPublishClose	user=op1user	pass=secret	offline={"stationId":"OP1","operator":"OK1XOE","stationType":"RUN","band":"B20","mode":"CW","freqHz":14025000,"runMode":"RUN","qsoCount":0,"transmitting":false,"online":false,"timestampUtc":"2026-10-01T12:00:00Z","entryCall":""}
+call	msg	{"type":"CHAT","id":"m0","fromStation":"OP1","fromOperator":"OK1XOE","toStation":null,"text":"early","call":null,"freqHz":0,"mode":null,"timestampUtc":"2026-10-01T12:00:00Z"}
+bg	connect
+accept
+expect	CONNECT
+connack	0	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+join
+connected
+publish	1	1	qso/state/u-r1	{"uuid":"u-r1","stationId":"OP2","version":3,"updatedAtUtc":"2026-10-01T12:00:00Z","deleted":false,"qso":null}
+expect	PUBACK
+publish	0	0	spot/new	{"stationId":"OP2","spotter":"OK1XOE","freqHz":14025000,"dxCall":"DL1AAA","comment":"cq"}
+publish	1	0	station/msg	{"type":"CHAT","id":"m1","fromStation":"OP2","fromOperator":"OK1XOE","toStation":null,"text":"hi","call":null,"freqHz":0,"mode":null,"timestampUtc":"2026-10-01T12:00:00Z"}
+expect	PUBACK
+publish	1	0	serial/reply/OP1	{"stationId":"OP1","requestId":"r1","serial":42}
+expect	PUBACK
+publish	1	1	station/status/OP2	{"stationId":"OP2","operator":"OK1ABC","stationType":"MULT","band":"B40","mode":"SSB","freqHz":7100000,"runMode":"SP","qsoCount":3,"transmitting":true,"online":true,"timestampUtc":"2026-10-01T12:01:00Z","entryCall":"DL1AAA"}
+expect	PUBACK
+publish	1	1	qso/state/u-r2	<empty>
+expect	PUBACK
+publish	1	0	qso/other	{}
+expect	PUBACK
+await	5
+bg	insert	{"stationId":"OP1","uuid":"u-1","clientTimestampUtc":"2026-10-01T12:34:56.123Z","qso":{"timestampUtc":"2026-10-01T12:34:56Z","call":"OK1ABC","freqHz":14025000,"band":"B20","mode":"CW","rstSent":"599","rstRcvd":"599","exchangeSent":"001","exchangeRcvd":"005","serialSent":1,"serialRcvd":5,"operator":"OK1XOE","comment":null,"dxccEntity":503,"dxccName":"Czech Republic","continent":"EU","xqso":null}}
+expect	PUBLISH
+puback
+join
+bg	update	{"stationId":"OP1","uuid":"u-1","clientTimestampUtc":"2026-10-01T12:35:00Z","qso":{"timestampUtc":"2026-10-01T12:34:56Z","call":"OK1ABD","freqHz":14025000,"band":"B20","mode":"CW","rstSent":"599","rstRcvd":"599","exchangeSent":"001","exchangeRcvd":"005","serialSent":1,"serialRcvd":5,"operator":"OK1XOE","comment":"\u010D","dxccEntity":503,"dxccName":"Czech Republic","continent":"EU","xqso":null}}
+expect	PUBLISH
+puback	10
+join
+bg	delete	{"stationId":"OP1","uuid":"u-1","clientTimestampUtc":"2026-10-01T12:36:00Z"}
+expect	PUBLISH
+puback	80
+join
+bg	status	{"stationId":"OP1","operator":"OK1XOE","stationType":"RUN","band":"B20","mode":"CW","freqHz":14025000,"runMode":"RUN","qsoCount":3,"transmitting":false,"online":true,"timestampUtc":"2026-10-01T12:35:00Z","entryCall":""}
+expect	PUBLISH
+puback
+join
+call	spot	{"stationId":"OP1","spotter":"OK1XOE","freqHz":14025000,"dxCall":"DL1AAA","comment":"cq"}
+expect	PUBLISH
+bg	msg	{"type":"CHAT","id":"m2","fromStation":"OP1","fromOperator":"OK1XOE","toStation":"OP2","text":"\uD83D\uDE00","call":null,"freqHz":0,"mode":null,"timestampUtc":"2026-10-01T12:00:00Z"}
+expect	PUBLISH
+puback
+join
+bg	serial	{"stationId":"OP1","requestId":"r2"}
+expect	PUBLISH
+puback
+join
+bg	close
+expect	DISCONNECT
+join
+connected
+end
+
+scenario	reconnectResubscribe
+bg	connect
+accept
+expect	CONNECT
+connack	0	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+join
+drop
+waitoffline
+call	msg	{"type":"CHAT","id":"m3","fromStation":"OP1","fromOperator":"OK1XOE","toStation":null,"text":"offline","call":null,"freqHz":0,"mode":null,"timestampUtc":"2026-10-01T12:00:00Z"}
+call	insert	{"stationId":"OP1","uuid":"u-2","clientTimestampUtc":"2026-10-01T12:40:00Z","qso":null}
+call	spot	{"stationId":"OP1","spotter":"OK1XOE","freqHz":7025000,"dxCall":"DL1AAA","comment":null}
+call	status	{"stationId":"OP1","operator":"OK1XOE","stationType":"RUN","band":"B20","mode":"CW","freqHz":14025000,"runMode":"RUN","qsoCount":3,"transmitting":false,"online":true,"timestampUtc":"2026-10-01T12:35:00Z","entryCall":""}
+accept
+expect	CONNECT
+connack	1	00
+expect	SUBSCRIBE
+suback	01
+publish	1	1	qso/state/u-r1	{"uuid":"u-r1","stationId":"OP2","version":4,"updatedAtUtc":"2026-10-01T12:00:00Z","deleted":true,"qso":null}
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	PUBACK
+await	1
+connected
+bg	close
+expect	DISCONNECT
+join
+end
+
+scenario	lostPubackDup
+bg	connect
+accept
+expect	CONNECT
+connack	0	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+join
+bg	insert	{"stationId":"OP1","uuid":"u-3","clientTimestampUtc":"2026-10-01T12:41:00Z","qso":null}
+expect	PUBLISH
+drop
+join
+waitoffline
+accept
+expect	CONNECT
+connack	1	00
+expectset	2
+puback
+suback	01
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+bg	close
+expect	DISCONNECT
+join
+end
+
+scenario	pubackAfterListener
+bg	connect
+accept
+expect	CONNECT
+connack	0	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+join
+gate
+publish	1	0	qso/state/u-r5	{"uuid":"u-r5","stationId":"OP2","version":1,"updatedAtUtc":"2026-10-01T12:00:00Z","deleted":false,"qso":null}
+await	1
+pending
+release
+expect	PUBACK
+publish	1	0	qso/state/u-r6	{"uuid":
+expect	PUBACK
+publish	1	0	qso/state/u-r7	{"uuid":"u-r7","stationId":"OP2","version":2,"updatedAtUtc":"2026-10-01T12:00:00Z","deleted":false,"qso":null}
+expect	PUBACK
+await	2
+bg	close
+expect	DISCONNECT
+join
+end
+
+scenario	connackBadCredentials	user=op1user	pass=wrong
+bg	connect
+accept
+expect	CONNECT
+connack	0	86
+join
+connected
+end
+
+scenario	connackNotAuthorized	user=	pass=
+bg	connect
+accept
+expect	CONNECT
+connack	0	87
+join
+end
+
+scenario	subackRefused
+bg	connect
+accept
+expect	CONNECT
+connack	0	00
+expect	SUBSCRIBE
+suback	80
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	87
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+join
+connected
+bg	close
+expect	DISCONNECT
+join
+end
+
+scenario	brokerDisconnect
+bg	connect
+accept
+expect	CONNECT
+connack	0	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+join
+disconnect	8b
+waitoffline
+accept
+expect	CONNECT
+connack	1	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	00
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+expect	SUBSCRIBE
+suback	01
+connected
+bg	close
+expect	DISCONNECT
+join
+end

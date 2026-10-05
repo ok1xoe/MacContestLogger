@@ -1,0 +1,45 @@
+schemaVersion: 1
+id: rdxc
+metadata:
+  name: "Russian DX Contest"
+  organizer: "CRC"
+  description: "Ruské stanice posílají oblast, ostatní pořadové číslo; násobiče = DXCC země a ruské oblasti po pásmech i módech."
+  officialUrl: "https://www.rdxc.org/"
+period: { durationHours: 24 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: ru, when: { dxccIn: [RU, UA, UA2, UA9] } }
+  - { id: dx, when: { not: { dxccIn: [RU, UA, UA2, UA9] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst,    type: RST,    required: true }
+    - { id: oblast, type: TEXT,   required: true, appliesWhen: { workedClass: ru } }   # oblast (MA, SP…)
+    - { id: nr,     type: SERIAL, required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { workedClass: ru },      value: { fixed: 10 } }
+      - { when: { ownDxcc: true },        value: { fixed: 2 } }
+      - { when: { sameContinent: true },  value: { fixed: 3 } }
+      - { when: { otherContinent: true }, value: { fixed: 5 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: oblasts,   set: rda_oblasts,   from: oblast,   scope: PER_BAND_MODE, appliesWhen: { workedClass: ru } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND_MODE }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: RDXC, sentOrder: [rst, nr], receivedOrder: [rst, oblast, nr] }
+ui:
+  entryOrder: [call, oblast, nr]
+  logColumns: [time, call, band, mode, rst, oblast, nr, points, mult]

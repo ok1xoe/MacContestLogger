@@ -1,0 +1,54 @@
+# Syntetická „plná“ definice pro bránu JavaDefinitionParityTests (úkol 12 P3b):
+# každé pole recordu naplněné, koerce (text → číslo, 1.9 → 1, yes → true),
+# záporná čísla, null prvky seznamů. Není to skutečný závod.
+schemaVersion: -1
+id: full-b
+metadata: {name: "", organizer: ~, description: "Ž", officialUrl: ""}
+period: 24
+bands: [160, yes, 1.50, "10m"]
+modes: []
+categories: [{id: SO, label: ""}]
+stationClasses: [{id: a, when: {}}]
+exchange:
+  sent:
+    - {id: f0, type: RST, required: true, source: MANUAL}
+    - {id: f1, type: RS, required: false, source: AUTO_RST}
+    - {id: f2, type: SERIAL, required: 1, source: AUTO_SERIAL}
+    - {id: f3, type: INTEGER, required: 0, source: FROM_STATION}
+    - {id: f4, type: TEXT, required: ~, source: DERIVED}
+    - {id: f5, type: LOCATOR, required: on, source: ROVER_QTH}
+    - {id: f6, type: CQ_ZONE, required: true, source: MANUAL}
+    - {id: f7, type: ITU_ZONE, required: false, source: AUTO_RST}
+    - {id: f8, type: DXCC, required: 1, source: AUTO_SERIAL}
+    - {id: f9, type: PREFIX, required: 0, source: FROM_STATION}
+    - {id: f10, type: HQ, required: ~, source: DERIVED}
+    - {id: f11, type: NATIONAL, required: on, source: ROVER_QTH}
+    - {id: f12, type: STATE, required: true, source: MANUAL}
+    - {id: f13, type: PROVINCE, required: false, source: AUTO_RST}
+    - {id: f14, type: DISTRICT, required: 1, source: AUTO_SERIAL}
+    - {id: f15, type: IOTA, required: 0, source: FROM_STATION}
+    - {id: f16, type: QTC, required: ~, source: DERIVED}
+  received:
+    - {id: r0, type: 16, required: no, source: 5, estimate: ""}
+scoring:
+  qsoPoints: {mode: FIRST_MATCH, default: "7", rules: [~, {when: ~, value: ~}]}
+  bonuses:
+    - {id: b0, scope: PER_BAND, value: {fixed: 1}}
+    - {id: b1, scope: PER_BAND_MODE, value: {expr: "2"}}
+    - {id: b2, scope: PER_MODE, value: {perKm: {field: loc}}}
+    - {id: b3, scope: ONCE}
+    - ~
+  total: ""
+  qtc: {}
+multipliers:
+  - {id: m0, scope: 0}
+  - {id: m1, scope: 2}
+  - {id: m2, scope: "3"}
+  - ~
+dupe: {scope: PER_MODE, dupeWorthZero: true}
+cabrillo: {contestName: "", sentOrder: [], receivedOrder: [~]}
+ui: {entryOrder: [~], logColumns: []}
+operating:
+  offTime: {}
+  bandChange: {minimumMinutes: "-10", perHour: 0}
+  rules: []

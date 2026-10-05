@@ -1,0 +1,30 @@
+# Syntetická definice jen pro bránu JavaEngineParityTests (úkol 11 P3c): body za QSO
+# přes 2³¹ (SUM dvou pravidel po 2e9 se obtočí jako javový int), součet qsoPoints v long
+# a formule, jejíž výsledek saturuje `(long) double`. Není to skutečný závod; leží mimo
+# definition-synthetic/, aby se nehnula reference brány definic P3b.
+schemaVersion: 1
+id: gate-overflow
+bands: [20m, 40m]
+modes: [CW]
+exchange:
+  received:
+    - {id: rst, type: RST}
+    - {id: nr, type: SERIAL}
+scoring:
+  qsoPoints:
+    mode: SUM
+    default: 2147483647
+    rules:
+      - when: {otherContinent: true}
+        value: {fixed: 2000000000}
+      - when: {otherContinent: true}
+        value: {fixed: 2000000000}
+      - when: {sameContinent: true}
+        value: {expr: "10000000000"}
+      - when: {sameContinent: true}
+        value: {expr: "-2147483648 - 5"}
+  total: "qsoPoints * multTotal * 100000000000000000000 + qsoCount * 2147483647 * 2147483647"
+multipliers:
+  - {id: c, set: dxcc_entities, from: callsign, scope: PER_BAND}
+  - {id: w, set: cq_zones, from: nr, scope: PER_BAND, bandWeights: {20m: 2147483647, 40m: 3}}
+dupe: {scope: ONCE, dupeWorthZero: false}

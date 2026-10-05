@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: ww-digi
+metadata:
+  name: "World Wide Digi DX Contest"
+  organizer: "WWDIGI / SLOVENIA CONTEST CLUB"
+period: { durationHours: 24 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [DIGITAL]
+
+exchange:
+  # WW-DIGI výměna je POUZE 4znakový Maidenhead grid — žádný RST (na rozdíl od většiny závodů).
+  sent:
+    - { id: grid, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: grid, type: LOCATOR, required: true, estimate: grid }  # grid ze spotu dohledán (HamQTH)
+
+scoring:
+  qsoPoints:
+    # WW-DIGI: body = vzdálenost mezi 4znakovými gridy / 3000 km, zaokrouhleno nahoru, min 1.
+    # (factor = 1/3000; ověřeno proti claimed skóre ~330 logů, medián odchylky ~4 %.)
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: {}, value: { perKm: { field: grid, factor: 0.0003333333333, round: CEIL, min: 1 } } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # Násobič = 2znakové grid POLE (JO, FN…), počítané per pásmo — ověřeno proti claimed skóre.
+  - { id: grids, set: grid_fields, from: grid, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: WW-DIGI, sentOrder: [grid], receivedOrder: [grid] }
+ui:
+  entryOrder: [call, grid]
+  logColumns: [time, call, band, mode, rst, grid, points, mult]

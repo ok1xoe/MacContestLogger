@@ -1,0 +1,6 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+dupe:
+  scope: 1

@@ -1,0 +1,8 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+exchange:
+  received:
+    - { id: rst, type: RST, required: true }
+    - { id: nr, type: SERIAL, required: ano }

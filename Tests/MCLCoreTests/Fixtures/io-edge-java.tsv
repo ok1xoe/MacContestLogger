@@ -1,0 +1,549 @@
+V	java.version	21.0.2
+V	locale	en_US
+F	AR1-zaklad-mala-pismena.adi	adif	1575bd7e522179ccc8d7c20bafd6f3ec23ebd5a3249c718a135bbe904b0369ca	102	UTF8	QSO 1	REC 1
+Q	AR1-zaklad-mala-pismena.adi	0	W1AW	14025500	M20	SSB	1781699640000	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR1-zaklad-mala-pismena.adi	0	call	w1aw
+R	AR1-zaklad-mala-pismena.adi	0	freq	14.025500
+R	AR1-zaklad-mala-pismena.adi	0	mode	usb
+R	AR1-zaklad-mala-pismena.adi	0	qso_date	20260617
+R	AR1-zaklad-mala-pismena.adi	0	time_on	1234
+F	AR10-bez-koncoveho-eor.adi	adif	01f85e82a138071123decff0b4cf2e0eebf27a6a98b89a451d8d14d0a3df8949	35	UTF8	QSO 2	REC 2
+Q	AR10-bez-koncoveho-eor.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR10-bez-koncoveho-eor.adi	1	OK1A	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR10-bez-koncoveho-eor.adi	0	call	W1AW
+R	AR10-bez-koncoveho-eor.adi	1	call	OK1A
+F	AR11-duplicitni-pole.adi	adif	58da24c99d75c364d0fa2dfcf11e14703d01ec5630de3e20479ab523a5a7f563	34	UTF8	QSO 1	REC 1
+Q	AR11-duplicitni-pole.adi	0	OK1A	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR11-duplicitni-pole.adi	0	call	OK1A
+F	AR12-eor-v-hodnote.adi	adif	d3596b0973ab3f0a02ab422b030a63bca70bd6a5e36634763b6f3f6ceac30ce8	38	UTF8	QSO 1	REC 1
+Q	AR12-eor-v-hodnote.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N		false
+R	AR12-eor-v-hodnote.adi	0	call	W1AW
+R	AR12-eor-v-hodnote.adi	0	comment	
+F	AR13-freq-pred-band.adi	adif	34904fcba3a4b74c97e658299eaa7f44ddcaf181dbb3bcb1a2f4f28527e01147	47	UTF8	QSO 1	REC 1
+Q	AR13-freq-pred-band.adi	0	W1AW	14025000	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR13-freq-pred-band.adi	0	band	40m
+R	AR13-freq-pred-band.adi	0	call	W1AW
+R	AR13-freq-pred-band.adi	0	freq	14.025
+F	AR14-freq-mimo-pasma.adi	adif	f8a86bc8dba8df71d2ce9f0684d7783d8c0ad62517c97197093970c416b61aa0	46	UTF8	QSO 1	REC 1
+Q	AR14-freq-mimo-pasma.adi	0	W1AW	5000000	M40	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR14-freq-mimo-pasma.adi	0	band	40m
+R	AR14-freq-mimo-pasma.adi	0	call	W1AW
+R	AR14-freq-mimo-pasma.adi	0	freq	5.000
+F	AR15-tvary-frekvence.adi	adif	8c2b13e9b1ff07ab5b1cd07ef5145ea219ea433c9fa1f613ffb03ecd376a352a	500	UTF8	QSO 16	REC 16
+Q	AR15-tvary-frekvence.adi	0	F00	14025000	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	1	F01	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	2	F02	7000100	M40	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	3	F03	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	4	F04	1	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	5	F05	14000000	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	6	F06	14025500	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	7	F07	14000001	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	8	F08	9223372036854775807	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	9	F09	-7000000	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	10	F10	9223372036854775807	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	11	F11	-9223372036854775808	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	12	F12	14025000	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	13	F13	14025000	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	14	F14	14025000	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR15-tvary-frekvence.adi	15	F15	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR15-tvary-frekvence.adi	0	call	F00
+R	AR15-tvary-frekvence.adi	0	freq	14.025d
+R	AR15-tvary-frekvence.adi	1	call	F01
+R	AR15-tvary-frekvence.adi	1	freq	14,025
+R	AR15-tvary-frekvence.adi	2	call	F02
+R	AR15-tvary-frekvence.adi	2	freq	7.0001
+R	AR15-tvary-frekvence.adi	3	call	F03
+R	AR15-tvary-frekvence.adi	3	freq	NaN
+R	AR15-tvary-frekvence.adi	4	call	F04
+R	AR15-tvary-frekvence.adi	4	freq	1e-6
+R	AR15-tvary-frekvence.adi	5	call	F05
+R	AR15-tvary-frekvence.adi	5	freq	0x1.cp3  
+R	AR15-tvary-frekvence.adi	6	call	F06
+R	AR15-tvary-frekvence.adi	6	freq	14.0255000004
+R	AR15-tvary-frekvence.adi	7	call	F07
+R	AR15-tvary-frekvence.adi	7	freq	14.0000005
+R	AR15-tvary-frekvence.adi	8	call	F08
+R	AR15-tvary-frekvence.adi	8	freq	1e300
+R	AR15-tvary-frekvence.adi	9	call	F09
+R	AR15-tvary-frekvence.adi	9	freq	-7.0
+R	AR15-tvary-frekvence.adi	10	call	F10
+R	AR15-tvary-frekvence.adi	10	freq	Infinity
+R	AR15-tvary-frekvence.adi	11	call	F11
+R	AR15-tvary-frekvence.adi	11	freq	-Infinity
+R	AR15-tvary-frekvence.adi	12	call	F12
+R	AR15-tvary-frekvence.adi	12	freq	 14.025 
+R	AR15-tvary-frekvence.adi	13	call	F13
+R	AR15-tvary-frekvence.adi	13	freq	+14.025
+R	AR15-tvary-frekvence.adi	14	call	F14
+R	AR15-tvary-frekvence.adi	14	freq	14.025f
+R	AR15-tvary-frekvence.adi	15	call	F15
+R	AR15-tvary-frekvence.adi	15	freq	   
+F	AR16-casy.adi	adif	0da6dc25bc902ca3f96c67e36aba6c6c2b6af9ac35a4b138717635be4b85ee36	689	UTF8	QSO 14	REC 14
+Q	AR16-casy.adi	0	T00	0	\N	\N	1781697600000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	1	T01	0	\N	\N	1781654400000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	2	T02	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	3	T03	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	4	T04	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	5	T05	0	\N	\N	1781699640000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	6	T06	0	\N	\N	1772280000000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	7	T07	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	8	T08	0	\N	\N	1781658120000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	9	T09	0	\N	\N	1781699696000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	10	T10	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	11	T11	0	\N	\N	1781699640000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	12	T12	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16-casy.adi	13	T13	0	\N	\N	1781654400000	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR16-casy.adi	0	call	T00
+R	AR16-casy.adi	0	qso_date	20260617
+R	AR16-casy.adi	0	time_on	12
+R	AR16-casy.adi	1	call	T01
+R	AR16-casy.adi	1	qso_date	20260617
+R	AR16-casy.adi	2	call	T02
+R	AR16-casy.adi	2	qso_date	20260617
+R	AR16-casy.adi	2	time_on	2400
+R	AR16-casy.adi	3	call	T03
+R	AR16-casy.adi	3	qso_date	2026-06-17
+R	AR16-casy.adi	3	time_on	1200
+R	AR16-casy.adi	4	call	T04
+R	AR16-casy.adi	4	qso_date	20260617
+R	AR16-casy.adi	4	time_on	9
+R	AR16-casy.adi	5	call	T05
+R	AR16-casy.adi	5	qso_date	20260617
+R	AR16-casy.adi	5	time_on	12345
+R	AR16-casy.adi	6	call	T06
+R	AR16-casy.adi	6	qso_date	20260230
+R	AR16-casy.adi	6	time_on	1200
+R	AR16-casy.adi	7	call	T07
+R	AR16-casy.adi	7	time_on	1200
+R	AR16-casy.adi	8	call	T08
+R	AR16-casy.adi	8	qso_date	20260617
+R	AR16-casy.adi	8	time_on	+1+2
+R	AR16-casy.adi	9	call	T09
+R	AR16-casy.adi	9	qso_date	20260617
+R	AR16-casy.adi	9	time_on	123456
+R	AR16-casy.adi	10	call	T10
+R	AR16-casy.adi	10	qso_date	20260617
+R	AR16-casy.adi	10	time_on	125960
+R	AR16-casy.adi	11	call	T11
+R	AR16-casy.adi	11	qso_date	20260617
+R	AR16-casy.adi	11	time_on	 1234 
+R	AR16-casy.adi	12	call	T12
+R	AR16-casy.adi	12	qso_date	20260617
+R	AR16-casy.adi	12	time_on	12:34
+R	AR16-casy.adi	13	call	T13
+R	AR16-casy.adi	13	qso_date	20260617
+R	AR16-casy.adi	13	time_on	   
+F	AR16b-data.adi	adif	0afe6b98cf8fa45ad073ffe64904285712086af73b5aacf4bf28f24d14d6866f	688	UTF8	QSO 13	REC 13
+Q	AR16b-data.adi	0	D00	0	\N	\N	1777550400000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	1	D01	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	2	D02	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	3	D03	0	\N	\N	1772280000000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	4	D04	0	\N	\N	1709208000000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	5	D05	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	6	D06	0	\N	\N	-62135553600000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	7	D07	0	\N	\N	253402257600000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	8	D08	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	9	D09	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	10	D10	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	11	D11	0	\N	\N	1781697600000	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR16b-data.adi	12	D12	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR16b-data.adi	0	call	D00
+R	AR16b-data.adi	0	qso_date	20260431
+R	AR16b-data.adi	0	time_on	1200
+R	AR16b-data.adi	1	call	D01
+R	AR16b-data.adi	1	qso_date	20261301
+R	AR16b-data.adi	1	time_on	1200
+R	AR16b-data.adi	2	call	D02
+R	AR16b-data.adi	2	qso_date	20260001
+R	AR16b-data.adi	2	time_on	1200
+R	AR16b-data.adi	3	call	D03
+R	AR16b-data.adi	3	qso_date	20260229
+R	AR16b-data.adi	3	time_on	1200
+R	AR16b-data.adi	4	call	D04
+R	AR16b-data.adi	4	qso_date	20240229
+R	AR16b-data.adi	4	time_on	1200
+R	AR16b-data.adi	5	call	D05
+R	AR16b-data.adi	5	qso_date	00000101
+R	AR16b-data.adi	5	time_on	1200
+R	AR16b-data.adi	6	call	D06
+R	AR16b-data.adi	6	qso_date	00010101
+R	AR16b-data.adi	6	time_on	1200
+R	AR16b-data.adi	7	call	D07
+R	AR16b-data.adi	7	qso_date	99991231
+R	AR16b-data.adi	7	time_on	1200
+R	AR16b-data.adi	8	call	D08
+R	AR16b-data.adi	8	qso_date	2026061 
+R	AR16b-data.adi	8	time_on	1200
+R	AR16b-data.adi	9	call	D09
+R	AR16b-data.adi	9	qso_date	\uFF12\uFF10\uFF12\uFF16\uFF10\uFF16\uFF11\uFF17
+R	AR16b-data.adi	9	time_on	1200
+R	AR16b-data.adi	10	call	D10
+R	AR16b-data.adi	10	qso_date	20260617x
+R	AR16b-data.adi	10	time_on	1200
+R	AR16b-data.adi	11	call	D11
+R	AR16b-data.adi	11	qso_date	 20260617 
+R	AR16b-data.adi	11	time_on	1200
+R	AR16b-data.adi	12	call	D12
+R	AR16b-data.adi	12	qso_date	+2026061
+R	AR16b-data.adi	12	time_on	1200
+F	AR17-cisla.adi	adif	80c6c463550fae44cd7eb7a819d0c1a88b41386549d774dbfde079528003fee6	281	UTF8	QSO 8	REC 8
+Q	AR17-cisla.adi	0	S00	0	\N	\N	\N	\N	\N	7	5	\N	\N	\N	\N	false
+Q	AR17-cisla.adi	1	S01	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR17-cisla.adi	2	S02	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR17-cisla.adi	3	S03	0	\N	\N	\N	\N	\N	\N	5	\N	\N	\N	\N	false
+Q	AR17-cisla.adi	4	S04	0	\N	\N	\N	\N	\N	\N	5	\N	\N	\N	\N	false
+Q	AR17-cisla.adi	5	S05	0	\N	\N	\N	\N	\N	-3	2147483647	\N	\N	\N	\N	false
+Q	AR17-cisla.adi	6	S06	0	\N	\N	\N	\N	\N	\N	-2147483648	\N	\N	\N	\N	false
+Q	AR17-cisla.adi	7	S07	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR17-cisla.adi	0	call	S00
+R	AR17-cisla.adi	0	srx	+5
+R	AR17-cisla.adi	0	stx	007
+R	AR17-cisla.adi	1	call	S01
+R	AR17-cisla.adi	1	srx	5.0
+R	AR17-cisla.adi	2	call	S02
+R	AR17-cisla.adi	2	srx	99999999999
+R	AR17-cisla.adi	3	call	S03
+R	AR17-cisla.adi	3	srx	 5 
+R	AR17-cisla.adi	4	call	S04
+R	AR17-cisla.adi	4	srx	\u0665
+R	AR17-cisla.adi	5	call	S05
+R	AR17-cisla.adi	5	srx	2147483647
+R	AR17-cisla.adi	5	stx	-3
+R	AR17-cisla.adi	6	call	S06
+R	AR17-cisla.adi	6	srx	-2147483648
+R	AR17-cisla.adi	6	stx	2147483648
+R	AR17-cisla.adi	7	call	S07
+R	AR17-cisla.adi	7	srx	   
+R	AR17-cisla.adi	7	stx	
+F	AR18-srx-string.adi	adif	11c87ef6f1894d2032833d0d394905a05df614cb4627b26118c0b05a1ec28b24	672	UTF8	QSO 10	REC 10
+Q	AR18-srx-string.adi	0	X00	0	\N	\N	\N	\N	599	\N	\N	599 001	15	\N	\N	false
+Q	AR18-srx-string.adi	1	X01	0	\N	\N	\N	\N	599	\N	\N	\N	59915	\N	\N	false
+Q	AR18-srx-string.adi	2	X02	0	\N	\N	\N	\N	599	\N	\N	\N	\N	\N	\N	false
+Q	AR18-srx-string.adi	3	X03	0	\N	\N	\N	\N	\N	\N	\N	\N	599 15	\N	\N	false
+Q	AR18-srx-string.adi	4	X04	0	\N	\N	\N	\N	 599	\N	\N	\N	15	\N	\N	false
+Q	AR18-srx-string.adi	5	X05	0	\N	\N	\N	\N	599	\N	\N	\N	15	\N	\N	false
+Q	AR18-srx-string.adi	6	X06	0	\N	\N	\N	\N		\N	\N	\N	599 15	\N	\N	false
+Q	AR18-srx-string.adi	7	X07	0	\N	\N	\N	\N	599	\N	\N	\N	\N	\N	\N	false
+Q	AR18-srx-string.adi	8	X08	0	\N	\N	\N	\N	59	\N	\N	\N	599 15	\N	\N	false
+Q	AR18-srx-string.adi	9	X09	0	\N	\N	\N	\N	599	\N	\N	\N	599\t15	\N	\N	false
+R	AR18-srx-string.adi	0	call	X00
+R	AR18-srx-string.adi	0	rst_rcvd	599
+R	AR18-srx-string.adi	0	srx_string	599 15
+R	AR18-srx-string.adi	0	stx_string	 599 001 
+R	AR18-srx-string.adi	1	call	X01
+R	AR18-srx-string.adi	1	rst_rcvd	599
+R	AR18-srx-string.adi	1	srx_string	59915
+R	AR18-srx-string.adi	1	stx_string	   
+R	AR18-srx-string.adi	2	call	X02
+R	AR18-srx-string.adi	2	rst_rcvd	599
+R	AR18-srx-string.adi	2	srx_string	599
+R	AR18-srx-string.adi	2	stx_string	   
+R	AR18-srx-string.adi	3	call	X03
+R	AR18-srx-string.adi	3	srx_string	599 15
+R	AR18-srx-string.adi	3	stx_string	   
+R	AR18-srx-string.adi	4	call	X04
+R	AR18-srx-string.adi	4	rst_rcvd	 599
+R	AR18-srx-string.adi	4	srx_string	599  15
+R	AR18-srx-string.adi	4	stx_string	   
+R	AR18-srx-string.adi	5	call	X05
+R	AR18-srx-string.adi	5	rst_rcvd	599
+R	AR18-srx-string.adi	5	srx_string	  599 15  
+R	AR18-srx-string.adi	5	stx_string	   
+R	AR18-srx-string.adi	6	call	X06
+R	AR18-srx-string.adi	6	rst_rcvd	
+R	AR18-srx-string.adi	6	srx_string	599 15
+R	AR18-srx-string.adi	6	stx_string	   
+R	AR18-srx-string.adi	7	call	X07
+R	AR18-srx-string.adi	7	rst_rcvd	599
+R	AR18-srx-string.adi	7	srx_string	   
+R	AR18-srx-string.adi	7	stx_string	   
+R	AR18-srx-string.adi	8	call	X08
+R	AR18-srx-string.adi	8	rst_rcvd	59
+R	AR18-srx-string.adi	8	srx_string	599 15
+R	AR18-srx-string.adi	8	stx_string	   
+R	AR18-srx-string.adi	9	call	X09
+R	AR18-srx-string.adi	9	rst_rcvd	599
+R	AR18-srx-string.adi	9	srx_string	599\t15
+R	AR18-srx-string.adi	9	stx_string	   
+F	AR19-prazdna-pole.adi	adif	788c18e76ce69fb0619cfac58f84bd41ae0074595ed1e4489c95b21f5b16f6b2	75	UTF8	QSO 1	REC 2
+Q	AR19-prazdna-pole.adi	0	W1AW	0	\N	\N	\N		\N	\N	\N	\N	\N	  		false
+R	AR19-prazdna-pole.adi	0	call	W1AW
+R	AR19-prazdna-pole.adi	0	comment	
+R	AR19-prazdna-pole.adi	0	operator	  
+R	AR19-prazdna-pole.adi	0	rst_sent	
+R	AR19-prazdna-pole.adi	1	call	   
+F	AR2-typovy-indikator.adi	adif	4b3516e5aaee0e014e4e25eac29ff47d250b545959fcc500d4b48085eb762f83	37	UTF8	QSO 1	REC 1
+Q	AR2-typovy-indikator.adi	0	W1AW	0	M40	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR2-typovy-indikator.adi	0	band	40M
+R	AR2-typovy-indikator.adi	0	call	W1AW
+F	AR20-mody.adi	adif	d52774e87d3b71f5163035c29f35785c1c663342827c779f56076bc40c12a0fc	293	UTF8	QSO 10	REC 10
+Q	AR20-mody.adi	0	M00	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	1	M01	0	\N	SSB	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	2	M02	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	3	M03	0	\N	DIGITAL	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	4	M04	0	\N	FT8	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	5	M05	0	\N	CW	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	6	M06	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	7	M07	0	\N	RTTY	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	8	M08	0	\N	FM	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20-mody.adi	9	M09	0	\N	AM	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR20-mody.adi	0	call	M00
+R	AR20-mody.adi	0	mode	MFSK
+R	AR20-mody.adi	0	submode	FT4
+R	AR20-mody.adi	1	call	M01
+R	AR20-mody.adi	1	mode	lsb
+R	AR20-mody.adi	2	call	M02
+R	AR20-mody.adi	2	mode	PSK31
+R	AR20-mody.adi	3	call	M03
+R	AR20-mody.adi	3	mode	DIGITAL
+R	AR20-mody.adi	4	call	M04
+R	AR20-mody.adi	4	mode	ft8
+R	AR20-mody.adi	5	call	M05
+R	AR20-mody.adi	5	mode	 CW 
+R	AR20-mody.adi	6	call	M06
+R	AR20-mody.adi	6	mode	
+R	AR20-mody.adi	7	call	M07
+R	AR20-mody.adi	7	mode	RTTY
+R	AR20-mody.adi	8	call	M08
+R	AR20-mody.adi	8	mode	FM
+R	AR20-mody.adi	9	call	M09
+R	AR20-mody.adi	9	mode	AM
+F	AR20b-pasma.adi	adif	bd118a50a54a5a5875e56654262e1d6f94687086702de32b61d570fb6967935a	358	UTF8	QSO 13	REC 13
+Q	AR20b-pasma.adi	0	B00	0	M160	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	1	B01	0	M80	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	2	B02	0	M60	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	3	B03	0	M30	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	4	B04	0	M17	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	5	B05	0	M12	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	6	B06	0	M6	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	7	B07	0	M2	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	8	B08	0	CM70	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	9	B09	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	10	B10	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	11	B11	0	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR20b-pasma.adi	12	B12	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR20b-pasma.adi	0	band	160M
+R	AR20b-pasma.adi	0	call	B00
+R	AR20b-pasma.adi	1	band	80m
+R	AR20b-pasma.adi	1	call	B01
+R	AR20b-pasma.adi	2	band	60m
+R	AR20b-pasma.adi	2	call	B02
+R	AR20b-pasma.adi	3	band	30m
+R	AR20b-pasma.adi	3	call	B03
+R	AR20b-pasma.adi	4	band	17m
+R	AR20b-pasma.adi	4	call	B04
+R	AR20b-pasma.adi	5	band	12m
+R	AR20b-pasma.adi	5	call	B05
+R	AR20b-pasma.adi	6	band	6m
+R	AR20b-pasma.adi	6	call	B06
+R	AR20b-pasma.adi	7	band	2m
+R	AR20b-pasma.adi	7	call	B07
+R	AR20b-pasma.adi	8	band	70cm
+R	AR20b-pasma.adi	8	call	B08
+R	AR20b-pasma.adi	9	band	23cm
+R	AR20b-pasma.adi	9	call	B09
+R	AR20b-pasma.adi	10	band	40
+R	AR20b-pasma.adi	10	call	B10
+R	AR20b-pasma.adi	11	band	 20m 
+R	AR20b-pasma.adi	11	call	B11
+R	AR20b-pasma.adi	12	band	xyz
+R	AR20b-pasma.adi	12	call	B12
+F	AR21-tecka-nad-I.adi	adif	8e06c83caf0b41dd3d5278279648ebbfe785c17628f6a784f5382b71ca436e5a	52	UTF8	EXC java.lang.StringIndexOutOfBoundsException: Range [47, 46) out of bounds for length 46	EXC java.lang.StringIndexOutOfBoundsException: Range [47, 46) out of bounds for length 46
+F	AR21b-tecka-nad-I-v-hlavicce.adi	adif	b6af4ede40c250ec065f9fc73957539fa9ea73824f6b61892c2bff2a60b2152f	49	UTF8	QSO 1	REC 1
+Q	AR21b-tecka-nad-I-v-hlavicce.adi	0	OK1A	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR21b-tecka-nad-I-v-hlavicce.adi	0	call	OK1A
+F	AR22-crlf-mezery.adi	adif	5fee4c91566905c65c0a16f8c3b86af68c911d370746ee6575b53110cdee9cc8	47	UTF8	QSO 1	REC 1
+Q	AR22-crlf-mezery.adi	0	W1AW	0	M20	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR22-crlf-mezery.adi	0	band	20m
+R	AR22-crlf-mezery.adi	0	call	W1AW
+F	AR23-bom.adi	adif	2dfc16d81ad6ebf924bb2eef45d144e3f5557c7a900c473913b163ed13f01905	20	UTF8+BOM	QSO 1	REC 1
+Q	AR23-bom.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR23-bom.adi	0	call	W1AW
+F	AR24-mezery-v-tagu.adi	adif	05568751362a27040f2630f4cbb6887189048551e255e28964c96c5d20e5290b	26	UTF8	QSO 1	REC 1
+Q	AR24-mezery-v-tagu.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR24-mezery-v-tagu.adi	0	call	W1AW
+F	AR25-lt-v-tagu.adi	adif	cdeacea8cea91bdf11e70a2b50fdb7d9ffb24f43535355300ff53395be5eb95a	24	UTF8	QSO 0	REC 1
+R	AR25-lt-v-tagu.adi	0	call<x	W1AW
+F	AR26-prazdny-soubor.adi	adif	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	UTF8	QSO 0	REC 0
+F	AR26b-jen-hlavicka.adi	adif	3743f4ee8a16c398e257fccf0136b4c11917d47b25a6a2caa87507ad764a3709	55	UTF8	QSO 0	REC 0
+F	AR26c-bez-gt.adi	adif	99077887253489765e3395c979db4c9da069876b5e24c79c30ee051ac0bb949a	29	UTF8	QSO 1	REC 1
+Q	AR26c-bez-gt.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR26c-bez-gt.adi	0	call	W1AW
+F	AR27-plny-zaznam.adi	adif	441bbc148bcdc57767902de602860de96eac886880d22c62d14d003fa13ecd97	460	UTF8	QSO 1	REC 1
+Q	AR27-plny-zaznam.adi	0	OK1\u017D\u00C1	14025500	M20	CW	1795824119000	599	579	42	7	599 15	14 xx	OK1XOE	Tom\u00E1\u0161 \uD83D\uDE00 <x> a\tb\nc	false
+R	AR27-plny-zaznam.adi	0	app_n1mm_running	N
+R	AR27-plny-zaznam.adi	0	band	20m
+R	AR27-plny-zaznam.adi	0	call	OK1\u017D\u00C1
+R	AR27-plny-zaznam.adi	0	comment	Tom\u00E1\u0161 \uD83D\uDE00 <x> a\tb\nc
+R	AR27-plny-zaznam.adi	0	cont	EU
+R	AR27-plny-zaznam.adi	0	contest_id	CQ-WW-CW
+R	AR27-plny-zaznam.adi	0	country	Czech Republic
+R	AR27-plny-zaznam.adi	0	dxcc	503
+R	AR27-plny-zaznam.adi	0	freq	14.025500
+R	AR27-plny-zaznam.adi	0	mode	CW
+R	AR27-plny-zaznam.adi	0	operator	OK1XOE
+R	AR27-plny-zaznam.adi	0	qso_date	20261128
+R	AR27-plny-zaznam.adi	0	rst_rcvd	579
+R	AR27-plny-zaznam.adi	0	rst_sent	599
+R	AR27-plny-zaznam.adi	0	srx	7
+R	AR27-plny-zaznam.adi	0	srx_string	579 14 xx
+R	AR27-plny-zaznam.adi	0	stx	42
+R	AR27-plny-zaznam.adi	0	stx_string	599 15
+R	AR27-plny-zaznam.adi	0	time_on	000159
+F	AR27b-velka-mala-eoh-eor.adi	adif	12972d05b09e56207dec3276b2b1a425f9ae6ddbba9a843fad72cf5dd0c925a8	45	UTF8	QSO 2	REC 2
+Q	AR27b-velka-mala-eoh-eor.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR27b-velka-mala-eoh-eor.adi	1	OK1A	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR27b-velka-mala-eoh-eor.adi	0	call	W1AW
+R	AR27b-velka-mala-eoh-eor.adi	1	call	OK1A
+F	AR28-latin1.adi	adif	abbb0cfa430f91adff9ac9252aba5d9663231c385d6e4d33fbc080df0882ac5e	17	UNREADABLE java.nio.charset.MalformedInputException: Input length = 3	EXC java.io.UncheckedIOException: Nelze na\u010D\u00EDst ADIF: <path> / cause java.nio.charset.MalformedInputException: Input length = 3	-
+F	AR29-neplatne-utf8-ff.adi	adif	e3c459522d9a1392af66dc25fdb4663e0db859cbde288166919a56ac5f73d538	36	UNREADABLE java.nio.charset.MalformedInputException: Input length = 1	EXC java.io.UncheckedIOException: Nelze na\u010D\u00EDst ADIF: <path> / cause java.nio.charset.MalformedInputException: Input length = 1	-
+F	AR3-delka-utf16.adi	adif	6d18ec6b08fe36c6dd63004e368b2e764c4c68f137192ed1bac461fee00e4998	40	UTF8	QSO 1	REC 1
+Q	AR3-delka-utf16.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	Tom\u00E1\u0161	false
+R	AR3-delka-utf16.adi	0	call	W1AW
+R	AR3-delka-utf16.adi	0	comment	Tom\u00E1\u0161
+F	AR30-surogat-v-utf8.adi	adif	f293ddec11b5acfd050560c3fa837ab645456512f034efaaababad017b28fe61	38	UNREADABLE java.nio.charset.MalformedInputException: Input length = 3	EXC java.io.UncheckedIOException: Nelze na\u010D\u00EDst ADIF: <path> / cause java.nio.charset.MalformedInputException: Input length = 3	-
+F	AR31-overlong-utf8.adi	adif	82d08ffc52acc3a9784d20c9fb1421fd534f18e164380d5cfffeaae1f5a701fc	37	UNREADABLE java.nio.charset.MalformedInputException: Input length = 1	EXC java.io.UncheckedIOException: Nelze na\u010D\u00EDst ADIF: <path> / cause java.nio.charset.MalformedInputException: Input length = 1	-
+F	AR32-useknute-utf8-na-konci.adi	adif	f512c61f4cefe62504af427d7bf28df2683e87c06ed81feb1888bd251c1165d1	23	UNREADABLE java.nio.charset.MalformedInputException: Input length = 1	EXC java.io.UncheckedIOException: Nelze na\u010D\u00EDst ADIF: <path> / cause java.nio.charset.MalformedInputException: Input length = 1	-
+F	AR33-klice-sigma.adi	adif	c8c21594856ae2cbb695107e50e63e0ecf015da9e9c279529db0915ba5859153	49	UTF8	QSO 1	REC 1
+Q	AR33-klice-sigma.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR33-klice-sigma.adi	0	call	W1AW
+R	AR33-klice-sigma.adi	0	\u03B1\u03C2	a
+R	AR33-klice-sigma.adi	0	\u03C3\u03B1	b
+R	AR33-klice-sigma.adi	0	\u1C89x	c
+F	AR34-mod-mapovani-na-ascii.adi	adif	5a4abb79246abdca895bc852969f3490f345972702415060cdadc22c54b00e08	67	UTF8	QSO 2	REC 2
+Q	AR34-mod-mapovani-na-ascii.adi	0	M01	0	\N	SSB	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+Q	AR34-mod-mapovani-na-ascii.adi	1	M02	0	\N	DIGITAL	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR34-mod-mapovani-na-ascii.adi	0	call	M01
+R	AR34-mod-mapovani-na-ascii.adi	0	mode	\u017F\u017Fb
+R	AR34-mod-mapovani-na-ascii.adi	1	call	M02
+R	AR34-mod-mapovani-na-ascii.adi	1	mode	d\u0131g\u0131tal
+F	AR4-delka-v-bajtech.adi	adif	f86b5db956c0431fe29e13d7d941d24a6bd11257adc57569d71dd8fb36c20fa8	55	UTF8	QSO 1	REC 1
+Q	AR4-delka-v-bajtech.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	Tom\u00E1\u0161<R	false
+R	AR4-delka-v-bajtech.adi	0	call	W1AW
+R	AR4-delka-v-bajtech.adi	0	comment	Tom\u00E1\u0161<R
+F	AR4b-delka-v-bajtech-spolkne-call.adi	adif	49aa0f3908ae3259b72d2b3e82d0934d224958b653b6f63a1abfe840f4ce16c7	40	UTF8	QSO 0	REC 1
+R	AR4b-delka-v-bajtech-spolkne-call.adi	0	comment	Tom\u00E1\u0161<C
+F	AR5-emoji.adi	adif	0d7e10185f51da98d1b998fa86373c1551aab06e3c0a0e54e107e7e0c8feefc1	38	UTF8	QSO 1	REC 1
+Q	AR5-emoji.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\uD83D\uDE00x	false
+R	AR5-emoji.adi	0	call	W1AW
+R	AR5-emoji.adi	0	comment	\uD83D\uDE00x
+F	AR5b-pulka-surrogatu.adi	adif	e15e65b134dc6c0b784537c3b5c5a00b33a062367344b1af5687633752f49de3	53	UTF8	QSO 1	REC 1
+Q	AR5b-pulka-surrogatu.adi	0	W1AW	0	\N	\N	\N	\N	599	\N	\N	\N	\N	\N	\uD83D	false
+R	AR5b-pulka-surrogatu.adi	0	call	W1AW
+R	AR5b-pulka-surrogatu.adi	0	comment	\uD83D
+R	AR5b-pulka-surrogatu.adi	0	rst_rcvd	599
+F	AR6-zaporna-delka.adi	adif	13ace13e8c03d19dc2adfd8290392241d7999d00bc3a1fd8088aba47733f0461	23	UTF8	EXC java.lang.StringIndexOutOfBoundsException: Range [9, 8) out of bounds for length 13	EXC java.lang.StringIndexOutOfBoundsException: Range [9, 8) out of bounds for length 13
+F	AR7-delka-int-max.adi	adif	004b981840aaff7692f6019fdd254b92eb241321d26234ae318dfcb7a6ebd301	31	UTF8	EXC java.lang.StringIndexOutOfBoundsException: Range [17, -2147483632) out of bounds for length 21	EXC java.lang.StringIndexOutOfBoundsException: Range [17, -2147483632) out of bounds for length 21
+F	AR7b-delka-za-konec.adi	adif	d79117468c4979754a924c362578faab19a26cfb5c23b7ad439ec8c04d0114aa	23	UTF8	QSO 1	REC 1
+Q	AR7b-delka-za-konec.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR7b-delka-za-konec.adi	0	call	W1AW
+F	AR7c-delka-preteceni-int.adi	adif	273275c7e4fe4cdf3f532e9df9e6a2e1beaf3dafd94d415fbaf4e18225d761b4	43	UTF8	QSO 1	REC 1
+Q	AR7c-delka-preteceni-int.adi	0	OK1A	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR7c-delka-preteceni-int.adi	0	call	OK1A
+F	AR8-vadna-delka.adi	adif	bad92c7189a0fbcb2eebd2ef7be43ddbd56217a4d4f8671e2b9db13762f2726a	34	UTF8	QSO 1	REC 1
+Q	AR8-vadna-delka.adi	0	OK1A	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR8-vadna-delka.adi	0	call	OK1A
+F	AR9-bez-eoh.adi	adif	8c7188d60229cb84240ae311327a434701b23c1cb3de126cd05e52db6bfe7cd4	34	UTF8	QSO 1	REC 1
+Q	AR9-bez-eoh.adi	0	W1AW	0	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	false
+R	AR9-bez-eoh.adi	0	adif_ver	3.1.4
+R	AR9-bez-eoh.adi	0	call	W1AW
+F	CR1-zaklad.log	cabrillo	def3d5ab697246f26b17dbd9f3449acc4145a77bcb77099e873f0f3f042b163f	58	UTF8	QSO 1	-
+Q	CR1-zaklad.log	0	DL1ABC	14025000	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR10-jen-cr.log	cabrillo	c861757db92b07de88736f5fb5a66e73512d6169daa9ff7c8d9348ff9b4cad2f	116	UTF8	QSO 1	-
+Q	CR10-jen-cr.log	0	DL1ABC	14025000	M20	CW	1795824060000	\N	599	\N	\N	\N	14 QSO: 14025 CW 2026-11-28 0002 OK1XOE 599 15 DL1ABD 599 14	\N	\N	false
+F	CR11-crlf-tab-mala.log	cabrillo	14d467977218f67d77d5682aa7600d768eb3ded6854f48c0c42463819d2f5cba	59	UTF8	QSO 1	-
+Q	CR11-crlf-tab-mala.log	0	DL1ABC	14025000	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR12-bom-prvni-radek.log	cabrillo	a4563a4758b2316b36f1f7c84997198d8f731500528fdbd4c9d6beb5b1d4d37c	119	UTF8+BOM	QSO 1	-
+Q	CR12-bom-prvni-radek.log	0	DL1ABD	14025000	M20	CW	1795824120000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR13-nbsp.log	cabrillo	5ab7dc239ef397bd0251da4c6c883d2d598805730213e872bfa0ebbbcbaed3e0	59	UTF8	QSO 1	-
+Q	CR13-nbsp.log	0	DL1ABC	0	\N	\N	\N	\N	599	\N	14	\N	14	\N	\N	false
+F	CR14-mody.log	cabrillo	dc4ddd1859b271dd47399de15b9ef80c735f52d1783a07a76ceff75d3a250e73	753	UTF8	QSO 13	-
+Q	CR14-mody.log	0	DL0AB	14025000	M20	RTTY	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	1	DL1AB	14025000	M20	DIGITAL	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	2	DL2AB	14025000	M20	FT8	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	3	DL3AB	14025000	M20	\N	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	4	DL4AB	14025000	M20	SSB	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	5	DL5AB	14025000	M20	SSB	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	6	DL6AB	14025000	M20	DIGITAL	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	7	DL7AB	14025000	M20	DIGITAL	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	8	DL8AB	14025000	M20	FM	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	9	DL9AB	14025000	M20	FT4	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	10	DL10AB	14025000	M20	RTTY	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	11	DL11AB	14025000	M20	SSB	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR14-mody.log	12	DL12AB	14025000	M20	SSB	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR15-5nn-jako-volacka.log	cabrillo	5f257485eb16fa3b40778001e5bcd23afa0a0a0d56ffe28f843f98ab4eb0bbb5	58	UTF8	QSO 1	-
+Q	CR15-5nn-jako-volacka.log	0	5NN	14025000	M20	CW	1795824060000	\N	15	\N	\N	\N	DL1ABC 5NN 14	\N	\N	false
+F	CR16-xqso-uvodni-mezery.log	cabrillo	01352d3095eb4be99b643c0fd5c2b83f11ecb9f68fb823bdfb213257b0f442f9	182	UTF8	QSO 2	-
+Q	CR16-xqso-uvodni-mezery.log	0	DL1ABC	14025000	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	true
+Q	CR16-xqso-uvodni-mezery.log	1	DL1ABE	14025000	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	true
+F	CR17-ne-ascii-volacka.log	cabrillo	52daed433b8cc2ff8ac1392ee10e9c73ff20ef7093ee4a702457315b47f7e9de	59	UTF8	QSO 1	-
+Q	CR17-ne-ascii-volacka.log	0	OK1XOE	14025000	M20	CW	1795824060000	\N	599	\N	\N	\N	15 ok1\u017E\u00E1 599 14	\N	\N	false
+F	CR18-arabske-cislice-vymena.log	cabrillo	4bc50743c2deac1c02ccacebcec3ac453133b70994ef2a5b6d7bbc155783c160	60	UTF8	QSO 1	-
+Q	CR18-arabske-cislice-vymena.log	0	DL1ABC	14025000	M20	CW	1795867200000	\N	599	\N	\N	\N	\u0661\u0662	\N	\N	false
+F	CR19-nbsp-za-dvojteckou.log	cabrillo	e16db141a30716d148c4afbff9abead57cd180a1e5529caece74262bb3bf0bc4	59	UTF8	QSO 1	-
+Q	CR19-nbsp-za-dvojteckou.log	0	DL1ABC	0	\N	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR2-frekvence.log	cabrillo	c7bf320cd14d89f48f03dedab4473631ac690080b0676ced7ef96df0ef2445d1	357	UTF8	QSO 6	-
+Q	CR2-frekvence.log	0	DL1ABC	14025500	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2-frekvence.log	1	DL1ABD	7000000	M40	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2-frekvence.log	2	DL1ABE	144000	\N	SSB	1795824060000	\N	59	\N	\N	\N	001 JO61	\N	\N	false
+Q	CR2-frekvence.log	3	DL1ABF	0	\N	SSB	1795824060000	\N	59	\N	1	\N	001	\N	\N	false
+Q	CR2-frekvence.log	4	DL1ABG	0	\N	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2-frekvence.log	5	DL1ABH	50000	\N	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR20-vt-ff-oddelovace.log	cabrillo	b9d095bb81f31ab5b72181c2afe95b0a2a9643053d1aedd354b02711ee8445ce	59	UTF8	QSO 1	-
+Q	CR20-vt-ff-oddelovace.log	0	DL1ABC	14025000	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR21-plny-log.log	cabrillo	68914cbd348055060f46f6643a6dcacf6af7d50cc521f7ce5196f3b0d103fc71	405	UTF8	QSO 4	-
+Q	CR21-plny-log.log	0	DL1ABC	14025000	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR21-plny-log.log	1	W1AW	7010000	M40	CW	1795824120000	\N	599	\N	5	\N	05	\N	\N	false
+Q	CR21-plny-log.log	2	JA1ABC	3510000	M80	CW	1795824180000	\N	599	\N	25	\N	25	\N	\N	true
+Q	CR21-plny-log.log	3	VE3XYZ	21025000	M15	CW	1795824240000	\N	599	\N	4	\N	4	\N	\N	false
+F	CR22-prazdny-soubor.log	cabrillo	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	UTF8	QSO 0	-
+F	CR23-jen-qso-dvojtecka.log	cabrillo	18662cbca8401293fb635e71fb6b3974487cb1a22b6713875177932c81d28a7a	29	UTF8	QSO 0	-
+F	CR24-latin1.log	cabrillo	e009aaf23f002c7197d44b32db6f06cbb2cbe4383ef60d35e3b2141191dd1a9f	64	UNREADABLE java.nio.charset.MalformedInputException: Input length = 3	EXC java.io.UncheckedIOException: Nelze na\u010D\u00EDst Cabrillo: <path> / cause java.nio.charset.MalformedInputException: Input length = 3	-
+F	CR25-neplatne-utf8-ff.log	cabrillo	8e7e72226d59d676fcc1170e401d1109c0a64a2686b4ff95492a87e6c7e9e698	116	UNREADABLE java.nio.charset.MalformedInputException: Input length = 1	EXC java.io.UncheckedIOException: Nelze na\u010D\u00EDst Cabrillo: <path> / cause java.nio.charset.MalformedInputException: Input length = 1	-
+F	CR2b-frekvence-tvary.log	cabrillo	48b69f16752875ad0b99ddb8a0b0a043ecc7b839a5679fd7907b677195a3ca41	581	UTF8	QSO 10	-
+Q	CR2b-frekvence-tvary.log	0	DL0AB	1000000	\N	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	1	DL1AB	0	\N	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	2	DL2AB	9223372036854775807	\N	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	3	DL3AB	16000	\N	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	4	DL4AB	14025000	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	5	DL5AB	14025001	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	6	DL6AB	-7000000	\N	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	7	DL7AB	14025500	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	8	DL8AB	3500500	M80	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR2b-frekvence-tvary.log	9	DL9AB	28000000	M10	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR3-lokator-jako-volacka.log	cabrillo	40b647e9ac448afda8bee7c14123cf9b765398a799cbd6d2f3c522551ed6b7bc	70	UTF8	QSO 1	-
+Q	CR3-lokator-jako-volacka.log	0	JO70FC	144000	\N	SSB	1780754400000	\N	DL1ABC	\N	\N	\N	59 005 JO62QM	\N	\N	false
+F	CR4-casy.log	cabrillo	1008541729925419f3769b7e32e947ce39f16d29bde163346300c01cfc61f073	287	UTF8	QSO 5	-
+Q	CR4-casy.log	0	DL0AB	14025000	M20	CW	1795869240000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4-casy.log	1	DL1AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4-casy.log	2	DL2AB	14025000	M20	CW	1795869240000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4-casy.log	3	DL3AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4-casy.log	4	DL4AB	14025000	M20	CW	1795824000000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR4b-casy-p3.log	cabrillo	cdb1e09766cdb6367edc65b271b269551daad35ee9dc9f263845a143a6c6caf4	516	UTF8	QSO 9	-
+Q	CR4b-casy-p3.log	0	DL0AB	14025000	M20	CW	1795860000000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4b-casy-p3.log	1	DL1AB	14025000	M20	CW	1795867200000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4b-casy-p3.log	2	DL2AB	14025000	M20	CW	1795867200000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4b-casy-p3.log	3	DL3AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4b-casy-p3.log	4	DL4AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4b-casy-p3.log	5	DL5AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4b-casy-p3.log	6	DL6AB	14025000	M20	CW	1795827720000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4b-casy-p3.log	7	DL7AB	14025000	M20	CW	1795869240000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4b-casy-p3.log	8	DL8AB	14025000	M20	CW	1795910340000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR4c-data-p3.log	cabrillo	f6097eebd83865b7661e5dd2e9db2dd065772140ae966690cf169cf0e9b179a1	396	UTF8	QSO 7	-
+Q	CR4c-data-p3.log	0	DL0AB	14025000	M20	CW	1772280000000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4c-data-p3.log	1	DL1AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4c-data-p3.log	2	DL2AB	14025000	M20	CW	1777550400000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4c-data-p3.log	3	DL3AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4c-data-p3.log	4	DL4AB	14025000	M20	CW	1709208000000	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4c-data-p3.log	5	DL5AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+Q	CR4c-data-p3.log	6	DL6AB	14025000	M20	CW	\N	\N	599	\N	14	\N	14	\N	\N	false
+F	CR5-jedna-volacka.log	cabrillo	e1c0ebb3f7e47611806bab43aa20022ca272dcf70e318cea977dd1e9850c2ff8	44	UTF8	QSO 1	-
+Q	CR5-jedna-volacka.log	0	OK1XOE	14025000	M20	CW	1795824060000	\N	599	\N	14	\N	14	\N	\N	false
+F	CR6-zadna-volacka.log	cabrillo	c25cf28ed20798cd2c738711d21d785c08c9374a7db50a43f8fb44c589b09a83	44	UTF8	QSO 0	-
+F	CR7-kratky-radek.log	cabrillo	8ce657e2fd76610e90a2dfd240149fd072efa1761e7ba26b1233b6e36bce7634	37	UTF8	QSO 0	-
+F	CR8-preteceni-cisla.log	cabrillo	0efcc8895f436a47e8c51f56ce7bea4a228d2d1ed3e33a7f60c3173c8a486c9c	122	UTF8	EXC java.lang.NumberFormatException: For input string: "99999999999"	-
+F	CR8b-int-max.log	cabrillo	61bb1e2c224d1e935b0f697ba776ba70ccfedaedec7a18ab1a29b72ba1b8f9f5	124	UTF8	QSO 2	-
+Q	CR8b-int-max.log	0	DL1ABC	14025000	M20	CW	1795824060000	\N	599	\N	2147483647	\N	2147483647	\N	\N	false
+Q	CR8b-int-max.log	1	DL1ABD	14025000	M20	CW	1795824120000	\N	599	\N	7	\N	0007	\N	\N	false
+F	CR9-m2-vysilac.log	cabrillo	11dc65b163217daa7b130872ae1263893313735822607c9447cd2351f370a1ea	60	UTF8	QSO 1	-
+Q	CR9-m2-vysilac.log	0	DL1ABC	14025000	M20	CW	1795824060000	\N	599	\N	\N	\N	14 1	\N	\N	false

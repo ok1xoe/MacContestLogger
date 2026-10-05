@@ -1,0 +1,6 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+bands: [160m, 80m
+modes: [CW]

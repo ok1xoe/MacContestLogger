@@ -1,0 +1,219 @@
+[
+ {
+  "op": "template",
+  "args": [
+   "my-test",
+   "Můj závod"
+  ]
+ },
+ {
+  "op": "template",
+  "args": [
+   "q-1",
+   "Závod \"Velký\" 'x'"
+  ]
+ },
+ {
+  "op": "template",
+  "args": [
+   "abcß-i",
+   "a\\b"
+  ]
+ },
+ {
+  "op": "template",
+  "args": [
+   "x",
+   "x\"́y"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "metadata:\n  id: a\nid: b\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "  id: a\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "id:\nid: 2\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "id:   \n\n  \nfoo: 1\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "id: old # c\nx: 1\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "id: a\r\nx: 1\r\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "x: 1\rid: a\r",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "x: 1id: ay: 2",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "x: 1 id: a y: 2",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "id: a\u000bb\nc\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "id:\u000b\fz\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "id:a\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "ids: a\nid: b\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "x: 1\n",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "",
+   "n"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "id: a\n",
+   "$1\\x$0"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "x: 1\n",
+   "$1\\x"
+  ]
+ },
+ {
+  "op": "withId",
+  "args": [
+   "schemaVersion: 1\nid:\nmetadata:\n  name: \"Test\"\n",
+   "cq-ww-cw-copy"
+  ]
+ },
+ {
+  "op": "qsoPartyTemplate",
+  "args": [
+   "xqp",
+   "X \"Q\" Party",
+   "xqp_counties"
+  ]
+ },
+ {
+  "op": "qsoPartyTemplate",
+  "args": [
+   "abç",
+   "100%s $1",
+   "set"
+  ]
+ },
+ {
+  "op": "write",
+  "args": [
+   "xqp_counties",
+   "X \"Q\" Party é",
+   "ZZ",
+   "Zed",
+   "AA",
+   "Ay, é é",
+   "M",
+   ""
+  ]
+ },
+ {
+  "op": "write",
+  "args": [
+   "a",
+   "x\"́y",
+   "A",
+   "b"
+  ]
+ },
+ {
+  "op": "write",
+  "args": [
+   "Bad",
+   "x",
+   "A",
+   "a"
+  ]
+ },
+ {
+  "op": "write",
+  "args": [
+   "ok",
+   "x"
+  ]
+ },
+ {
+  "op": "write",
+  "args": [
+   "bad\n",
+   "x",
+   "A",
+   "a"
+  ]
+ }
+]

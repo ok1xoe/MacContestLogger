@@ -1,0 +1,122 @@
+{
+  "menu": [
+    {
+      "id": "settings", "label": "Nastavení", "state": "enable",
+      "children": [
+        {
+          "id": "settings.open", "label": "Nastavení…", "state": "enable",
+          "children": [
+            { "id": "tab.hardware",        "label": "Hardware",        "state": "enable" },
+            { "id": "tab.function-keys",   "label": "Function Keys",   "state": "enable" },
+            { "id": "tab.keys",            "label": "Klávesy",         "state": "enable" },
+            { "id": "tab.digital-modes",   "label": "Digital Modes",   "state": "enable" },
+            { "id": "tab.other",           "label": "Other",           "state": "enable" },
+            { "id": "tab.winkey",          "label": "CW klíč",         "state": "enable" },
+            { "id": "tab.mode-control",    "label": "Mode Control",    "state": "enable" },
+            { "id": "tab.antennas",        "label": "Antennas",        "state": "enable" },
+            { "id": "tab.score-reporting", "label": "Score Reporting", "state": "enable" },
+            { "id": "tab.broadcast",       "label": "Broadcast Data",  "state": "enable" },
+            { "id": "tab.wsjt",            "label": "WSJT/JTDX",       "state": "enable" },
+            { "id": "tab.audio",           "label": "Audio",           "state": "enable" },
+            { "id": "tab.station",         "label": "Stanice",         "state": "enable" },
+            { "id": "tab.contest",         "label": "Závod",           "state": "enable" },
+            { "id": "tab.cluster",         "label": "Cluster",         "state": "enable" },
+            { "id": "tab.dxcluster",       "label": "DX Cluster",      "state": "enable" },
+            {
+              "id": "tab.online_logs", "label": "Online callbooks", "state": "enable",
+              "children": [
+                { "id": "tab.hamqth", "label": "HamQTH",  "state": "enable" },
+                { "id": "tab.qrz",    "label": "QRZ.com", "state": "enable" }
+              ]
+            },
+            { "id": "tab.bandplan",        "label": "Bandplán",        "state": "enable" },
+            { "id": "tab.digifreq",        "label": "Digi frekvence",  "state": "enable" },
+            { "id": "tab.map",             "label": "Mapa",            "state": "enable" }
+          ]
+        },
+        { "id": "settings.import", "label": "Import QSO (ADIF/Cabrillo)…", "state": "enable" },
+        { "id": "settings.export", "label": "Export ADIF…", "state": "enable" },
+        { "id": "settings.exportCabrillo", "label": "Export Cabrillo…", "state": "enable" },
+        { "id": "settings.merge", "label": "Sloučit deník…", "state": "enable" },
+        { "id": "settings.print", "label": "Tisk deníku…", "state": "enable" },
+        { "id": "settings.profiles", "label": "Profily nastavení…", "state": "enable" },
+        { "id": "settings.exportEdi", "label": "Export EDI (VKV)…", "state": "enable" },
+        { "id": "settings.exportOther", "label": "Export CSV, text a souhrn…", "state": "enable" },
+        { "id": "settings.downloadScp", "label": "Stáhnout master.scp", "state": "enable" }
+      ]
+    },
+    {
+      "id": "contest", "label": "Závod", "state": "enable",
+      "children": [
+        { "id": "contest.new",  "label": "Nový závod…",            "state": "enable" },
+        { "id": "contest.open", "label": "Otevřít závod…",         "state": "enable" },
+        { "id": "contest.rescore", "label": "Přepočítat skóre",   "state": "enable" },
+        { "id": "contest.postcontest", "label": "Dodatečné zadání (papírový deník)", "state": "enable" },
+        { "id": "contest.record", "label": "Nahrávat závod (zap / vyp)", "state": "enable" },
+        { "id": "contest.editor", "label": "Editor definic…", "state": "enable" },
+        { "id": "contest.updateDefinitions", "label": "Aktualizovat definice z internetu", "state": "enable" },
+        { "id": "contest.updateCallHistory", "label": "Aktualizovat call history z deníku", "state": "enable" },
+        { "id": "contest.none", "label": "Žádný (volné logování)", "state": "enable" }
+      ]
+    },
+    {
+      "id": "database", "label": "Databáze", "state": "enable",
+      "children": [
+        { "id": "database.new",  "label": "Nová databáze…",     "state": "enable" },
+        { "id": "database.open", "label": "Otevřít databázi…",  "state": "enable" },
+        { "id": "database.refillDxcc", "label": "Přepočítat DXCC v deníku…", "state": "enable" }
+      ]
+    },
+    {
+      "id": "window", "label": "Okno", "state": "enable",
+      "children": [
+        { "id": "window.log",       "label": "Přehled spojení", "state": "enable" },
+        { "id": "window.availmult", "label": "Dostupné multiplikátory", "state": "enable" },
+        { "id": "window.catlog",    "label": "CAT log",         "state": "enable" },
+        { "id": "window.dxcluster", "label": "DX Cluster",      "state": "enable" },
+        { "id": "window.bandmap",   "label": "Bandmapa",       "state": "enable" },
+        { "id": "window.blacklist", "label": "Blacklist",       "state": "enable" },
+        { "id": "window.hamqthlog", "label": "HamQTH log",      "state": "enable" },
+        { "id": "window.rate",      "label": "Info",            "state": "enable" },
+        { "id": "window.skeds",     "label": "Skedy",           "state": "enable" },
+        { "id": "window.score",     "label": "Skóre",           "state": "enable" },
+        { "id": "window.movemults", "label": "Přesun násobičů", "state": "enable" },
+        { "id": "window.dupesheet", "label": "Dupesheet",       "state": "enable" },
+        { "id": "window.waterfall", "label": "Vodopád",         "state": "enable" },
+        { "id": "window.rotator",   "label": "Rotátor",         "state": "enable" },
+        { "id": "window.statistics", "label": "Statistiky",     "state": "enable" },
+        { "id": "window.qtc",       "label": "QTC (WAE)",       "state": "enable" },
+        { "id": "window.propagation", "label": "Předpověď šíření", "state": "enable" },
+        { "id": "window.bandnotes", "label": "Poznámky k pásmům", "state": "enable" },
+        { "id": "window.cwkeyboard", "label": "CW z klávesnice", "state": "enable" },
+        { "id": "window.cwreader",  "label": "CW Reader",       "state": "enable" },
+        { "id": "window.digitalinterface", "label": "Digitální rozhraní", "state": "enable" },
+        { "id": "window.simulator", "label": "Simulátor pileupu", "state": "enable" },
+        { "id": "window.wsjtxdecodes", "label": "WSJT-X dekódy", "state": "enable" },
+        { "id": "window.netstatus", "label": "Stav sítě",       "state": "enable" },
+        { "id": "window.chat",      "label": "Chat",            "state": "enable" },
+        { "id": "window.partner",   "label": "Partner",         "state": "enable" },
+        { "id": "window.dxccmap",   "label": "Mapa DXCC a šedá linie", "state": "enable" },
+        {
+          "id": "multipliers", "label": "Multiplikátory", "state": "enable",
+          "children": [
+            { "id": "mult.dxcc",      "label": "DXCC",            "state": "enable" },
+            { "id": "mult.grid",      "label": "Velké čtverce",   "state": "enable" },
+            { "id": "mult.map",       "label": "Čtverce v mapě",  "state": "enable" },
+            { "id": "mult.districts", "label": "Okresy",          "state": "enable" },
+            { "id": "mult.other",     "label": "Ostatní",         "state": "enable" },
+            { "id": "mult.sections",  "label": "Section/States",  "state": "enable" },
+            {
+              "id": "zone", "label": "Zóny", "state": "enable",
+              "children": [
+                { "id": "mult.itu", "label": "ITU", "state": "enable" },
+                { "id": "mult.cq",  "label": "CQ",  "state": "enable" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    { "id": "buffer", "label": "Nezařazené", "state": "hidden", "children": [] }
+  ]
+}

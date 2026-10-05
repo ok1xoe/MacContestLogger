@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: dxcc_entities
+kind: EXTERNAL_DATA
+keyType: TEXT
+enumerable: true
+metadata: { name: "DXCC Entities" }
+provider: { type: dxcc-json, data: "~/dxcc-json/dxcc.json" }

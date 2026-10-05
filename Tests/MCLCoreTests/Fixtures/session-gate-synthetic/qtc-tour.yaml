@@ -1,0 +1,33 @@
+# Syntetická definice jen pro bránu session (`JavaSessionParityTests`, úkol 7 podetapy P3d):
+# QTC s výchozími body (`qtc: {}` → 1 bod), sezení TOUR přes půlnoc (2330/90), dupe po pásmu
+# a módu s nulovými body, bonus s výrazem, který hodí jen u SSB (po dřívějším bonusu stejného
+# QSO), a WPX prefixy jako násobič. Není to skutečný závod.
+schemaVersion: 1
+id: gate-session-qtc-tour
+period:
+  sessions: {start: "2330", minutes: 90}
+bands: [80m, 40m, 20m]
+modes: [CW, SSB, RTTY]
+exchange:
+  sent:
+    - {id: rst, type: RST, source: AUTO_RST}
+    - {id: nr, type: SERIAL, source: AUTO_SERIAL}
+  received:
+    - {id: rst, type: RST}
+    - {id: nr, type: SERIAL}
+scoring:
+  qsoPoints:
+    mode: SUM
+    default: 2
+    rules:
+      - when: {sameContinent: true}
+        value: {expr: "nr / 10"}
+  bonuses:
+    - {id: first, scope: PER_BAND, value: {fixed: 5}}
+    - {id: ssb, scope: PER_MODE, when: {mode: SSB}, value: {expr: "matches(call, '(')"}}
+  qtc: {}
+  total: "qsoPoints * multTotal + bonusPoints + qtcPoints"
+multipliers:
+  - {id: wpx, set: wpx_prefixes, from: callsign, scope: ONCE}
+  - {id: dx, set: dxcc_entities, from: callsign, scope: PER_BAND}
+dupe: {scope: PER_BAND_MODE}

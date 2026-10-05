@@ -1,0 +1,5 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+dupe: { scope: ONCE, dupeWorthZero: "yes" }

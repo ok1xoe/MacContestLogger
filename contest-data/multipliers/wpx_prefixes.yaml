@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: wpx_prefixes
+kind: ALGORITHM
+keyType: CALLSIGN_PREFIX
+enumerable: false
+metadata: { name: "WPX Prefixes" }
+algorithm: { type: wpx }

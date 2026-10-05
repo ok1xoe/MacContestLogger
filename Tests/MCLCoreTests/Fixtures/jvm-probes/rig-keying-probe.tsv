@@ -1,0 +1,1154 @@
+status	0 CW	TRX: 0.0 kHz  CW
+status	0 SSB	TRX: 0.0 kHz  SSB
+status	0 DIGITAL	TRX: 0.0 kHz  DIGITAL
+status	0 null	TRX: 0.0 kHz  PKTUSB
+status	14025049 CW	TRX: 14025.0 kHz  CW
+status	14025049 SSB	TRX: 14025.0 kHz  SSB
+status	14025049 DIGITAL	TRX: 14025.0 kHz  DIGITAL
+status	14025049 null	TRX: 14025.0 kHz  PKTUSB
+status	14025050 CW	TRX: 14025.1 kHz  CW
+status	14025050 SSB	TRX: 14025.1 kHz  SSB
+status	14025050 DIGITAL	TRX: 14025.1 kHz  DIGITAL
+status	14025050 null	TRX: 14025.1 kHz  PKTUSB
+status	14025150 CW	TRX: 14025.2 kHz  CW
+status	14025150 SSB	TRX: 14025.2 kHz  SSB
+status	14025150 DIGITAL	TRX: 14025.2 kHz  DIGITAL
+status	14025150 null	TRX: 14025.2 kHz  PKTUSB
+status	14025250 CW	TRX: 14025.3 kHz  CW
+status	14025250 SSB	TRX: 14025.3 kHz  SSB
+status	14025250 DIGITAL	TRX: 14025.3 kHz  DIGITAL
+status	14025250 null	TRX: 14025.3 kHz  PKTUSB
+status	1830000 CW	TRX: 1830.0 kHz  CW
+status	1830000 SSB	TRX: 1830.0 kHz  SSB
+status	1830000 DIGITAL	TRX: 1830.0 kHz  DIGITAL
+status	1830000 null	TRX: 1830.0 kHz  PKTUSB
+status	-7000050 CW	TRX: -7000.1 kHz  CW
+status	-7000050 SSB	TRX: -7000.1 kHz  SSB
+status	-7000050 DIGITAL	TRX: -7000.1 kHz  DIGITAL
+status	-7000050 null	TRX: -7000.1 kHz  PKTUSB
+status	9223372036854775807 CW	TRX: 9223372036854776.0 kHz  CW
+status	9223372036854775807 SSB	TRX: 9223372036854776.0 kHz  SSB
+status	9223372036854775807 DIGITAL	TRX: 9223372036854776.0 kHz  DIGITAL
+status	9223372036854775807 null	TRX: 9223372036854776.0 kHz  PKTUSB
+status	432100000000 CW	TRX: 432100000.0 kHz  CW
+status	432100000000 SSB	TRX: 432100000.0 kHz  SSB
+status	432100000000 DIGITAL	TRX: 432100000.0 kHz  DIGITAL
+status	432100000000 null	TRX: 432100000.0 kHz  PKTUSB
+status	999 CW	TRX: 1.0 kHz  CW
+status	999 SSB	TRX: 1.0 kHz  SSB
+status	999 DIGITAL	TRX: 1.0 kHz  DIGITAL
+status	999 null	TRX: 1.0 kHz  PKTUSB
+status	50 CW	TRX: 0.1 kHz  CW
+status	50 SSB	TRX: 0.1 kHz  SSB
+status	50 DIGITAL	TRX: 0.1 kHz  DIGITAL
+status	50 null	TRX: 0.1 kHz  PKTUSB
+status	49 CW	TRX: 0.0 kHz  CW
+status	49 SSB	TRX: 0.0 kHz  SSB
+status	49 DIGITAL	TRX: 0.0 kHz  DIGITAL
+status	49 null	TRX: 0.0 kHz  PKTUSB
+status	7000000 empty	TRX: 7000.0 kHz  
+heat	7fc00000	0
+heat	ff800000	3f
+heat	bf800000	3f
+heat	80000000	3f
+heat	0	3f
+heat	3e400000	87
+heat	3e99999a	2db2
+heat	3e999999	2db2
+heat	3e99999a	2db2
+heat	3ec00000	264ccf
+heat	3f000000	657fff
+heat	3f1ffffe	a5b2ff
+heat	3f200000	a5b2ff
+heat	3f266666	b2bcff
+heat	3f4ccccd	fff9ff
+heat	3f7fffff	ffffff
+heat	3f800000	ffffff
+heat	3f800001	ffffff
+heat	40000000	ffffff
+heat	7f800000	ffffff
+heat	0	3f
+heat	3a83126f	40
+heat	3b03126f	40
+heat	3b449ba6	40
+heat	3b83126f	41
+heat	3ba3d70a	41
+heat	3bc49ba6	42
+heat	3be56042	42
+heat	3c03126f	42
+heat	3c1374bc	43
+heat	3c23d70a	43
+heat	3c343958	43
+heat	3c449ba6	44
+heat	3c54fdf4	44
+heat	3c656042	45
+heat	3c75c28f	45
+heat	3c83126f	45
+heat	3c8b4396	46
+heat	3c9374bc	46
+heat	3c9ba5e3	47
+heat	3ca3d70a	47
+heat	3cac0831	47
+heat	3cb43958	48
+heat	3cbc6a7f	48
+heat	3cc49ba6	48
+heat	3ccccccd	49
+heat	3cd4fdf4	49
+heat	3cdd2f1b	4a
+heat	3ce56042	4a
+heat	3ced9168	4a
+heat	3cf5c28f	4b
+heat	3cfdf3b6	4b
+heat	3d03126f	4b
+heat	3d072b02	4c
+heat	3d0b4396	4c
+heat	3d0f5c29	4d
+heat	3d1374bc	4d
+heat	3d178d50	4d
+heat	3d1ba5e3	4e
+heat	3d1fbe77	4e
+heat	3d23d70a	4f
+heat	3d27ef9e	4f
+heat	3d2c0831	4f
+heat	3d3020c5	50
+heat	3d343958	50
+heat	3d3851ec	50
+heat	3d3c6a7f	51
+heat	3d408312	51
+heat	3d449ba6	52
+heat	3d48b439	52
+heat	3d4ccccd	52
+heat	3d50e560	53
+heat	3d54fdf4	53
+heat	3d591687	54
+heat	3d5d2f1b	54
+heat	3d6147ae	54
+heat	3d656042	55
+heat	3d6978d5	55
+heat	3d6d9168	55
+heat	3d71a9fc	56
+heat	3d75c28f	56
+heat	3d79db23	57
+heat	3d7df3b6	57
+heat	3d810625	57
+heat	3d83126f	58
+heat	3d851eb8	58
+heat	3d872b02	58
+heat	3d89374c	59
+heat	3d8b4396	59
+heat	3d8d4fdf	5a
+heat	3d8f5c29	5a
+heat	3d916873	5a
+heat	3d9374bc	5b
+heat	3d958106	5b
+heat	3d978d50	5c
+heat	3d99999a	5c
+heat	3d9ba5e3	5c
+heat	3d9db22d	5d
+heat	3d9fbe77	5d
+heat	3da1cac1	5d
+heat	3da3d70a	5e
+heat	3da5e354	5e
+heat	3da7ef9e	5f
+heat	3da9fbe7	5f
+heat	3dac0831	5f
+heat	3dae147b	60
+heat	3db020c5	60
+heat	3db22d0e	61
+heat	3db43958	61
+heat	3db645a2	61
+heat	3db851ec	62
+heat	3dba5e35	62
+heat	3dbc6a7f	62
+heat	3dbe76c9	63
+heat	3dc08312	63
+heat	3dc28f5c	64
+heat	3dc49ba6	64
+heat	3dc6a7f0	64
+heat	3dc8b439	65
+heat	3dcac083	65
+heat	3dcccccd	66
+heat	3dced917	66
+heat	3dd0e560	66
+heat	3dd2f1aa	67
+heat	3dd4fdf4	67
+heat	3dd70a3d	67
+heat	3dd91687	68
+heat	3ddb22d1	68
+heat	3ddd2f1b	69
+heat	3ddf3b64	69
+heat	3de147ae	69
+heat	3de353f8	6a
+heat	3de56042	6a
+heat	3de76c8b	6a
+heat	3de978d5	6b
+heat	3deb851f	6b
+heat	3ded9168	6c
+heat	3def9db2	6c
+heat	3df1a9fc	6c
+heat	3df3b646	6d
+heat	3df5c28f	6d
+heat	3df7ced9	6e
+heat	3df9db23	6e
+heat	3dfbe76d	6e
+heat	3dfdf3b6	6f
+heat	3e000000	6f
+heat	3e010625	6f
+heat	3e020c4a	70
+heat	3e03126f	70
+heat	3e041893	71
+heat	3e051eb8	71
+heat	3e0624dd	71
+heat	3e072b02	72
+heat	3e083127	72
+heat	3e09374c	73
+heat	3e0a3d71	73
+heat	3e0b4396	73
+heat	3e0c49ba	74
+heat	3e0d4fdf	74
+heat	3e0e5604	74
+heat	3e0f5c29	75
+heat	3e10624e	75
+heat	3e116873	76
+heat	3e126e98	76
+heat	3e1374bc	76
+heat	3e147ae1	77
+heat	3e158106	77
+heat	3e16872b	77
+heat	3e178d50	78
+heat	3e189375	78
+heat	3e19999a	79
+heat	3e1a9fbe	79
+heat	3e1ba5e3	79
+heat	3e1cac08	7a
+heat	3e1db22d	7a
+heat	3e1eb852	7b
+heat	3e1fbe77	7b
+heat	3e20c49c	7b
+heat	3e21cac1	7c
+heat	3e22d0e5	7c
+heat	3e23d70a	7c
+heat	3e24dd2f	7d
+heat	3e25e354	7d
+heat	3e26e979	7e
+heat	3e27ef9e	7e
+heat	3e28f5c3	7e
+heat	3e29fbe7	7f
+heat	3e2b020c	7f
+heat	3e2c0831	80
+heat	3e2d0e56	80
+heat	3e2e147b	80
+heat	3e2f1aa0	81
+heat	3e3020c5	81
+heat	3e3126e9	81
+heat	3e322d0e	82
+heat	3e333333	82
+heat	3e343958	83
+heat	3e353f7d	83
+heat	3e3645a2	83
+heat	3e374bc7	84
+heat	3e3851ec	84
+heat	3e395810	84
+heat	3e3a5e35	85
+heat	3e3b645a	85
+heat	3e3c6a7f	86
+heat	3e3d70a4	86
+heat	3e3e76c9	86
+heat	3e3f7cee	87
+heat	3e408312	87
+heat	3e418937	88
+heat	3e428f5c	188
+heat	3e439581	188
+heat	3e449ba6	189
+heat	3e45a1cb	289
+heat	3e46a7f0	289
+heat	3e47ae14	38a
+heat	3e48b439	38a
+heat	3e49ba5e	38b
+heat	3e4ac083	48b
+heat	3e4bc6a8	48b
+heat	3e4ccccd	58c
+heat	3e4dd2f2	58c
+heat	3e4ed917	58d
+heat	3e4fdf3b	68d
+heat	3e50e560	68d
+heat	3e51eb85	78e
+heat	3e52f1aa	78e
+heat	3e53f7cf	78e
+heat	3e54fdf4	88f
+heat	3e560419	88f
+heat	3e570a3d	990
+heat	3e581062	990
+heat	3e591687	990
+heat	3e5a1cac	a91
+heat	3e5b22d1	a91
+heat	3e5c28f6	b91
+heat	3e5d2f1b	b92
+heat	3e5e353f	c92
+heat	3e5f3b64	c93
+heat	3e604189	c93
+heat	3e6147ae	d93
+heat	3e624dd3	d94
+heat	3e6353f8	e94
+heat	3e645a1d	e95
+heat	3e656042	e95
+heat	3e666666	f95
+heat	3e676c8b	f96
+heat	3e6872b0	1096
+heat	3e6978d5	1096
+heat	3e6a7efa	1097
+heat	3e6b851f	1197
+heat	3e6c8b44	1198
+heat	3e6d9168	1298
+heat	3e6e978d	1298
+heat	3e6f9db2	1299
+heat	3e70a3d7	1399
+heat	3e71a9fc	139a
+heat	3e72b021	149a
+heat	3e73b646	149a
+heat	3e74bc6a	159b
+heat	3e75c28f	159b
+heat	3e76c8b4	159b
+heat	3e77ced9	169c
+heat	3e78d4fe	169c
+heat	3e79db23	179d
+heat	3e7ae148	179d
+heat	3e7be76d	179d
+heat	3e7ced91	189e
+heat	3e7df3b6	189e
+heat	3e7ef9db	199e
+heat	3e800000	199f
+heat	3e808312	199f
+heat	3e810625	1aa0
+heat	3e818937	1aa0
+heat	3e820c4a	1ba0
+heat	3e828f5c	1ba1
+heat	3e83126f	1ba1
+heat	3e839581	1ca2
+heat	3e841893	1ca2
+heat	3e849ba6	1da2
+heat	3e851eb8	1da3
+heat	3e85a1cb	1da3
+heat	3e8624dd	1ea3
+heat	3e86a7f0	1ea4
+heat	3e872b02	1fa4
+heat	3e87ae14	1fa5
+heat	3e883127	20a5
+heat	3e88b439	20a5
+heat	3e89374c	20a6
+heat	3e89ba5e	21a6
+heat	3e8a3d71	21a7
+heat	3e8ac083	22a7
+heat	3e8b4396	22a7
+heat	3e8bc6a8	22a8
+heat	3e8c49ba	23a8
+heat	3e8ccccd	23a8
+heat	3e8d4fdf	24a9
+heat	3e8dd2f2	24a9
+heat	3e8e5604	24aa
+heat	3e8ed917	25aa
+heat	3e8f5c29	25aa
+heat	3e8fdf3b	26ab
+heat	3e90624e	26ab
+heat	3e90e560	26ab
+heat	3e916873	27ac
+heat	3e91eb85	27ac
+heat	3e926e98	28ad
+heat	3e92f1aa	28ad
+heat	3e9374bc	29ad
+heat	3e93f7cf	29ae
+heat	3e947ae1	29ae
+heat	3e94fdf4	2aaf
+heat	3e958106	2aaf
+heat	3e960419	2baf
+heat	3e96872b	2bb0
+heat	3e970a3d	2bb0
+heat	3e978d50	2cb0
+heat	3e981062	2cb1
+heat	3e989375	2db1
+heat	3e991687	2db2
+heat	3e99999a	2db2
+heat	3e9a1cac	2eb2
+heat	3e9a9fbe	12eb3
+heat	3e9b22d1	12fb3
+heat	3e9ba5e3	22fb4
+heat	3e9c28f6	22fb4
+heat	3e9cac08	330b4
+heat	3e9d2f1b	330b5
+heat	3e9db22d	431b5
+heat	3e9e353f	431b5
+heat	3e9eb852	531b6
+heat	3e9f3b64	532b6
+heat	3e9fbe77	632b7
+heat	3ea04189	633b7
+heat	3ea0c49c	733b7
+heat	3ea147ae	734b8
+heat	3ea1cac1	834b8
+heat	3ea24dd3	834b9
+heat	3ea2d0e5	935b9
+heat	3ea353f8	935b9
+heat	3ea3d70a	a36ba
+heat	3ea45a1d	a36ba
+heat	3ea4dd2f	b36ba
+heat	3ea56042	b37bb
+heat	3ea5e354	c37bb
+heat	3ea66666	c38bc
+heat	3ea6e979	d38bc
+heat	3ea76c8b	d38bc
+heat	3ea7ef9e	e39bd
+heat	3ea872b0	e39bd
+heat	3ea8f5c3	f3abd
+heat	3ea978d5	f3abe
+heat	3ea9fbe7	103abe
+heat	3eaa7efa	103bbf
+heat	3eab020c	113bbf
+heat	3eab851f	113cbf
+heat	3eac0831	123cc0
+heat	3eac8b44	123cc0
+heat	3ead0e56	133dc1
+heat	3ead9168	133dc1
+heat	3eae147b	143ec1
+heat	3eae978d	143ec2
+heat	3eaf1aa0	153fc2
+heat	3eaf9db2	153fc2
+heat	3eb020c5	163fc3
+heat	3eb0a3d7	1640c3
+heat	3eb126e9	1740c4
+heat	3eb1a9fc	1741c4
+heat	3eb22d0e	1841c4
+heat	3eb2b021	1841c5
+heat	3eb33333	1942c5
+heat	3eb3b646	1a42c6
+heat	3eb43958	1a43c6
+heat	3eb4bc6a	1b43c6
+heat	3eb53f7d	1b43c7
+heat	3eb5c28f	1c44c7
+heat	3eb645a2	1c44c7
+heat	3eb6c8b4	1d45c8
+heat	3eb74bc7	1d45c8
+heat	3eb7ced9	1e45c9
+heat	3eb851ec	1e46c9
+heat	3eb8d4fe	1f46c9
+heat	3eb95810	1f47ca
+heat	3eb9db23	2047ca
+heat	3eba5e35	2048ca
+heat	3ebae148	2148cb
+heat	3ebb645a	2148cb
+heat	3ebbe76d	2249cc
+heat	3ebc6a7f	2249cc
+heat	3ebced91	234acc
+heat	3ebd70a4	234acd
+heat	3ebdf3b6	244acd
+heat	3ebe76c9	244bce
+heat	3ebef9db	254bce
+heat	3ebf7cee	254cce
+heat	3ec00000	264ccf
+heat	3ec08312	264ccf
+heat	3ec10625	274dcf
+heat	3ec18937	274dd0
+heat	3ec20c4a	284ed0
+heat	3ec28f5c	284ed1
+heat	3ec3126f	294ed1
+heat	3ec39581	294fd1
+heat	3ec41893	2a4fd2
+heat	3ec49ba6	2a50d2
+heat	3ec51eb8	2b50d3
+heat	3ec5a1cb	2b50d3
+heat	3ec624dd	2c51d3
+heat	3ec6a7f0	2c51d4
+heat	3ec72b02	2d52d4
+heat	3ec7ae14	2d52d4
+heat	3ec83127	2e53d5
+heat	3ec8b439	2e53d5
+heat	3ec9374c	2f53d6
+heat	3ec9ba5e	2f54d6
+heat	3eca3d71	3054d6
+heat	3ecac083	3055d7
+heat	3ecb4396	3155d7
+heat	3ecbc6a8	3155d7
+heat	3ecc49ba	3256d8
+heat	3ecccccd	3256d8
+heat	3ecd4fdf	3357d9
+heat	3ecdd2f2	3457d9
+heat	3ece5604	3457d9
+heat	3eced917	3558da
+heat	3ecf5c29	3558da
+heat	3ecfdf3b	3659db
+heat	3ed0624e	3659db
+heat	3ed0e560	3759db
+heat	3ed16873	375adc
+heat	3ed1eb85	385adc
+heat	3ed26e98	385bdc
+heat	3ed2f1aa	395bdd
+heat	3ed374bc	395cdd
+heat	3ed3f7cf	3a5cde
+heat	3ed47ae1	3a5cde
+heat	3ed4fdf4	3b5dde
+heat	3ed58106	3b5ddf
+heat	3ed60419	3c5edf
+heat	3ed6872b	3c5ee0
+heat	3ed70a3d	3d5ee0
+heat	3ed78d50	3d5fe0
+heat	3ed81062	3e5fe1
+heat	3ed89375	3e60e1
+heat	3ed91687	3f60e1
+heat	3ed9999a	3f60e2
+heat	3eda1cac	4061e2
+heat	3eda9fbe	4061e3
+heat	3edb22d1	4162e3
+heat	3edba5e3	4162e3
+heat	3edc28f6	4262e4
+heat	3edcac08	4263e4
+heat	3edd2f1b	4363e4
+heat	3eddb22d	4364e5
+heat	3ede353f	4464e5
+heat	3edeb852	4464e6
+heat	3edf3b64	4565e6
+heat	3edfbe77	4565e6
+heat	3ee04189	4666e7
+heat	3ee0c49c	4666e7
+heat	3ee147ae	4767e8
+heat	3ee1cac1	4767e8
+heat	3ee24dd3	4867e8
+heat	3ee2d0e5	4868e9
+heat	3ee353f8	4968e9
+heat	3ee3d70a	4969e9
+heat	3ee45a1d	4a69ea
+heat	3ee4dd2f	4a69ea
+heat	3ee56042	4b6aeb
+heat	3ee5e354	4b6aeb
+heat	3ee66666	4c6beb
+heat	3ee6e979	4d6bec
+heat	3ee76c8b	4d6bec
+heat	3ee7ef9e	4e6ced
+heat	3ee872b0	4e6ced
+heat	3ee8f5c3	4f6ded
+heat	3ee978d5	4f6dee
+heat	3ee9fbe7	506dee
+heat	3eea7efa	506eee
+heat	3eeb020c	516eef
+heat	3eeb851f	516fef
+heat	3eec0831	526ff0
+heat	3eec8b44	526ff0
+heat	3eed0e56	5370f0
+heat	3eed9168	5370f1
+heat	3eee147b	5471f1
+heat	3eee978d	5471f1
+heat	3eef1aa0	5572f2
+heat	3eef9db2	5572f2
+heat	3ef020c5	5672f3
+heat	3ef0a3d7	5673f3
+heat	3ef126e9	5773f3
+heat	3ef1a9fc	5774f4
+heat	3ef22d0e	5874f4
+heat	3ef2b021	5874f5
+heat	3ef33333	5975f5
+heat	3ef3b646	5975f5
+heat	3ef43958	5a76f6
+heat	3ef4bc6a	5a76f6
+heat	3ef53f7d	5b76f6
+heat	3ef5c28f	5b77f7
+heat	3ef645a2	5c77f7
+heat	3ef6c8b4	5c78f8
+heat	3ef74bc7	5d78f8
+heat	3ef7ced9	5d78f8
+heat	3ef851ec	5e79f9
+heat	3ef8d4fe	5e79f9
+heat	3ef95810	5f7afa
+heat	3ef9db23	5f7afa
+heat	3efa5e35	607bfa
+heat	3efae148	607bfb
+heat	3efb645a	617bfb
+heat	3efbe76d	617cfb
+heat	3efc6a7f	627cfc
+heat	3efced91	627dfc
+heat	3efd70a4	637dfd
+heat	3efdf3b6	637dfd
+heat	3efe76c9	647efd
+heat	3efef9db	647efe
+heat	3eff7cee	657ffe
+heat	3f000000	657fff
+heat	3f004189	667fff
+heat	3f008312	6780ff
+heat	3f00c49c	6780ff
+heat	3f010625	6881ff
+heat	3f0147ae	6881ff
+heat	3f018937	6981ff
+heat	3f01cac1	6982ff
+heat	3f020c4a	6a82ff
+heat	3f024dd3	6a83ff
+heat	3f028f5c	6b83ff
+heat	3f02d0e5	6b83ff
+heat	3f03126f	6c84ff
+heat	3f0353f8	6c84ff
+heat	3f039581	6d85ff
+heat	3f03d70a	6d85ff
+heat	3f041893	6e86ff
+heat	3f045a1d	6e86ff
+heat	3f049ba6	6f86ff
+heat	3f04dd2f	6f87ff
+heat	3f051eb8	7087ff
+heat	3f056042	7088ff
+heat	3f05a1cb	7188ff
+heat	3f05e354	7188ff
+heat	3f0624dd	7289ff
+heat	3f066666	7289ff
+heat	3f06a7f0	738aff
+heat	3f06e979	738aff
+heat	3f072b02	748aff
+heat	3f076c8b	748bff
+heat	3f07ae14	758bff
+heat	3f07ef9e	758cff
+heat	3f083127	768cff
+heat	3f0872b0	768cff
+heat	3f08b439	778dff
+heat	3f08f5c3	778dff
+heat	3f09374c	788eff
+heat	3f0978d5	788eff
+heat	3f09ba5e	798fff
+heat	3f09fbe7	798fff
+heat	3f0a3d71	7a8fff
+heat	3f0a7efa	7a90ff
+heat	3f0ac083	7b90ff
+heat	3f0b020c	7b91ff
+heat	3f0b4396	7c91ff
+heat	3f0b851f	7c91ff
+heat	3f0bc6a8	7d92ff
+heat	3f0c0831	7d92ff
+heat	3f0c49ba	7e93ff
+heat	3f0c8b44	7e93ff
+heat	3f0ccccd	7f93ff
+heat	3f0d0e56	8094ff
+heat	3f0d4fdf	8094ff
+heat	3f0d9168	8195ff
+heat	3f0dd2f2	8195ff
+heat	3f0e147b	8295ff
+heat	3f0e5604	8296ff
+heat	3f0e978d	8396ff
+heat	3f0ed917	8397ff
+heat	3f0f1aa0	8497ff
+heat	3f0f5c29	8497ff
+heat	3f0f9db2	8598ff
+heat	3f0fdf3b	8598ff
+heat	3f1020c5	8699ff
+heat	3f10624e	8699ff
+heat	3f10a3d7	879aff
+heat	3f10e560	879aff
+heat	3f1126e9	889aff
+heat	3f116873	889bff
+heat	3f11a9fc	899bff
+heat	3f11eb85	899cff
+heat	3f122d0e	8a9cff
+heat	3f126e98	8a9cff
+heat	3f12b021	8b9dff
+heat	3f12f1aa	8b9dff
+heat	3f133333	8c9eff
+heat	3f1374bc	8c9eff
+heat	3f13b646	8d9eff
+heat	3f13f7cf	8d9fff
+heat	3f143958	8e9fff
+heat	3f147ae1	8ea0ff
+heat	3f14bc6a	8fa0ff
+heat	3f14fdf4	8fa0ff
+heat	3f153f7d	90a1ff
+heat	3f158106	90a1ff
+heat	3f15c28f	91a2ff
+heat	3f160419	91a2ff
+heat	3f1645a2	92a2ff
+heat	3f16872b	92a3ff
+heat	3f16c8b4	93a3ff
+heat	3f170a3d	93a4ff
+heat	3f174bc7	94a4ff
+heat	3f178d50	94a5ff
+heat	3f17ced9	95a5ff
+heat	3f181062	95a5ff
+heat	3f1851ec	96a6ff
+heat	3f189375	96a6ff
+heat	3f18d4fe	97a7ff
+heat	3f191687	97a7ff
+heat	3f195810	98a7ff
+heat	3f19999a	99a8ff
+heat	3f19db23	99a8ff
+heat	3f1a1cac	9aa9ff
+heat	3f1a5e35	9aa9ff
+heat	3f1a9fbe	9ba9ff
+heat	3f1ae148	9baaff
+heat	3f1b22d1	9caaff
+heat	3f1b645a	9cabff
+heat	3f1ba5e3	9dabff
+heat	3f1be76d	9dabff
+heat	3f1c28f6	9eacff
+heat	3f1c6a7f	9eacff
+heat	3f1cac08	9fadff
+heat	3f1ced91	9fadff
+heat	3f1d2f1b	a0aeff
+heat	3f1d70a4	a0aeff
+heat	3f1db22d	a1aeff
+heat	3f1df3b6	a1afff
+heat	3f1e353f	a2afff
+heat	3f1e76c9	a2b0ff
+heat	3f1eb852	a3b0ff
+heat	3f1ef9db	a3b0ff
+heat	3f1f3b64	a4b1ff
+heat	3f1f7cee	a4b1ff
+heat	3f1fbe77	a5b2ff
+heat	3f200000	a5b2ff
+heat	3f204189	a6b2ff
+heat	3f208312	a6b3ff
+heat	3f20c49c	a7b3ff
+heat	3f210625	a7b4ff
+heat	3f2147ae	a8b4ff
+heat	3f218937	a8b4ff
+heat	3f21cac1	a9b5ff
+heat	3f220c4a	a9b5ff
+heat	3f224dd3	aab6ff
+heat	3f228f5c	aab6ff
+heat	3f22d0e5	abb6ff
+heat	3f23126f	abb7ff
+heat	3f2353f8	acb7ff
+heat	3f239581	acb8ff
+heat	3f23d70a	adb8ff
+heat	3f241893	adb9ff
+heat	3f245a1d	aeb9ff
+heat	3f249ba6	aeb9ff
+heat	3f24dd2f	afbaff
+heat	3f251eb8	afbaff
+heat	3f256042	b0bbff
+heat	3f25a1cb	b0bbff
+heat	3f25e354	b1bbff
+heat	3f2624dd	b1bcff
+heat	3f266666	b2bcff
+heat	3f26a7f0	b3bdff
+heat	3f26e979	b3bdff
+heat	3f272b02	b4bdff
+heat	3f276c8b	b4beff
+heat	3f27ae14	b5beff
+heat	3f27ef9e	b5bfff
+heat	3f283127	b6bfff
+heat	3f2872b0	b6bfff
+heat	3f28b439	b7c0ff
+heat	3f28f5c3	b7c0ff
+heat	3f29374c	b8c1ff
+heat	3f2978d5	b8c1ff
+heat	3f29ba5e	b9c2ff
+heat	3f29fbe7	b9c2ff
+heat	3f2a3d71	bac2ff
+heat	3f2a7efa	bac3ff
+heat	3f2ac083	bbc3ff
+heat	3f2b020c	bbc4ff
+heat	3f2b4396	bcc4ff
+heat	3f2b851f	bcc4ff
+heat	3f2bc6a8	bdc5ff
+heat	3f2c0831	bdc5ff
+heat	3f2c49ba	bec6ff
+heat	3f2c8b44	bec6ff
+heat	3f2ccccd	bfc6ff
+heat	3f2d0e56	bfc7ff
+heat	3f2d4fdf	c0c7ff
+heat	3f2d9168	c0c8ff
+heat	3f2dd2f2	c1c8ff
+heat	3f2e147b	c1c8ff
+heat	3f2e5604	c2c9ff
+heat	3f2e978d	c2c9ff
+heat	3f2ed917	c3caff
+heat	3f2f1aa0	c3caff
+heat	3f2f5c29	c4caff
+heat	3f2f9db2	c4cbff
+heat	3f2fdf3b	c5cbff
+heat	3f3020c5	c5ccff
+heat	3f30624e	c6ccff
+heat	3f30a3d7	c6cdff
+heat	3f30e560	c7cdff
+heat	3f3126e9	c7cdff
+heat	3f316873	c8ceff
+heat	3f31a9fc	c8ceff
+heat	3f31eb85	c9cfff
+heat	3f322d0e	c9cfff
+heat	3f326e98	cacfff
+heat	3f32b021	cad0ff
+heat	3f32f1aa	cbd0ff
+heat	3f333333	cbd1ff
+heat	3f3374bc	ccd1ff
+heat	3f33b646	cdd1ff
+heat	3f33f7cf	cdd2ff
+heat	3f343958	ced2ff
+heat	3f347ae1	ced3ff
+heat	3f34bc6a	cfd3ff
+heat	3f34fdf4	cfd3ff
+heat	3f353f7d	d0d4ff
+heat	3f358106	d0d4ff
+heat	3f35c28f	d1d5ff
+heat	3f360419	d1d5ff
+heat	3f3645a2	d2d5ff
+heat	3f36872b	d2d6ff
+heat	3f36c8b4	d3d6ff
+heat	3f370a3d	d3d7ff
+heat	3f374bc7	d4d7ff
+heat	3f378d50	d4d8ff
+heat	3f37ced9	d5d8ff
+heat	3f381062	d5d8ff
+heat	3f3851ec	d6d9ff
+heat	3f389375	d6d9ff
+heat	3f38d4fe	d7daff
+heat	3f391687	d7daff
+heat	3f395810	d8daff
+heat	3f39999a	d8dbff
+heat	3f39db23	d9dbff
+heat	3f3a1cac	d9dcff
+heat	3f3a5e35	dadcff
+heat	3f3a9fbe	dadcff
+heat	3f3ae148	dbddff
+heat	3f3b22d1	dbddff
+heat	3f3b645a	dcdeff
+heat	3f3ba5e3	dcdeff
+heat	3f3be76d	dddeff
+heat	3f3c28f6	dddfff
+heat	3f3c6a7f	dedfff
+heat	3f3cac08	dee0ff
+heat	3f3ced91	dfe0ff
+heat	3f3d2f1b	dfe1ff
+heat	3f3d70a4	e0e1ff
+heat	3f3db22d	e0e1ff
+heat	3f3df3b6	e1e2ff
+heat	3f3e353f	e1e2ff
+heat	3f3e76c9	e2e3ff
+heat	3f3eb852	e2e3ff
+heat	3f3ef9db	e3e3ff
+heat	3f3f3b64	e3e4ff
+heat	3f3f7cee	e4e4ff
+heat	3f3fbe77	e4e5ff
+heat	3f400000	e5e5ff
+heat	3f404189	e6e5ff
+heat	3f408312	e6e6ff
+heat	3f40c49c	e7e6ff
+heat	3f410625	e7e7ff
+heat	3f4147ae	e8e7ff
+heat	3f418937	e8e7ff
+heat	3f41cac1	e9e8ff
+heat	3f420c4a	e9e8ff
+heat	3f424dd3	eae9ff
+heat	3f428f5c	eae9ff
+heat	3f42d0e5	ebe9ff
+heat	3f43126f	ebeaff
+heat	3f4353f8	eceaff
+heat	3f439581	ecebff
+heat	3f43d70a	edebff
+heat	3f441893	edecff
+heat	3f445a1d	eeecff
+heat	3f449ba6	eeecff
+heat	3f44dd2f	efedff
+heat	3f451eb8	efedff
+heat	3f456042	f0eeff
+heat	3f45a1cb	f0eeff
+heat	3f45e354	f1eeff
+heat	3f4624dd	f1efff
+heat	3f466666	f2efff
+heat	3f46a7f0	f2f0ff
+heat	3f46e979	f3f0ff
+heat	3f472b02	f3f0ff
+heat	3f476c8b	f4f1ff
+heat	3f47ae14	f4f1ff
+heat	3f47ef9e	f5f2ff
+heat	3f483127	f5f2ff
+heat	3f4872b0	f6f2ff
+heat	3f48b439	f6f3ff
+heat	3f48f5c3	f7f3ff
+heat	3f49374c	f7f4ff
+heat	3f4978d5	f8f4ff
+heat	3f49ba5e	f8f5ff
+heat	3f49fbe7	f9f5ff
+heat	3f4a3d71	f9f5ff
+heat	3f4a7efa	faf6ff
+heat	3f4ac083	faf6ff
+heat	3f4b020c	fbf7ff
+heat	3f4b4396	fbf7ff
+heat	3f4b851f	fcf7ff
+heat	3f4bc6a8	fcf8ff
+heat	3f4c0831	fdf8ff
+heat	3f4c49ba	fdf9ff
+heat	3f4c8b44	fef9ff
+heat	3f4ccccd	fff9ff
+heat	3f4d0e56	fffaff
+heat	3f4d4fdf	fffaff
+heat	3f4d9168	fffbff
+heat	3f4dd2f2	fffbff
+heat	3f4e147b	fffbff
+heat	3f4e5604	fffcff
+heat	3f4e978d	fffcff
+heat	3f4ed917	fffdff
+heat	3f4f1aa0	fffdff
+heat	3f4f5c29	fffdff
+heat	3f4f9db2	fffeff
+heat	3f4fdf3b	fffeff
+heat	3f5020c5	ffffff
+heat	3f50624e	ffffff
+heat	3f50a3d7	ffffff
+heat	3f50e560	ffffff
+heat	3f5126e9	ffffff
+heat	3f516873	ffffff
+heat	3f51a9fc	ffffff
+heat	3f51eb85	ffffff
+heat	3f522d0e	ffffff
+heat	3f526e98	ffffff
+heat	3f52b021	ffffff
+heat	3f52f1aa	ffffff
+heat	3f533333	ffffff
+heat	3f5374bc	ffffff
+heat	3f53b646	ffffff
+heat	3f53f7cf	ffffff
+heat	3f543958	ffffff
+heat	3f547ae1	ffffff
+heat	3f54bc6a	ffffff
+heat	3f54fdf4	ffffff
+heat	3f553f7d	ffffff
+heat	3f558106	ffffff
+heat	3f55c28f	ffffff
+heat	3f560419	ffffff
+heat	3f5645a2	ffffff
+heat	3f56872b	ffffff
+heat	3f56c8b4	ffffff
+heat	3f570a3d	ffffff
+heat	3f574bc7	ffffff
+heat	3f578d50	ffffff
+heat	3f57ced9	ffffff
+heat	3f581062	ffffff
+heat	3f5851ec	ffffff
+heat	3f589375	ffffff
+heat	3f58d4fe	ffffff
+heat	3f591687	ffffff
+heat	3f595810	ffffff
+heat	3f59999a	ffffff
+heat	3f59db23	ffffff
+heat	3f5a1cac	ffffff
+heat	3f5a5e35	ffffff
+heat	3f5a9fbe	ffffff
+heat	3f5ae148	ffffff
+heat	3f5b22d1	ffffff
+heat	3f5b645a	ffffff
+heat	3f5ba5e3	ffffff
+heat	3f5be76d	ffffff
+heat	3f5c28f6	ffffff
+heat	3f5c6a7f	ffffff
+heat	3f5cac08	ffffff
+heat	3f5ced91	ffffff
+heat	3f5d2f1b	ffffff
+heat	3f5d70a4	ffffff
+heat	3f5db22d	ffffff
+heat	3f5df3b6	ffffff
+heat	3f5e353f	ffffff
+heat	3f5e76c9	ffffff
+heat	3f5eb852	ffffff
+heat	3f5ef9db	ffffff
+heat	3f5f3b64	ffffff
+heat	3f5f7cee	ffffff
+heat	3f5fbe77	ffffff
+heat	3f600000	ffffff
+heat	3f604189	ffffff
+heat	3f608312	ffffff
+heat	3f60c49c	ffffff
+heat	3f610625	ffffff
+heat	3f6147ae	ffffff
+heat	3f618937	ffffff
+heat	3f61cac1	ffffff
+heat	3f620c4a	ffffff
+heat	3f624dd3	ffffff
+heat	3f628f5c	ffffff
+heat	3f62d0e5	ffffff
+heat	3f63126f	ffffff
+heat	3f6353f8	ffffff
+heat	3f639581	ffffff
+heat	3f63d70a	ffffff
+heat	3f641893	ffffff
+heat	3f645a1d	ffffff
+heat	3f649ba6	ffffff
+heat	3f64dd2f	ffffff
+heat	3f651eb8	ffffff
+heat	3f656042	ffffff
+heat	3f65a1cb	ffffff
+heat	3f65e354	ffffff
+heat	3f6624dd	ffffff
+heat	3f666666	ffffff
+heat	3f66a7f0	ffffff
+heat	3f66e979	ffffff
+heat	3f672b02	ffffff
+heat	3f676c8b	ffffff
+heat	3f67ae14	ffffff
+heat	3f67ef9e	ffffff
+heat	3f683127	ffffff
+heat	3f6872b0	ffffff
+heat	3f68b439	ffffff
+heat	3f68f5c3	ffffff
+heat	3f69374c	ffffff
+heat	3f6978d5	ffffff
+heat	3f69ba5e	ffffff
+heat	3f69fbe7	ffffff
+heat	3f6a3d71	ffffff
+heat	3f6a7efa	ffffff
+heat	3f6ac083	ffffff
+heat	3f6b020c	ffffff
+heat	3f6b4396	ffffff
+heat	3f6b851f	ffffff
+heat	3f6bc6a8	ffffff
+heat	3f6c0831	ffffff
+heat	3f6c49ba	ffffff
+heat	3f6c8b44	ffffff
+heat	3f6ccccd	ffffff
+heat	3f6d0e56	ffffff
+heat	3f6d4fdf	ffffff
+heat	3f6d9168	ffffff
+heat	3f6dd2f2	ffffff
+heat	3f6e147b	ffffff
+heat	3f6e5604	ffffff
+heat	3f6e978d	ffffff
+heat	3f6ed917	ffffff
+heat	3f6f1aa0	ffffff
+heat	3f6f5c29	ffffff
+heat	3f6f9db2	ffffff
+heat	3f6fdf3b	ffffff
+heat	3f7020c5	ffffff
+heat	3f70624e	ffffff
+heat	3f70a3d7	ffffff
+heat	3f70e560	ffffff
+heat	3f7126e9	ffffff
+heat	3f716873	ffffff
+heat	3f71a9fc	ffffff
+heat	3f71eb85	ffffff
+heat	3f722d0e	ffffff
+heat	3f726e98	ffffff
+heat	3f72b021	ffffff
+heat	3f72f1aa	ffffff
+heat	3f733333	ffffff
+heat	3f7374bc	ffffff
+heat	3f73b646	ffffff
+heat	3f73f7cf	ffffff
+heat	3f743958	ffffff
+heat	3f747ae1	ffffff
+heat	3f74bc6a	ffffff
+heat	3f74fdf4	ffffff
+heat	3f753f7d	ffffff
+heat	3f758106	ffffff
+heat	3f75c28f	ffffff
+heat	3f760419	ffffff
+heat	3f7645a2	ffffff
+heat	3f76872b	ffffff
+heat	3f76c8b4	ffffff
+heat	3f770a3d	ffffff
+heat	3f774bc7	ffffff
+heat	3f778d50	ffffff
+heat	3f77ced9	ffffff
+heat	3f781062	ffffff
+heat	3f7851ec	ffffff
+heat	3f789375	ffffff
+heat	3f78d4fe	ffffff
+heat	3f791687	ffffff
+heat	3f795810	ffffff
+heat	3f79999a	ffffff
+heat	3f79db23	ffffff
+heat	3f7a1cac	ffffff
+heat	3f7a5e35	ffffff
+heat	3f7a9fbe	ffffff
+heat	3f7ae148	ffffff
+heat	3f7b22d1	ffffff
+heat	3f7b645a	ffffff
+heat	3f7ba5e3	ffffff
+heat	3f7be76d	ffffff
+heat	3f7c28f6	ffffff
+heat	3f7c6a7f	ffffff
+heat	3f7cac08	ffffff
+heat	3f7ced91	ffffff
+heat	3f7d2f1b	ffffff
+heat	3f7d70a4	ffffff
+heat	3f7db22d	ffffff
+heat	3f7df3b6	ffffff
+heat	3f7e353f	ffffff
+heat	3f7e76c9	ffffff
+heat	3f7eb852	ffffff
+heat	3f7ef9db	ffffff
+heat	3f7f3b64	ffffff
+heat	3f7f7cee	ffffff
+heat	3f7fbe77	ffffff
+heat	3f800000	ffffff
+azimuth	JO70 40.0 -75.0	298
+azimuth	JO70 -34.0 151.0	80
+azimuth	JO70 35.0 139.0	43
+azimuth	JO70 50.0 15.0	180
+azimuth	JO70 0.0 0.0	199
+azimuth	JO70 -90.0 0.0	180
+azimuth	JO70 64.0 -150.0	353
+azimuth	JO70 50.083 14.417	222
+azimuth	JO70FC 40.0 -75.0	298
+azimuth	JO70FC -34.0 151.0	80
+azimuth	JO70FC 35.0 139.0	43
+azimuth	JO70FC 50.0 15.0	106
+azimuth	JO70FC 0.0 0.0	199
+azimuth	JO70FC -90.0 0.0	180
+azimuth	JO70FC 64.0 -150.0	353
+azimuth	JO70FC 50.083 14.417	231
+azimuth	FN31pr 40.0 -75.0	226
+azimuth	FN31pr -34.0 151.0	268
+azimuth	FN31pr 35.0 139.0	334
+azimuth	FN31pr 50.0 15.0	49
+azimuth	FN31pr 0.0 0.0	102
+azimuth	FN31pr -90.0 0.0	180
+azimuth	FN31pr 64.0 -150.0	325
+azimuth	FN31pr 50.083 14.417	49
+azimuth	JO70fc 40.0 -75.0	298
+azimuth	JO70fc -34.0 151.0	80
+azimuth	JO70fc 35.0 139.0	43
+azimuth	JO70fc 50.0 15.0	106
+azimuth	JO70fc 0.0 0.0	199
+azimuth	JO70fc -90.0 0.0	180
+azimuth	JO70fc 64.0 -150.0	353
+azimuth	JO70fc 50.083 14.417	231
+azimuth	AA00aa 40.0 -75.0	105
+azimuth	AA00aa -34.0 151.0	331
+azimuth	AA00aa 35.0 139.0	319
+azimuth	AA00aa 50.0 15.0	195
+azimuth	AA00aa 0.0 0.0	180
+azimuth	AA00aa -90.0 0.0	180
+azimuth	AA00aa 64.0 -150.0	30
+azimuth	AA00aa 50.083 14.417	194
+azimuth	RR99xx 40.0 -75.0	75
+azimuth	RR99xx -34.0 151.0	209
+azimuth	RR99xx 35.0 139.0	221
+azimuth	RR99xx 50.0 15.0	345
+azimuth	RR99xx 0.0 0.0	360
+azimuth	RR99xx -90.0 0.0	180
+azimuth	RR99xx 64.0 -150.0	150
+azimuth	RR99xx 50.083 14.417	346
+rotor	0.0	0 180
+rotor	359.9	359 179
+rotor	360.0	0 180
+rotor	360.5	0 180
+rotor	-0.5	359 179
+rotor	-1.0	359 179
+rotor	725.7	5 185
+rotor	180.0	180 0
+rotor	179.99	179 359
+rotor	NaN	0 0
+khz	14025000	14025.0 kHz | 14025.00
+khz	14025050	14025.1 kHz | 14025.05
+khz	14025049	14025.0 kHz | 14025.05
+khz	14025150	14025.2 kHz | 14025.15
+khz	7000005	7000.0 kHz | 7000.01
+khz	7000015	7000.0 kHz | 7000.02
+khz	0	0.0 kHz | 0.00
+khz	-20	-0.0 kHz | -0.02
+repeat	2.5	2500
+repeat	1.8	1800
+repeat	0.0015	1
+repeat	2.0E-4	0
+repeat	1.0E10	10000000000000
+repeat	NaN	0
+repeat	0.1	100
+repeat	0.7	700
+repeat	1.1	1100
+previous	0 14025000	false
+previous	14025000 14026000	false
+previous	14025000 14026001	true
+previous	14025000 14023999	true
+previous	14025000 0	true
+previous	14025000 -5	true
+previous	9223372036854775807 -2	true
+previous	1 -9223372036854775807	false
+previous	5 -9223372036854775803	false

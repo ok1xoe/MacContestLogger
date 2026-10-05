@@ -1,0 +1,255 @@
+{
+"contests/comment-only.yaml": {
+"sha256": "331137f2fbb566dc5b9a6b6ef0dc3f7bf52d503fa73dbb0b2056235cb50d6f15",
+"nodes": [
+["tree","OK"],
+["load","ERR","2","1"]
+]
+},
+"contests/empty.yaml": {
+"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+"nodes": [
+["tree","OK"],
+["load","ERR","1","1"]
+]
+},
+"contests/newer-schema.yaml": {
+"sha256": "512586c41de520d2d913567cc17eadbbce351aaf5f80112321189f3d058051e1",
+"nodes": [
+["tree","OK"],
+["load","NEWER"]
+]
+},
+"contests/ok-default-decimal.yaml": {
+"sha256": "02a251e35b4caf804a4313171bcf668c75d5920a35236b5272991b8151ac4aae",
+"nodes": [
+["tree","OK"],
+["load","OK"]
+]
+},
+"contests/ok-scope-ordinal.yaml": {
+"sha256": "e59b1dc9cc7154b3db377e37be92f8b95f7bf9121c9d95e44f8cc18279075593",
+"nodes": [
+["tree","OK"],
+["load","OK"]
+]
+},
+"contests/ok-unknown-key.yaml": {
+"sha256": "e739102da49c91f1d84fcd943c78c33a712ee98ec3c3a6b1496df4d6301c505f",
+"nodes": [
+["tree","OK"],
+["load","OK"]
+]
+},
+"contests/root-dashes.yaml": {
+"sha256": "f52d711103d50a437830c6fbcd04fb4bab49a0f82f6d26d1c791c6e8488dd090",
+"nodes": [
+["tree","OK"],
+["load","EMPTY"]
+]
+},
+"contests/root-tilde.yaml": {
+"sha256": "73cafed4c2cba0743097670a0615e4958fd6ddae0ea12b077bffcc3581e9afd2",
+"nodes": [
+["tree","OK"],
+["load","EMPTY"]
+]
+},
+"contests/syntax-bad-indent.yaml": {
+"sha256": "611925242bb1cdae7953a45001585703293a87487116b75f95ee1e98cb111452",
+"nodes": [
+["tree","ERR","5","2"],
+["load","ERR","5","2"]
+]
+},
+"contests/syntax-mapping-in-plain.yaml": {
+"sha256": "b029bba52644b05e16714c91745b736ae15ef474d97da16e52a578ef62846e8a",
+"nodes": [
+["tree","ERR","2","6"],
+["load","ERR","2","6"]
+]
+},
+"contests/syntax-tab-indent.yaml": {
+"sha256": "c44fa1b61205d1ab3c25f185e1d3faca74c3b1a7c5385fca53d4d976eb25b733",
+"nodes": [
+["tree","ERR","3","9"],
+["load","ERR","3","9"]
+]
+},
+"contests/syntax-unclosed-flow.yaml": {
+"sha256": "4a490a951391a9f3e2deb99305ca24243be3bfcab416023d3eb7021126717e48",
+"nodes": [
+["tree","ERR","6","6"],
+["load","ERR","6","6"]
+]
+},
+"contests/syntax-unclosed-quote.yaml": {
+"sha256": "28dabfd24e05d6c0617e276d1e20f7c8df8b5d0395ec71df8427176c3683049a",
+"nodes": [
+["tree","ERR","4","7"],
+["load","ERR","4","7"]
+]
+},
+"contests/type-bands-scalar.yaml": {
+"sha256": "65abdd3363f126f586982073cdb36b2b279d67bdafe81ad69fde3f31eafb32e9",
+"nodes": [
+["tree","OK"],
+["load","ERR","5","8"]
+]
+},
+"contests/type-bandweights-text.yaml": {
+"sha256": "42bc9883b3526764597cfafc5162546ae08474179ab39ff3eaf90381ca1aabfc",
+"nodes": [
+["tree","OK"],
+["load","ERR","10","33"]
+]
+},
+"contests/type-before-syntax.yaml": {
+"sha256": "3d1b688d5a80a18bd26e071c8d2cf993400b0e489258cb32a367639526090501",
+"nodes": [
+["tree","ERR","3","18"],
+["load","ERR","1","16"],
+["known","typová před syntaktickou"]
+]
+},
+"contests/type-block-scope-lowercase.yaml": {
+"sha256": "295a0ddfe086e58a54e862b51cf6d2b54d40ffe061381227d64883bfc10bdfe8",
+"nodes": [
+["tree","OK"],
+["load","ERR","6","10"]
+]
+},
+"contests/type-bom-scope.yaml": {
+"sha256": "2d86fb803067dce0cf5dd1007e5ade62952e9ac4ae00f2f3fbfb7a87f46e2e52",
+"nodes": [
+["tree","OK"],
+["load","ERR","5","16"]
+]
+},
+"contests/type-crlf-required-ano.yaml": {
+"sha256": "4b03f9f21924c9786bbb89293b2ef2cb14587e9f7dd730826447872a0f65cc74",
+"nodes": [
+["tree","OK"],
+["load","ERR","7","41"]
+]
+},
+"contests/type-deep-condition.yaml": {
+"sha256": "c7b474957bab1a3574a7711b2b23349b68b54bbef05cc0edf983f9d5320f5046",
+"nodes": [
+["tree","OK"],
+["load","ERR","13","33"]
+]
+},
+"contests/type-flow-required-ano.yaml": {
+"sha256": "0c1aade1f7749423d867cc57d8154e33938213a59f37e33519f071a369b77e1c",
+"nodes": [
+["tree","OK"],
+["load","ERR","8","41"]
+]
+},
+"contests/type-int-out-of-range.yaml": {
+"sha256": "2085c191bea947efb0f1d9c0a93f6ef8ba61fac1e5fa1b34c8e6170baa88c6fd",
+"nodes": [
+["tree","OK"],
+["load","ERR","9","45"]
+]
+},
+"contests/type-period-decimal.yaml": {
+"sha256": "755126e5c26594abdc2cd0dfba54e2acadae819e19de8a98f16637072ab8676f",
+"nodes": [
+["tree","OK"],
+["load","ERR","5","9"]
+]
+},
+"contests/type-quoted-bool.yaml": {
+"sha256": "d5a956076fdebe36a68ddf88bab9f8d31fd8676afa17e47dc0fba127dbdc116c",
+"nodes": [
+["tree","OK"],
+["load","ERR","5","37"]
+]
+},
+"contests/type-quoted-enum.yaml": {
+"sha256": "eaefc4c0f1912d1a8453b3380cc5d942786ba845a8c2f529e6ae0763c19e77b9",
+"nodes": [
+["tree","OK"],
+["load","ERR","6","65"]
+]
+},
+"contests/type-record-from-sequence.yaml": {
+"sha256": "4c5ca942578ea30067bc950e1698ac730c430ab57010c239d488236fd0ecfc93",
+"nodes": [
+["tree","OK"],
+["load","ERR","5","11"]
+]
+},
+"contests/type-root-sequence.yaml": {
+"sha256": "01fbc4508bf59e90f18b0568b726c5ef7aed6a1ec09abf1f4897dedf1fc01394",
+"nodes": [
+["tree","OK"],
+["load","ERR","1","1"]
+]
+},
+"contests/type-schemaversion-text.yaml": {
+"sha256": "bd43dcb362f07403676cfc4a2c102143270aae76ad8044e1a379e89d0449b16d",
+"nodes": [
+["tree","OK"],
+["load","ERR","1","16"]
+]
+},
+"contests/type-string-from-map.yaml": {
+"sha256": "4b355c2f00e9ef47bd605515f08d9ba5b2ef0b476584315d52045f43a58e94cb",
+"nodes": [
+["tree","OK"],
+["load","ERR","4","9"]
+]
+},
+"multipliers/ok-range-decimal.yaml": {
+"sha256": "6ca8c94de533c5fa630d29b17bac341b7885fb001e8a4d1bafb8d17072a6e555",
+"nodes": [
+["tree","OK"],
+["load","OK"]
+]
+},
+"multipliers/root-tilde.yaml": {
+"sha256": "73cafed4c2cba0743097670a0615e4958fd6ddae0ea12b077bffcc3581e9afd2",
+"nodes": [
+["tree","OK"],
+["load","EMPTY"]
+]
+},
+"multipliers/syntax-unclosed-quote.yaml": {
+"sha256": "77a98782cb23ee67711ca8d50d77652ec29b993284427af9b92662a486d0c42d",
+"nodes": [
+["tree","ERR","5","3"],
+["load","ERR","5","3"]
+]
+},
+"multipliers/type-attributes-sequence.yaml": {
+"sha256": "8ae2a5d357de9c7da86d82aba15246f6fd96b369413e4bd7fa5e9d743efcede6",
+"nodes": [
+["tree","OK"],
+["load","ERR","7","17"]
+]
+},
+"multipliers/type-kind-lowercase.yaml": {
+"sha256": "e3950813b259b8340434d134d86d9af8408ffd5759ad2a203feaff3beddb862e",
+"nodes": [
+["tree","OK"],
+["load","ERR","3","7"]
+]
+},
+"multipliers/type-range-text.yaml": {
+"sha256": "3f8b1eb73de07427f518ce5b3292af1e0ad702752416f3dad8d76bd69f618857",
+"nodes": [
+["tree","OK"],
+["load","ERR","5","15"]
+]
+},
+"multipliers/type-values-scalar.yaml": {
+"sha256": "918ade3bde47cf82e6e3537260e619063bf6f7f4c031041b7f16a2e197bfb070",
+"nodes": [
+["tree","OK"],
+["load","ERR","4","9"]
+]
+}
+}

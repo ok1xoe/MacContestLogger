@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: arrl-dx-cw
+metadata:
+  name: "ARRL International DX Contest — CW"
+  organizer: "ARRL"
+  description: "Z pohledu DX stanice: pracují se jen W/VE (48 států USA + DC a kanadské provincie jsou násobiče)."
+  officialUrl: "https://www.arrl.org/arrl-dx"
+period: { durationHours: 48 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+stationClasses:
+  - { id: wve, when: { dxccIn: [US, CA, K, VE] } }
+  - { id: dx,  when: { not: { dxccIn: [US, CA, K, VE] } } }
+
+exchange:
+  sent:
+    - { id: rst,   type: RST,  source: AUTO_RST }
+    - { id: power, type: TEXT, source: FROM_STATION }     # výkon (např. 100, KW)
+  received:
+    - { id: rst,   type: RST,   required: true }
+    - { id: state, type: STATE, required: true }            # W/VE: stát / provincie
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { workedClass: wve }, value: { fixed: 3 } }  # DX–DX spojení se nepočítají
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: areas, set: na_areas, from: state, scope: PER_BAND, appliesWhen: { workedClass: wve } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: ARRL-DX-CW, sentOrder: [rst, power], receivedOrder: [rst, state] }
+ui:
+  entryOrder: [call, state]
+  logColumns: [time, call, band, mode, rst, state, points, mult]

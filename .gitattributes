@@ -1,0 +1,12 @@
+Tests/MCLCoreTests/Fixtures/definition-errors/** -text
+Tests/MCLCoreTests/Fixtures/scorecheck-reference/cty/cty.dat -text
+Tests/MCLCoreTests/Fixtures/scorecheck-edge/** -text
+Tests/MCLCoreTests/Fixtures/scorecheck-reference/dxcc-json/dxcc.json -text
+Tests/MCLCoreTests/Fixtures/io-edge/** -text
+Tests/MCLCoreTests/Fixtures/io-*-java.json.gz binary
+Tests/MCLCoreTests/Fixtures/hamlib-rigctl-l-4.7.1.txt -text
+Tests/MCLCoreTests/Fixtures/radio-gate/** -text
+Tests/MCLCoreTests/Fixtures/radio-logic-java.json.gz binary
+Tests/MCLCoreTests/Fixtures/radio-conversation-java.json.gz binary
+Tests/MCLCoreTests/Fixtures/mqtt-paho-transcript.tsv -text
+Tests/MCLCoreTests/Fixtures/net-logic-java.json.gz binary

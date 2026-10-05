@@ -1,0 +1,8 @@
+schemaVersion: 1
+id: rda_oblasts
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata: { name: "Ruské oblasti (dvoupísmenné kódy RDXC)" }
+# Otevřená sada: klíč = dvoupísmenný kód oblasti, který ruská stanice posílá (MA, SP, NO…).
+validation: { keyPattern: "^[A-Z]{2}$" }

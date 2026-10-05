@@ -1,0 +1,7 @@
+dxcc.json — the DXCC JSON project (https://github.com/k0swe/dxcc-json)
+Snapshot: commit c6412409ddc67ed3045582dcc5382434462ed24b (2024-11-16), file unchanged,
+SHA-256 d9ba1125a6484f96d4e30abfdf100517c2aca801a086a504a96757196ca7d4d2
+Licence: Apache License 2.0 (full text in the adjacent LICENSE). The data derives from the ARRL
+DXCC entity list (https://www.arrl.org/country-lists-prefixes).
+Use: the ScoreCheckParityTests gate in dxcc.json mode (the Java reference
+scorecheck-reference/scorecheck-sample-reference-json.tsv was produced over the very same file).

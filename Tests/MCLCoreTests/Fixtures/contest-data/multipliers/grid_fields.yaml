@@ -1,0 +1,10 @@
+schemaVersion: 1
+id: grid_fields
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata: { name: "Maidenhead grid fields (2-char)" }
+# Neenumerovaná sada: vstup je 4/6znakový lokátor, klíč multiplikátoru je jeho
+# 2znakové POLE (JO80 → JO). keyLength=2 ořízne klíč po validaci formátu.
+validation: { keyPattern: "^[A-R]{2}[0-9]{2}([A-X]{2})?$" }
+keyLength: 2

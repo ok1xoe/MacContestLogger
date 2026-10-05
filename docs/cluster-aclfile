@@ -1,0 +1,26 @@
+# ACL for the Mosquitto of the cluster (principle of least privilege).
+# See docs/cluster-sync-design.md section 9.2.
+
+# Cluster service (the authority): full access to all qso/# topics
+user clusterserver
+topic readwrite qso/#
+# Serial number server: reads requests, replies to stations.
+topic readwrite serial/#
+
+# Stations: may publish commands and read the canonical state; they MUST NOT write to qso/state.
+# This enforces the CQRS boundary (only the server owns the canonical state) at the broker level.
+pattern write qso/cmd/insert
+pattern write qso/cmd/update
+pattern write qso/cmd/delete
+pattern read  qso/state/#
+# Telnet sharing: stations send each other DX spots (without the authority).
+pattern readwrite spot/#
+# Station state (Network Status): each station writes only its own state (%c = Client ID
+# = stationId), and may read the states of all.
+pattern write station/status/%c
+pattern read  station/status/+
+# Messages between stations (chat, pass, call stacking).
+pattern readwrite station/msg
+# Serial number server: a station asks for a number and reads only its own replies.
+pattern write serial/request
+pattern read  serial/reply/%c

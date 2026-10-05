@@ -1,0 +1,18 @@
+{
+  "dxcc": [
+    {"entityCode":503,"name":"Czech Republic","countryCode":"CZ","continent":["EU"],"cq":[15],"itu":[28],"prefix":"OK,OL","prefixRegex":"^(OK|OL)[0-9].*","deleted":false},
+    {"entityCode":291,"name":"United States","countryCode":"US","continent":["NA"],"cq":[3,4,5],"itu":[6,7,8],"prefix":"K,N,W","prefixRegex":"^(K|N|W|A[A-L])[0-9].*","deleted":false},
+    {"entityCode":1,"name":"Canada","countryCode":"CA","continent":["NA"],"cq":[1,2,3,4,5],"itu":[2,3,4,9],"prefix":"VE,VA,VO","prefixRegex":"^(V[AEO])[0-9].*","deleted":false},
+    {"entityCode":230,"name":"Germany","countryCode":"DE","continent":["EU"],"cq":[14],"itu":[28],"prefix":"DL,DA","prefixRegex":"^(D[A-R])[0-9].*","deleted":false},
+    {"entityCode":999,"name":"Deleted Entity","countryCode":"XX","continent":["AF"],"cq":[33],"itu":[1],"prefix":"XX","prefixRegex":"^XX[0-9].*","deleted":true},
+    {"entityCode":269,"name":"Poland","countryCode":"PL","continent":["EU"],"cq":[15],"itu":[28],"prefix":"HF,SN,SO,SP,SQ,SR,3Z","prefixRegex":"^(HF|S[N-R]|3Z)[A-Z0-9/]*$","deleted":false},
+    {"entityCode":54,"name":"European Russia","countryCode":"RU","continent":["EU"],"cq":[16],"itu":[19,20,29,30],"prefix":"UA1,UA2,UA3,UA4,UA5,UA6,UA7,UB1,UB2,UB3,UB4,UB5,UB6,UB7,UC1,UC2,UC3,UC4,UC5,UC6,UC7,UD1,UD2,UD3,UD4,UD5,UD6,UD7,UE1,UE2,UE3,UE4,UE5,UE6,UE7,UF1,UF2,UF3,UF4,UF5,UF6,UF7,UG1,UG2,UG3,UG4,UG5,UG6,UG7,UH1,UH2,UH3,UH4,UH5,UH6,UH7,UI1,UI2,UI3,UI4,UI5,UI6,UI7,RA,RB,RC,RD,RE,RF,RG,RH,RI,RJ,RK,RL,RM,RN,RO,RP,RQ,RR,RS,RT,RU,RV,RW,RX,RY,RZ","prefixRegex":"^(U[A-I][1-7]|R[A-Z0-7])[A-Z0-7/]*$","deleted":false},
+    {"entityCode":15,"name":"Asiatic Russia","countryCode":"RU","continent":["AS"],"cq":[16,17,18,19,23],"itu":[20,21,22,23,24,25,26,30,31,32,33,34,35,75],"prefix":"UA0,UA8,UA9,UB0,UB8,UB9,UC0,UC8,UC9,UD0,UD8,UD9,UE0,UE8,UE9,UF0,UF8,UF9,UG0,UG8,UG9,UH0,UH8,UH9,UI0,UI8,UI9,RA,RB,RC,RD,RE,RF,RG,RH,RI,RJ,RK,RL,RM,RN,RO,RP,RQ,RR,RS,RT,RU,RV,RW,RX,RY,RZ","prefixRegex":"^(U[A-I][089]|R[A-Z089])[A-Z089/]*$","deleted":false},
+    {"entityCode":223,"name":"England","countryCode":"GB","continent":["EU"],"cq":[14],"itu":[27],"prefix":"G,GX,M,2E","prefixRegex":"^(G|GX|M|2E)[A-Z0-9/]*$","deleted":false},
+    {"entityCode":339,"name":"Japan","countryCode":"JP","continent":["AS"],"cq":[25],"itu":[45],"prefix":"JA,JB,JC,JD,JE,JF,JG,JH,JI,JJ,JK,JL,JM,JN,JO,JP,JQ,JR,JS,7J,7K,7L,7M,7N,8N","prefixRegex":"^(J[A-S]|7[J-N]|8N)[A-Z0-9/]*$","deleted":false},
+    {"entityCode":215,"name":"Cyprus","countryCode":"CY","continent":["AS"],"cq":[20],"itu":[39],"prefix":"5B,C4,P3","prefixRegex":"^(5B|C4|P3)[A-Z0-9/]*$","deleted":false},
+    {"entityCode":499,"name":"Slovenia","countryCode":"SI","continent":["EU"],"cq":[15],"itu":[28],"prefix":"S5","prefixRegex":"^S5[A-Z0-9/]*$","deleted":false},
+    {"entityCode":497,"name":"Croatia","countryCode":"HR","continent":["EU"],"cq":[15],"itu":[28],"prefix":"9A","prefixRegex":"^9A[A-Z0-9/]*$","deleted":false},
+    {"entityCode":110,"name":"Hawaii","countryCode":"US","continent":["OC"],"cq":[31],"itu":[61],"prefix":"KH6,KH7","prefixRegex":"^KH[67][A-Z0-9/]*$","deleted":false}
+  ]
+}

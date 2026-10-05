@@ -1,0 +1,437 @@
+# format: scorecheck-reference 1
+# set: scorecheck-sample
+# java.version: 21.0.2
+# java.vendor: Oracle Corporation
+# locale: en_US
+# java-commit: 033e7a9382487360bcf0294371c640ff215eb78b
+# java-describe: v1.1.1-2-g033e7a9
+# java-classes-sha256: 4072c3823f5dcd5051770e598a44caa5558e4defa5cbce2e29d68bc38317821f
+# contest-data-sha256: ebb018deeea8d48b4b56e99d71bf5e5a1a37c45d7f6f537334d5cd85df94a967
+# dxcc-source: json
+# dxcc.json-sha256: d9ba1125a6484f96d4e30abfdf100517c2aca801a086a504a96757196ca7d4d2
+# logs: 424
+# columns: key file status contest qsoCount qsoPoints multTotal multByGroup computed claimed unresolvedCount skipReason errorClass error
+77f6d6aedae4dc97	9a3jh.log	OK	CQ-160-CW	1160	6694	105	areas=41,countries=64	702870	0	2	\N	\N	\N
+314380c66ae6b85d	df7cb.log	OK	CQ-160-CW	306	1283	40	areas=0,countries=40	51320	\N	0	bez CLAIMED-SCORE	\N	\N
+100ed03e7119ba82	dk5dq.log	OK	CQ-160-CW	224	921	32	areas=0,countries=32	29472	33336	0	\N	\N	\N
+6f640c5af95403fb	dk7gh.log	OK	CQ-160-CW	115	490	32	areas=0,countries=32	15680	17500	0	\N	\N	\N
+56aedff2d7765ef7	do3oi.log	OK	CQ-160-CW	13	50	6	areas=0,countries=6	300	300	0	\N	\N	\N
+cb102a8d3100475a	f5rab.log	OK	CQ-160-CW	102	529	34	areas=4,countries=30	17986	19943	0	\N	\N	\N
+3fcd1f9d80c6f57d	ha8l.log	OK	CQ-160-CW	548	2767	57	areas=8,countries=49	157719	179008	2	\N	\N	\N
+0a9a01ee3f936d5d	ik8pgm.log	OK	CQ-160-CW	36	156	16	areas=0,countries=16	2496	3114	0	\N	\N	\N
+4a94f44be881af36	ja2xcr.log	OK	CQ-160-CW	2	20	2	areas=0,countries=2	40	0	0	\N	\N	\N
+e375193b888133be	jh1fsf.log	OK	CQ-160-CW	76	492	27	areas=9,countries=18	13284	13284	0	\N	\N	\N
+f267ee6de9e7fc3f	jr2aws.log	OK	CQ-160-CW	8	19	2	areas=0,countries=2	38	38	0	\N	\N	\N
+4ad32af0be1a920c	k8lx.log	OK	CQ-160-CW	803	2604	98	areas=58,countries=40	255192	260200	1	\N	\N	\N
+ec3da91fbde934e1	k9ga.log	OK	CQ-160-CW	104	239	38	areas=36,countries=2	9082	\N	0	bez CLAIMED-SCORE	\N	\N
+fc6bbef1ca2e7d5a	lz3cb.log	OK	CQ-160-CW	274	1400	41	areas=1,countries=40	57400	\N	2	bez CLAIMED-SCORE	\N	\N
+d98ace70d84fdff3	n3rm.log	OK	CQ-160-CW	115	266	29	areas=29,countries=0	7714	7714	0	\N	\N	\N
+3d41a8573a9b40e8	py2na.log	OK	CQ-160-CW	27	220	17	areas=9,countries=8	3740	3960	0	\N	\N	\N
+e3c0c1ca2a5f71b2	r9odg.log	OK	CQ-160-CW	20	87	7	areas=0,countries=7	609	609	0	\N	\N	\N
+ea405844769fb0ea	ra1qd.log	OK	CQ-160-CW	250	1220	47	areas=2,countries=45	57340	61650	0	\N	\N	\N
+85e66a9edc9786c0	rc0l.log	OK	CQ-160-CW	80	382	5	areas=0,countries=5	1910	1910	0	\N	\N	\N
+02e055ff923ab97a	rl3a.log	OK	CQ-160-CW	1208	6951	108	areas=39,countries=69	750708	775335	2	\N	\N	\N
+a520a43d482b5bbd	sc7dx.log	OK	CQ-160-CW	1332	7278	103	areas=38,countries=65	749634	774648	2	\N	\N	\N
+6931f974e8286df9	sn2n.log	OK	CQ-160-CW	103	524	33	areas=0,countries=33	17292	\N	0	bez CLAIMED-SCORE	\N	\N
+7ff46716d6d72b15	sp7qo.log	OK	CQ-160-CW	22	101	18	areas=0,countries=18	1818	0	0	\N	\N	\N
+e7e99c17f336afa0	ur1yaa.log	OK	CQ-160-CW	223	1079	33	areas=0,countries=33	35607	39384	1	\N	\N	\N
+21eb32fefc7d8f9c	ut5eox.log	OK	CQ-160-CW	54	264	23	areas=0,countries=23	6072	0	0	\N	\N	\N
+c03a45cc54ceca3d	uw7ll.log	OK	CQ-160-CW	81	398	29	areas=0,countries=29	11542	0	1	\N	\N	\N
+e9d08edb8df53dd7	vk6vz.log	OK	CQ-160-CW	32	302	19	areas=3,countries=16	5738	5738	0	\N	\N	\N
+2199989b67c6bc97	w3kb.log	OK	CQ-160-CW	205	497	44	areas=37,countries=7	21868	22000	0	\N	\N	\N
+c5b11652cc9792e9	w9khh.log	OK	CQ-160-CW	60	150	26	areas=26,countries=0	3900	\N	0	bez CLAIMED-SCORE	\N	\N
+64ad87894e359cb7	wv7ms.log	OK	CQ-160-CW	58	131	22	areas=22,countries=0	2882	\N	0	bez CLAIMED-SCORE	\N	\N
+bddcf9a29defd6ee	ce6uff.log	OK	CQ-160-CW	3	10	1	areas=0,countries=1	10	\N	0	bez CLAIMED-SCORE	\N	\N
+e7f7fc9044651326	dk2oy.log	OK	CQ-160-CW	647	2853	56	areas=9,countries=47	159768	171780	0	\N	\N	\N
+686b8e6c3c1814f5	dl7vmm.log	OK	CQ-160-CW	57	243	19	areas=0,countries=19	4617	4712	0	\N	\N	\N
+b7a4ace7a62ea708	du9gt.log	OK	CQ-160-CW	1	2	1	areas=0,countries=1	2	0	0	\N	\N	\N
+1cfc7aad07b8e6da	f3wt.log	OK	CQ-160-CW	14	70	10	areas=0,countries=10	700	700	0	\N	\N	\N
+894b78584596a0dd	g4cdn.log	OK	CQ-160-CW	395	1965	44	areas=0,countries=44	86460	97461	0	\N	\N	\N
+ee08ada10764441a	hb9fmn.log	OK	CQ-160-CW	203	1001	35	areas=1,countries=34	35035	0	0	\N	\N	\N
+72cbed8728935b1e	in3mns.log	OK	CQ-160-CW	161	755	26	areas=0,countries=26	19630	20601	0	\N	\N	\N
+55fda28efe1efdbb	jf1amx.log	OK	CQ-160-CW	141	602	25	areas=7,countries=18	15050	15225	2	\N	\N	\N
+495ad666d40aa0f6	jh1hic.log	OK	CQ-160-CW	8	16	1	areas=0,countries=1	16	16	0	\N	\N	\N
+c2443a0f5bb38465	k4yj.log	OK	CQ-160-CW	234	538	45	areas=42,countries=3	24210	24120	0	\N	\N	\N
+965e07e5af4f4f0d	kh6aq.log	OK	CQ-160-CW	371	3472	63	areas=50,countries=13	218736	0	0	\N	\N	\N
+3fe433fe30bca25d	lb2tb.log	OK	CQ-160-CW	24	122	16	areas=0,countries=16	1952	\N	0	bez CLAIMED-SCORE	\N	\N
+8212448a95a5d22a	lc9x.log	OK	CQ-160-CW	258	1296	39	areas=4,countries=35	50544	50739	0	\N	\N	\N
+2cb6933bf00216d2	ly2xw.log	OK	CQ-160-CW	757	3706	56	areas=7,countries=49	207536	232252	4	\N	\N	\N
+ad1393450f55bd53	m6w.log	OK	CQ-160-CW	291	1439	50	areas=10,countries=40	71950	78732	0	\N	\N	\N
+7eba29d22c949c26	na7tb.log	OK	CQ-160-CW	647	1625	78	areas=57,countries=21	126750	125190	0	\N	\N	\N
+3c7c0b75a71f8690	ok2dm.log	OK	CQ-160-CW	150	686	31	areas=0,countries=31	21266	23494	0	\N	\N	\N
+33caf609d878f808	om2adm.log	OK	CQ-160-CW	1121	5732	89	areas=28,countries=61	510148	554112	3	\N	\N	\N
+f56d5f282c4f8873	pa3bwk.log	OK	CQ-160-CW	58	287	21	areas=0,countries=21	6027	6424	0	\N	\N	\N
+4b6de9919d8e577d	r5be.log	OK	CQ-160-CW	17	90	12	areas=0,countries=12	1080	0	0	\N	\N	\N
+a289871059ec7740	rd8d.log	OK	CQ-160-CW	375	3348	48	areas=0,countries=48	160704	174772	1	\N	\N	\N
+fc0f643e5a63d770	rm5f.log	OK	CQ-160-CW	88	367	22	areas=0,countries=22	8074	8074	0	\N	\N	\N
+f29c7393a47b4dde	rx4hx.log	OK	CQ-160-CW	28	112	2	areas=0,countries=2	224	0	0	\N	\N	\N
+143bab50dea491b7	s57k.log	OK	CQ-160-CW	498	2358	43	areas=0,countries=43	101394	114144	1	\N	\N	\N
+0d9a8e847f67eeec	sa6zgm.log	OK	CQ-160-CW	67	320	21	areas=0,countries=21	6720	7040	0	\N	\N	\N
+31fff8435ac71c25	vu7t.log	OK	CQ-160-CW	18	150	11	areas=0,countries=11	1650	1650	0	\N	\N	\N
+a134c88eaf43b004	w2fv.log	OK	CQ-160-CW	6	26	4	areas=4,countries=0	104	\N	0	bez CLAIMED-SCORE	\N	\N
+726a01f7f45a00bd	w8ru.log	OK	CQ-160-CW	102	228	37	areas=36,countries=1	8436	8547	0	\N	\N	\N
+d904cbc79644141f	da2x.log	OK	CQ-160-SSB	358	1423	42	areas=0,countries=42	59766	66378	2	\N	\N	\N
+692393c629ede72f	dl1gkc.log	OK	CQ-160-SSB	36	155	18	areas=0,countries=18	2790	2790	0	\N	\N	\N
+1d723d448f97389f	dp6a.log	OK	CQ-160-SSB	578	2392	53	areas=6,countries=47	126776	136914	1	\N	\N	\N
+a66a08347c9fd4b0	e77dx.log	OK	CQ-160-SSB	302	1508	42	areas=0,countries=42	63336	71581	2	\N	\N	\N
+e72b3047eb56d045	ea3dur.log	OK	CQ-160-SSB	4	17	4	areas=0,countries=4	68	17	0	\N	\N	\N
+acb0e2226495b643	ei7m.log	OK	CQ-160-SSB	574	3307	80	areas=27,countries=53	264560	271994	1	\N	\N	\N
+bd7d01d1a5f8d48d	hb9iob.log	OK	CQ-160-SSB	10	42	7	areas=0,countries=7	294	0	0	\N	\N	\N
+8b5e24afda61d5ce	iw2jwg.log	OK	CQ-160-SSB	120	587	29	areas=0,countries=29	17023	18290	0	\N	\N	\N
+bd6e4981f1b4608b	k9mms.log	OK	CQ-160-SSB	205	472	47	areas=42,countries=5	22184	21850	0	\N	\N	\N
+4a93ad88d3cdf9b1	lz5r.log	OK	CQ-160-SSB	447	2331	60	areas=13,countries=47	139860	153790	4	\N	\N	\N
+664429a8a109842d	n1tor.log	OK	CQ-160-SSB	4	8	4	areas=4,countries=0	32	\N	0	bez CLAIMED-SCORE	\N	\N
+759f1448654aed7d	py9mp.log	OK	CQ-160-SSB	5	10	1	areas=0,countries=1	10	0	0	\N	\N	\N
+ced91939d131c56a	r7am.log	OK	CQ-160-SSB	56	261	20	areas=0,countries=20	5220	6786	0	\N	\N	\N
+dee87023b86d927a	rl2y.log	OK	CQ-160-SSB	50	236	17	areas=0,countries=17	4012	\N	0	bez CLAIMED-SCORE	\N	\N
+d6812476fc7393d4	sb6a.log	OK	CQ-160-SSB	126	623	27	areas=0,countries=27	16821	18067	0	\N	\N	\N
+f82acd2c58d053c0	sp3atb.log	OK	CQ-160-SSB	24	111	13	areas=0,countries=13	1443	1443	0	\N	\N	\N
+8e20d63fa454fe8f	sp8bgm.log	OK	CQ-160-SSB	56	258	17	areas=0,countries=17	4386	0	0	\N	\N	\N
+6af3fb4d2c37b487	sq8dsn.log	OK	CQ-160-SSB	62	278	21	areas=0,countries=21	5838	0	1	\N	\N	\N
+466c5152d73e32e9	sz2rck.log	OK	CQ-160-SSB	263	1269	40	areas=0,countries=40	50760	58680	4	\N	\N	\N
+6713a37b6038526c	w1fm.log	OK	CQ-160-SSB	39	90	17	areas=17,countries=0	1530	1530	0	\N	\N	\N
+f646cba8ebd5eb8a	w4vg.log	OK	CQ-160-SSB	67	143	20	areas=20,countries=0	2860	2860	0	\N	\N	\N
+3465d0a8d46e69e7	w7ii.log	OK	CQ-160-SSB	71	171	35	areas=32,countries=3	5985	6090	0	\N	\N	\N
+144110a911e666b1	wb2jte.log	OK	CQ-160-SSB	24	51	14	areas=14,countries=0	714	714	0	\N	\N	\N
+c6ff601129d1fa96	wb6jjj.log	OK	CQ-160-SSB	28	81	20	areas=17,countries=3	1620	1620	0	\N	\N	\N
+8a0a7017bd49bb3f	wb8lxt.log	OK	CQ-160-SSB	29	68	20	areas=20,countries=0	1360	\N	0	bez CLAIMED-SCORE	\N	\N
+0e9ff73f3e065f6e	3z1k.log	OK	CQ-WPX-CW	814	1943	497	prefixes=497	965671	960701	2	\N	\N	\N
+7374599bd74e440c	7i1i.log	OK	CQ-WPX-CW	1479	1458	694	prefixes=694	1011852	3235428	8	\N	\N	\N
+38a615d76b85b76e	9j2fi.log	OK	CQ-WPX-CW	1393	4139	723	prefixes=723	2992497	3002619	9	\N	\N	\N
+e90db0bbdb4036ec	by4dx.log	OK	CQ-WPX-CW	222	314	138	prefixes=138	43332	45261	1	\N	\N	\N
+0edf7865e2d3638e	dl1jdq.log	OK	CQ-WPX-CW	525	933	344	prefixes=344	320952	324736	1	\N	\N	\N
+6ad1e1c3dd6e8e0c	dl3yee.log	OK	CQ-WPX-CW	168	268	145	prefixes=145	38860	39150	1	\N	\N	\N
+bf6a78e621bd9f2d	dm4mn.log	OK	CQ-WPX-CW	60	86	58	prefixes=58	4988	5220	1	\N	\N	\N
+4d2ebfc0845082d6	e21as.log	OK	CQ-WPX-CW	255	449	187	prefixes=187	83963	0	0	\N	\N	\N
+829802caece2c2ec	ea4xt.log	OK	CQ-WPX-CW	98	169	89	prefixes=89	15041	12371	2	\N	\N	\N
+ed797eb2fda8185c	eu3u.log	OK	CQ-WPX-CW	95	208	89	prefixes=89	18512	18512	0	\N	\N	\N
+e82f13d47aee1238	ew1mn.log	OK	CQ-WPX-CW	351	613	308	prefixes=308	188804	189392	4	\N	\N	\N
+829aeac4244232e6	g5o.log	OK	CQ-WPX-CW	1611	2892	809	prefixes=809	2339628	2777736	10	\N	\N	\N
+cfb884c3f1b4989e	ge3vqo.log	OK	CQ-WPX-CW	261	360	179	prefixes=179	64440	65872	0	\N	\N	\N
+173411364bdc55f2	hl0cw.log	OK	CQ-WPX-CW	713	1138	289	prefixes=289	328882	\N	9	bez CLAIMED-SCORE	\N	\N
+b3047cf7b508a807	ik1vek.log	OK	CQ-WPX-CW	36	45	32	prefixes=32	1440	0	0	\N	\N	\N
+eaccf7378e05a1ac	ik3lls.log	OK	CQ-WPX-CW	21	64	20	prefixes=20	1280	1360	2	\N	\N	\N
+a4a9b667b3b56f38	ja1rra.log	OK	CQ-WPX-CW	14	18	14	prefixes=14	252	252	0	\N	\N	\N
+98f4a1b3ef3a7a8d	ja2yka.log	OK	CQ-WPX-CW	206	368	124	prefixes=124	45632	46128	3	\N	\N	\N
+756b39bb0d4efb6d	ja3xog.log	OK	CQ-WPX-CW	39	72	37	prefixes=37	2664	1984	4	\N	\N	\N
+fddc2f0c8aecd292	ja8rjd.log	OK	CQ-WPX-CW	23	67	22	prefixes=22	1474	0	0	\N	\N	\N
+c4dd49dc09a2ebb1	jo3xph.log	OK	CQ-WPX-CW	91	144	71	prefixes=71	10224	\N	2	bez CLAIMED-SCORE	\N	\N
+243e4c480fa38b4a	jr2dwa.log	OK	CQ-WPX-CW	27	62	24	prefixes=24	1488	1608	1	\N	\N	\N
+dce433ad00687a28	k1md.log	EXC	\N	0	0	0		0	\N	0	\N	NumberFormatException	For input string: "21555555551"
+ec705d2b15e823c2	ka6jlt.log	OK	CQ-WPX-CW	43	59	37	prefixes=37	2183	2442	1	\N	\N	\N
+9a24df24e6b2a285	ka8jbk.log	OK	CQ-WPX-CW	566	1134	318	prefixes=318	360612	0	4	\N	\N	\N
+6122b7ca97e2908a	kf4av.log	OK	CQ-WPX-CW	90	156	79	prefixes=79	12324	12561	2	\N	\N	\N
+cbf6dd27f0e8bced	kg1v.log	OK	CQ-WPX-CW	310	560	212	prefixes=212	118720	124656	3	\N	\N	\N
+fecc1532c523d466	ki4ezc.log	OK	CQ-WPX-CW	131	239	110	prefixes=110	26290	\N	0	bez CLAIMED-SCORE	\N	\N
+93420744b2aed24e	ly5dx.log	OK	CQ-WPX-CW	133	250	108	prefixes=108	27000	27216	0	\N	\N	\N
+e90ce6008ff37bb5	lz2oq.log	OK	CQ-WPX-CW	5	5	5	prefixes=5	25	0	0	\N	\N	\N
+bceaabbe0b45a62b	lz7vm.log	OK	CQ-WPX-CW	30	62	30	prefixes=30	1860	\N	0	bez CLAIMED-SCORE	\N	\N
+1d2ea17e1457053e	m3jan.log	OK	CQ-WPX-CW	245	407	203	prefixes=203	82621	\N	1	bez CLAIMED-SCORE	\N	\N
+9eb08bdd52db7001	n2lk.log	OK	CQ-WPX-CW	205	456	159	prefixes=159	72504	75048	1	\N	\N	\N
+2bd2bb183bb18f7a	oh2oa.log	OK	CQ-WPX-CW	26	65	26	prefixes=26	1690	1534	0	\N	\N	\N
+0b7ef87f0040de5d	py2lpm.log	OK	CQ-WPX-CW	31	83	28	prefixes=28	2324	2324	2	\N	\N	\N
+67cb503633e6c7ee	r4aj.log	OK	CQ-WPX-CW	76	106	70	prefixes=70	7420	0	0	\N	\N	\N
+6afd928983b84018	ra9mlr.log	OK	CQ-WPX-CW	27	75	26	prefixes=26	1950	1950	0	\N	\N	\N
+0408973c3999efdc	sp3bbs.log	OK	CQ-WPX-CW	72	141	63	prefixes=63	8883	9009	0	\N	\N	\N
+1833817a422d7de3	sp9xcn.log	OK	CQ-WPX-CW	1661	3618	866	prefixes=866	3133188	3166962	11	\N	\N	\N
+685f4ba7acf2e768	tm29x.log	OK	CQ-WPX-CW	2303	5606	1091	prefixes=1091	6116146	6161770	14	\N	\N	\N
+630085018d57db24	tm8f.log	OK	CQ-WPX-CW	390	894	302	prefixes=302	269988	272706	1	\N	\N	\N
+514dd57d51fe2e0e	ub7b.log	OK	CQ-WPX-CW	215	362	187	prefixes=187	67694	68442	3	\N	\N	\N
+f75da0857ec0d742	uw3wf.log	OK	CQ-WPX-CW	525	1041	334	prefixes=334	347694	0	6	\N	\N	\N
+785d09ebd8f78a55	uy2zz.log	OK	CQ-WPX-CW	201	448	166	prefixes=166	74368	76858	1	\N	\N	\N
+d2c04192bec5ac46	va3sp.log	OK	CQ-WPX-CW	1014	3405	551	prefixes=551	1876155	1891032	8	\N	\N	\N
+9e297044fc10bd73	vr2hk.log	OK	CQ-WPX-CW	25	39	22	prefixes=22	858	990	3	\N	\N	\N
+4dbb5b7f4a94f39f	w4kaz.log	OK	CQ-WPX-CW	216	501	195	prefixes=195	97695	102765	5	\N	\N	\N
+d05783e386fb3db4	w9ily.log	OK	CQ-WPX-CW	453	963	354	prefixes=354	340902	344442	4	\N	\N	\N
+41103a16304bb6ef	yg2awk.log	OK	CQ-WPX-CW	10	20	10	prefixes=10	200	0	0	\N	\N	\N
+4f52d7c75b10f744	yt7aa.log	OK	CQ-WPX-CW	477	1091	360	prefixes=360	392760	391320	0	\N	\N	\N
+030278acfa117b51	2e0obo.log	OK	CQ-WPX-SSB	20	24	20	prefixes=20	480	480	0	\N	\N	\N
+d9cdb8b3b77c9477	9a7rr.log	OK	CQ-WPX-SSB	685	1598	489	prefixes=489	781422	817608	35	\N	\N	\N
+9b04fe8805996958	9m2s.log	OK	CQ-WPX-SSB	9	50	9	prefixes=9	450	450	0	\N	\N	\N
+6b8c36e56e027d62	ad3y.log	OK	CQ-WPX-SSB	154	344	129	prefixes=129	44376	53019	5	\N	\N	\N
+a7154cd57a3539ad	ai7sk.log	OK	CQ-WPX-SSB	137	230	108	prefixes=108	24840	26460	1	\N	\N	\N
+c8e9b50b28a993dc	ba4sqi.log	OK	CQ-WPX-SSB	517	1100	306	prefixes=306	336600	342108	10	\N	\N	\N
+5425cb988647ad0e	bd3uy.log	OK	CQ-WPX-SSB	704	1451	386	prefixes=386	560086	576684	22	\N	\N	\N
+8998a6a0d9b75411	bg5nkc.log	OK	CQ-WPX-SSB	70	175	58	prefixes=58	10150	\N	4	bez CLAIMED-SCORE	\N	\N
+e5d9cc2358fb1527	bh2xem.log	OK	CQ-WPX-SSB	59	91	52	prefixes=52	4732	5035	2	\N	\N	\N
+98f3a34432037945	bh4tcc.log	OK	CQ-WPX-SSB	16	20	15	prefixes=15	300	330	0	\N	\N	\N
+70e6312f0fb7d957	da0d.log	OK	CQ-WPX-SSB	255	406	190	prefixes=190	77140	0	5	\N	\N	\N
+09e235fe14b647b1	da2nm.log	OK	CQ-WPX-SSB	38	62	38	prefixes=38	2356	2610	0	\N	\N	\N
+c38bcc6d3cb4987c	df4wo.log	OK	CQ-WPX-SSB	53	93	46	prefixes=46	4278	\N	1	bez CLAIMED-SCORE	\N	\N
+bb2f2f7cd48e0119	dg6sbo.log	OK	CQ-WPX-SSB	150	212	145	prefixes=145	30740	32770	4	\N	\N	\N
+2c69fbf9ef871eba	dl6wwm.log	OK	CQ-WPX-SSB	26	63	25	prefixes=25	1575	\N	1	bez CLAIMED-SCORE	\N	\N
+9c30ec5a0e5aa646	do1kub.log	OK	CQ-WPX-SSB	20	32	20	prefixes=20	640	680	0	\N	\N	\N
+4682c5d7c8002e2b	e29tgw.log	OK	CQ-WPX-SSB	150	362	139	prefixes=139	50318	51152	5	\N	\N	\N
+322272f712381d5b	ea3gye.log	OK	CQ-WPX-SSB	67	119	58	prefixes=58	6902	5472	3	\N	\N	\N
+107b301484b3c39a	ea4ibw.log	OK	CQ-WPX-SSB	23	54	21	prefixes=21	1134	\N	1	bez CLAIMED-SCORE	\N	\N
+cb3e83d3871be06b	ea7jf.log	OK	CQ-WPX-SSB	144	333	125	prefixes=125	41625	41044	0	\N	\N	\N
+f6769a6152f54837	ed5v.log	OK	CQ-WPX-SSB	535	935	359	prefixes=359	335665	352538	11	\N	\N	\N
+9df57dbeb044903f	hd8r.log	ERR	CQ-WPSSB	0	0	0		0	24502584	0	\N	\N	nezn\u00e1m\u00fd z\u00e1vod: CQ-WPSSB
+e485649a3f35c0ca	hg6z.log	OK	CQ-WPX-SSB	1025	1871	536	prefixes=536	1002856	0	22	\N	\N	\N
+6a1316a62965b7d1	ik3xty.log	OK	CQ-WPX-SSB	37	63	32	prefixes=32	2016	2208	1	\N	\N	\N
+bf34332b531befc2	iq0lt.log	OK	CQ-WPX-SSB	15	20	14	prefixes=14	280	378	1	\N	\N	\N
+5709b0231f4c4bb2	j41j.log	OK	CQ-WPX-SSB	701	889	454	prefixes=454	403606	406330	2	\N	\N	\N
+7e9ec652be780d48	ja2ulv.log	OK	CQ-WPX-SSB	68	256	64	prefixes=64	16384	0	2	\N	\N	\N
+243353247ef1c814	ja7ssp.log	OK	CQ-WPX-SSB	41	158	35	prefixes=35	5530	5810	3	\N	\N	\N
+f554f96b9d2121b1	jh7yjf.log	OK	CQ-WPX-SSB	343	772	223	prefixes=223	172156	180630	19	\N	\N	\N
+41a136a111ea51be	jj1vfa.log	OK	CQ-WPX-SSB	25	61	21	prefixes=21	1281	1407	3	\N	\N	\N
+389b65def3ca5582	k1lho.log	OK	CQ-WPX-SSB	25	65	23	prefixes=23	1495	0	1	\N	\N	\N
+889de65636964b10	k3ata.log	OK	CQ-WPX-SSB	80	116	66	prefixes=66	7656	\N	0	bez CLAIMED-SCORE	\N	\N
+26326b428731dfcc	k3rwn.log	OK	CQ-WPX-SSB	134	265	112	prefixes=112	29680	30240	3	\N	\N	\N
+43caf8a8d33e1d37	ka4ltc.log	OK	CQ-WPX-SSB	105	184	90	prefixes=90	16560	0	2	\N	\N	\N
+1aa79661d6855e68	kc2vpe.log	OK	CQ-WPX-SSB	26	59	25	prefixes=25	1475	\N	0	bez CLAIMED-SCORE	\N	\N
+4af0e6d3e6936533	kk7clh.log	OK	CQ-WPX-SSB	7	8	7	prefixes=7	56	\N	0	bez CLAIMED-SCORE	\N	\N
+87da76b2730004a7	kv3t.log	OK	CQ-WPX-SSB	23	56	21	prefixes=21	1176	\N	0	bez CLAIMED-SCORE	\N	\N
+bf92f126c3bbe7d6	n9hq.log	OK	CQ-WPX-SSB	109	238	106	prefixes=106	25228	25758	1	\N	\N	\N
+396d6fd00068a4ae	nu5de.log	OK	CQ-WPX-SSB	707	1248	431	prefixes=431	537888	546048	8	\N	\N	\N
+de075fa3a0f8cd60	oe1mkb.log	OK	CQ-WPX-SSB	18	30	18	prefixes=18	540	\N	0	bez CLAIMED-SCORE	\N	\N
+09e72163da300169	oh8dit.log	ERR	CQ-WPSSB	0	0	0		0	0	0	\N	\N	nezn\u00e1m\u00fd z\u00e1vod: CQ-WPSSB
+32bace4c3337c653	ok1uky.log	OK	CQ-WPX-SSB	308	499	216	prefixes=216	107784	111672	9	\N	\N	\N
+48ccd0df645ea0df	pa3cwn.log	OK	CQ-WPX-SSB	22	87	19	prefixes=19	1653	0	1	\N	\N	\N
+0421ccaaf0699aad	py2asa.log	UNREADABLE	\N	0	0	0		0	\N	0	\N	\N	nelze na\u010d\u00edst
+04844dfc0b239651	r3lcv.log	OK	CQ-WPX-SSB	140	267	127	prefixes=127	33909	140	4	\N	\N	\N
+05d721c8823b43df	r3yar.log	OK	CQ-WPX-SSB	95	147	83	prefixes=83	12201	13031	2	\N	\N	\N
+9647a5341934c2b7	r6oer.log	OK	CQ-WPX-SSB	741	1056	437	prefixes=437	461472	0	13	\N	\N	\N
+b38160d74c89477e	r9va.log	OK	CQ-WPX-SSB	43	109	41	prefixes=41	4469	\N	0	bez CLAIMED-SCORE	\N	\N
+c686e6a6c26826fd	sn65ksp.log	OK	CQ-WPX-SSB	121	176	104	prefixes=104	18304	\N	1	bez CLAIMED-SCORE	\N	\N
+30718c74543f0558	sp3bbs.log	OK	CQ-WPX-SSB	45	111	39	prefixes=39	4329	4797	1	\N	\N	\N
+0d7e721b1da69161	sv8toz.log	OK	CQ-WPX-SSB	213	431	170	prefixes=170	73270	\N	3	bez CLAIMED-SCORE	\N	\N
+faaa1464f2839fe0	un-r1zm.log	OK	CQ-WPX-SSB	85	194	70	prefixes=70	13580	0	0	\N	\N	\N
+207cd1f1680b128f	ut0zt.log	OK	CQ-WPX-SSB	560	792	343	prefixes=343	271656	278294	5	\N	\N	\N
+cca9149763777b16	ve2fxl.log	OK	CQ-WPX-SSB	188	911	171	prefixes=171	155781	159800	0	\N	\N	\N
+600a54e2b90abd10	ve3myo.log	OK	CQ-WPX-SSB	23	47	22	prefixes=22	1034	\N	1	bez CLAIMED-SCORE	\N	\N
+906d579dd77c4011	ve4max.log	OK	CQ-WPX-SSB	13	27	13	prefixes=13	351	0	1	\N	\N	\N
+18df7a191feea719	vk3ddx.log	OK	CQ-WPX-SSB	110	303	93	prefixes=93	28179	27435	5	\N	\N	\N
+244028e7f481b269	wr6e.log	OK	CQ-WPX-SSB	52	107	46	prefixes=46	4922	5520	0	\N	\N	\N
+70749934da66be33	xq1kk.log	OK	CQ-WPX-SSB	555	1296	374	prefixes=374	484704	485452	24	\N	\N	\N
+9263d41821102806	aa9rk.log	OK	CQ-WPX-RTTY	48	115	40	prefixes=40	4600	3320	0	\N	\N	\N
+a7bc23f3494f2473	bh2ro.log	OK	CQ-WPX-RTTY	490	1382	255	prefixes=255	352410	0	3	\N	\N	\N
+3af88b9854adb928	dk1fw.log	OK	CQ-WPX-RTTY	508	1381	391	prefixes=391	539971	549976	10	\N	\N	\N
+47114bff7c78c972	dl1nrc.log	OK	CQ-WPX-RTTY	86	222	76	prefixes=76	16872	\N	2	bez CLAIMED-SCORE	\N	\N
+646b003b26f52bd8	dm0e.log	OK	CQ-WPX-RTTY	172	571	146	prefixes=146	83366	83950	1	\N	\N	\N
+5c0f0f5188f48c92	dq6q.log	OK	CQ-WPX-RTTY	171	508	158	prefixes=158	80264	80580	0	\N	\N	\N
+d5fe790cf2f225c3	ea8-oh2kw.log	OK	CQ-WPX-RTTY	184	535	123	prefixes=123	65805	66051	1	\N	\N	\N
+130442930b4e5935	ei3ctb.log	OK	CQ-WPX-RTTY	146	443	115	prefixes=115	50945	\N	3	bez CLAIMED-SCORE	\N	\N
+dcd99535c489011d	f5irp.log	OK	CQ-WPX-RTTY	73	183	71	prefixes=71	12993	12740	0	\N	\N	\N
+1750ae6a87bf315d	g4bht.log	OK	CQ-WPX-RTTY	185	508	146	prefixes=146	74168	0	1	\N	\N	\N
+74478cb7ada8284e	g5v.log	OK	CQ-WPX-RTTY	100	226	86	prefixes=86	19436	101	0	\N	\N	\N
+26d4fba1d2c652d9	ha6nl.log	OK	CQ-WPX-RTTY	737	2443	433	prefixes=433	1057819	1061283	2	\N	\N	\N
+6a70851983e1d4e0	hf3a.log	OK	CQ-WPX-RTTY	712	2325	429	prefixes=429	997425	1006005	6	\N	\N	\N
+42beb9a5f96cdebf	hg1g.log	OK	CQ-WPX-RTTY	940	3991	561	prefixes=561	2238951	2254098	5	\N	\N	\N
+fcf3f3711989705b	ik4gni.log	OK	CQ-WPX-RTTY	328	730	295	prefixes=295	215350	216825	1	\N	\N	\N
+1559cdf80f8baf8e	iq3ts.log	OK	CQ-WPX-RTTY	231	626	187	prefixes=187	117062	117436	0	\N	\N	\N
+55906c73f292e0be	iz1ngt.log	OK	CQ-WPX-RTTY	64	178	62	prefixes=62	11036	0	2	\N	\N	\N
+592a536e379edeaa	jf9sze.log	OK	CQ-WPX-RTTY	7	21	7	prefixes=7	147	0	0	\N	\N	\N
+eee3f146b946bf5b	jl1gyy.log	OK	CQ-WPX-RTTY	104	313	73	prefixes=73	22849	22995	1	\N	\N	\N
+a1afb2594d3409a2	k3ccr.log	OK	CQ-WPX-RTTY	1283	3775	659	prefixes=659	2487725	2512767	17	\N	\N	\N
+9b3a69333eb9b380	k4wi.log	OK	CQ-WPX-RTTY	536	1325	376	prefixes=376	498200	503840	8	\N	\N	\N
+d0abbf46bb706de2	ka3mtt.log	OK	CQ-WPX-RTTY	81	140	70	prefixes=70	9800	9870	1	\N	\N	\N
+8be81262cf102cd2	kc3sdj.log	OK	CQ-WPX-RTTY	45	56	39	prefixes=39	2184	2223	1	\N	\N	\N
+d7c64606263703b5	ks4yx.log	OK	CQ-WPX-RTTY	419	841	254	prefixes=254	213614	215646	5	\N	\N	\N
+2cd3b9b408772eb9	lu6etb.log	OK	CQ-WPX-RTTY	842	2451	479	prefixes=479	1174029	0	4	\N	\N	\N
+f66cdb2dd9a03c2b	mw4r.log	OK	CQ-WPX-RTTY	2281	7213	882	prefixes=882	6361866	6477408	15	\N	\N	\N
+58d172577819a9e3	n9ok.log	OK	CQ-WPX-RTTY	635	1415	346	prefixes=346	489590	494780	6	\N	\N	\N
+50738ac044ca39ea	ne5il.log	OK	CQ-WPX-RTTY	41	54	38	prefixes=38	2052	\N	2	bez CLAIMED-SCORE	\N	\N
+c21993a1496f7767	pa6ant.log	OK	CQ-WPX-RTTY	77	208	71	prefixes=71	14768	\N	0	bez CLAIMED-SCORE	\N	\N
+0acd6ccf653a3148	r5df.log	OK	CQ-WPX-RTTY	50	212	47	prefixes=47	9964	10434	2	\N	\N	\N
+2935fcd701dd0a8a	rc9t.log	OK	CQ-WPX-RTTY	414	1121	318	prefixes=318	356478	358704	4	\N	\N	\N
+888a3af4fc31f8a8	s59t.log	OK	CQ-WPX-RTTY	30	62	30	prefixes=30	1860	1860	0	\N	\N	\N
+a6ebb515b5a972dc	sp4dds.log	OK	CQ-WPX-RTTY	14	50	13	prefixes=13	650	0	0	\N	\N	\N
+666ccf863566e42f	sp9bch.log	OK	CQ-WPX-RTTY	441	1309	286	prefixes=286	374374	0	2	\N	\N	\N
+b3a0d10cd536c180	sp9dwv.log	OK	CQ-WPX-RTTY	293	1023	211	prefixes=211	215853	0	1	\N	\N	\N
+39179610bc4c8c0e	sq7nsn.log	OK	CQ-WPX-RTTY	113	438	100	prefixes=100	43800	43800	0	\N	\N	\N
+a0b490e5e63fdc6f	w6rq.log	OK	CQ-WPX-RTTY	100	171	80	prefixes=80	13680	\N	1	bez CLAIMED-SCORE	\N	\N
+dd8143517f8a8e70	ac2oc.log	OK	CQ-WW-CW	123	339	121	zones=37,countries=84	41019	43500	1	\N	\N	\N
+347bf84954f0435a	bg2lvh.log	OK	CQ-WW-CW	54	72	41	zones=18,countries=23	2952	\N	1	bez CLAIMED-SCORE	\N	\N
+58c7d3611c027fac	bi1lg.log	OK	CQ-WW-CW	26	33	19	zones=10,countries=9	627	23864	0	\N	\N	\N
+f3f79ce87119f784	by4dx.log	OK	CQ-WW-CW	798	1322	177	zones=62,countries=115	233994	0	2	\N	\N	\N
+9f827aa6f2c99a88	ce4ks.log	UNREADABLE	\N	0	0	0		0	\N	0	\N	\N	nelze na\u010d\u00edst
+ff4bfd67422cea9f	ct7agr.log	OK	CQ-WW-CW	141	280	95	zones=33,countries=62	26600	\N	1	bez CLAIMED-SCORE	\N	\N
+5cb9254113410796	cu2ij.log	OK	CQ-WW-CW	222	453	106	zones=34,countries=72	48018	50727	1	\N	\N	\N
+a278e7792d7c4ab7	da2c.log	OK	CQ-WW-CW	357	618	191	zones=56,countries=135	118038	125136	6	\N	\N	\N
+e381754cd4db3b08	dc5fi.log	OK	CQ-WW-CW	33	59	40	zones=21,countries=19	2360	2730	2	\N	\N	\N
+8289b808286ff9ae	dl1thb.log	OK	CQ-WW-CW	160	194	60	zones=12,countries=48	11640	0	0	\N	\N	\N
+221f7105b21b085d	dl2rzg.log	OK	CQ-WW-CW	40	76	23	zones=8,countries=15	1748	1824	0	\N	\N	\N
+aa4cdcd200441736	dm1km.log	OK	CQ-WW-CW	68	154	104	zones=42,countries=62	16016	17762	4	\N	\N	\N
+718b7559a1155773	dr1d.log	OK	CQ-WW-CW	1876	4038	174	zones=38,countries=136	702612	768757	33	\N	\N	\N
+cb5eff66c61207de	ea4fl.log	OK	CQ-WW-CW	1075	1851	121	zones=33,countries=88	223971	238379	8	\N	\N	\N
+e68db12e4d6142db	ea4uv.log	OK	CQ-WW-CW	341	733	132	zones=31,countries=101	96756	105362	7	\N	\N	\N
+78ea970d4a2fc0f6	ea5hew.log	OK	CQ-WW-CW	89	125	74	zones=21,countries=53	9250	9398	0	\N	\N	\N
+0c79dc80a399abb4	ea8kr.log	OK	CQ-WW-CW	2631	7573	133	zones=32,countries=101	1007209	1063440	9	\N	\N	\N
+75cd60d4195888a7	eu6ax.log	OK	CQ-WW-CW	35	33	19	zones=3,countries=16	627	0	0	\N	\N	\N
+4b4adf8a84a71963	f4cwn.log	OK	CQ-WW-CW	100	114	47	zones=10,countries=37	5358	5664	0	\N	\N	\N
+13fc903c2e62f0e0	g0mtn.log	OK	CQ-WW-CW	500	1141	244	zones=66,countries=178	278404	296565	2	\N	\N	\N
+da6d4fe831cfc3a6	ge3vqo.log	OK	CQ-WW-CW	150	179	49	zones=10,countries=39	8771	9050	0	\N	\N	\N
+595116f230df2f66	hk3ua.log	OK	CQ-WW-CW	29	71	29	zones=13,countries=16	2059	2117	0	\N	\N	\N
+3281976d4154cafa	ii8a.log	OK	CQ-WW-CW	606	822	254	zones=56,countries=198	208788	226996	1	\N	\N	\N
+194c8302d585df1f	ik7miy.log	OK	CQ-WW-CW	1204	1699	279	zones=69,countries=210	474021	505680	4	\N	\N	\N
+b9d11032b2e4ddff	iq2mi.log	OK	CQ-WW-CW	1963	3220	502	zones=119,countries=383	1616440	1753122	18	\N	\N	\N
+8026b5fd5287880d	ja9dof.log	OK	CQ-WW-CW	7	15	9	zones=5,countries=4	135	135	0	\N	\N	\N
+aa7f32f97e202a72	jg1ogm.log	OK	CQ-WW-CW	176	439	115	zones=56,countries=59	50485	51852	3	\N	\N	\N
+3e090476df6f4bb7	jo7kmb.log	OK	CQ-WW-CW	904	2135	361	zones=130,countries=231	770735	0	14	\N	\N	\N
+cbca915952fafcae	jr1tcy.log	OK	CQ-WW-CW	160	386	161	zones=72,countries=89	62146	68060	8	\N	\N	\N
+3532618ea5debba2	k0fx.log	OK	CQ-WW-CW	687	1852	303	zones=94,countries=209	561156	605153	12	\N	\N	\N
+53d8f80e4d75147a	n0sd.log	OK	CQ-WW-CW	40	83	57	zones=27,countries=30	4731	5133	0	\N	\N	\N
+0c953023ec7b86a3	n5ao.log	OK	CQ-WW-CW	4	12	7	zones=3,countries=4	84	0	0	\N	\N	\N
+5c23e10533249983	n5naa.log	OK	CQ-WW-CW	21	56	37	zones=17,countries=20	2072	2088	0	\N	\N	\N
+b3daf9131ac0932a	ny3c.log	OK	CQ-WW-CW	448	1204	353	zones=91,countries=262	425012	474062	7	\N	\N	\N
+afb010257fd74a7c	ok2wy.log	OK	CQ-WW-CW	825	1596	391	zones=90,countries=301	624036	668304	8	\N	\N	\N
+3cf04bd0ac2a618c	oz1axg.log	OK	CQ-WW-CW	8	24	9	zones=5,countries=4	216	0	0	\N	\N	\N
+02fbe30940c77dff	r2aoq.log	OK	CQ-WW-CW	24	72	46	zones=22,countries=24	3312	0	0	\N	\N	\N
+44ecd0a231122f9a	r4chn.log	OK	CQ-WW-CW	69	119	78	zones=26,countries=52	9282	6630	1	\N	\N	\N
+5d544f894d8abff6	r4fdh.log	OK	CQ-WW-CW	146	254	129	zones=41,countries=88	32766	35376	2	\N	\N	\N
+560fb54d03eaae99	r5kh.log	OK	CQ-WW-CW	145	181	86	zones=26,countries=60	15566	0	1	\N	\N	\N
+2e4ed7f1c76d3268	r6dvv.log	OK	CQ-WW-CW	234	332	88	zones=23,countries=65	29216	31556	3	\N	\N	\N
+0b644b71217ce34e	ra3lj.log	OK	CQ-WW-CW	80	107	44	zones=15,countries=29	4708	9590	0	\N	\N	\N
+e789bb12b7ff256b	rm0w.log	OK	CQ-WW-CW	352	853	80	zones=18,countries=62	68240	72505	0	\N	\N	\N
+74eb8a1d4d7ee45a	sn9h.log	OK	CQ-WW-CW	28	31	39	zones=14,countries=25	1209	1440	1	\N	\N	\N
+5075bb70122eace7	sp7iwa.log	OK	CQ-WW-CW	31	74	52	zones=23,countries=29	3848	\N	0	bez CLAIMED-SCORE	\N	\N
+19efda94c8b11633	ua9xbj.log	OK	CQ-WW-CW	21	52	17	zones=5,countries=12	884	0	0	\N	\N	\N
+353cab1574b84486	us5etv.log	OK	CQ-WW-CW	27	64	48	zones=23,countries=25	3072	\N	1	bez CLAIMED-SCORE	\N	\N
+602e787ae709e981	ux1vx.log	OK	CQ-WW-CW	982	1332	261	zones=65,countries=196	347652	338000	3	\N	\N	\N
+59fa7848692d84ea	uy7lm.log	OK	CQ-WW-CW	531	679	236	zones=54,countries=182	160244	174876	3	\N	\N	\N
+c3453a5b92db8df9	va7dz.log	OK	CQ-WW-CW	1037	2375	314	zones=99,countries=215	745750	803604	11	\N	\N	\N
+30ff673603ccd802	ve3yaa.log	OK	CQ-WW-CW	1231	3188	394	zones=100,countries=294	1256072	1300012	6	\N	\N	\N
+ec96e0c128afcd3f	vu2uuu.log	OK	CQ-WW-CW	56	107	73	zones=31,countries=42	7811	8475	3	\N	\N	\N
+76b6b51d2c63a30a	w0bf.log	OK	CQ-WW-CW	59	151	47	zones=19,countries=28	7097	\N	1	bez CLAIMED-SCORE	\N	\N
+dc402a006e641409	w2msa.log	OK	CQ-WW-CW	272	685	231	zones=68,countries=163	158235	178312	2	\N	\N	\N
+d3573f2a74990de9	w3gh.log	OK	CQ-WW-CW	1180	3197	506	zones=118,countries=388	1617682	1765800	15	\N	\N	\N
+70bd0f30fa97cee0	w6fb.log	OK	CQ-WW-CW	452	1163	307	zones=94,countries=213	357041	402675	12	\N	\N	\N
+e81d29124fa8dfe6	yb1grz.log	OK	CQ-WW-CW	48	122	38	zones=18,countries=20	4636	\N	2	bez CLAIMED-SCORE	\N	\N
+c198144193aaebef	yb1ryx.log	OK	CQ-WW-CW	60	172	46	zones=20,countries=26	7912	9374	0	\N	\N	\N
+8f142c501018cb08	yb2iq.log	OK	CQ-WW-CW	910	2708	252	zones=73,countries=179	682416	692736	0	\N	\N	\N
+db288110051407e0	yt5l.log	OK	CQ-WW-CW	456	500	148	zones=27,countries=121	74000	33088	3	\N	\N	\N
+32232c27969eedb6	zp5wbm.log	OK	CQ-WW-CW	37	93	50	zones=21,countries=29	4650	5772	0	\N	\N	\N
+cb03c30d1b07420e	2i0wmn.log	OK	CQ-WW-SSB	188	238	94	zones=22,countries=72	22372	24200	0	\N	\N	\N
+5cd7dac728f2df68	4x5ic.log	OK	CQ-WW-SSB	628	1747	109	zones=26,countries=83	190423	202285	6	\N	\N	\N
+39cbb108d9951be9	7c2k.log	OK	CQ-WW-SSB	30	0	40	zones=20,countries=20	0	3116	2	\N	\N	\N
+26a48887bad17cff	bd4sdx.log	OK	CQ-WW-SSB	1299	2744	326	zones=105,countries=221	894544	0	21	\N	\N	\N
+a40b1e5a5ddfe184	bg2gi.log	OK	CQ-WW-SSB	217	374	115	zones=45,countries=70	43010	0	3	\N	\N	\N
+73a07309daa58c77	cb1h.log	OK	CQ-WW-SSB	873	2155	198	zones=67,countries=131	426690	452192	15	\N	\N	\N
+99d9dce8d88f489c	da1td.log	OK	CQ-WW-SSB	16	43	14	zones=7,countries=7	602	720	1	\N	\N	\N
+ac167b8cb42ba859	dc7dx.log	OK	CQ-WW-SSB	119	284	163	zones=67,countries=96	46292	0	5	\N	\N	\N
+6e7b6a5d57635296	dg4uf.log	OK	CQ-WW-SSB	290	489	103	zones=28,countries=75	50367	58710	8	\N	\N	\N
+f1229b22420ccb43	dh3mm.log	OK	CQ-WW-SSB	64	131	38	zones=15,countries=23	4978	\N	7	bez CLAIMED-SCORE	\N	\N
+338d4e816d10fdeb	dk7dx.log	OK	CQ-WW-SSB	1649	2314	343	zones=88,countries=255	793702	872178	18	\N	\N	\N
+609e80c4e9469b86	dl1yv.log	OK	CQ-WW-SSB	28	71	18	zones=7,countries=11	1278	\N	0	bez CLAIMED-SCORE	\N	\N
+8000dfe6217e0c74	dl6wwm.log	OK	CQ-WW-SSB	138	333	94	zones=34,countries=60	31302	\N	9	bez CLAIMED-SCORE	\N	\N
+8bdcb6a132177f57	dn9eil.log	OK	CQ-WW-SSB	23	33	17	zones=7,countries=10	561	\N	1	bez CLAIMED-SCORE	\N	\N
+f579138ac3339511	do2mog.log	OK	CQ-WW-SSB	58	111	36	zones=15,countries=21	3996	0	1	\N	\N	\N
+c322dc0c8b3186c7	ea3hwc.log	OK	CQ-WW-SSB	7	21	9	zones=5,countries=4	189	\N	0	bez CLAIMED-SCORE	\N	\N
+6ddb98bd4bbaf947	ea5bh.log	OK	CQ-WW-SSB	59	116	62	zones=26,countries=36	7192	\N	0	bez CLAIMED-SCORE	\N	\N
+151c6c477aa04434	ea6sa.log	OK	CQ-WW-SSB	546	892	176	zones=42,countries=134	156992	165620	6	\N	\N	\N
+c32e0a35f4d3676f	ed8t.log	OK	CQ-WW-SSB	610	1751	119	zones=29,countries=90	208369	217074	15	\N	\N	\N
+c1b71a6aa7d892fb	es8sx.log	OK	CQ-WW-SSB	47	100	39	zones=11,countries=28	3900	4120	1	\N	\N	\N
+fc0b281111173cff	eu1eu.log	OK	CQ-WW-SSB	111	113	52	zones=12,countries=40	5876	6210	0	\N	\N	\N
+3e9a9caf28273493	f6bkt.log	OK	CQ-WW-SSB	33	85	54	zones=25,countries=29	4590	4698	0	\N	\N	\N
+82c37d59e10fdd5d	f6kuu.log	OK	CQ-WW-SSB	206	362	179	zones=49,countries=130	64798	71995	5	\N	\N	\N
+efa08306bff34fd3	g3p.log	OK	CQ-WW-SSB	875	1982	158	zones=37,countries=121	313156	340680	17	\N	\N	\N
+2d73bce9b7dde062	hb9bc.log	OK	CQ-WW-SSB	685	752	239	zones=57,countries=182	179728	71806	17	\N	\N	\N
+c66ad9952a05e7cd	hi8j.log	OK	CQ-WW-SSB	1004	2327	110	zones=26,countries=84	255970	269215	4	\N	\N	\N
+908fca8a308f1d7f	iw0blw.log	OK	CQ-WW-SSB	225	530	134	zones=50,countries=84	71020	78668	11	\N	\N	\N
+f6c2198c24f481c0	ix1hpn.log	OK	CQ-WW-SSB	342	527	175	zones=54,countries=121	92225	99003	3	\N	\N	\N
+766e3db480411ba0	ja1fws.log	OK	CQ-WW-SSB	141	347	73	zones=23,countries=50	25331	45847	4	\N	\N	\N
+9458aa403c415322	je1vmz.log	OK	CQ-WW-SSB	137	376	114	zones=46,countries=68	42864	\N	3	bez CLAIMED-SCORE	\N	\N
+f3d9aa58ff6fd575	jm8fei.log	OK	CQ-WW-SSB	181	409	98	zones=37,countries=61	40082	43472	3	\N	\N	\N
+ad4c1df6bdcb5b3f	k0jdd.log	OK	CQ-WW-SSB	37	85	50	zones=18,countries=32	4250	0	0	\N	\N	\N
+85cb95aa02f94ab7	k0jjr.log	OK	CQ-WW-SSB	412	1144	218	zones=58,countries=160	249392	276120	8	\N	\N	\N
+087e22418dd84d5e	km4kiy.log	OK	CQ-WW-SSB	55	118	63	zones=21,countries=42	7434	0	0	\N	\N	\N
+2813ddd89118cc05	kr4dgo.log	OK	CQ-WW-SSB	181	466	130	zones=42,countries=88	60580	\N	1	bez CLAIMED-SCORE	\N	\N
+6630e382ffd8f7c1	lv7h.log	OK	CQ-WW-SSB	20	0	11	zones=5,countries=6	0	\N	2	bez CLAIMED-SCORE	\N	\N
+dfb55b7fe9807376	ly1k.log	OK	CQ-WW-SSB	181	199	112	zones=24,countries=88	22288	26668	6	\N	\N	\N
+4a752d52fd1abed9	m4j.log	OK	CQ-WW-SSB	204	422	230	zones=64,countries=166	97060	107748	4	\N	\N	\N
+083965d89a9f74e9	m5lgm.log	OK	CQ-WW-SSB	252	291	132	zones=29,countries=103	38412	0	5	\N	\N	\N
+2cbf079e479fe1f3	m6t.log	UNREADABLE	\N	0	0	0		0	\N	0	\N	\N	nelze na\u010d\u00edst
+c1df626868004730	m7rjl.log	OK	CQ-WW-SSB	37	38	36	zones=10,countries=26	1368	1596	0	\N	\N	\N
+0e5697133c88655b	n6jrl.log	OK	CQ-WW-SSB	161	408	126	zones=35,countries=91	51408	58156	7	\N	\N	\N
+b8a06922216367d0	n7tm.log	OK	CQ-WW-SSB	260	696	195	zones=65,countries=130	135720	\N	7	bez CLAIMED-SCORE	\N	\N
+92ad3e177935c85c	ok2bfn.log	OK	CQ-WW-SSB	762	774	75	zones=12,countries=63	58050	64698	3	\N	\N	\N
+aa32ffb34ed3a2ed	om7py.log	OK	CQ-WW-SSB	133	310	64	zones=20,countries=44	19840	20971	2	\N	\N	\N
+7d09c1d32c060c32	ov5m.log	OK	CQ-WW-SSB	215	281	125	zones=33,countries=92	35125	38676	2	\N	\N	\N
+2cf02326cbd70ec5	pe4a.log	OK	CQ-WW-SSB	116	220	72	zones=26,countries=46	15840	\N	7	bez CLAIMED-SCORE	\N	\N
+a82d358974361b91	py3tam.log	OK	CQ-WW-SSB	131	256	90	zones=34,countries=56	23040	0	8	\N	\N	\N
+e058411fd201e9de	r1cdb.log	OK	CQ-WW-SSB	113	213	121	zones=39,countries=82	25773	28767	2	\N	\N	\N
+aed564c7866f95e4	r5rc.log	OK	CQ-WW-SSB	1457	2424	128	zones=32,countries=96	310272	0	13	\N	\N	\N
+486a88876855b10f	rx9wn.log	OK	CQ-WW-SSB	1315	3529	362	zones=97,countries=265	1277498	1357360	24	\N	\N	\N
+11e7e27c2fd8b469	sd1a.log	OK	CQ-WW-SSB	200	337	104	zones=33,countries=71	35048	42294	8	\N	\N	\N
+90da131136f8d495	sp1pnw.log	OK	CQ-WW-SSB	411	612	195	zones=57,countries=138	119340	\N	12	bez CLAIMED-SCORE	\N	\N
+16c3658dfc42506a	sp6kbu.log	OK	CQ-WW-SSB	502	777	231	zones=60,countries=171	179487	0	15	\N	\N	\N
+18361588cb50beaa	sp9gmi.log	OK	CQ-WW-SSB	241	497	149	zones=45,countries=104	74053	0	10	\N	\N	\N
+706034bfc5946372	sq2ejf.log	OK	CQ-WW-SSB	26	33	27	zones=10,countries=17	891	0	0	\N	\N	\N
+faa233fe6f528c22	ti5-va3ra.log	OK	CQ-WW-SSB	727	1663	79	zones=1,countries=78	131377	189769	10	\N	\N	\N
+d9db158150e8e3f7	tm2k.log	OK	CQ-WW-SSB	321	382	146	zones=31,countries=115	55772	\N	2	bez CLAIMED-SCORE	\N	\N
+269dadf1975ba830	tm6v.log	OK	CQ-WW-SSB	217	431	97	zones=24,countries=73	41807	45600	6	\N	\N	\N
+1f455ec607ecef5f	ur4kwr.log	OK	CQ-WW-SSB	4	4	5	zones=2,countries=3	20	\N	0	bez CLAIMED-SCORE	\N	\N
+6fb8afdf5d96c3d9	ur5w.log	OK	CQ-WW-SSB	145	223	80	zones=25,countries=55	17840	18924	1	\N	\N	\N
+186a3d64d039a426	ux7qg.log	OK	CQ-WW-SSB	55	60	35	zones=7,countries=28	2100	1104	1	\N	\N	\N
+0a6ca68d5d8e08a6	vk2lee.log	OK	CQ-WW-SSB	90	221	96	zones=43,countries=53	21216	22246	2	\N	\N	\N
+39d5b486bddce832	w3fa.log	OK	CQ-WW-SSB	162	440	132	zones=38,countries=94	58080	61239	3	\N	\N	\N
+41bbc12c1264a586	w3fox.log	OK	CQ-WW-SSB	1172	3260	462	zones=100,countries=362	1506120	1669298	36	\N	\N	\N
+28248fc58a27e696	yg9cul.log	OK	CQ-WW-SSB	47	86	21	zones=8,countries=13	1806	1869	3	\N	\N	\N
+6fe658aa9436b98d	ym3kd.log	OK	CQ-WW-SSB	134	151	85	zones=19,countries=66	12835	32725	1	\N	\N	\N
+1a89d410135dd35e	yy5pjc.log	OK	CQ-WW-SSB	32	47	26	zones=9,countries=17	1222	\N	3	bez CLAIMED-SCORE	\N	\N
+9cbf1f9ee1dadba1	4z5my.log	OK	CQ-WW-RTTY	71	200	43	zones=12,countries=26,states=5	8600	0	0	\N	\N	\N
+f3e53b443d418c4c	5p5w.log	OK	CQ-WW-RTTY	1093	2472	165	zones=31,countries=83,states=51	407880	433365	11	\N	\N	\N
+21f3d8f272770d15	a65rw.log	OK	CQ-WW-RTTY	50	144	57	zones=18,countries=37,states=2	8208	7920	0	\N	\N	\N
+20f51a4d166923ee	df2lh.log	OK	CQ-WW-RTTY	720	1889	505	zones=100,countries=243,states=162	953945	1006950	8	\N	\N	\N
+f65c4cfb07be9ac6	dk7ha.log	OK	CQ-WW-RTTY	1098	2574	442	zones=80,countries=224,states=138	1137708	\N	7	bez CLAIMED-SCORE	\N	\N
+57f168a61cbe07c0	ea2dde.log	OK	CQ-WW-RTTY	16	31	25	zones=11,countries=11,states=3	775	1	2	\N	\N	\N
+c79a61ee5406d57e	em0f.log	OK	CQ-WW-RTTY	559	1298	243	zones=61,countries=136,states=46	315414	0	5	\N	\N	\N
+ce9f8f62d30fa761	es6do.log	OK	CQ-WW-RTTY	8	18	14	zones=7,countries=7,states=0	252	144	0	\N	\N	\N
+c4e7025397d4f6e6	f1tem.log	OK	CQ-WW-RTTY	86	180	75	zones=16,countries=55,states=4	13500	\N	0	bez CLAIMED-SCORE	\N	\N
+215aed5a407eb64a	f6flu.log	OK	CQ-WW-RTTY	168	456	210	zones=61,countries=73,states=76	95760	101265	5	\N	\N	\N
+731aa506bd5141a1	ha5aq.log	OK	CQ-WW-RTTY	131	351	124	zones=42,countries=59,states=23	43524	0	4	\N	\N	\N
+d1b058c0791a0703	ik2ahb.log	OK	CQ-WW-RTTY	312	834	234	zones=49,countries=91,states=94	195156	203252	5	\N	\N	\N
+1eb493fb6e79647b	iq2zy.log	OK	CQ-WW-RTTY	1461	3438	494	zones=100,countries=263,states=131	1698372	1818289	20	\N	\N	\N
+1e8451549a1c2c2b	iz1zhg.log	OK	CQ-WW-RTTY	435	981	125	zones=23,countries=61,states=41	122625	133798	6	\N	\N	\N
+9ea562dcc131ac64	ja0ixw.log	OK	CQ-WW-RTTY	274	785	111	zones=25,countries=47,states=39	87135	88134	3	\N	\N	\N
+089fc6a024e9b5ba	ja2yka.log	OK	CQ-WW-RTTY	15	43	27	zones=12,countries=12,states=3	1161	1118	0	\N	\N	\N
+e276b7f5974a7d70	ja2yni.log	OK	CQ-WW-RTTY	65	188	74	zones=24,countries=32,states=18	13912	13912	1	\N	\N	\N
+21c57302ef446d47	jk2voc.log	OK	CQ-WW-RTTY	180	438	146	zones=53,countries=80,states=13	63948	51786	2	\N	\N	\N
+6d332b58cc8838e3	kd0jcp.log	OK	CQ-WW-RTTY	54	76	53	zones=13,countries=11,states=29	4028	0	0	\N	\N	\N
+dd7b457b350aaf05	ke8kes.log	OK	CQ-WW-RTTY	55	116	72	zones=24,countries=34,states=14	8352	\N	2	bez CLAIMED-SCORE	\N	\N
+c7e745d49339d680	la7nda.log	OK	CQ-WW-RTTY	95	208	87	zones=23,countries=56,states=8	18096	0	0	\N	\N	\N
+9f8c7bb916a5d69f	n4ij.log	OK	CQ-WW-RTTY	106	248	72	zones=14,countries=36,states=22	17856	17958	0	\N	\N	\N
+7f96c62d14deb7da	nf6r.log	OK	CQ-WW-RTTY	48	87	69	zones=25,countries=22,states=22	6003	6650	2	\N	\N	\N
+e197584b90fcc892	om4mm.log	OK	CQ-WW-RTTY	117	306	82	zones=25,countries=44,states=13	25092	26880	4	\N	\N	\N
+6e5afab7954a7850	pa1m.log	OK	CQ-WW-RTTY	115	287	142	zones=42,countries=75,states=25	40754	43806	2	\N	\N	\N
+a36e5cf3848af4e0	pi4com.log	OK	CQ-WW-RTTY	3907	9799	817	zones=148,countries=415,states=254	8005783	8603712	52	\N	\N	\N
+e9a44b166d4a7af0	pu1jsv.log	OK	CQ-WW-RTTY	543	1564	138	zones=25,countries=68,states=45	215832	224076	6	\N	\N	\N
+817fbcabfb26a0b2	r6of.log	OK	CQ-WW-RTTY	322	723	155	zones=39,countries=97,states=19	112065	120868	3	\N	\N	\N
+bafdddbee7a13bac	s58w.log	OK	CQ-WW-RTTY	171	390	138	zones=28,countries=78,states=32	53820	56199	0	\N	\N	\N
+c34318a74b3d391a	sp1mwn.log	OK	CQ-WW-RTTY	259	707	96	zones=32,countries=63,states=1	67872	0	6	\N	\N	\N
+2144ff3ff63d437d	sp3otz.log	OK	CQ-WW-RTTY	73	190	57	zones=17,countries=25,states=15	10830	\N	1	bez CLAIMED-SCORE	\N	\N
+5f64af8bcf6e9a52	ua0c.log	OK	CQ-WW-RTTY	521	1226	179	zones=55,countries=82,states=42	219454	\N	6	bez CLAIMED-SCORE	\N	\N
+f52b81a32ada7258	ut7ezz.log	OK	CQ-WW-RTTY	258	572	141	zones=38,countries=80,states=23	80652	0	2	\N	\N	\N
+4fa5e3d831d24062	w5uw.log	OK	CQ-WW-RTTY	101	186	97	zones=29,countries=35,states=33	18042	\N	2	bez CLAIMED-SCORE	\N	\N
+d36c219177c89224	wa1ygt.log	OK	CQ-WW-RTTY	25	51	27	zones=8,countries=11,states=8	1377	\N	0	bez CLAIMED-SCORE	\N	\N
+85401cd52b49e205	wa3zsc.log	OK	CQ-WW-RTTY	68	132	58	zones=18,countries=22,states=18	7656	8142	2	\N	\N	\N
+086503bed3f8f72f	yb3gfn.log	OK	CQ-WW-RTTY	32	96	36	zones=12,countries=23,states=1	3456	0	0	\N	\N	\N
+aa2532d757caebfc	yg3dsm.log	OK	CQ-WW-RTTY	3	3	4	zones=2,countries=2,states=0	12	\N	0	bez CLAIMED-SCORE	\N	\N
+99a318db6edae7c4	7s9a.log	OK	WW-DIGI	315	691	48	grids=48	33168	\N	7	bez CLAIMED-SCORE	\N	\N
+4594a4e43a7e61ac	bd4jn.log	OK	WW-DIGI	517	637	64	grids=64	40768	0	14	\N	\N	\N
+55a5ba1c5501da77	dl8obf.log	OK	WW-DIGI	584	533	90	grids=90	47970	0	1	\N	\N	\N
+2d1694134473f799	e72u.log	OK	WW-DIGI	147	218	42	grids=42	9156	\N	0	bez CLAIMED-SCORE	\N	\N
+000c415c2014fbfc	ea3rcb.log	OK	WW-DIGI	300	477	61	grids=61	29097	46000	3	\N	\N	\N
+7af830b5150113ae	ea7ki.log	OK	WW-DIGI	101	165	30	grids=30	4950	4950	1	\N	\N	\N
+b45be5518332e683	ea8dgi.log	OK	WW-DIGI	264	633	46	grids=46	29118	\N	5	bez CLAIMED-SCORE	\N	\N
+5d0c25ee54a130f2	g3yjq.log	OK	WW-DIGI	90	100	14	grids=14	1400	\N	0	bez CLAIMED-SCORE	\N	\N
+c19421ddfa9242a1	in3vvk.log	OK	WW-DIGI	855	2060	68	grids=68	140080	140080	17	\N	\N	\N
+6a4e05efd76cdbf2	je0wcq.log	OK	WW-DIGI	31	68	15	grids=15	1020	1020	0	\N	\N	\N
+9d788a5e8f8a2a2d	jr5cag.log	OK	WW-DIGI	114	311	42	grids=42	13062	\N	2	bez CLAIMED-SCORE	\N	\N
+376e3de135e5ac78	k3wtt.log	OK	WW-DIGI	180	399	69	grids=69	27531	27531	3	\N	\N	\N
+36471f8b6b13148f	kc3ndu.log	OK	WW-DIGI	258	528	101	grids=101	53328	53732	5	\N	\N	\N
+2611c8507d2057ba	kd9oaz.log	OK	WW-DIGI	29	52	20	grids=20	1040	1040	0	\N	\N	\N
+896b47fe9b95fdc1	on2vtl.log	OK	WW-DIGI	57	76	20	grids=20	1520	0	1	\N	\N	\N
+756d9fb82bea6c10	on8gdv.log	OK	WW-DIGI	18	21	10	grids=10	210	\N	0	bez CLAIMED-SCORE	\N	\N
+46645593d7ddcd7d	pd2gsp.log	OK	WW-DIGI	29	44	13	grids=13	572	516	0	\N	\N	\N
+4c270c9a4aff1dd8	rv3dbk.log	OK	WW-DIGI	121	120	27	grids=27	3240	0	0	\N	\N	\N
+709dac4efe0c2cef	s54l.log	OK	WW-DIGI	929	2332	237	grids=237	552684	552684	12	\N	\N	\N
+1d8567ec88d863d6	vu2kph.log	OK	WW-DIGI	75	176	30	grids=30	5280	\N	2	bez CLAIMED-SCORE	\N	\N
+ba175424f16405c2	w4mlb.log	OK	WW-DIGI	568	1491	142	grids=142	211722	158046	14	\N	\N	\N
+5840f7e727d82d34	w4spf.log	OK	WW-DIGI	80	201	27	grids=27	5427	5427	2	\N	\N	\N
+cb6e1efaad199b85	wa2cp.log	OK	WW-DIGI	647	1513	144	grids=144	217872	217872	12	\N	\N	\N
+bc04aa626a10b6aa	ye3aiy.log	OK	WW-DIGI	26	93	13	grids=13	1209	\N	0	bez CLAIMED-SCORE	\N	\N
+715409760f4ad8e9	yf9dim.log	OK	WW-DIGI	44	91	21	grids=21	1911	0	0	\N	\N	\N
+05e1f92914e28c76	yg2cgw.log	OK	WW-DIGI	41	51	12	grids=12	612	\N	6	bez CLAIMED-SCORE	\N	\N
+6b96cffbe2e192ed	yg4sng.log	OK	WW-DIGI	19	42	11	grids=11	462	0	1	\N	\N	\N

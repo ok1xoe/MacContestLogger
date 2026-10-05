@@ -1,0 +1,739 @@
+# Skripty rozhovorového ramene brány P6b (Tools/radio-ref-gen/RigTranscriptGen.java,
+# Tests/MCLCoreTests/Radio/RigConversationParityTests.swift). Oba je čtou z tohoto souboru; každý řádek
+# scénáře je vstupem položky (otisk), změna = „PŘEGENERUJ REFERENCI".
+#
+# Řádek = slovo TAB pole TAB pole…; jen ASCII, žádné bílé znaky na konci řádku. Escapy v polích:
+# \n \r \t \\, \xNN = znak U+00NN (v odpovědích serveru = bajt NN), \uXXXX = UTF-16 jednotka (jen texty volání).
+#   section <jméno>                 položka reference (rigctld, cat-cw, rig-poller, rotctld, fldigi, n1mm-udp, otrsp, winkeyer)
+#   default <klíč> <odpověď>…        výchozí odpovědi sekce (scénář je přebije stejným klíčem)
+#   fallback <odpověď>              odpověď na příkaz bez klíče
+#   scenario <jméno> [volba=hodnota]…   timeout=<ms javového klienta>, xvtr=<ifLo>:<ifHi>:<offset>:<0|1>[,…],
+#                                   port=free (nikdo neposlouchá), rig=stub (RigPoller nad náhradou)
+#   ans <klíč> <odpověď 1> <odpověď 2>…   odpověď na k-tý výskyt klíče (poslední se opakuje); klíč = celý řádek
+#                                   příkazu, jinak první slovo. Odpověď: bajty; <silent> = mlčet; <delay> na začátku
+#                                   = 300 ms pauza; <close> na konci = po zápisu zavřít spojení.
+#   bg <příkaz> <volání>…           až server přijme <příkaz>, druhé vlákno provede <volání> (souběh s dalším call)
+#   call <volání> <argumenty>…      volání API; výsledek = řádek reference
+#   stub state|fail …               stav / chyba náhrady rigu (rig=stub)
+#   resp <stav|close> <tělo>        odpověď fake HTTP na k-tý požadavek (poslední se opakuje)
+#   in <hex>                        bajty, které Winkeyer pošle (pak konec proudu)
+#   end                             konec scénáře
+# <empty> = prázdné pole (prázdný text, prázdný proud).
+# Timeout: javový klient v generátoru dostane timeout=…; swiftový test používá vždy velkorysých 5 000 ms —
+# mlčení vyprší v obou (spodní mez), úspěšné čtení nemá těsnou mez. Výsledky na délce timeoutu nezávisí.
+
+section	rigctld
+default	f	14074000\n
+default	m	USB\n2400\n
+default	s	0\nVFOA\n
+default	i	14030000\n
+default	F	RPRT 0\n
+default	M	RPRT 0\n
+default	S	RPRT 0\n
+default	I	RPRT 0\n
+default	V	RPRT 0\n
+default	G	RPRT 0\n
+default	J	RPRT 0\n
+default	U	RPRT 0\n
+default	Y	RPRT 0\n
+default	T	RPRT 0\n
+default	b	RPRT 0\n
+default	\\stop_morse	RPRT 0\n
+default	L	RPRT 0\n
+fallback	RPRT -1\n
+
+scenario	basicRead	timeout=2000
+call	read
+call	isConnected
+end
+
+scenario	readSplit	timeout=2000
+ans	s	1\nVFOB\n
+call	read
+call	read
+end
+
+scenario	readSplitTxRprt	timeout=2000
+ans	s	1\nVFOB\n
+ans	i	RPRT -1\n	RPRT0\n	7015000\n
+call	read
+call	read
+call	read
+end
+
+scenario	splitUnsupported	timeout=2000
+ans	s	RPRT -11\n	RPRT -11\n	0\nVFOA\n
+call	read
+call	read
+call	setSplit	1	14030000
+call	read
+call	read
+end
+
+scenario	splitPrefix	timeout=2000
+ans	s	RPRTX\n	1\nVFOB\n
+call	read
+call	read
+call	read
+end
+
+scenario	splitOnOff	timeout=2000
+call	setSplit	1	14030000
+call	setSplit	1	0
+call	setSplit	0	0
+call	setSplit	1	-5
+call	setSplit	0	14030000
+end
+
+scenario	setAllOk	timeout=2000
+call	setFrequencyHz	14200000
+call	setPtt	1
+call	setPtt	0
+call	stopMorse
+call	setCwSpeed	28
+call	setAntenna	2
+call	selectVfo	1
+call	selectVfo	0
+call	swapVfo
+call	setRit	-50
+call	setRit	0
+call	setFrequencyHz	-1
+call	setCwSpeed	0
+end
+
+scenario	setAllRprtMinus1	timeout=2000
+ans	F	RPRT -1\n
+ans	M	RPRT -1\n
+ans	S	RPRT -1\n
+ans	I	RPRT -1\n
+ans	V	RPRT -1\n
+ans	G	RPRT -1\n
+ans	J	RPRT -1\n
+ans	Y	RPRT -1\n
+ans	T	RPRT -1\n
+ans	b	RPRT -1\n
+ans	\\stop_morse	RPRT -1\n
+ans	L	RPRT -1\n
+call	setFrequencyHz	14200000
+call	setMode	CW	14000000
+call	setSplit	1	14030000
+call	setSplit	0	0
+call	setOtherVfoFrequencyHz	7012000
+call	selectVfo	1
+call	selectVfo	0
+call	swapVfo
+call	setRit	10
+call	setAntenna	9
+call	setPtt	1
+call	setPtt	0
+call	sendMorse	CQ
+call	stopMorse
+call	setCwSpeed	30
+call	read
+end
+
+scenario	setAllRprtMinus11	timeout=2000
+ans	F	RPRT -11\n
+ans	M	RPRT -11\n
+ans	S	RPRT -11\n
+ans	I	RPRT -11\n
+ans	V	RPRT -11\n
+ans	G	RPRT -11\n
+ans	J	RPRT -11\n
+ans	Y	RPRT -11\n
+ans	T	RPRT -11\n
+ans	b	RPRT -11\n
+ans	\\stop_morse	RPRT -11\n
+ans	L	RPRT -11\n
+call	setFrequencyHz	1
+call	setMode	SSB	7000000
+call	setSplit	1	0
+call	setSplit	0	0
+call	selectVfo	1
+call	swapVfo
+call	setRit	0
+call	setAntenna	1
+call	setPtt	1
+call	sendMorse	TEST
+call	stopMorse
+call	setCwSpeed	25
+end
+
+scenario	splitTxRejected	timeout=2000
+ans	I	RPRT -9\n
+call	setSplit	1	14030000
+call	read
+end
+
+scenario	rprtVariants	timeout=2000
+ans	F	RPRT 0x\n	\x20 RPRT 0 \x20\n	RPRT 01\n	rprt 0\n	RPRT  0\n	RPRT\n	RPRT -0\n	\tRPRT 0\r\n
+call	setFrequencyHz	1
+call	setFrequencyHz	2
+call	setFrequencyHz	3
+call	setFrequencyHz	4
+call	setFrequencyHz	5
+call	setFrequencyHz	6
+call	setFrequencyHz	7
+call	setFrequencyHz	8
+end
+
+scenario	otherVfoOk	timeout=2000
+call	setOtherVfoFrequencyHz	7012000
+call	setOtherVfoFrequencyHz	0
+end
+
+scenario	otherVfoErrorInMiddle	timeout=2000
+ans	F	RPRT -1\n	RPRT 0\n
+call	setOtherVfoFrequencyHz	7012000
+call	setOtherVfoFrequencyHz	7013000
+end
+
+scenario	otherVfoReturnFails	timeout=2000
+ans	V	RPRT 0\n	RPRT -2\n	RPRT 0\n	RPRT -3\n
+ans	F	RPRT -1\n	RPRT 0\n
+call	setOtherVfoFrequencyHz	7012000
+call	setOtherVfoFrequencyHz	7013000
+end
+
+scenario	otherVfoFirstRejected	timeout=2000
+ans	V	RPRT -1\n
+call	setOtherVfoFrequencyHz	7012000
+end
+
+scenario	ritRefused	timeout=2000
+ans	U	RPRT -11\n
+call	setRit	10
+call	setRit	0
+call	read
+end
+
+scenario	ritJRejected	timeout=2000
+ans	J	RPRT -1\n
+call	setRit	-20
+call	read
+end
+
+scenario	ritSilent	timeout=300
+ans	U	<silent>
+call	setRit	5
+call	read
+call	isConnected
+end
+
+scenario	modesDefault	timeout=2000
+ans	m	PKTUSB\n500\n	RTTY\n300\n	CWR\n200\n	FM\n15000\n	xyz\n0\n
+call	read
+call	read
+call	read
+call	read
+call	read
+call	setMode	SSB	7000000
+call	setMode	SSB	10000000
+call	setMode	SSB	9999999
+call	setMode	CW	14000000
+call	setMode	RTTY	14080000
+call	setMode	FT8	14074000
+call	setMode	FM	145500000
+call	setMode	~	7000000
+end
+
+scenario	modesConfigured	timeout=2000
+ans	m	PKTUSB\n500\n
+call	modes	FT8	1
+call	read
+call	setMode	RTTY	14080000
+call	setMode	FT4	14080000
+call	setMode	DIGITAL	14080000
+call	modes	SSB	0
+call	read
+call	setMode	RTTY	14080000
+call	modes	~	0
+call	read
+call	setMode	PSK	14070000
+end
+
+scenario	transverterRead	timeout=2000	xvtr=28000:30000:116000:1
+ans	f	28100000\n	14074000\n	30000000\n	28000000\n
+ans	s	1\nVFOB\n
+ans	i	28200000\n	0\n	29999999\n	27999999\n
+call	read
+call	read
+call	read
+call	read
+end
+
+scenario	transverterSet	timeout=2000	xvtr=28000:30000:116000:1,144000:146000:288000:1
+call	setFrequencyHz	144300000
+call	setFrequencyHz	432100000
+call	setFrequencyHz	14000000
+call	setSplit	1	144310000
+call	setSplit	1	0
+call	setOtherVfoFrequencyHz	144050000
+call	setMode	SSB	144300000
+call	setPtt	1
+call	isConnected
+end
+
+scenario	transverterDisabled	timeout=2000	xvtr=28000:30000:116000:0
+ans	f	28100000\n
+call	read
+call	setFrequencyHz	144300000
+end
+
+scenario	sendMorse	timeout=2000
+call	sendMorse	CQ TEST 5NN
+call	sendMorse	\u017D\uD83D\uDE00 5NN
+call	sendMorse	\x20 a\tb \x20
+call	sendMorse	<empty>
+call	sendMorse	caf\xE9\x7F
+end
+
+scenario	sendMorseRejected	timeout=2000
+ans	b	RPRT -1\n	RPRT -9\n
+call	sendMorse	CQ
+call	sendMorse	CQ
+end
+
+scenario	crlf	timeout=2000
+ans	f	14074000\r\n
+ans	m	USB\r\n2400\r\n
+ans	s	1\r\nVFOB\r\n
+ans	i	14030000\r\n
+ans	F	RPRT 0\r\n
+call	read
+call	read
+call	setFrequencyHz	7000000
+end
+
+scenario	loneCr	timeout=2000
+ans	f	14074000\r	\n7000000\n
+ans	m	USB\r\n2400\r	\nCW\n100\n
+call	read
+call	read
+end
+
+scenario	spaces	timeout=2000
+ans	f	\x20\t7012000 \x20\n	\x20\n
+ans	m	\x20pktusb \x20\n 500 \n	\x20\x20\n\x20\n
+ans	s	\x201 \nVFOB\n	01\nVFOB\n
+call	read
+call	read
+end
+
+scenario	numbers	timeout=2000
+ans	f	+14074000\n	-7000000\n	\xD9\xA1\xD9\xA4\n	14.074e6\n	14074000.5\n	9223372036854775807\n	9223372036854775808\n	+\n	0x10\n	1_000\n
+ans	m	USB\n+300\n
+call	read
+call	read
+call	read
+call	read
+call	read
+call	read
+call	read
+call	read
+call	read
+call	read
+end
+
+scenario	highBytes	timeout=2000
+ans	f	\x01\xE914074000\x00\n
+ans	m	\xFCSB\x07\n\x0B2400\x1F\n
+ans	s	\x80\nVFOB\n
+call	read
+end
+
+scenario	rprtOnF	timeout=2000
+ans	f	RPRT -1\n	RPRT -8\n	14074000\n
+call	read
+call	read
+call	read
+end
+
+scenario	rprtOnM	timeout=300
+ans	m	RPRT -11\n
+call	read
+call	read
+call	isConnected
+end
+
+scenario	rprtOnS	timeout=2000
+ans	s	RPRT -1\n
+call	read
+call	read
+call	setSplit	0	0
+call	read
+end
+
+scenario	silentF	timeout=300
+ans	f	<silent>	14074000\n
+call	read
+call	isConnected
+call	read
+end
+
+scenario	desync	timeout=300
+ans	m	USB\n	USB\n2400\n
+ans	f	14074000\n	2400\n14074000\n
+call	read
+call	read
+call	read
+call	isConnected
+end
+
+scenario	sOneLine	timeout=300
+ans	s	1\n
+call	read
+call	read
+end
+
+scenario	closeMidResponse	timeout=2000
+ans	m	USB\n<close>
+call	read
+call	isConnected
+call	close
+call	isConnected
+call	read
+call	setPtt	0
+end
+
+scenario	closeInSplit	timeout=2000
+ans	s	1\n<close>
+call	read
+end
+
+scenario	closeOnTx	timeout=2000
+ans	s	1\nVFOB\n
+ans	i	<close>
+call	read
+end
+
+scenario	closeImmediately	timeout=2000
+ans	f	<close>
+call	read
+call	isConnected
+end
+
+scenario	refused	timeout=2000	port=free
+call	read
+end
+
+scenario	concurrentPollOtherVfo	timeout=2000
+ans	V VFOB	<delay>RPRT 0\n
+bg	V VFOB	read
+call	setOtherVfoFrequencyHz	7012000
+call	read
+end
+
+scenario	concurrentPollSplit	timeout=2000
+ans	S 1 VFOB	<delay>RPRT 0\n
+ans	s	1\nVFOB\n
+bg	S 1 VFOB	read
+call	setSplit	1	14030000
+end
+
+section	cat-cw
+default	f	14074000\n
+default	m	CW\n500\n
+default	s	0\nVFOA\n
+default	T	RPRT 0\n
+default	b	RPRT 0\n
+default	\\stop_morse	RPRT 0\n
+default	L	RPRT 0\n
+fallback	RPRT -1\n
+
+scenario	cwSend	timeout=2000
+call	cw.send	28	t:CQ TEST
+call	cw.send	28	t:5NN
+call	cw.send	30	t:TU
+call	cw.setSpeed	25
+call	cw.send	25	t:OK1XOE
+call	cw.send	25	p:AR	t:K	s:5	t:\x20\x20TEST\x20
+call	cw.send	25	s:5
+call	cw.send	25	t:
+call	cw.send	25	t:\u017Dlu\u0165 \uD83D\uDE00
+call	cw.abort
+call	cw.tune	1
+call	cw.tune	0
+call	cw.name
+end
+
+scenario	cwRejected	timeout=2000
+ans	L	RPRT -1\n	RPRT 0\n
+ans	b	RPRT -1\n	RPRT 0\n
+ans	\\stop_morse	RPRT -11\n
+ans	T	RPRT -1\n
+call	cw.send	20	t:CQ
+call	cw.send	20	t:CQ
+call	cw.send	20	t:CQ
+call	cw.abort
+call	cw.tune	1
+call	cw.setSpeed	99
+end
+
+scenario	cwNoRig	timeout=2000
+call	cw.rig	0
+call	cw.send	25	t:CQ
+call	cw.send	25	t:
+call	cw.abort
+call	cw.tune	1
+call	cw.setSpeed	30
+call	cw.rig	1
+call	cw.send	25	t:CQ
+end
+
+section	rig-poller
+default	f	14074000\n
+default	m	USB\n2400\n
+default	s	0\nVFOA\n
+fallback	RPRT -1\n
+
+scenario	pollerStub	rig=stub
+stub	state	14074000	SSB	USB	2400	0	0
+stub	state	7012000	CW	CW	500	1	7015000
+stub	fail	stav nedostupn\u00FD
+call	poll	5
+end
+
+scenario	pollerReal	timeout=2000
+ans	f	14074000\n	7000000\n	<close>
+ans	m	USB\n2400\n	CW\n500\n
+call	poll	5
+call	isConnected
+end
+
+scenario	pollerSplitUnsupported	timeout=2000
+ans	f	14074000\n	14075000\n	RPRT -1\n
+ans	s	RPRT -11\n
+call	poll	5
+end
+
+section	rotctld
+default	p	123.500000\n0.000000\n
+default	P	RPRT 0\n
+default	S	RPRT 0\n
+fallback	RPRT -1\n
+
+scenario	rotBasic
+call	azimuth
+call	turnTo	-30
+call	stop
+call	turnTo	-0.0
+call	turnTo	NaN
+call	turnTo	359.95
+call	turnTo	12.25
+call	turnTo	720
+end
+
+scenario	rotNumbers
+ans	p	\x20+12.5e1 \r\n0\r\n	abc\n0\n	\n0\n	\xD9\xA1\n0\n	NaN\n0\n	12d\n0\n	-0\n0\n	0x1p3\n0\n	1e400\n0\n
+call	azimuth
+call	azimuth
+call	azimuth
+call	azimuth
+call	azimuth
+call	azimuth
+call	azimuth
+call	azimuth
+call	azimuth
+end
+
+scenario	rotRprt
+ans	p	RPRT -1\n	\x20 RPRT -8\n0\n	rprt 0\n0\n
+ans	P	RPRT -8\n	\x20 RPRT 0 \x20\n	RPRT 01\n	rprt 0\n	RPRT0\n
+ans	S	RPRT -1\n	RPRT 0 extra\n
+call	azimuth
+call	azimuth
+call	azimuth
+call	turnTo	1
+call	turnTo	2
+call	turnTo	3
+call	turnTo	4
+call	turnTo	5
+call	stop
+call	stop
+end
+
+scenario	rotCr
+ans	p	10.0\r0\r	\n20.0\r\n0\r\n
+call	azimuth
+call	azimuth
+end
+
+scenario	rotEofAzimuth
+ans	p	<close>
+call	azimuth
+end
+
+scenario	rotEofElevation
+ans	p	123\n<close>
+call	azimuth
+end
+
+scenario	rotEofTurn
+ans	P	<close>
+call	turnTo	10
+end
+
+scenario	rotClosed
+call	close
+call	close
+call	azimuth
+call	stop
+end
+
+scenario	rotRefused	port=free
+call	azimuth
+end
+
+section	fldigi
+
+scenario	fldigiTalk
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><string>4.2.05</string></value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value>BPSK31</value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><string>RX</string></value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><i4>1500</i4></value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><base64>Q1EgVEVTVCDpIA==</base64></value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><int>1234</int></value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value></value></param></params></methodResponse>
+call	version
+call	modemName
+call	trxState
+call	rxLength
+call	rxText	0	42
+call	carrier
+call	setModem	RTTY
+end
+
+scenario	fldigiTransmit
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value></value></param></params></methodResponse>
+call	transmit	CQ TEST OK1XOE \u017Dlu\u0165 <&> \uD83D\uDE00
+call	abort
+call	setModem	\u0160<x>&
+end
+
+scenario	fldigiValues
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><string> 42 </string></value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><double>1.5</double></value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><boolean>1</boolean></value></param></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params></params></methodResponse>
+resp	200	<?xml version="1.0"?><methodResponse><params><param><value><string>a&amp;b&lt;</string></value></param></params></methodResponse>
+call	rxLength
+call	carrier
+call	version
+call	trxState
+call	modemName
+end
+
+scenario	fldigiFault
+resp	200	<?xml version="1.0"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><int>1</int></value></member><member><name>faultString</name><value><string>no such method</string></value></member></struct></value></fault></methodResponse>
+call	version
+end
+
+scenario	fldigiHttpError
+resp	500	<empty>
+resp	404	nic
+call	version
+call	modemName
+end
+
+scenario	fldigiClosed
+resp	close	<empty>
+call	version
+end
+
+scenario	fldigiRefused	port=free
+call	version
+end
+
+section	n1mm-udp
+
+scenario	udpMessages
+call	send	127.0.0.1	rx	stop	R
+call	send	127.0.0.1	rx	turn	Yagi \u017E\uD83D\uDE00 <&>	-30	14
+call	send	127.0.0.1	rx	turn	<empty>	359.95	0
+call	send	localhost	rx	turn	~	NaN	144
+call	send	127.0.0.1	rx	stop	~
+call	send	127.0.0.1	rx	raw	<empty>
+end
+
+scenario	udpErrors
+call	send	127.0.0.1	0	raw	x
+call	send	127.0.0.1	70000	raw	x
+call	send	127.0.0.1	-1	raw	x
+end
+
+section	otrsp
+
+scenario	otrspSequence
+call	tx	1
+call	rx	2	0
+call	rx	1	1
+call	focus	2	1
+call	focus	1	0
+call	aux	1	0
+call	aux	2	15
+end
+
+scenario	otrspInvalid
+call	tx	3
+call	rx	0	1
+call	focus	-1	0
+call	aux	1	16
+call	aux	3	-1
+call	aux	2	7
+end
+
+section	winkeyer
+
+scenario	wkVersionAndEcho
+in	17 C4 41 42 85
+call	hostOpen	2000
+call	busy
+call	name
+call	setSpeed	3
+call	setSpeed	28
+call	setSpeed	120
+call	send	28	t:CQ TEST	p:AR	s:5	t:K
+call	busy
+call	abort
+call	busy
+call	tune	1
+call	tune	0
+call	close
+call	close
+end
+
+scenario	wkStatusIdle
+in	1E C4 C0
+call	hostOpen	2000
+call	busy
+call	name
+call	send	20	t:	s:0
+call	busy
+call	close
+end
+
+scenario	wkVersionZero
+in	00 C4
+call	hostOpen	2000
+call	busy
+call	name
+call	send	20	t:\u017D\x7F
+call	close
+end
+
+scenario	wkNoVersion
+in	<empty>
+call	hostOpen	300
+call	name
+call	busy
+call	close
+end
+
+scenario	wkSpeedOverflow
+in	17
+call	hostOpen	2000
+call	send	2147483647	s:1	t:A
+call	send	5	s:-10	s:200	t:B	p:SKX
+call	close
+end

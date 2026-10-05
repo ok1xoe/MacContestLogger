@@ -1,0 +1,180 @@
+{
+"000 template": {
+"sha256": "7709d17414e764ba7cabdb84cc49d6e70032aeab78a9a60baa2c60315bd37132",
+"nodes": [
+["out","str","schemaVersion: 1\nid: my-test\nmetadata:\n  name: \"Můj závod\"\n  organizer: \"\"\n  officialUrl: \"\"\nperiod: { durationHours: 24 }\nbands: [160m, 80m, 40m, 20m, 15m, 10m]\nmodes: [CW, SSB]\n\nexchange:\n  sent:\n    - { id: rst, type: RST, source: AUTO_RST }\n    - { id: nr, type: SERIAL, source: AUTO_SERIAL }\n  received:\n    - { id: rst, type: RST, required: true }\n    - { id: nr, type: SERIAL, required: true }\n\nscoring:\n  qsoPoints: { mode: FIRST_MATCH, default: 1 }\n  total: \"qsoPoints * multTotal\"\n\nmultipliers:\n  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }\n\ndupe: { scope: PER_BAND_MODE, dupeWorthZero: true }\n\ncabrillo: { contestName: MY-TEST, sentOrder: [rst, nr], receivedOrder: [rst, nr] }\nui:\n  entryOrder: [call, rst, nr]\n  logColumns: [time, call, band, mode, rst, nr]\n"]
+]
+},
+"001 template": {
+"sha256": "801b64620f0b288946d2c10de35af20692c9d2b38d8109afb8555e701058665f",
+"nodes": [
+["out","str","schemaVersion: 1\nid: q-1\nmetadata:\n  name: \"Závod 'Velký' 'x'\"\n  organizer: \"\"\n  officialUrl: \"\"\nperiod: { durationHours: 24 }\nbands: [160m, 80m, 40m, 20m, 15m, 10m]\nmodes: [CW, SSB]\n\nexchange:\n  sent:\n    - { id: rst, type: RST, source: AUTO_RST }\n    - { id: nr, type: SERIAL, source: AUTO_SERIAL }\n  received:\n    - { id: rst, type: RST, required: true }\n    - { id: nr, type: SERIAL, required: true }\n\nscoring:\n  qsoPoints: { mode: FIRST_MATCH, default: 1 }\n  total: \"qsoPoints * multTotal\"\n\nmultipliers:\n  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }\n\ndupe: { scope: PER_BAND_MODE, dupeWorthZero: true }\n\ncabrillo: { contestName: Q-1, sentOrder: [rst, nr], receivedOrder: [rst, nr] }\nui:\n  entryOrder: [call, rst, nr]\n  logColumns: [time, call, band, mode, rst, nr]\n"]
+]
+},
+"002 template": {
+"sha256": "b4ebb7dac592517f78bbcc64974fa9b03061fcec146352b34447e8eb8cf2e36b",
+"nodes": [
+["out","str","schemaVersion: 1\nid: abcß-i\nmetadata:\n  name: \"a\\b\"\n  organizer: \"\"\n  officialUrl: \"\"\nperiod: { durationHours: 24 }\nbands: [160m, 80m, 40m, 20m, 15m, 10m]\nmodes: [CW, SSB]\n\nexchange:\n  sent:\n    - { id: rst, type: RST, source: AUTO_RST }\n    - { id: nr, type: SERIAL, source: AUTO_SERIAL }\n  received:\n    - { id: rst, type: RST, required: true }\n    - { id: nr, type: SERIAL, required: true }\n\nscoring:\n  qsoPoints: { mode: FIRST_MATCH, default: 1 }\n  total: \"qsoPoints * multTotal\"\n\nmultipliers:\n  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }\n\ndupe: { scope: PER_BAND_MODE, dupeWorthZero: true }\n\ncabrillo: { contestName: ABCSS-I, sentOrder: [rst, nr], receivedOrder: [rst, nr] }\nui:\n  entryOrder: [call, rst, nr]\n  logColumns: [time, call, band, mode, rst, nr]\n"]
+]
+},
+"003 template": {
+"sha256": "42163e6c8e02b56663c45fb82b8ca3915c9cc5ebca75710a91d84df495c72af7",
+"nodes": [
+["out","str","schemaVersion: 1\nid: x\nmetadata:\n  name: \"x'́y\"\n  organizer: \"\"\n  officialUrl: \"\"\nperiod: { durationHours: 24 }\nbands: [160m, 80m, 40m, 20m, 15m, 10m]\nmodes: [CW, SSB]\n\nexchange:\n  sent:\n    - { id: rst, type: RST, source: AUTO_RST }\n    - { id: nr, type: SERIAL, source: AUTO_SERIAL }\n  received:\n    - { id: rst, type: RST, required: true }\n    - { id: nr, type: SERIAL, required: true }\n\nscoring:\n  qsoPoints: { mode: FIRST_MATCH, default: 1 }\n  total: \"qsoPoints * multTotal\"\n\nmultipliers:\n  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }\n\ndupe: { scope: PER_BAND_MODE, dupeWorthZero: true }\n\ncabrillo: { contestName: X, sentOrder: [rst, nr], receivedOrder: [rst, nr] }\nui:\n  entryOrder: [call, rst, nr]\n  logColumns: [time, call, band, mode, rst, nr]\n"]
+]
+},
+"004 withId": {
+"sha256": "3e30e30dc474e054dfc07920b735bd4085c813a10b90d6000264ddfeee479f8d",
+"nodes": [
+["out","str","metadata:\n  id: a\nid: n\n"]
+]
+},
+"005 withId": {
+"sha256": "22855bfd23ff2c93a9cd40a4e3d92f37fd1867d59ba130922695638613a46b92",
+"nodes": [
+["out","str","id: n\n  id: a\n"]
+]
+},
+"006 withId": {
+"sha256": "f3ad3a1547bb429fb77e643b8c6b75b22397a6a11d10f50adf51cb6eaf692777",
+"nodes": [
+["out","str","id: n\n"]
+]
+},
+"007 withId": {
+"sha256": "5ec9cc54316a295d305459b02f5694458e7d56d1e336d181531239a4930db08a",
+"nodes": [
+["out","str","id: n\n"]
+]
+},
+"008 withId": {
+"sha256": "ee6bdf1a17b05900ca50e6931d70d188111b97ae6f29400115749413264473c5",
+"nodes": [
+["out","str","id: n\nx: 1\n"]
+]
+},
+"009 withId": {
+"sha256": "b8e845b87bddab65ce41e0c481f8a982e2aa124cd18e5c02909731020cf2e06d",
+"nodes": [
+["out","str","id: n\r\nx: 1\r\n"]
+]
+},
+"010 withId": {
+"sha256": "5f264bbfc31f1ea27442b54142a26885e101f4ca0d4fcc29413f211731960b1a",
+"nodes": [
+["out","str","x: 1\rid: n\r"]
+]
+},
+"011 withId": {
+"sha256": "a38d45b232d7a9c24f54acc5609eb67d5ad054de924402dae15df4a1220d222d",
+"nodes": [
+["out","str","x: 1id: ny: 2"]
+]
+},
+"012 withId": {
+"sha256": "6058fedbac0b61b821d763ed0c8e15da451c1211cf9d81fb91e55b705195df8a",
+"nodes": [
+["out","str","x: 1 id: n y: 2"]
+]
+},
+"013 withId": {
+"sha256": "a7e3db16bedf65c2d0e4f97905f0f17339d058c6cd92323ee3bc44cd007db677",
+"nodes": [
+["out","str","id: n\nc\n"]
+]
+},
+"014 withId": {
+"sha256": "a9f943ac6e4765aa0f4228e233e299e9193f4b17dcd34cafbd1e5d5e93abe3cd",
+"nodes": [
+["out","str","id: n\n"]
+]
+},
+"015 withId": {
+"sha256": "e7fc5ba4e27798dc6ea6a0388c45b1aaa11770c3fbb60d613f2088e7c7325acd",
+"nodes": [
+["out","str","id: n\n"]
+]
+},
+"016 withId": {
+"sha256": "6219260ee583c3285b3383cacf7adec313738cf900885757988147d3312736d1",
+"nodes": [
+["out","str","ids: a\nid: n\n"]
+]
+},
+"017 withId": {
+"sha256": "b33a427544639ecbb33ae669c07746da21df68f2477c19a1133b03f26bcf2ad7",
+"nodes": [
+["out","str","id: n\nx: 1\n"]
+]
+},
+"018 withId": {
+"sha256": "42143850b80d4956e19502fcfce47852ba13b431f47a38f454e000ea86f4b331",
+"nodes": [
+["out","str","id: n\n"]
+]
+},
+"019 withId": {
+"sha256": "bfde7306c1b0766087f41bae50728b59272e33fb35750e5bf6d7a785849e29d8",
+"nodes": [
+["out","str","id: $1\\x$0\n"]
+]
+},
+"020 withId": {
+"sha256": "bd178314c33005c5853dbcef7aa8cd88d22e0078a523221a1c6057c3414aae8b",
+"nodes": [
+["out","str","id: $1\\x\nx: 1\n"]
+]
+},
+"021 withId": {
+"sha256": "e08d883cb490589a3b12c87091e0625b6a284ad7a66e96d9e6976a86f1579ce0",
+"nodes": [
+["out","str","schemaVersion: 1\nid: cq-ww-cw-copy\n  name: \"Test\"\n"]
+]
+},
+"022 qsoPartyTemplate": {
+"sha256": "ae2c48bc1ff3af8f8cb0e20b5a6a345b06fe1cbcfe50ea4385b61d9e0c47c477",
+"nodes": [
+["out","str","schemaVersion: 1\nid: xqp\nmetadata:\n  name: \"X 'Q' Party\"\n  description: \"QSO party: stanice ze státu posílají okres, ostatní stát/provincii. ROVERQTH = můj okres.\"\nperiod: { durationHours: 24 }\nbands: [160m, 80m, 40m, 20m, 15m, 10m]\nmodes: [CW, SSB]\n\nstationClasses:\n  - { id: instate, when: { dxccIn: [US, K] } }\n  - { id: other,   when: { not: { dxccIn: [US, K] } } }\n\nexchange:\n  sent:\n    - { id: rst,    type: RST,      source: AUTO_RST }\n    - { id: county, type: DISTRICT, source: ROVER_QTH }\n  received:\n    - { id: rst, type: RST,      required: true }\n    - { id: qth, type: DISTRICT, required: true }   # okres (stanice ze státu) nebo stát\n\nscoring:\n  qsoPoints:\n    mode: FIRST_MATCH\n    default: 1\n    rules:\n      - { when: { mode: CW }, value: { fixed: 2 } }\n  total: \"qsoPoints * multTotal\"\n\nmultipliers:\n  - { id: counties, set: xqp_counties,     from: qth, scope: ONCE }\n  - { id: states,   set: na_areas, from: qth, scope: ONCE }\n\ndupe: { scope: PER_BAND_MODE }\n\ncabrillo: { contestName: XQP, sentOrder: [rst, county], receivedOrder: [rst, qth] }\nui:\n  entryOrder: [call, qth]\n  logColumns: [time, call, band, mode, rst, qth, points, mult]\n"]
+]
+},
+"023 qsoPartyTemplate": {
+"sha256": "121279be8d2040eb2142744f851f299eaf01fa66f5b5e97fd67c86a906d8e872",
+"nodes": [
+["out","str","schemaVersion: 1\nid: abç\nmetadata:\n  name: \"100%s $1\"\n  description: \"QSO party: stanice ze státu posílají okres, ostatní stát/provincii. ROVERQTH = můj okres.\"\nperiod: { durationHours: 24 }\nbands: [160m, 80m, 40m, 20m, 15m, 10m]\nmodes: [CW, SSB]\n\nstationClasses:\n  - { id: instate, when: { dxccIn: [US, K] } }\n  - { id: other,   when: { not: { dxccIn: [US, K] } } }\n\nexchange:\n  sent:\n    - { id: rst,    type: RST,      source: AUTO_RST }\n    - { id: county, type: DISTRICT, source: ROVER_QTH }\n  received:\n    - { id: rst, type: RST,      required: true }\n    - { id: qth, type: DISTRICT, required: true }   # okres (stanice ze státu) nebo stát\n\nscoring:\n  qsoPoints:\n    mode: FIRST_MATCH\n    default: 1\n    rules:\n      - { when: { mode: CW }, value: { fixed: 2 } }\n  total: \"qsoPoints * multTotal\"\n\nmultipliers:\n  - { id: counties, set: set,     from: qth, scope: ONCE }\n  - { id: states,   set: na_areas, from: qth, scope: ONCE }\n\ndupe: { scope: PER_BAND_MODE }\n\ncabrillo: { contestName: ABÇ, sentOrder: [rst, county], receivedOrder: [rst, qth] }\nui:\n  entryOrder: [call, qth]\n  logColumns: [time, call, band, mode, rst, qth, points, mult]\n"]
+]
+},
+"024 write": {
+"sha256": "f5dfddb3d3e075be986637ec213e748fbb98d5e49317abf784b5a613dbf8a1a0",
+"nodes": [
+["count","int","3"],
+["file/xqp_counties.csv","str","# X \"Q\" Party é (key,label) — importováno\nZZ,Zed\nAA,Ay, é é\nM,\n"],
+["file/xqp_counties.yaml","str","schemaVersion: 1\nid: xqp_counties\nkind: FIXED\nkeyType: TEXT\nenumerable: true\nmetadata: { name: \"X 'Q' Party é\" }\nvaluesFile: xqp_counties.csv\n"]
+]
+},
+"025 write": {
+"sha256": "636d2a52a0f0a17d4392eeb28d13ceec382805c823d67ce9381a4cf324dc88fa",
+"nodes": [
+["count","int","1"],
+["file/a.csv","str","# x\"́y (key,label) — importováno\nA,b\n"],
+["file/a.yaml","str","schemaVersion: 1\nid: a\nkind: FIXED\nkeyType: TEXT\nenumerable: true\nmetadata: { name: \"x'́y\" }\nvaluesFile: a.csv\n"]
+]
+},
+"026 write": {
+"sha256": "f0da3c5938187c00e9c718e36ef1343db1c2e2c44105f34f9e65054f0e848232",
+"nodes": [
+["error","str","Id sady smí mít jen malá písmena, číslice a _: Bad"]
+]
+},
+"027 write": {
+"sha256": "4b7f52129db3567ec55d564a8972033e4af05846e538b3bb591053b877e36695",
+"nodes": [
+["error","str","Seznam neobsahuje žádný kód"]
+]
+},
+"028 write": {
+"sha256": "7343cd481e06b64b1e65a4079ea9ef17fcf33f99ce0a9b029c3c4c2dc937c62d",
+"nodes": [
+["error","str","Id sady smí mít jen malá písmena, číslice a _: bad\n"]
+]
+}
+}

@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: wae-ssb
+metadata:
+  name: "WAE DX Contest — SSB"
+  organizer: "DARC"
+  description: "Evropa pracuje mimo Evropu (a naopak). QTC: mimoevropská stanice hlásí dřívější QSO evropské stanici, každé QTC = 1 bod. Násobiče: země po pásmech, 80 m ×4, 40 m ×3, 20–10 m ×2."
+  officialUrl: "https://www.darc.de/der-club/referate/conteste/wae-dx-contest/en/"
+period: { durationHours: 48 }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+stationClasses:
+  - { id: other, when: { otherContinent: true } }
+  - { id: same,  when: { sameContinent: true } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { otherContinent: true }, value: { fixed: 1 } }   # jen QSO mezi Evropou a zbytkem světa
+  qtc: { points: 1, maxPerStation: 10, groupSize: 10 }
+  total: "(qsoPoints + qtcPoints) * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: other },
+      bandWeights: { 80m: 4, 40m: 3, 20m: 2, 15m: 2, 10m: 2 } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: DARC-WAEDC-SSB, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points, mult]

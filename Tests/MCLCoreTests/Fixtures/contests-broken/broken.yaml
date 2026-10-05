@@ -1,0 +1,14 @@
+schemaVersion: 1
+id: broken-test
+bands: [20m]
+modes: [CW]
+exchange:
+  received:
+    - { id: rst,  type: RST, required: true, validation: { regex: "[" } }      # neplatný regex
+    - { id: zone, type: CQ_ZONE, appliesWhen: { workedClass: nonexistent } }   # nedefinovaná stationClass
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 0, rules: [] }
+  total: "qsoPoints"
+multipliers:
+  - { id: m1, set: cq_zones, from: nosuchfield, scope: PER_BAND }              # from není callsign ani pole
+cabrillo: { contestName: X, sentOrder: [rst], receivedOrder: [rst, zone] }     # sentOrder rst neexistuje (žádné sent)

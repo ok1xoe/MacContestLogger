@@ -1,0 +1,51 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Checkout gives every file the current time, so SwiftPM would rebuild everything.
+      # File time = time of the last commit that changed it — unchanged files
+      # therefore match the cached build and only what really changed gets rebuilt.
+      - name: File times from git
+        run: scripts/restore-mtimes.sh
+      - uses: actions/cache@v4
+        with:
+          path: .build
+          key: build-${{ runner.os }}-${{ runner.arch }}-xcode16-${{ hashFiles('Package.swift') }}-${{ github.sha }}
+          # The second key: a Package.swift change (a new target) restores the last build of any manifest
+          # instead of starting cold; SwiftPM rebuilds only what the change really affects.
+          restore-keys: |
+            build-${{ runner.os }}-${{ runner.arch }}-xcode16-${{ hashFiles('Package.swift') }}-
+            build-${{ runner.os }}-${{ runner.arch }}-xcode16-
+      - name: Release version rules
+        run: scripts/release-version.sh --self-test
+      - name: Tests
+        run: scripts/test.sh
+      # Static accessibility audit of the views (reads sources only, starts nothing): icon and glyph controls,
+      # canvases and AppKit islands carry a label, every window has the font stepper, the spoken texts are translated.
+      - name: Accessibility audit
+        run: |
+          scripts/a11y-audit.py --self-test
+          scripts/a11y-audit.py
+      # The app must build with the CI toolchain (Swift 6.1, macOS 15 SDK) — an API that only exists in the
+      # local SDK would otherwise surface only at release time.
+      - name: Build app
+        run: swift build --product MacContestLogger
+      # Where the generated `Bundle.module` looks for the core's resource bundle with this toolchain
+      # (see `CoreResources`); kept in the log as the measurement behind the lookup order.
+      - name: Resource bundle accessor
+        run: find .build -path '*MCLCore*' -name resource_bundle_accessor.swift -exec cat {} \;
+      # Assembles the .app and runs `--self-check` (no window): exit 1 when the resources are missing.
+      - name: Bundle app
+        run: scripts/bundle.sh --config debug --skip-build
+      # The real quit of the bundle: termination signals and terminate: end the app after the transmit release
+      # (inert hardware and network, temporary data, throwaway defaults domain; no input events).
+      - name: Quit check
+        run: scripts/quit-e2e.py --app build/app/MacContestLogger.app

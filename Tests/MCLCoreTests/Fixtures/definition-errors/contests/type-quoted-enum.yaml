@@ -1,0 +1,6 @@
+schemaVersion: 1
+id: t
+metadata:
+  name: "Test"
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: "per_band" }

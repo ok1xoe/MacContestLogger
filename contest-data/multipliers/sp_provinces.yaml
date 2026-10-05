@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: sp_provinces
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Polská vojvodství (SP DX Contest)" }
+valuesFile: sp_provinces.csv

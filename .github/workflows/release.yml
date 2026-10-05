@@ -1,0 +1,154 @@
+# Universal (arm64 + x86_64) unsigned DMG.
+#
+# - Tag `v*`           : build, verify on Intel, create a DRAFT GitHub release (the owner publishes it).
+# - workflow_dispatch  : build + verify, artifacts only (never a release); optional `version` input.
+# - pull_request       : the same dry run, only when a release-related file changes; artifacts only.
+# The tag must be v1.x.x or newer; a suffix (-rc1) stays in the file name and is cut off from the bundle version
+# (see scripts/release-version.sh). No signing, no notarization.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for the file name and the bundle (e.g. v1.2.3-rc1); empty = dev build, never a release'
+        required: false
+        default: ''
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'scripts/bundle.sh'
+      - 'scripts/release-version.sh'
+      - 'packaging/**'
+      - 'Package.swift'
+      - 'Package.resolved'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Package universal DMG
+    runs-on: macos-15
+    permissions:
+      contents: read
+    outputs:
+      dmg: ${{ steps.ver.outputs.dmgName }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: File times from git
+        run: scripts/restore-mtimes.sh
+      # Restore only: release runs never save a cache entry (no entry per tag, no eviction of ci.yml's cache).
+      - uses: actions/cache/restore@v4
+        with:
+          path: .build
+          key: release-${{ runner.os }}-${{ runner.arch }}-xcode16-${{ hashFiles('Package.swift') }}-${{ github.sha }}
+          restore-keys: |
+            release-${{ runner.os }}-${{ runner.arch }}-xcode16-${{ hashFiles('Package.swift') }}-
+            release-${{ runner.os }}-${{ runner.arch }}-xcode16-
+      - name: Version rules self-test
+        run: scripts/release-version.sh --self-test
+      - name: Determine version
+        id: ver
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+          scripts/release-version.sh "$GITHUB_REF_TYPE" "$GITHUB_REF_NAME" "$GITHUB_SHA" "${INPUT_VERSION:-}" | tee -a "$GITHUB_OUTPUT"
+          fileVersion="$(grep '^fileVersion=' "$GITHUB_OUTPUT" | tail -n1 | cut -d= -f2-)"
+          echo "dmgName=MacContestLogger-${fileVersion}-macos-universal.dmg" >> "$GITHUB_OUTPUT"
+      - name: Bundle universal app and DMG
+        env:
+          VERSION_ARG: ${{ steps.ver.outputs.versionArg }}
+          FILE_VERSION: ${{ steps.ver.outputs.fileVersion }}
+        run: |
+          set -euo pipefail
+          args=(--config release --universal --dmg --out build/release --file-version "$FILE_VERSION")
+          if [ -n "$VERSION_ARG" ]; then
+            args+=(--version "$VERSION_ARG")
+          fi
+          scripts/bundle.sh "${args[@]}"
+      - name: Check DMG and checksum
+        env:
+          DMG: ${{ steps.ver.outputs.dmgName }}
+        run: |
+          set -euo pipefail
+          cd build/release
+          ls -lh "$DMG" "$DMG.sha256"
+          shasum -a 256 -c "$DMG.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MacContestLogger-macos-universal
+          path: |
+            build/release/${{ steps.ver.outputs.dmgName }}
+            build/release/${{ steps.ver.outputs.dmgName }}.sha256
+          if-no-files-found: error
+
+  verify-intel:
+    name: Launch check on Intel
+    needs: package
+    runs-on: macos-15-intel
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: MacContestLogger-macos-universal
+          path: dist
+      - name: Verify checksum
+        env:
+          DMG: ${{ needs.package.outputs.dmg }}
+        run: |
+          set -euo pipefail
+          cd dist
+          shasum -a 256 -c "$DMG.sha256"
+      - name: Mount, check architectures, self-check
+        env:
+          DMG: ${{ needs.package.outputs.dmg }}
+        run: |
+          set -euo pipefail
+          uname -m
+          MNT="$RUNNER_TEMP/mcl-dmg"
+          mkdir -p "$MNT"
+          hdiutil attach -readonly -nobrowse -mountpoint "$MNT" "dist/$DMG"
+          trap 'hdiutil detach "$MNT" -force || true' EXIT
+          BIN="$MNT/MacContestLogger.app/Contents/MacOS/MacContestLogger"
+          codesign --verify --deep --strict "$MNT/MacContestLogger.app"
+          lipo -archs "$BIN"
+          [ "$(lipo -archs "$BIN")" = "x86_64 arm64" ]
+          [ "$(uname -m)" = "x86_64" ]
+          "$BIN" --self-check
+
+  release:
+    name: Draft GitHub release
+    needs: [package, verify-intel]
+    # Only a pushed v* tag; manual runs and pull requests never get here.
+    if: github.event_name == 'push' && github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: MacContestLogger-macos-universal
+          path: dist
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          DMG: ${{ needs.package.outputs.dmg }}
+        run: |
+          set -euo pipefail
+          ls -lh dist
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "MacContestLogger $GITHUB_REF_NAME" --generate-notes \
+            "dist/$DMG" "dist/$DMG.sha256"

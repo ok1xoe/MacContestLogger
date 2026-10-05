@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: sp-dx
+metadata:
+  name: "SP DX Contest"
+  organizer: "PZK"
+  description: "Z pohledu stanice mimo SP: pracují se jen polské stanice, násobiče = vojvodství po pásmech."
+  officialUrl: "https://spdxcontest.pzk.org.pl/"
+period: { durationHours: 24 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: sp, when: { dxccIn: [PL, SP] } }
+  - { id: dx, when: { not: { dxccIn: [PL, SP] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst,      type: RST,      required: true }
+    - { id: province, type: DISTRICT, required: true, appliesWhen: { workedClass: sp } }   # vojvodství (B, C, D…)
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { workedClass: sp }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: provinces, set: sp_provinces, from: province, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: SPDX, sentOrder: [rst, nr], receivedOrder: [rst, province] }
+ui:
+  entryOrder: [call, province]
+  logColumns: [time, call, band, mode, rst, province, points, mult]

@@ -1,0 +1,29 @@
+schemaVersion: 1
+id: dx
+metadata:
+  name: "DX — volné logování"
+  description: "Běžný provoz bez závodu: výměnou je pouze report."
+# Bez `period` — relace nemá konec (v Novém závodě zůstane pole „Konec" prázdné).
+bands: [160m, 80m, 60m, 40m, 30m, 20m, 17m, 15m, 12m, 10m, 6m, 2m, 70cm]
+modes: [CW, SSB, RTTY, DIGITAL]
+
+exchange:
+  sent:
+    - { id: rst, type: RST, source: AUTO_RST }
+  received:
+    - { id: rst, type: RST, required: true }
+
+scoring:
+  # Bez pravidel → PointsCalculator vrací rovnou `default`, tj. 1 bod za QSO.
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  # POZOR: závod nemá násobiče, takže multTotal = 0. Obvyklá formule
+  # "qsoPoints * multTotal" by dala nulu — skóre je tu prostě počet QSO.
+  total: "qsoPoints"
+
+# Duplicita jen informativně (chip DUPE), QSO se počítá plnohodnotně.
+dupe: { scope: PER_BAND_MODE, dupeWorthZero: false }
+
+cabrillo: { contestName: DX, sentOrder: [rst], receivedOrder: [rst] }
+ui:
+  entryOrder: [call, rst]
+  logColumns: [time, call, band, mode, rst]

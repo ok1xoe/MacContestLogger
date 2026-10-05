@@ -1,0 +1,31 @@
+schemaVersion: 1
+id: q-1
+metadata:
+  name: "Závod 'Velký' 'x'"
+  organizer: ""
+  officialUrl: ""
+period: { durationHours: 24 }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+exchange:
+  sent:
+    - { id: rst, type: RST, source: AUTO_RST }
+    - { id: nr, type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST, required: true }
+    - { id: nr, type: SERIAL, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE, dupeWorthZero: true }
+
+cabrillo: { contestName: Q-1, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, rst, nr]
+  logColumns: [time, call, band, mode, rst, nr]

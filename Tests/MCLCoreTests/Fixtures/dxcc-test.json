@@ -1,0 +1,9 @@
+{
+  "dxcc": [
+    {"entityCode":503,"name":"Czech Republic","countryCode":"CZ","continent":["EU"],"cq":[15],"itu":[28],"prefix":"OK,OL","prefixRegex":"^(OK|OL)[0-9].*","deleted":false},
+    {"entityCode":291,"name":"United States","countryCode":"US","continent":["NA"],"cq":[3,4,5],"itu":[6,7,8],"prefix":"K,N,W","prefixRegex":"^(K|N|W|A[A-L])[0-9].*","deleted":false},
+    {"entityCode":1,"name":"Canada","countryCode":"CA","continent":["NA"],"cq":[1,2,3,4,5],"itu":[2,3,4,9],"prefix":"VE,VA,VO","prefixRegex":"^(V[AEO])[0-9].*","deleted":false},
+    {"entityCode":230,"name":"Germany","countryCode":"DE","continent":["EU"],"cq":[14],"itu":[28],"prefix":"DL,DA","prefixRegex":"^(D[A-R])[0-9].*","deleted":false},
+    {"entityCode":999,"name":"Deleted Entity","countryCode":"XX","continent":["AF"],"cq":[33],"itu":[1],"prefix":"XX","prefixRegex":"^XX[0-9].*","deleted":true}
+  ]
+}

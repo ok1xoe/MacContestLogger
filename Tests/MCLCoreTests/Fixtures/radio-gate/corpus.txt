@@ -1,0 +1,605 @@
+# Ruční korpus brány P6a (Tools/radio-ref-gen/RadioRefGen.java, Tests/MCLCoreTests/Radio/JavaRadioParityTests.swift).
+# Řádek = značka TAB pole TAB pole…; pole: \uXXXX (UTF-16 jednotka), \t \n \r \\, <null> = null, <empty> = "".
+# Data jen ASCII (vše ostatní jako \uXXXX), na konci řádku žádné bílé znaky (mezera = \u0020).
+# Prázdné řádky a řádky s # se přeskočí. Otisk sekce = SHA-256 jejích řádků (značka + "\n"),
+# změna řádku = „PŘEGENERUJ REFERENCI" jen u položek, které sekci čtou.
+
+# HamlibModes.toMode — módy hamlib 4.7.1 (rig_strrmode) + okraje; generátor přidá varianty velikosti a mezer.
+hm.mode	USB
+hm.mode	LSB
+hm.mode	CW
+hm.mode	CWR
+hm.mode	RTTY
+hm.mode	RTTYR
+hm.mode	AM
+hm.mode	FM
+hm.mode	WFM
+hm.mode	AMS
+hm.mode	PKTLSB
+hm.mode	PKTUSB
+hm.mode	PKTFM
+hm.mode	ECSSUSB
+hm.mode	ECSSLSB
+hm.mode	FAX
+hm.mode	SAM
+hm.mode	SAL
+hm.mode	SAH
+hm.mode	DSB
+hm.mode	FMN
+hm.mode	PKTAM
+hm.mode	P25
+hm.mode	D-STAR
+hm.mode	DPMR
+hm.mode	NXDNVN
+hm.mode	NXDN-N
+hm.mode	DCR
+hm.mode	AMN
+hm.mode	PSK
+hm.mode	PSKR
+hm.mode	DD
+hm.mode	C4FM
+hm.mode	PKTFMN
+hm.mode	SPEC
+hm.mode	CWN
+hm.mode	IQ
+hm.mode	ISBUSB
+hm.mode	ISBLSB
+hm.mode	USBD1
+hm.mode	USBD2
+hm.mode	USBD3
+hm.mode	LSBD1
+hm.mode	LSBD2
+hm.mode	LSBD3
+hm.mode	WFMS
+hm.mode	None
+hm.mode	<empty>
+hm.mode	cw\u0130
+hm.mode	\u0131sb
+hm.mode	us\u00DF
+hm.mode	\u00A0USB
+hm.mode	USB\u0085
+hm.mode	USB
+hm.mode	U SB
+hm.mode	<null>
+
+# CwMessageBuilder — šablony (podklad 3.3 K1–K17, sonda research/ProbeP6, ruční okraje).
+# Výchozí zprávy CwKeyerConfig.defaultRun/defaultSp přidá generátor z javové třídy.
+cw.t	<empty>
+cw.t	cq test *
+cw.t	  cq    test \u0020
+cw.t	cq~test
+cw.t	~~cq
+cw.t	tu+
+cw.t	+tu
+cw.t	<<5nn>> tu+
+cw.t	]+[=
+cw.t	]\u0020
+cw.t	 ]x
+cw.t	a ] b
+cw.t	a]b
+cw.t	<
+cw.t	>
+cw.t	<>
+cw.t	<>x
+cw.t	><
+cw.t	 < cq
+cw.t	cq <
+cw.t	<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<x
+cw.t	>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>x
+cw.t	{
+cw.t	}
+cw.t	cq {
+cw.t	cq {mycall
+cw.t	{MYCALL}{CALL}
+cw.t	{mycall}
+cw.t	{MyCall}
+cw.t	{{MYCALL}}
+cw.t	{MY CALL}
+cw.t	{}
+cw.t	{SOMEMACRO}test
+cw.t	{LOG}{WIPE}{RUN}{S&P}{CLEARRIT}{RITCLEAR}{CQFREQ}{NOSPLIT}
+cw.t	{log}
+cw.t	{s&p}
+cw.t	#
+cw.t	##
+cw.t	{NR}
+cw.t	{nr}#
+cw.t	{EXCH}
+cw.t	{exch}
+cw.t	{SENTRST}
+cw.t	{SENTRSTCUT}
+cw.t	{SENTRSTCUT} {EXCH}
+cw.t	{ROVERQTH}{COUNTYLINE}
+cw.t	{ROVERQTH}
+cw.t	{COUNTYLINE}
+cw.t	{LOGGEDCALL}
+cw.t	{TIME}
+cw.t	{time} {TIME}
+cw.t	{MYNAME} {MYGRID} {MYLOC} {MYCQZONE} {MYZONE} {MYITUZONE} {MYSTATE} {OPERATOR}
+cw.t	{F1}
+cw.t	{F2} {F3}
+cw.t	{f1}
+cw.t	{F4}
+cw.t	{F5}
+cw.t	{F6}
+cw.t	{F7}
+cw.t	{F8}
+cw.t	{F9}
+cw.t	{F10}
+cw.t	{F11}
+cw.t	{F12}
+cw.t	{f12}
+cw.t	{F13}
+cw.t	{F0}
+cw.t	{F01}
+cw.t	{F1 }
+cw.t	{ F1}
+cw.t	{F1}{F1}
+cw.t	{F1}{F2}{F3}{F4}
+cw.t	x{F2}y
+cw.t	ok!!\u20AC
+cw.t	qrl? de *
+cw.t	5nn/p.,
+cw.t	ok1\u017E\u00E1
+cw.t	stra\u00DFe
+cw.t	\u1E9E
+cw.t	\u00DF{MYCALL}
+cw.t	{mycall\u00DF}
+cw.t	\u0131i
+cw.t	\u0130stanbul
+cw.t	\uFB01x
+cw.t	\uFB00
+cw.t	\u0149
+cw.t	\u01F0
+cw.t	\u0390
+cw.t	\u01C4\u01C5\u01C6
+cw.t	a\tb
+cw.t	a\nb
+cw.t	a\rb
+cw.t	a\u00A0b
+cw.t	a\u2003b
+cw.t	a\u0085b
+cw.t	 x
+cw.t	x_y&z@
+cw.t	*!#
+cw.t	!
+cw.t	!!
+cw.t	\uD83D\uDE00 cq
+cw.t	cq \uD83D\uDE00
+cw.t	5NN-15
+cw.t	a  ]  b
+cw.t	~
+cw.t	\u0020\u0020
+cw.t	{EXCH}#
+cw.t	{CALL}{CALL}
+cw.t	{CALL} 5nn
+cw.t	tu {mycall} test
+cw.t	cq de * * k
+cw.t	qrz?
+cw.t	dl1abc/p
+cw.t	ok1abc/mm
+cw.t	1/2
+cw.t	a?b
+cw.t	a,b.c
+cw.t	[=]+
+cw.t	== ++ ]]
+cw.t	[a][b]
+cw.t	<{MYCALL}>
+cw.t	<a<b<c>>>
+cw.t	{SENTRSTCUT}{SENTRSTCUT}
+cw.t	{F1}<{F2}>
+cw.t	~ ~ ~
+cw.t	*~*
+cw.t	{LOG}tu
+cw.t	tu{LOG}
+cw.t	{WIPE}
+cw.t	{RUN}cq
+cw.t	{CQFREQ}{NOSPLIT}
+cw.t	{UNKNOWN1}{UNKNOWN2}{UNKNOWN1}
+cw.t	{F1}{UNKNOWN}
+cw.t	agn?
+cw.t	nr?
+cw.t	cl?
+cw.t	73 tu
+cw.t	599 #
+cw.t	5nn {exch} {exch}
+cw.t	# #
+cw.t	{NR}{NR}{NR}
+cw.t	E
+cw.t	T
+cw.t	EEEEEEEEEEEEEEEEEEEE
+cw.t	PARIS PARIS
+cw.t	0123456789
+cw.t	.,?/-
+cw.t	'"()
+cw.t	{OPERATOR}{OPERATOR}
+cw.t	{MYSTATE}x
+cw.t	\u00E9\u00C9e\u0301
+cw.t	\u0301
+cw.t	\u0660\u0661\u0662
+
+# SplitFromComment — tabulka podkladu 3.4 (52 komentářů) + okraje; generátor přidá fuzzer.
+split.c	UP 5
+split.c	cq up2
+split.c	UP 2-4 tnx
+split.c	up 1.5
+split.c	UP
+split.c	DOWN 3
+split.c	dn 2
+split.c	DOWN
+split.c	QSX 14025.5
+split.c	qsx 025
+split.c	QSX25
+split.c	QSX 7025
+split.c	TNX QSO 599
+split.c	SUPER SIGNAL
+split.c	UP 500
+split.c	UP 0
+split.c	UP 99.9995
+split.c	UP 100
+split.c	UP 100.0004
+split.c	UP 100.0005
+split.c	QSX 14023
+split.c	QSX 0
+split.c	QSX 5
+split.c	QSX 1402.5
+split.c	qsx 14.025
+split.c	QSX 999
+split.c	QSX 1000
+split.c	up 5 qsx 14030
+split.c	UP5UP
+split.c	UP.5
+split.c	UP 5.
+split.c	UP 1,5
+split.c	UP\u00A05
+split.c	UP\u0665
+split.c	\u00FAP 5
+split.c	pileup 5
+split.c	UP_5
+split.c	UP-5
+split.c	dn5 up3
+split.c	DOWN 0.0001
+split.c	UP 0.0005
+split.c	UP 0.0004
+split.c	QSX14025,5
+split.c	QSX 00000000000000000000000014025
+split.c	UP 99999999999999999999
+split.c	QSX 1e3
+split.c	\u0020\u0020
+split.c	up \u0130
+split.c	\u0131up 2
+split.c	STRASSE UP 2
+split.c	stra\u00DFe up 2
+split.c	<null>
+split.c	<empty>
+split.c	DN 99999999999999999999
+split.c	QSX 99999999999999999999
+split.c	UP 9223372036854775807
+split.c	UP 9223372036854.775807
+split.c	QSX 1,5
+split.c	up\tup 3
+split.c	UP\u2003 3
+
+# AntennaSelector — pásma (covers) a sektory (inSector).
+ant.bands	20m,15m
+ant.bands	14, 21
+ant.bands	7;10
+ant.bands	14,5
+ant.bands	1.8
+ant.bands	1,8
+ant.bands	3.5 7
+ant.bands	NaN
+ant.bands	Infinity
+ant.bands	0x1p4
+ant.bands	14d
+ant.bands	14f
+ant.bands	\u0661\u0664
+ant.bands	\uFF11\uFF14
+ant.bands	20M
+ant.bands	2m
+ant.bands	70cm
+ant.bands	<empty>
+ant.bands	  ,\u0020\u0020
+ant.bands	13.5
+ant.bands	13.49999
+ant.bands	13.4999995
+ant.bands	14.3500005
+ant.bands	50
+ant.bands	144.0000001
+ant.bands	1e1
+ant.bands	+14
+ant.bands	\u0130
+ant.bands	20m\u00A015m
+ant.bands	20m\u200315m
+ant.bands	20m\u000B15m
+ant.bands	160m 80m 40m 20m 15m 10m
+ant.bands	6m;2m;70cm;23cm
+ant.bands	9223372036854.775807
+ant.bands	-14
+ant.sector	300-60
+ant.sector	0-90
+ant.sector	270-360
+ant.sector	90-0
+ant.sector	 10 - 20\u0020
+ant.sector	-10-20
+ant.sector	10-
+ant.sector	abc
+ant.sector	10-20-30
+ant.sector	<empty>
+ant.sector	45
+ant.sector	0-0
+ant.sector	\u0661-\u0662
+ant.sector	+10-+20
+ant.sector	350-10
+ant.sector	0-360
+ant.sector	359-1
+ant.sector	-2147483648-5
+ant.sector	\u00A010-20
+ant.sector	10\u2003-20
+
+# XmlRpc.parseResponse — obsah <value> (generátor obalí methodResponse a přidá kombinace typů).
+xr.value	<string>RX</string>
+xr.value	RTTY
+xr.value	  RTTY \u0020
+xr.value	<i4> 42 </i4>
+xr.value	<int>2147483648</int>
+xr.value	<int>-2147483648</int>
+xr.value	<int>+5</int>
+xr.value	<int>\u0665</int>
+xr.value	<int></int>
+xr.value	<i8>5</i8>
+xr.value	<i8>9999999999</i8>
+xr.value	<double>1e3</double>
+xr.value	<double>0x1p3</double>
+xr.value	<double>NaN</double>
+xr.value	<double>-Infinity</double>
+xr.value	<double>1d</double>
+xr.value	<double>.5</double>
+xr.value	<double>1e400</double>
+xr.value	<double>x</double>
+xr.value	<boolean>1</boolean>
+xr.value	<boolean>true</boolean>
+xr.value	<boolean> 1 </boolean>
+xr.value	<boolean>0</boolean>
+xr.value	<base64>T0sx\nWE9F</base64>
+xr.value	<base64>!!</base64>
+xr.value	<base64>T0sxWE9F=</base64>
+xr.value	<base64>T0s=</base64>
+xr.value	<base64>T0sxW</base64>
+xr.value	<base64></base64>
+xr.value	<string/>
+xr.value	<empty>
+xr.value	<nil/>
+xr.value	<struct><member><name>a</name><value><int>1</int></value></member></struct>
+xr.value	<array><data><value><int>7</int></value></data></array>
+xr.value	<string>a&amp;b</string>
+xr.value	 <!-- c --> <string>x</string>
+xr.value	<string>&#269;</string>
+xr.value	<string><![CDATA[<a&b>]]></string>
+xr.value	<![CDATA[raw]]>
+xr.value	a<!-- c -->b
+xr.value	<string>a<!-- c -->b</string>
+xr.value	<?pi x?><int>3</int>
+xr.value	<string>\u017Elu\u0165ou\u010Dk\u00FD</string>
+xr.value	<string>\uD83D\uDE00</string>
+xr.value	<string>a\r\nb</string>
+xr.value	<unknown>q</unknown>
+xr.value	<value><int>9</int></value>
+xr.doc	<empty>
+xr.doc	<methodResponse/>
+xr.doc	<methodResponse><params/></methodResponse>
+xr.doc	not xml
+xr.doc	<methodResponse><fault><value><struct></struct></value></fault></methodResponse>
+xr.doc	<methodResponse><fault><value><struct><member><name>faultString</name><value><string>bad</string></value></member></struct></value></fault></methodResponse>
+xr.doc	<methodResponse><params><param><value><string>first</string></value></param></params><fault/></methodResponse>
+xr.doc	<!DOCTYPE x [<!ENTITY e "y">]><methodResponse/>
+xr.doc	<methodResponse><params><param><value><string>a</string></value></param><param><value><int>2</int></value></param></params></methodResponse>
+xr.doc	<x><value>outer<value>inner</value></value></x>
+xr.doc	<methodResponse><params><param><value><string>&unknown;</string></value></param></params></methodResponse>
+xr.doc	<methodResponse><params><param><value>x</value></param></params>
+xr.doc	<methodResponse></methodResponse><extra/>
+xr.doc	<?xml version="1.0" encoding="UTF-8"?>\n<methodResponse>\n  <params>\n    <param>\n      <value>\n        <string>ok</string>\n      </value>\n    </param>\n  </params>\n</methodResponse>\n
+xr.doc	<methodResponse><params><param><value>\n  \n</value></param></params></methodResponse>
+xr.doc	<a xmlns="urn:x"><value><int>4</int></value></a>
+xr.doc	<a xmlns:p="urn:p"><p:value><int>4</int></p:value><value>5</value></a>
+
+# VoiceMessagePlanner + MacSpeech.
+vmp.exists	/wav/L/A.wav
+vmp.exists	/wav/L/B.wav
+vmp.exists	/wav/L/1.wav
+vmp.exists	/wav/L/DL1.wav
+vmp.exists	/wav/L/DL.wav
+vmp.exists	/wav/L/AB1.wav
+vmp.exists	/wav/L/stroke.wav
+vmp.exists	/wav/L/point.wav
+vmp.exists	/wav/L/4.wav
+vmp.exists	/wav/L/\u017D.wav
+vmp.exists	/wav/L/question.wav
+vmp.exists	/wav/OK1XOE/CQ.wav
+vmp.exists	/wav/ok1xoe/CQ.wav
+vmp.exists	/wav/cq.wav
+vmp.exists	/x/abs.wav
+vmp.exists	/wav/sub/../cq2.wav
+vmp.exists	/cq3.wav
+vmp.exists	/wav/empty.wav
+vmp.plan	!
+vmp.plan	*
+vmp.plan	#
+vmp.plan	@
+vmp.plan	{MYCALL}
+vmp.plan	{mycall}
+vmp.plan	{OPERATOR}
+vmp.plan	cq.wav
+vmp.plan	./cq.wav
+vmp.plan	sub/../cq.wav
+vmp.plan	../cq3.wav
+vmp.plan	../../cq3.wav
+vmp.plan	/x/abs.wav
+vmp.plan	/x/missing.wav
+vmp.plan	{OPERATOR}/CQ.wav
+vmp.plan	{OPERATOR}\\CQ.wav
+vmp.plan	{WAVDIR}/cq.wav
+vmp.plan	a//b.wav
+vmp.plan	 , ,empty.wav, EMPTY.WAV
+vmp.plan	[CQ *]
+vmp.plan	[fail]
+vmp.plan	[]
+vmp.plan	[ ]
+vmp.plan	[x
+vmp.plan	x]
+vmp.plan	cq.wav,[CQ test !],!
+vmp.plan	x.WAV
+vmp.plan	\u017E.wav
+vmp.plan	!!
+vmp.plan	! # *
+vmp.plan	[{MYCALL} {CALL} {NR} {FREQ}]
+vmp.plan	[! five nine #]
+vmp.plan	<null>
+vmp.plan	<empty>
+vmp.plan	,,,
+vmp.plan	cq.wav,cq.wav
+vmp.call	DL1AB
+vmp.call	AB1/P
+vmp.call	DL1\u017D
+vmp.call	AB?
+vmp.call	DL
+vmp.call	dl1ab
+vmp.call	<empty>
+vmp.call	A.B
+vmp.call	A B
+vmp.call	\u0130A
+vmp.call	stra\u00DFe
+vmp.call	W1AW/4
+vmp.call	DL1ABCDEFGHIJ
+vmp.phonetic	<null>
+vmp.phonetic	<empty>
+vmp.phonetic	ok1xoe/p
+vmp.phonetic	W1AW?
+vmp.phonetic	\u0131\u0130
+vmp.phonetic	stra\u00DFe
+vmp.phonetic	14250.5
+vmp.phonetic	1 2
+vmp.phonetic	\u0161
+vmp.phonetic	a-b_c
+vmp.phonetic	\uD83D\uDE00
+vmp.tts	CQ contest *
+vmp.tts	! five nine #
+vmp.tts	@
+vmp.tts	{MYCALL} {mycall}
+vmp.tts	  a   b \u0020
+vmp.tts	{OPERATOR}
+vmp.tts	{CALL}{NR}
+vmp.tts	{FREQ}
+vmp.tts	<empty>
+vmp.expand	{OPERATOR}/CQ.wav	ok1xoe
+vmp.expand	{WAVDIR}\\CQ.wav	 ok1xoe\u0020
+vmp.expand	{operator}/x	<empty>
+vmp.expand	{Operator}/x	A
+vmp.expand	a\\b\\c	<null>
+vmp.expand	{OPERATOR}{OPERATOR}	\u0130
+vmp.record	{OPERATOR}/CQ.wav	OK1XOE
+vmp.record	a.wav,b.wav	x
+vmp.record		x
+vmp.record	 , cq.WAV ,	x
+vmp.record	empty.wav	x
+vmp.record	cq.mp3	x
+vmp.record	/abs/cq.wav	x
+vmp.record	../up.wav	x
+vmp.record	[tts].wav	x
+vmp.record	#	x
+vmp.record	<null>	x
+vmp.record	{OPERATOR}/CQ.wav	<null>
+vmp.dir	LettersFiles/{OPERATOR}	OK1XOE
+vmp.dir	/abs/letters	x
+vmp.dir	../l	x
+vmp.dir		x
+vmp.dir	./L/./x/..	y
+vmp.dir	{OPERATOR}	<null>
+vmp.voice	<empty>
+vmp.voice	 Zuzana\u0020
+vmp.voice	<null>
+vmp.voice	Daniel
+vmp.voice	\u017Daneta
+vmp.text	CQ
+vmp.text	CQ test
+vmp.text	\u017Elu\u0165ou\u010Dk\u00FD
+vmp.text	<empty>
+vmp.text	\uD83D\uDE00
+
+# RigModelFilter — modely a dotazy (ß, É, İ, _, [).
+rmf.model	1	Hamlib	Dummy
+rmf.model	2	hamlib	NET rigctl
+rmf.model	3	\u00C9lan	X
+rmf.model	4	elan	y
+rmf.model	5	Zeta	a
+rmf.model	6	\u00DF	S
+rmf.model	7	SS	s
+rmf.model	8	Kenwood	TS-590SG
+rmf.model	9	kenwood	ts-590s
+rmf.model	10	I\u0130	z
+rmf.model	11	_x	z
+rmf.model	12	[x	z
+rmf.model	13	\u0131	z
+rmf.model	14	\uFB01	fi
+rmf.model	15	Icom	IC-7300
+rmf.model	16	ICOM	IC-705
+rmf.model	17	 Yaesu	FT-991A
+rmf.model	18	Yaesu	FT-DX10
+rmf.query	<null>	<null>
+rmf.query	<empty>	<empty>
+rmf.query	kenwood	<empty>
+rmf.query	 Kenwood 	<null>
+rmf.query	Yaesu	590
+rmf.query	<null>	SS
+rmf.query	<null>	\u00DF
+rmf.query	<null>	 net
+rmf.query	<null>	\u0130
+rmf.query	ELAN	<empty>
+rmf.query	<null>	\u00E9lan x
+rmf.query	icom	ic-7
+rmf.query	<null>	FI
+rmf.query	\u0131	<null>
+rmf.query	i\u0307	<null>
+rmf.query	<null>	7
+rmf.query	yaesu	<null>
+
+# HamlibRigList.parseLine — okrajové řádky (vedle fixtury rigctl -l).
+rl.edge	<empty>
+rl.edge	\u0020\u0020
+rl.edge	x y z
+rl.edge	12 A
+rl.edge	12 A B
+rl.edge	+12 Mfg Model
+rl.edge	\u0661\u0662 Mfg M
+rl.edge	2147483648 M X
+rl.edge	7 Mfg Model 1.0
+rl.edge	7 Mfg Model Beta
+rl.edge	7 Mfg Model beta
+rl.edge	7 Mfg 123456
+rl.edge	7 Mfg 12345 X
+rl.edge	7 Mfg IC-7300 Stable rig
+rl.edge	\t7\tMfg\tModel
+rl.edge	7\u00A0Mfg Model
+rl.edge	 7 Mfg Model 20240101.0 Stable RIG_MODEL_X
+
+# RigctldProcessManager.normalizeDevice.
+pm.device	<null>
+pm.device	<empty>
+pm.device	\u0020\u0020
+pm.device	cu.usbserial-X
+pm.device	 cu.x\u0020
+pm.device	/dev/cu.x
+pm.device	COM3
+pm.device	a/b
+pm.device	localhost:4532
+pm.device	tty.x
+pm.device	\u00A0cu.x
+pm.device	/dev/
+pm.device	cu.\u017E
+
+# N1mmRotorUdp — jména rotátoru.
+rot.name	R
+rot.name	<null>
+rot.name	<empty>
+rot.name	a&b<c>"'\u017E
+rot.name	]]>

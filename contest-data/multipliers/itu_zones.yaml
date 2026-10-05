@@ -1,0 +1,8 @@
+schemaVersion: 1
+id: itu_zones
+kind: FIXED
+keyType: INTEGER
+enumerable: true
+metadata: { name: "ITU Zones", description: "ITU zóny 1-75 (IARU HF Championship)" }
+range: { min: 1, max: 75 }
+validation: { keyPattern: "^([1-9]|[1-6][0-9]|7[0-5])$" }
