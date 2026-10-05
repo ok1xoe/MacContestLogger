@@ -35,9 +35,9 @@ private final class FiredFlag: @unchecked Sendable {
 extension Trait where Self == TimeLimitTrait {
     /// A guard against hangs for the gate tests, not a speed measure. `timeLimit` runs from the start of the test and
     /// counts the wait for the main actor: Swift Testing starts all tests at once and the main-actor tests run one after
-    /// another, so on CI (3 vCPUs) a test that is not hung takes as long as the whole run (90-100 s, 60 s was exceeded
+    /// another, so on CI (3 vCPUs) a test that is not hung takes as long as the whole run (up to ~6.5 min, 5 min was exceeded
     /// with no hang). The bound is therefore above the length of the whole run.
-    static var mainActorSafetyNet: Self { .timeLimit(.minutes(5)) }
+    static var mainActorSafetyNet: Self { .timeLimit(.minutes(30)) }
 }
 
 /// `CallDataModel`: `master.scp` and the call history loaded off the main thread, the `master.scp` download
