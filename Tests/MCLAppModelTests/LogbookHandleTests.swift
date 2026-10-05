@@ -24,16 +24,21 @@ import Testing
                 continuation.resume()
             }
         }
-        // The job holds the lock now. A reader that waits for it is released after two seconds, so a regression fails
-        // this test instead of hanging it.
+        // The job holds the lock now. A reader that waits for it is released by a watchdog, so a regression fails this
+        // test instead of hanging it. The watchdog fires only when the reader has not finished within a generous cap,
+        // never on a short fixed delay: a loaded CI runner may take seconds just to schedule the reader thread.
+        let readerDone = DispatchSemaphore(value: 0)
         Thread.detachNewThread {
-            Thread.sleep(forTimeInterval: 2)
-            released.withLock { $0 = true }
-            release.signal()
+            if readerDone.wait(timeout: .now() + 60) == .timedOut {
+                released.withLock { $0 = true }
+                release.signal()
+            }
         }
         let closed: Bool = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
             Thread.detachNewThread {
-                continuation.resume(returning: handle.isClosed)
+                let value: Bool = handle.isClosed
+                readerDone.signal()
+                continuation.resume(returning: value)
             }
         }
         let waited: Bool = released.withLock { $0 }
