@@ -100,9 +100,11 @@ public final class ImportExportModel {
         return pendingRequest
     }
 
-    /// The active contest's QSOs (Kotlin `logbook.findAll()`) on the handle's queue.
+    /// The active contest's QSOs (Kotlin `logbook.findAll()`) on the handle's queue — after a contest switch in
+    /// flight has finished, so an export right after Contest → None reads the free-logging QSOs, not the old contest's.
     func readLog() async throws -> [Qso] {
-        try await database.handle.run { access in
+        await contest.settleActivations()
+        return try await database.handle.run { access in
             try access.service.findAll()
         }
     }
