@@ -98,8 +98,7 @@ mode restriction and the pause, but still needs the service's user name and pass
   line says why (not found, login failed, network error). The button is greyed, with a
   tooltip, when the service has no credentials or the call field is empty. It works in the
   VFO B window too.
-- The log window's row menu ("Přehled spojení") has **Dohledat na HamQTH** and
-  **Dohledat na QRZ.com** (Look up on …); the bandmap's spot menu has the same as
-  **HamQTH** and **QRZ.com**. They open the call's page
+- The log window's row menu ("Přehled spojení") and the bandmap's spot menu both have
+  **Dohledat na HamQTH** and **Dohledat na QRZ.com** (Look up on …). They open the call's page
   in the browser (`https://www.hamqth.com/<CALL>`, `https://www.qrz.com/db/<CALL>`); no
   credentials are needed, and nothing is looked up through the API or written to the log.
