@@ -704,6 +704,7 @@
  "Soubor nese sloupce pásem. Vyber, ze kterého se má plán vzít.": "The file has band columns. Choose the one the plan should come from.",
  "Soubor už existuje, nechal jsem ho být. Uprav ho v textovém editoru.": "The file already exists, I left it alone. Edit it in a text editor.",
  "Souběžné spojení ukončeno": "Parallel connection closed",
+ "Souběžné spojení: %s": "Parallel connection: %s",
  "Souběžně": "In parallel",
  "Souběžně: %s": "In parallel: %s",
  "Split zapnut (vysílám na VFO B)": "Split on (transmitting on VFO B)",

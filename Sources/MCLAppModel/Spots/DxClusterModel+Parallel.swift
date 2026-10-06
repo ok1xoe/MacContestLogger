@@ -42,6 +42,45 @@ extension DxClusterModel {
         }
     }
 
+    /// One favourite the DX Cluster window offers a parallel switch for.
+    public struct ParallelChoice: Equatable, Identifiable, Sendable {
+        /// Index in the configured favourites (names may repeat).
+        public let id: Int
+        public let favorite: DxClusterFavorite
+        public let isOn: Bool
+        /// `✓` / `…` / `✗` for a switched-on favourite, `nil` when it is off.
+        public let mark: String?
+    }
+
+    /// The favourites that can run in parallel: all with a server except the one the main connection uses (no
+    /// duplicate session with the same login) and later duplicates of the same server.
+    public var parallelChoices: [ParallelChoice] {
+        let primary: String? = mainLane.session.snapshot.currentFavorite?.connectionKey
+        var seen: Set<String> = []
+        var result: [ParallelChoice] = []
+        for (index, fav) in config.config.dxCluster.favorites.enumerated() {
+            let key: String = fav.connectionKey
+            guard !KotlinStrings.isBlank(fav.host), key != primary, seen.insert(key).inserted else { continue }
+            result.append(ParallelChoice(id: index, favorite: fav, isOn: fav.parallel,
+                                         mark: fav.parallel ? ClusterTexts.stateMark(parallel[key]) : nil))
+        }
+        return result
+    }
+
+    /// The window's switch: sets the favourite's `parallel` flag (as Settings → DX Cluster → „Souběžně"), saves the
+    /// configuration and runs the same sync (closes it with „Souběžné spojení ukončeno", or connects and logs in).
+    /// Ignored for the favourite of the main connection, a blank server or an unknown index.
+    public func setParallel(_ on: Bool, favoriteAt index: Int) {
+        guard !closed, config.config.dxCluster.favorites.indices.contains(index) else { return }
+        let fav: DxClusterFavorite = config.config.dxCluster.favorites[index]
+        guard !KotlinStrings.isBlank(fav.host),
+              fav.connectionKey != mainLane.session.snapshot.currentFavorite?.connectionKey else { return }
+        guard fav.parallel != on else { return }
+        config.config.dxCluster.favorites[index].parallel = on
+        config.saveSilently()
+        syncParallelClusters()
+    }
+
     /// The parallel connections' states in the map's order (the DX Cluster window's summary).
     public var parallelSnapshots: [DxClusterSession.Snapshot] {
         parallelKeys.compactMap { parallel[$0] }

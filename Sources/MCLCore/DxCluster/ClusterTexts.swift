@@ -7,6 +7,7 @@ public enum ClusterTexts {
     public static let noCluster = "— žádný cluster —"
     public static let emptyMacro = "(prázdné)"
     public static let parallelKey = "Souběžně: %s"
+    public static let parallelToggleKey = "Souběžné spojení: %s"
     public static let macroSaveFailedKey = "Uložení tlačítka selhalo (%s)"
 
     /// `favLabel`: the name, else the host, else `tr("— bez názvu —")` (Kotlin `ifBlank`).
@@ -35,15 +36,14 @@ public enum ClusterTexts {
     /// `" ✓"` logged in, `" …"` connected, `" ✗"` otherwise.
     public static func parallelItem(_ snapshot: DxClusterSession.Snapshot) -> String {
         let name: String? = snapshot.currentFavorite.flatMap { KotlinText.isBlank($0.name) ? nil : $0.name }
-        let mark: String
-        if snapshot.loggedIn {
-            mark = " ✓"
-        } else if snapshot.connected {
-            mark = " …"
-        } else {
-            mark = " ✗"
-        }
-        return (name ?? snapshot.status) + mark
+        return (name ?? snapshot.status) + " " + stateMark(snapshot)
+    }
+
+    /// `✓` logged in, `…` connected, `✗` otherwise (also without a connection at all).
+    public static func stateMark(_ snapshot: DxClusterSession.Snapshot?) -> String {
+        guard let snapshot else { return "✗" }
+        if snapshot.loggedIn { return "✓" }
+        return snapshot.connected ? "…" : "✗"
     }
 
     /// `tr("Souběžně: %s", …)` over the parallel connections joined by `" · "`; `nil` when there are none (the row is
