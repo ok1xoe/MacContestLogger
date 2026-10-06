@@ -1109,6 +1109,7 @@
  "Síť je vypnutá (MCL_INERT_NETWORK)": "Network is disabled (MCL_INERT_NETWORK)",
  "Chybí přihlašovací údaje": "Credentials missing",
  "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "No frequency entered — connect the radio or type it into the frequency field",
+ "Použít": "Apply",
  "Aktualizovat DXCC z Club Logu": "Update DXCC from Club Log",
  "DXCC z Club Logu (cty.xml)": "DXCC from Club Log (cty.xml)",
  "Používat DXCC z Club Logu (stažení nejvýš jednou denně)": "Use DXCC from Club Log (downloaded at most once a day)",

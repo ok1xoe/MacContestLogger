@@ -24,6 +24,16 @@ All Settings tabs are functional (the earlier mock-ups of the N1MM layout have b
 | Score Reporting | online scoreboard, Club Log Live Stream, DXCC from Club Log ([DXCC data](dxcc-data.md)) |
 | Broadcast Data, WSJT/JTDX, Audio, Stanice (Station), Závod (Contest), Cluster, DX Cluster, Online callbooks, Bandplán (Band plan), Digi frekvence (Digi frequencies), Mapa (Map) | unchanged |
 
+## OK, Apply and Cancel
+
+The buttons at the bottom are **OK**, **Použít** (Apply) and **Zrušit** (Cancel).
+OK saves everything and closes the window. **Apply** (also ⌘S) does exactly the
+same save and applies the same changes (reconnects, language, keys, ...) but keeps
+the window open on the same tab, so you can carry on editing; it is greyed out
+while nothing has changed. Cancel afterwards closes the window without undoing what
+was applied. If saving fails, the window stays open with your edits and an error is
+shown, for both OK and Apply.
+
 ## Interface language
 
 The texts in the application are in Czech and are translated using files in the

@@ -492,6 +492,74 @@ import Testing
         await app.model.autoBackup.settle()
         #expect(AutoBackupTests.backups(dir).count == 1)
     }
+
+    /// Apply commits and saves like OK, keeps the window and the tab, re-reads the draft from the committed
+    /// configuration (nothing left to apply), a second Apply commits the next edits and Cancel afterwards keeps
+    /// what was applied.
+    @Test func applyCommitsKeepsTheWindowOpenAndCancelKeepsTheResult() async throws {
+        let harness = try await SettingsHarness.make()
+        let model: AppModel = harness.model
+        var draft: ConfigurerDraft = try await harness.openWithDraft()
+        #expect(!harness.settings.hasChanges)
+        harness.settings.select(.station)
+        draft.call = "OK9ZZZ"
+        harness.settings.draft = draft
+        #expect(harness.settings.hasChanges)
+
+        #expect(await harness.settings.apply())
+
+        #expect(harness.settings.isOpen)
+        #expect(harness.settings.selected == .station)
+        #expect(model.config.config.station.call == "OK9ZZZ")
+        #expect(harness.app.savedConfig().station.call == "OK9ZZZ")
+        #expect(model.status.message == "Nastavení uloženo")
+        #expect(harness.settings.draft?.call == "OK9ZZZ")
+        #expect(!harness.settings.hasChanges)
+        #expect(model.config.revision == 1)
+
+        // Nothing changed: Apply does nothing.
+        #expect(!(await harness.settings.apply()))
+        #expect(model.config.revision == 1)
+
+        var next: ConfigurerDraft = try #require(harness.settings.draft)
+        next.call = "OK8YYY"
+        harness.settings.draft = next
+        #expect(harness.settings.hasChanges)
+        #expect(await harness.settings.apply())
+        #expect(model.config.config.station.call == "OK8YYY")
+        #expect(model.config.revision == 2)
+
+        var unsaved: ConfigurerDraft = try #require(harness.settings.draft)
+        unsaved.call = "OK7XXX"
+        harness.settings.draft = unsaved
+        harness.settings.cancel()
+        #expect(!harness.settings.isOpen)
+        #expect(model.config.config.station.call == "OK8YYY")
+        #expect(harness.app.savedConfig().station.call == "OK8YYY")
+    }
+
+    /// A failed write on Apply (the error path of the commit) keeps the window, the draft and its changes marked.
+    @Test func applyWithFailedWriteKeepsDraftAndChanges() async throws {
+        let harness = try await SettingsHarness.make()
+        let model: AppModel = harness.model
+        var draft: ConfigurerDraft = try await harness.openWithDraft()
+        draft.call = "OK9ZZZ"
+        harness.settings.draft = draft
+        harness.writer.setFailing(true)
+
+        #expect(!(await harness.settings.apply()))
+
+        #expect(harness.settings.isOpen)
+        #expect(harness.settings.draft == draft)
+        #expect(harness.settings.hasChanges)
+        #expect(model.status.message == "Uložení nastavení selhalo: disk full")
+        #expect(model.config.config.station.call == "OK1XOE")
+
+        harness.writer.setFailing(false)
+        #expect(await harness.settings.apply())
+        #expect(model.config.config.station.call == "OK9ZZZ")
+        #expect(!harness.settings.hasChanges)
+    }
 }
 
 /// The first of several outcomes, awaited without polling: `open` resumes the waiter once; later calls are ignored.
