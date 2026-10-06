@@ -68,17 +68,13 @@ public final class LogTableModel {
     @ObservationIgnored private var work: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored private var workCounter: Int = 0
 
-    /// „Dohledat na …": looks a call up on a callbook and shows the result window.
-    @ObservationIgnored private let lookupCall: @MainActor (String, CallbookService) -> Void
-    /// Does the callbook have credentials?
-    @ObservationIgnored private let isConfigured: @MainActor (CallbookService) -> Bool
+    /// „Dohledat na …": opens a call's page on a callbook in the browser.
+    @ObservationIgnored private let openCallPage: @MainActor (String, CallbookService) -> Void
 
     public init(logbook: LogbookModel, windows: WindowsModel, status: StatusModel,
                 playRecording: @escaping @MainActor (Qso) -> Void = { _ in },
-                lookupCall: @escaping @MainActor (String, CallbookService) -> Void = { _, _ in },
-                isConfigured: @escaping @MainActor (CallbookService) -> Bool = { _ in false }) {
-        self.lookupCall = lookupCall
-        self.isConfigured = isConfigured
+                openCallPage: @escaping @MainActor (String, CallbookService) -> Void = { _, _ in }) {
+        self.openCallPage = openCallPage
         self.logbook = logbook
         self.windows = windows
         self.status = status
@@ -88,10 +84,9 @@ public final class LogTableModel {
     public convenience init(app: AppModel) {
         self.init(logbook: app.logbook, windows: app.windows, status: app.status,
                   playRecording: { [weak recording = app.recording] qso in recording?.playQsoRecording(qso) },
-                  lookupCall: { [weak callbook = app.callbook] call, service in
-                      callbook?.lookupInWindow(call, service: service)
-                  },
-                  isConfigured: { [weak callbook = app.callbook] service in callbook?.isConfigured(service) ?? false })
+                  openCallPage: { [weak callbook = app.callbook] call, service in
+                      callbook?.openPage(call, on: service)
+                  })
     }
 
     // MARK: - selection
@@ -228,11 +223,13 @@ public final class LogTableModel {
         return [.toggleXqso(isXqso: qso.xqso), .playRecording, .deleteOne]
     }
 
-    /// „Dohledat na HamQTH" / „Dohledat na QRZ.com" of the row's menu: the row's call, each greyed without the
-    /// service's credentials. Read-only — nothing is written to the logbook.
+    /// „Dohledat na HamQTH" / „Dohledat na QRZ.com" of the row's menu: open the row's call page on the service in
+    /// the browser. Always enabled (a web page needs no credentials) unless the row has no call. Nothing is written
+    /// to the logbook.
     public func lookupItems(forRow id: Int64?) -> [LookupItem] {
-        guard let id, let qso = row(id), !KotlinStrings.isBlank(qso.call) else { return [] }
-        return CallbookService.allCases.map { LookupItem(service: $0, isEnabled: isConfigured($0), call: qso.call) }
+        guard let id, let qso = row(id) else { return [] }
+        let hasCall: Bool = !KotlinStrings.isBlank(qso.call)
+        return CallbookService.allCases.map { LookupItem(service: $0, isEnabled: hasCall, call: qso.call) }
     }
 
     /// One lookup entry of the context menu.
@@ -249,7 +246,7 @@ public final class LogTableModel {
     /// Runs a lookup entry of the context menu.
     public func perform(_ item: LookupItem) {
         guard item.isEnabled else { return }
-        lookupCall(item.call, item.service)
+        openCallPage(item.call, item.service)
     }
 
     /// Runs a context menu item chosen on the row `id`.

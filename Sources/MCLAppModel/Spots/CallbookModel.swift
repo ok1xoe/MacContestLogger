@@ -30,8 +30,6 @@ public final class CallbookModel {
     public private(set) var callbookRecord: CallbookHit?
     /// What the entry window's lookup button found for its call (shown on the callbook line when not found).
     public private(set) var entryLookup: ManualLookupResult?
-    /// The result window's content (the log and band map menus); `nil` = nothing asked yet.
-    public private(set) var windowLookup: ManualLookupResult?
     /// Rises when the offline grid data have loaded (a spot analysis built before must be rebuilt).
     public private(set) var gridGeneration: Int = 0
 
@@ -47,8 +45,6 @@ public final class CallbookModel {
     @ObservationIgnored private var gridRequested = false
     @ObservationIgnored private var hamQth: HamQthClient
     @ObservationIgnored private var qrz: QrzClient
-    /// Opens the result window (wired by the app to `DialogsModel`).
-    @ObservationIgnored var showLookupWindow: @MainActor () -> Void = {}
     /// The current spot analysis (needs-lookup gate, spot category); wired by the app.
     @ObservationIgnored var analyzer: @MainActor () -> SpotAnalyzer? = { nil }
 
@@ -186,21 +182,10 @@ public final class CallbookModel {
         }
     }
 
-    /// The log and band map menus: looks `call` up on `service` and shows the result window.
-    public func lookupInWindow(_ call: String, service: CallbookService) {
-        let key: String = CallbookPolicy.key(call)
-        guard !key.isEmpty else { return }
-        windowLookup = ManualLookupResult(call: key, service: service, state: .loading)
-        showLookupWindow()
-        runManual(key, service) { [weak self] result in
-            guard let self, self.windowLookup?.call == key, self.windowLookup?.service == service else { return }
-            self.windowLookup = result
-        }
-    }
-
-    /// „Otevřít na webu" of the result window.
-    public func openOnWeb(_ result: ManualLookupResult) {
-        open(result.service.pageURL(call: result.call))
+    /// The log and band map menus: opens the service's page of `call` in the browser (no credentials needed).
+    public func openPage(_ call: String, on service: CallbookService) {
+        guard !CallbookPolicy.key(call).isEmpty else { return }
+        open(service.pageURL(call: call))
     }
 
     private func runManual(_ key: String, _ service: CallbookService,

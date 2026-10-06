@@ -386,7 +386,7 @@ final class BandmapCanvas: NSView {
             addItem(menu, "HamQTH") { model.openHamQth(spot) }
             for service in CallbookService.allCases {
                 addItem(menu, language.tr("Dohledat na %s", .string(service.displayName)),
-                        enabled: model.canLookup(on: service)) { model.lookup(spot, on: service) }
+                        enabled: model.canLookup(spot)) { model.lookup(spot, on: service) }
             }
             menu.addItem(.separator())
         }
