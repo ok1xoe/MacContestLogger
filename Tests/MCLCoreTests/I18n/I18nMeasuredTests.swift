@@ -18,13 +18,13 @@ import Testing
     /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
-        "81929": "86599", "afc6becd4f499483": "638d2c4081bd5b3f",
-        "87423": "92452", "d0c67e41ffca0e5d": "b20fd7857add2830",
-        "1006": "1110",
+        "81929": "86621", "afc6becd4f499483": "655182ab20e61c3a",
+        "87423": "92477", "d0c67e41ffca0e5d": "02c8517988e72be9",
+        "1006": "1111",
         "cc0ee26c076bc811dcc8325b5de39f43b89e7c0e8805e23db59cea0b4def8a4f":
-            "3e6c3a4a856d3c9bedc9bd01da8bf4bb4df4d293146281072f74db789f88cfdd",
+            "4687d619b814a0db974996ae1e7663395894fbb4352f719f2cb20346645d5863",
         "2c37f524ad0b3da50e3eac30e91daf1f8bbe8353c3f844467c667a8f5f881bdb":
-            "6f1be07ec78302f3e64fbc50728b9a6ba16f2066ff4794b7cd3a23cc44c1a665",
+            "fe8110e6dd0f633176474a6f816c81d9408316444732c0803c60408784fb757f",
     ]
 
     /// A Java cell describing a shipped file, adjusted to the Swift files (`shippedFileCells`). Only whole

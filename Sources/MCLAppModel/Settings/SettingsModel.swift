@@ -28,6 +28,14 @@ public final class SettingsModel {
     public private(set) var selected: ConfigurerTab = .hardware
     /// The edited configuration; `nil` while it is being read.
     public var draft: ConfigurerDraft?
+    /// The draft as it was read from the committed configuration (opening, or the last Apply); `draft` differs
+    /// from it exactly when there is something to apply.
+    public private(set) var savedDraft: ConfigurerDraft?
+    /// The draft has edits not yet committed (enables „Použít").
+    public var hasChanges: Bool {
+        guard let draft else { return false }
+        return draft != savedDraft
+    }
     /// A commit is running (OK, „Uložit a připojit" and „Odeslat teď" are disabled).
     public internal(set) var isSaving: Bool = false
 
@@ -130,6 +138,7 @@ public final class SettingsModel {
         closeWhenSaved = false
         isOpen = false
         draft = nil
+        savedDraft = nil
         draftGeneration += 1
         draftTask = nil
     }
@@ -149,6 +158,7 @@ public final class SettingsModel {
         draftGeneration += 1
         let generation: Int = draftGeneration
         draft = nil
+        savedDraft = nil
         let snapshot: AppConfig = config.config
         let defaultDir: String = defaultContestDataDir
         let dir: URL = ContestEnvironment.dataRoot(configured: snapshot.contestDataDir, fallback: defaultDir)
@@ -157,8 +167,29 @@ public final class SettingsModel {
                 (BandPlanFile.read(dir), DigiFreqFile.read(dir))
             }
             guard let self, let tables, generation == self.draftGeneration, self.isOpen else { return }
-            self.draft = ConfigurerDraft(config: snapshot, bandSegments: tables.0, digi: tables.1,
-                                         defaultContestDataDir: defaultDir)
+            let fresh = ConfigurerDraft(config: snapshot, bandSegments: tables.0, digi: tables.1,
+                                        defaultContestDataDir: defaultDir)
+            self.draft = fresh
+            self.savedDraft = fresh
         }
+    }
+
+    /// After Apply: the draft is read again from the committed configuration (and the band data from the new
+    /// directory) so further edits start from the saved state. Edits made while it was read are kept; they only
+    /// stay marked as unsaved.
+    func rereadDraft(committed: ConfigurerDraft) async {
+        let snapshot: AppConfig = config.config
+        let defaultDir: String = defaultContestDataDir
+        let dir: URL = ContestEnvironment.dataRoot(configured: snapshot.contestDataDir, fallback: defaultDir)
+        let tables: ([BandPlanFile.Segment], DigiFreqFile.Table)? = try? await BlockingQueue.run {
+            (BandPlanFile.read(dir), DigiFreqFile.read(dir))
+        }
+        guard isOpen, let tables else { return }
+        let fresh = ConfigurerDraft(config: snapshot, bandSegments: tables.0, digi: tables.1,
+                                    defaultContestDataDir: defaultDir)
+        if draft == committed {
+            draft = fresh
+        }
+        savedDraft = fresh
     }
 }
