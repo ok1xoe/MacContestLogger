@@ -89,10 +89,8 @@ import Testing
         let spot = try await Self.make(hamQth: false, qrz: false)
         let bandmap: BandmapModel = spot.model.bandmap
         let target: DxSpot = BandmapModelTests.spot("DL1ABC", 14_100_000)
-        #expect(bandmap.canLookup(target))
-        #expect(!bandmap.canLookup(BandmapModelTests.spot(" ", 14_100_000)))
-        bandmap.lookup(target, on: .qrz)
-        bandmap.lookup(target, on: .hamQth)
+        bandmap.openQrz(target)
+        bandmap.openHamQth(target)
         await eventually("pages") { spot.opener.urls.count == 2 }
         #expect(spot.opener.urls == ["https://www.qrz.com/db/DL1ABC", "https://www.hamqth.com/DL1ABC"])
         #expect(spot.http.urls.isEmpty)

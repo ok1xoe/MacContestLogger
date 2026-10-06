@@ -384,10 +384,6 @@ final class BandmapCanvas: NSView {
             addItem(menu, "Odebrat spot") { model.remove(spot) }
             addItem(menu, "QRZ.com") { model.openQrz(spot) }
             addItem(menu, "HamQTH") { model.openHamQth(spot) }
-            for service in CallbookService.allCases {
-                addItem(menu, language.tr("Dohledat na %s", .string(service.displayName)),
-                        enabled: model.canLookup(spot)) { model.lookup(spot, on: service) }
-            }
             menu.addItem(.separator())
         }
         addItem(menu, language.tr("Smazat všechny spoty")) { model.clearSpots() }

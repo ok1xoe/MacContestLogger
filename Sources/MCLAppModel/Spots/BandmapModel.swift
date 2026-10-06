@@ -278,16 +278,6 @@ public final class BandmapModel {
         callbook.openHamQth(spot.dxCall)
     }
 
-    /// „Dohledat na HamQTH" / „Dohledat na QRZ.com": opens the spot call's page on the service in the browser.
-    public func lookup(_ spot: DxSpot, on service: CallbookService) {
-        callbook.openPage(spot.dxCall, on: service)
-    }
-
-    /// The menu items need a call (no credentials: it is a web page).
-    public func canLookup(_ spot: DxSpot) -> Bool {
-        !CallbookPolicy.key(spot.dxCall).isEmpty
-    }
-
     /// `tr("Smazat všechny spoty")`.
     public func clearSpots() {
         feed.buffer.clear()
