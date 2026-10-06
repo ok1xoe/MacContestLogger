@@ -37,11 +37,16 @@ import Testing
     }
 
     @Test func remapMovesTheShortcut() throws {
-        // macOS: Ctrl+↓ is taken by Mission Control → remap to Cmd+↓.
-        let b = KeyBindings([ShortcutAction.nextSpotUp.id: "Cmd+Down"])
+        // The spot jumps default to Cmd+↓/↑ (Ctrl+arrows belong to Mission Control); a user can still remap them.
+        let defaults = KeyBindings(nil)
+        #expect(defaults.resolve(try Self.combo("Cmd+Down")) == .nextSpotUp)
+        #expect(defaults.resolve(try Self.combo("Cmd+Up")) == .nextSpotDown)
+        #expect(defaults.resolve(try Self.combo("Ctrl+Down")) == nil)
 
-        #expect(b.resolve(try Self.combo("Cmd+Down")) == .nextSpotUp)
-        #expect(b.resolve(try Self.combo("Ctrl+Down")) == nil, "the old key is free")
+        let b = KeyBindings([ShortcutAction.nextSpotUp.id: "Ctrl+Down"])
+        #expect(b.resolve(try Self.combo("Ctrl+Down")) == .nextSpotUp, "an existing override keeps working")
+        #expect(b.resolve(try Self.combo("Cmd+Down")) == nil, "the new default is free once remapped")
+        #expect(b.resolve(try Self.combo("Cmd+Up")) == .nextSpotDown)
     }
 
     @Test func emptyOverrideRemovesShortcutAndInvalidKeepsDefault() {

@@ -7,7 +7,7 @@ public enum SpotNavigator {
     static let sameSpotHz: Int = 50
 
     /// - Parameters:
-    ///   - direction: +1 = up (Ctrl+↓ in N1MM), −1 = down (Ctrl+↑); anything ≤ 0 is "down".
+    ///   - direction: +1 = up (Ctrl+↓ in N1MM, Cmd+↓ here), −1 = down (Ctrl+↑ / Cmd+↑); anything ≤ 0 is "down".
     /// - Returns: the nearest matching spot; on equal distance the **first in the order** of `spots`
     ///   (Java `Stream.min`).
     ///

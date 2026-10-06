@@ -126,7 +126,7 @@ import Testing
             "switch_radio BACK_SLASH", "so2r_stereo BACK_QUOTE", "cw_keyboard Ctrl+K",
             "pass_call Ctrl+Alt+P", "pop_stack Ctrl+Alt+K", "rotor_turn Alt+J", "rotor_long Ctrl+Alt+J",
             "rotor_stop Alt+L", "next_antenna Ctrl+Alt+A", "band_up Ctrl+PAGE_UP", "band_down Ctrl+PAGE_DOWN",
-            "spot_up Ctrl+DOWN", "spot_down Ctrl+UP", "mult_up Ctrl+Alt+DOWN", "mult_down Ctrl+Alt+UP",
+            "spot_up Cmd+DOWN", "spot_down Cmd+UP", "mult_up Ctrl+Alt+DOWN", "mult_down Ctrl+Alt+UP",
             "self_up Alt+Shift+DOWN", "self_down Alt+Shift+UP", "spot Alt+P", "spot_comment Ctrl+P",
             "store Alt+O", "mark Alt+M", "remove_spot Alt+D", "remove_blacklist Alt+Shift+D",
             "dx_window Ctrl+TAB",

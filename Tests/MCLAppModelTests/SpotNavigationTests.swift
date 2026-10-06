@@ -77,6 +77,30 @@ import Testing
         #expect(model.status.message == "Žádný spot níž na pásmu")
     }
 
+    /// Cmd+↓/↑ jump between spots from the callsign field: the key flow consumes them before the field (which would
+    /// move the caret to the end/start).
+    @Test func cmdArrowsJumpBetweenSpotsAndAreConsumed() async throws {
+        let spot = try await Self.contestApp()
+        let model: AppModel = spot.model
+        model.dxCluster.spots.add(Self.spot("DL2XYZ", 14_025_000))
+        model.dxCluster.spots.add(Self.spot("W1AW", 14_030_000))
+        model.rig.qsy(14_020_000)
+        let flow = EntryKeyFlow(entry: model.entry)
+        func key(_ code: UInt16, _ flags: UInt) -> MacKeyEvent {
+            // AppKit reports an arrow key with a private-use character (U+F701 down, U+F700 up).
+            let arrow: String = code == 0x7D ? "\u{F701}" : "\u{F700}"
+            return MacKeyEvent(kind: .keyDown, keyCode: code, characters: arrow, charactersIgnoringModifiers: arrow,
+                               modifierFlags: flags)
+        }
+        let cmd: UInt = AwtKeyCodes.macCommandFlag
+        #expect(flow.process(key(0x7D, cmd), target: .entry(.call)))
+        #expect(model.rig.tuning.tunedFreqHz == 14_025_000)
+        #expect(flow.process(key(0x7D, cmd), target: .entry(.call)))
+        #expect(model.rig.tuning.tunedFreqHz == 14_030_000)
+        #expect(flow.process(key(0x7E, cmd), target: .entry(.call)))
+        #expect(model.rig.tuning.tunedFreqHz == 14_025_000)
+    }
+
     // MARK: - Alt+D, Mark, Store
 
     /// Alt+D with an empty field takes the nearest spot within 200 Hz of the tuned frequency (inclusive); every spot of

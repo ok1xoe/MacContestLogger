@@ -14,6 +14,11 @@ public struct KeyBindings: Sendable {
     /// - Parameter overrides: user remapping (action id → keys), may be `nil`.
     ///   The id is looked up with Java equality (by UTF-16 units).
     public init(_ overrides: [String: String]?) {
+        self.init(overrides, defaults: { $0.defaultCombo() })
+    }
+
+    /// `defaults` supplies the key of an action nobody remapped; the Java parity tests pass the v1.1.1 defaults.
+    init(_ overrides: [String: String]?, defaults: (ShortcutAction) -> KeyCombo) {
         var remap: [JavaStringKey: String] = [:]
         for (id, value) in overrides ?? [:] {
             remap[JavaStringKey(id)] = value
@@ -21,7 +26,7 @@ public struct KeyBindings: Sendable {
         var actions: [ShortcutAction: KeyCombo] = [:]
         var overridden: Set<ShortcutAction> = []
         for action in ShortcutAction.allCases {
-            var combo: KeyCombo? = action.defaultCombo()
+            var combo: KeyCombo? = defaults(action)
             if let value = remap[JavaStringKey(action.id)] {
                 overridden.insert(action)
                 combo = KeyBindings.overrideCombo(value, fallback: combo)

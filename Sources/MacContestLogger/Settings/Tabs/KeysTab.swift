@@ -90,7 +90,7 @@ struct KeysTab: View {
         let first: String = language.tr(
             "Tučně = přemapováno. Při kolizi platí přemapovaná akce. Na Macu je Alt klávesa Option (⌥); ")
         let second: String = language.tr(
-            "Ctrl+šipky bere macOS pro Mission Control — skoky na spoty jde přemapovat třeba na Cmd+↓/↑. ")
+            "Skoky na spoty jsou na Cmd+↓/↑, protože Ctrl+šipky bere macOS pro Mission Control. ")
         let third: String = language.tr(
             "F1–F12 (zprávy), Enter, Esc, Tab, mezerník a šipky pro ladění se nepřemapovávají.")
         return SettingsCaption(first + second + third)
