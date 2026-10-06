@@ -27,6 +27,20 @@ public final class BandmapModel {
     @ObservationIgnored private let blacklist: BlacklistModel
     @ObservationIgnored private let callbook: CallbookModel
     @ObservationIgnored private let rig: RigModel
+    /// The spot actions of the entry windows (Remove spot of a call); wired by `AppModel`.
+    @ObservationIgnored weak var spotNavigation: SpotNavigation?
+    /// The entry window the spot keys act for (the active one); wired by `AppModel`.
+    @ObservationIgnored var keyEntry: (@MainActor () -> EntryModel?)?
+    /// Where the mouse last was over the map, in the canvas' coordinates; `nil` = outside.
+    @ObservationIgnored private var pointer: Pointer?
+
+    private struct Pointer {
+        let x: Float
+        let y: Float
+        let height: Float
+        let axisX: Float
+        let rowH: Float
+    }
 
     struct Dependencies {
         let feed: SpotFeed
@@ -242,6 +256,45 @@ public final class BandmapModel {
         storedViewport = window
         storedBand = band
         viewportRevision += 1
+    }
+
+    // MARK: - keys
+
+    /// The mouse moved over the map (the canvas' coordinates); the spot under it is the target of Alt+D.
+    public func pointerMoved(x: Float, y: Float, height: Float, axisX: Float, rowH: Float) {
+        pointer = Pointer(x: x, y: y, height: height, axisX: axisX, rowH: rowH)
+    }
+
+    /// The mouse left the map.
+    public func pointerLeft() {
+        pointer = nil
+    }
+
+    /// The spot label under the mouse (right of the axis), if any.
+    public var hoveredSpot: DxSpot? {
+        guard let pointer else { return nil }
+        return menuSpot(x: pointer.x, y: pointer.y, height: pointer.height, axisX: pointer.axisX, rowH: pointer.rowH)
+    }
+
+    /// The spot shortcuts while the Bandmap window is the key window: Mark (Alt+M), Remove spot (Alt+D) and Remove
+    /// spot + blacklist (Alt+Shift+D) by the user's key bindings, the key translated like the entry's. Mark acts as
+    /// the entry's (the active entry window's frequency); Remove takes the spot under the mouse, otherwise it acts as
+    /// the entry's (the call field, or the spot nearest to the tuned frequency). `true` = consumed (press and
+    /// release of a bound spot key); every other key is left to AppKit.
+    public func handleKey(_ event: MacKeyEvent) -> Bool {
+        guard event.kind != .flagsChanged, let stroke = AwtKeyCodes.translateForLayout(event) else { return false }
+        let combo = KeyCombo(ctrl: stroke.isControlDown, alt: stroke.isAltDown, shift: stroke.isShiftDown,
+                             meta: stroke.isMetaDown, keyCode: stroke.vk)
+        guard let action = KeyBindings(config.config.keyBindings).resolve(combo),
+              action == .mark || action == .removeSpot || action == .removeSpotBlacklist else { return false }
+        guard (stroke.phase == .pressed) != action.onKeyUp, !event.isARepeat else { return true }
+        guard let entry = keyEntry?(), entry.acceptsInput else { return true }
+        if action != .mark, let spot = hoveredSpot, let spots = spotNavigation {
+            spots.removeSpotOf(call: spot.dxCall, blacklist: action == .removeSpotBlacklist)
+        } else {
+            entry.runShortcut(action)
+        }
+        return true
     }
 
     // MARK: - context menu

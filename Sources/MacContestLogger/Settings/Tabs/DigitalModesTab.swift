@@ -17,7 +17,7 @@ struct DigitalModesTab: View {
                         draft.dataMode = $0
                     }
                 }
-                .frame(width: 280, alignment: .leading)
+                .frame(maxWidth: 280, alignment: .leading)
                 SettingsCaption(language.tr(
                     "Např. FT8, když datovým režimem rigu děláš jen FT8. QSO z WSJT-X / JTDX si mód nesou sama (záložka WSJT/JTDX)."))
             }

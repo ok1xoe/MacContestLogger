@@ -77,6 +77,30 @@ import Testing
         #expect(model.status.message == "Žádný spot níž na pásmu")
     }
 
+    /// Cmd+↓/↑ jump between spots from the callsign field: the key flow consumes them before the field (which would
+    /// move the caret to the end/start).
+    @Test func cmdArrowsJumpBetweenSpotsAndAreConsumed() async throws {
+        let spot = try await Self.contestApp()
+        let model: AppModel = spot.model
+        model.dxCluster.spots.add(Self.spot("DL2XYZ", 14_025_000))
+        model.dxCluster.spots.add(Self.spot("W1AW", 14_030_000))
+        model.rig.qsy(14_020_000)
+        let flow = EntryKeyFlow(entry: model.entry)
+        func key(_ code: UInt16, _ flags: UInt) -> MacKeyEvent {
+            // AppKit reports an arrow key with a private-use character (U+F701 down, U+F700 up).
+            let arrow: String = code == 0x7D ? "\u{F701}" : "\u{F700}"
+            return MacKeyEvent(kind: .keyDown, keyCode: code, characters: arrow, charactersIgnoringModifiers: arrow,
+                               modifierFlags: flags)
+        }
+        let cmd: UInt = AwtKeyCodes.macCommandFlag
+        #expect(flow.process(key(0x7D, cmd), target: .entry(.call)))
+        #expect(model.rig.tuning.tunedFreqHz == 14_025_000)
+        #expect(flow.process(key(0x7D, cmd), target: .entry(.call)))
+        #expect(model.rig.tuning.tunedFreqHz == 14_030_000)
+        #expect(flow.process(key(0x7E, cmd), target: .entry(.call)))
+        #expect(model.rig.tuning.tunedFreqHz == 14_025_000)
+    }
+
     // MARK: - Alt+D, Mark, Store
 
     /// Alt+D with an empty field takes the nearest spot within 200 Hz of the tuned frequency (inclusive); every spot of
@@ -118,10 +142,60 @@ import Testing
         model.entry.markButton()
         #expect(model.entry.focusRequest == focus + 1)
         model.status.clear()
+        // Without a frequency (no rig, empty field) nothing is added and the status says why.
         model.entry.setFrequency("")
         model.entry.runShortcut(.mark)
         #expect(model.dxCluster.spots.snapshot().count == 1)
-        #expect(model.status.message.isEmpty)
+        #expect(model.status.message == Self.noFrequency)
+        model.status.clear()
+        model.entry.markButton()
+        #expect(model.dxCluster.spots.snapshot().count == 1)
+        #expect(model.status.message == Self.noFrequency)
+    }
+
+    static let noFrequency = "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu"
+
+    /// Store without a frequency adds no spot at 0 Hz and does not claim it stored anything (Alt+O and the button).
+    @Test func storeNeedsAFrequency() async throws {
+        let spot = try await SpotApp.make()
+        let model: AppModel = spot.model
+        model.entry.setFrequency("")
+        model.entry.callChanged("ok1abc")
+        model.entry.runShortcut(.store)
+        #expect(model.dxCluster.spots.snapshot().isEmpty)
+        #expect(model.status.message == Self.noFrequency)
+        model.status.clear()
+        model.entry.storeCall()
+        #expect(model.dxCluster.spots.snapshot().isEmpty)
+        #expect(model.status.message == Self.noFrequency)
+        // A blank call is still reported first; with a frequency the store works.
+        model.entry.callChanged("")
+        model.entry.storeCall()
+        #expect(model.status.message == "Store: zadej volačku")
+        model.entry.setFrequency("14025")
+        model.entry.callChanged("ok1abc")
+        model.entry.storeCall()
+        #expect(model.dxCluster.spots.snapshot().map(\.freqHz) == [14_025_000])
+    }
+
+    /// Spot It and Ctrl+P never send a spot at 0 Hz to the cluster, connected or not; Ctrl+P does not even prompt.
+    @Test func clusterSpotsNeedAFrequency() async throws {
+        let spot = try await SpotApp.make()
+        let model: AppModel = spot.model
+        await spot.connectMain(spot.server.favorite(name: "Fake"))
+        model.entry.setFrequency("")
+        model.entry.callChanged("dl1abc")
+        model.entry.spotIt()
+        #expect(model.status.message == Self.noFrequency)
+        model.status.clear()
+        model.entry.runShortcut(.spotWithComment)
+        #expect(model.status.message == Self.noFrequency)
+        #expect(model.dialogs.textPrompt == nil)
+        #expect(spot.server.lines(0).isEmpty)
+        // Alt+D without a call finds no spot near 0 Hz and just says so.
+        model.entry.callChanged("")
+        model.entry.runShortcut(.removeSpot)
+        #expect(model.status.message == "Alt+D: na frekvenci ani v poli volačky není spot")
     }
 
     /// Store (Alt+O): the call of the field into the band map as my own spot; a blank call or a command is refused.

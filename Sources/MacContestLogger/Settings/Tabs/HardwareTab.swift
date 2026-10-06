@@ -48,9 +48,11 @@ struct HardwareTab: View {
     private var rigRow: some View {
         HStack(spacing: 8) {
             HardwareCell(text: HardwareSummary.cell(draft.device))
-                .frame(width: HardwareGridHeader.port)
+                .frame(minWidth: HardwareGridHeader.portMin, idealWidth: HardwareGridHeader.port,
+                       maxWidth: HardwareGridHeader.port)
             HardwareCell(text: HardwareSummary.cell(draft.rigModelLabel))
-                .frame(width: HardwareGridHeader.radio)
+                .frame(minWidth: HardwareGridHeader.radioMin, idealWidth: HardwareGridHeader.radio,
+                       maxWidth: HardwareGridHeader.radio)
             Color.clear
                 .frame(width: HardwareGridHeader.digi, height: 1)
             Color.clear
@@ -79,14 +81,19 @@ struct HardwareTab: View {
 private struct HardwareGridHeader: View {
     static let port: CGFloat = 150
     static let radio: CGFloat = 180
+    /// The port and radio columns shrink to these in a narrow window (the grid never overflows the detail area).
+    static let portMin: CGFloat = 70
+    static let radioMin: CGFloat = 80
     static let digi: CGFloat = 40
     static let cw: CGFloat = 64
     static let action: CGFloat = 56
 
     var body: some View {
         HStack(spacing: 8) {
-            SettingsCaption("Port").frame(width: Self.port, alignment: .leading)
-            SettingsCaption("Radio").frame(width: Self.radio, alignment: .leading)
+            SettingsCaption("Port")
+                .frame(minWidth: Self.portMin, idealWidth: Self.port, maxWidth: Self.port, alignment: .leading)
+            SettingsCaption("Radio")
+                .frame(minWidth: Self.radioMin, idealWidth: Self.radio, maxWidth: Self.radio, alignment: .leading)
             SettingsCaption("Digi").frame(width: Self.digi, alignment: .leading)
             SettingsCaption("CW/Other").frame(width: Self.cw, alignment: .leading)
             SettingsCaption("Details").frame(width: Self.action, alignment: .leading)

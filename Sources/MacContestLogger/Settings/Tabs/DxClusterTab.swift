@@ -42,23 +42,24 @@ struct DxClusterTab: View {
     }
 
     private var parameters: some View {
-        HStack(alignment: .top, spacing: 8) {
+        // Wraps onto further lines when the detail area is narrow (a fixed-width row would overflow it).
+        FlowLayout(spacing: 8) {
             SettingsField(caption: language.tr("Buffer spotů (min)")) {
                 SettingsTextField(text: $draft.spotBufferMinutes, filter: .digits(limit: nil))
             }
-            .frame(width: 160)
+            .frame(width: 150)
             SettingsField(caption: language.tr("Krok kolečka (Hz)")) {
                 SettingsTextField(text: $draft.wheelStepHz, filter: .digits(limit: nil))
             }
-            .frame(width: 160)
+            .frame(width: 150)
             SettingsField(caption: "Krok se Shift (Hz)") {
                 SettingsTextField(text: $draft.wheelStepShiftHz, filter: .digits(limit: nil))
             }
-            .frame(width: 160)
+            .frame(width: 150)
             SettingsField(caption: language.tr("Práh self-spotu (Hz)")) {
                 SettingsTextField(text: $draft.selfSpotThresholdHz, filter: .digits(limit: nil))
             }
-            .frame(width: 160)
+            .frame(width: 150)
             SettingsField(caption: language.tr("Skimmer spoty: min. skimmerů")) {
                 SettingsTextField(text: $draft.minSkimmers, filter: .digits(limit: 2))
             }

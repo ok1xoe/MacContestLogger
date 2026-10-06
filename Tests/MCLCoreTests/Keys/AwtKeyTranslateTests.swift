@@ -206,6 +206,14 @@ import Testing
         #expect(AwtKeyCodes.translate(unknown) == nil)
         let none = MacKeyEvent(kind: .keyDown, keyCode: 0x18, characters: "", charactersIgnoringModifiers: "x")
         #expect(AwtKeyCodes.translate(none) == nil)
+        // Czech Option+M and Option+O type nothing and are no dead keys: still Alt+M / Alt+O (Mark, Store).
+        let altM = MacKeyEvent(kind: .keyDown, keyCode: 0x2E, characters: "", charactersIgnoringModifiers: "m",
+                               modifierFlags: option)
+        #expect(AwtKeyCodes.translate(altM) == AwtKeyStroke(vk: 77, location: 1, modifiers: 512, phase: .pressed))
+        let altO = MacKeyEvent(kind: .keyUp, keyCode: 0x1F, characters: "", charactersIgnoringModifiers: "o",
+                               modifierFlags: option)
+        #expect(AwtKeyCodes.translate(altO) == AwtKeyStroke(vk: 79, location: 1, modifiers: 512, phase: .released))
+        #expect(AwtKeyCodes.translateForLayout(altM)?.vk == 77)
         // `nil` characters is not a dead key.
         let noChars = MacKeyEvent(kind: .keyDown, keyCode: 0x0E, characters: nil, charactersIgnoringModifiers: "e")
         #expect(AwtKeyCodes.translate(noChars)?.vk == 69)

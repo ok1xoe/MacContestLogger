@@ -142,7 +142,7 @@
  "Ctrl+K otevře okno ze zadávacího okna": "Ctrl+K opens the window from the entry window",
  "Ctrl+N: deník je prázdný": "Ctrl+N: the log is empty",
  "Ctrl+P: zadej volačku ke spotu": "Ctrl+P: enter a callsign to spot",
- "Ctrl+šipky bere macOS pro Mission Control — skoky na spoty jde přemapovat třeba na Cmd+↓/↑. ": "macOS uses Ctrl+arrows for Mission Control — jumps to spots can be remapped to Cmd+↓/↑, for example. ",
+ "Skoky na spoty jsou na Cmd+↓/↑, protože Ctrl+šipky bere macOS pro Mission Control. ": "Spot jumps are on Cmd+↓/↑ because macOS uses Ctrl+arrows for Mission Control. ",
  "Cut čísla vypnuta": "Cut numbers off",
  "Cut čísla zapnuta (%s)": "Cut numbers on (%s)",
  "Cut čísla: %s": "Cut numbers: %s",
@@ -1103,5 +1103,6 @@
  "Chybné přihlášení (%s)": "Login failed (%s)",
  "Chyba sítě (%s)": "Network error (%s)",
  "Síť je vypnutá (MCL_INERT_NETWORK)": "Network is disabled (MCL_INERT_NETWORK)",
- "Chybí přihlašovací údaje": "Credentials missing"
+ "Chybí přihlašovací údaje": "Credentials missing",
+ "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "No frequency entered — connect the radio or type it into the frequency field"
 }

@@ -72,6 +72,11 @@ import Testing
         #expect(nilCall == .accepted(SpotActions.DxTarget(call: "", freqHz: 7_000_000)))
         #expect(SpotActions.spotItTarget(call: "", isCommand: false, fieldFreqHz: 0, lastQso: nil)
             == .rejected(.tr("Spot: není co spotovat")))
+        // A call in the field without a frequency is not spotted at 0 Hz.
+        #expect(SpotActions.spotItTarget(call: "ok1abc", isCommand: false, fieldFreqHz: 0,
+                                         lastQso: (call: "DL1X", freqHz: 7_000_000))
+            == .rejected(.tr(SpotActions.noFrequency)))
+        #expect(SpotActions.noFrequency == "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu")
     }
 
     /// Ctrl+P (`AS:894-900`): a blank call refuses, the title is `"Spot " + call` as typed.

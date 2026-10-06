@@ -70,7 +70,13 @@ extension AwtKeyCodes {
     static func keyInfo(_ event: MacKeyEvent) -> (Int32, Int32)? {
         // `chars != null && chars.length() == 0`
         let isDeadChar: Bool = event.characters.map { $0.utf16.isEmpty } ?? false
-        if isDeadChar {
+        // A modified key that types nothing and is no dead key (no spacing character) — e.g. Czech Option+M and
+        // Option+O — is still a shortcut: it takes its code from the unmodified character like any other key.
+        // JDK drops it, which made Alt+M / Alt+O unusable on the Czech layout.
+        let shortcutModifiers: UInt = macOptionFlag | macControlFlag | macCommandFlag
+        let typesNothing: Bool = isDeadChar && event.deadKeyCharacter == 0
+            && event.modifierFlags & shortcutModifiers != 0
+        if isDeadChar && !typesNothing {
             guard let vk = deadKeyTable[event.deadKeyCharacter] else {
                 // JDK: testChar = deadChar = 0 → `return` without an event.
                 return nil

@@ -27,16 +27,20 @@ struct KeysTab: View {
     var body: some View {
         let rows: [KeyCaptureRules.Row] = KeyCaptureRules.rows(overrides: draft.keyOverrides)
         SettingsGroup(title: language.tr("Klávesové zkratky zadávacího okna")) {
-            HStack(spacing: 0) {
-                Text(verbatim: "Akce")
-                    .windowFont(12, weight: .bold)
-                    .frame(width: 300, alignment: .leading)
-                Text(verbatim: language.tr("Klávesy"))
-                    .windowFont(12, weight: .bold)
-                    .frame(width: 170, alignment: .leading)
-            }
-            ForEach(rows, id: \.action) { row in
-                rowView(row)
+            // A grid: the columns share their widths and shrink with the window (long labels wrap).
+            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 2) {
+                GridRow {
+                    Text(verbatim: "Akce")
+                        .windowFont(12, weight: .bold)
+                    Text(verbatim: language.tr("Klávesy"))
+                        .windowFont(12, weight: .bold)
+                    Color.clear
+                        .gridCellUnsizedAxes([.horizontal, .vertical])
+                        .gridCellColumns(3)
+                }
+                ForEach(rows, id: \.action) { row in
+                    rowView(row)
+                }
             }
             if !hint.isEmpty {
                 SettingsText(hint, size: 12, isError: true)
@@ -51,29 +55,30 @@ struct KeysTab: View {
         .onDisappear { keys.stopCapture() }
     }
 
-    private func rowView(_ row: KeyCaptureRules.Row) -> some View {
-        HStack(spacing: 0) {
-            Text(verbatim: row.action.label)
-                .windowFont(13)
-                .frame(width: 300, alignment: .leading)
+    @ViewBuilder private func rowView(_ row: KeyCaptureRules.Row) -> some View {
+        GridRow {
+            SettingsText(row.action.label)
+                .frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
             keysCell(row)
-                .frame(width: 170, alignment: .leading)
+                .frame(minWidth: 140, maxWidth: 170, alignment: .leading)
             SettingsButton(language.tr("Změnit"), borderless: true) { startCapture(row.action) }
+                .fixedSize()
             SettingsButton(language.tr("Výchozí"), borderless: true) {
                 KeyCaptureRules.resetToDefault(row.action, in: &draft.keyOverrides)
             }
+            .fixedSize()
             .disabled(!row.isCustom)
-            .padding(.leading, 8)
             SettingsButton(language.tr("Žádná"), borderless: true) {
                 KeyCaptureRules.setNone(row.action, in: &draft.keyOverrides)
             }
-            .padding(.leading, 8)
-            if let conflict = row.conflictText {
+            .fixedSize()
+        }
+        if let conflict = row.conflictText {
+            GridRow {
                 SettingsText(conflict, size: 12, isError: true)
-                    .padding(.leading, 8)
+                    .gridCellColumns(5)
             }
         }
-        .padding(.vertical, 1)
     }
 
     @ViewBuilder private func keysCell(_ row: KeyCaptureRules.Row) -> some View {
@@ -90,7 +95,7 @@ struct KeysTab: View {
         let first: String = language.tr(
             "Tučně = přemapováno. Při kolizi platí přemapovaná akce. Na Macu je Alt klávesa Option (⌥); ")
         let second: String = language.tr(
-            "Ctrl+šipky bere macOS pro Mission Control — skoky na spoty jde přemapovat třeba na Cmd+↓/↑. ")
+            "Skoky na spoty jsou na Cmd+↓/↑, protože Ctrl+šipky bere macOS pro Mission Control. ")
         let third: String = language.tr(
             "F1–F12 (zprávy), Enter, Esc, Tab, mezerník a šipky pro ladění se nepřemapovávají.")
         return SettingsCaption(first + second + third)

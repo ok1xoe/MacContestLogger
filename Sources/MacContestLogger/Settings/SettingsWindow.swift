@@ -32,7 +32,7 @@ struct SettingsWindowView: View {
                 Color.clear
             }
         }
-        .frame(minWidth: 640, minHeight: 420)
+        .frame(minWidth: 780, minHeight: 420)
     }
 
     private func loaded(_ app: AppModel) -> some View {
