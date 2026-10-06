@@ -155,8 +155,13 @@ import Testing
         #expect(ConfigurerCatalogs.accentLabelKey("BLUE") == "Modrá")
         #expect(ConfigurerCatalogs.accentLabelKey("PINK") == "Tyrkysová")
         #expect(ConfigurerCatalogs.scoreboards.map(\.url) == [
-            "https://contestonlinescore.com/post/", "https://cqcontest.net/post.php",
+            "https://contestonlinescore.com/post/", "http://contest.run", "http://scoredistributor.net",
+            "https://hamscore.com/postxml/",
         ])
+        #expect(ConfigurerCatalogs.scoreboards.first?.name == "contestonlinescore.com")
+        #expect(ConfigurerCatalogs.scoreboardName(forUrl: "http://scoredistributor.net") == "Score Distributor (all scoreboards)")
+        // A URL saved before the presets changed matches none: it is shown as custom and kept.
+        #expect(ConfigurerCatalogs.scoreboardName(forUrl: "https://old.example.org/post.php") == nil)
         #expect(ConfigurerCatalogs.mapSchemes.map(\.key) == ["green", "gray", "sepia", "slate"])
         #expect(ConfigurerCatalogs.themeModes.map(\.key) == ["SYSTEM", "LIGHT", "DARK"])
     }

@@ -168,4 +168,30 @@ import Testing
         #expect(ScoreReportPolicy.outcome(.failure(nil), total: 1, now: at).status.czech == "Odeslání skóre selhalo: null")
         #expect(ScoreReportPolicy.idleStatus == "Skóre se zatím neodesílalo")
     }
+
+    @Test func rejectionTextAppendsTheServerReason() {
+        let at = JavaInstant.ofEpochSecond(1_791_021_600, 0)!
+        #expect(ScoreReportPolicy.outcome(.rejected(404, detail: "Contest not supported"), total: 1, now: at).status.czech
+                == "Server vrátil HTTP 404: Contest not supported")
+    }
+
+    @Test func failureTextsAreReadable() {
+        let at = JavaInstant.ofEpochSecond(1_791_021_600, 0)!
+        let url = "https://example.invalid/post/"
+        func text(_ error: JavaHttpError) -> String {
+            ScoreReportPolicy.outcome(ScoreReportPolicy.result(failure: error, url: url), total: 1, now: at).status.czech
+        }
+        #expect(text(.io(JavaIOError(nil, javaClass: "java.net.ConnectException")))
+                == "Odeslání skóre selhalo: server nedostupný (example.invalid)")
+        #expect(text(.io(JavaIOError("x", javaClass: "java.net.UnknownHostException")))
+                == "Odeslání skóre selhalo: server nedostupný (example.invalid)")
+        #expect(text(.io(JavaIOError("request timed out", javaClass: "java.net.http.HttpTimeoutException")))
+                == "Odeslání skóre selhalo: vypršel čas (example.invalid)")
+        #expect(text(.io(JavaIOError("HTTP connect timed out", javaClass: "java.net.http.HttpConnectTimeoutException")))
+                == "Odeslání skóre selhalo: vypršel čas (example.invalid)")
+        #expect(text(.illegalArgument(JavaIllegalArgumentError(message: "Illegal character in query at index 3")))
+                == "Odeslání skóre selhalo: neplatná adresa")
+        #expect(text(.io(JavaIOError("boom", javaClass: "javax.net.ssl.SSLHandshakeException")))
+                == "Odeslání skóre selhalo: boom")
+    }
 }

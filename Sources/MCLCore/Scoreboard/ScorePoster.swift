@@ -36,9 +36,33 @@ public struct ScorePoster: Sendable {
 
     /// - Returns: HTTP status.
     public func post(_ url: String, xml: String) throws(JavaHttpError) -> Int {
+        try postDetailed(url, xml: xml).status
+    }
+
+    /// Like `post`, plus the short reason a scoreboard gives in the body of a non-2xx answer (contest.run answers
+    /// e.g. `404 Contest not supported`); `nil` for 2xx or when the body is empty, long or HTML.
+    public func postDetailed(_ url: String, xml: String) throws(JavaHttpError) -> ScoreResponse {
         let body = "xml=" + JavaUrlEncoder.encode(xml)
         let headers: [(String, String)] = [("Content-Type", "application/x-www-form-urlencoded")]
-        return try http.send(method: "POST", url: url, headers: headers, body: Data(body.utf8),
-                             requestTimeout: requestTimeout).status
+        let response = try http.send(method: "POST", url: url, headers: headers, body: Data(body.utf8),
+                                     requestTimeout: requestTimeout)
+        let detail: String? = (200...299).contains(response.status)
+            ? nil : ScoreReportPolicy.detail(fromBody: String(decoding: response.body, as: UTF8.self))
+        return ScoreResponse(status: response.status, detail: detail)
+    }
+}
+
+/// The answer of a scoreboard: the HTTP status and, for a rejection, the short reason from the body.
+public struct ScoreResponse: Equatable, Sendable, ExpressibleByIntegerLiteral {
+    public let status: Int
+    public let detail: String?
+
+    public init(status: Int, detail: String? = nil) {
+        self.status = status
+        self.detail = detail
+    }
+
+    public init(integerLiteral status: Int) {
+        self.init(status: status)
     }
 }

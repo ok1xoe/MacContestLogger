@@ -96,12 +96,12 @@ public struct OnlinePorts: Sendable {
     /// `ClubLogClient.upload(email, password, callsign, apiKey, adif)`.
     public var uploadClubLog: @Sendable (_ email: String, _ password: String, _ callsign: String, _ apiKey: String,
                                          _ adif: String) throws -> ClubLogClient.Outcome
-    /// `ScorePoster.post(url, xml)` → the HTTP status.
-    public var postScore: @Sendable (_ url: String, _ xml: String) throws -> Int
+    /// `ScorePoster.post(url, xml)` → the HTTP status (and the reason a server gives for a rejection).
+    public var postScore: @Sendable (_ url: String, _ xml: String) throws -> ScoreResponse
 
     public init(
         uploadClubLog: @escaping @Sendable (String, String, String, String, String) throws -> ClubLogClient.Outcome,
-        postScore: @escaping @Sendable (String, String) throws -> Int) {
+        postScore: @escaping @Sendable (String, String) throws -> ScoreResponse) {
         self.uploadClubLog = uploadClubLog
         self.postScore = postScore
     }
@@ -117,7 +117,7 @@ public struct OnlinePorts: Sendable {
                                        adifRecord: adif)
         },
         postScore: { url, xml in
-            try ScorePoster().post(url, xml: xml)
+            try ScorePoster().postDetailed(url, xml: xml)
         })
 }
 

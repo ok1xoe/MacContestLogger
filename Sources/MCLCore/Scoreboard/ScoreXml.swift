@@ -1,7 +1,7 @@
 import Foundation
 
 /// Running-score XML for online scoreboards (N1MM / DXLog "Score reporting", format
-/// `<dynamicresults>` used by contestonlinescore.com and cqcontest.net). Port of Java
+/// `<dynamicresults>` used by contestonlinescore.com and the other online scoreboards). Port of Java
 /// `scoreboard/ScoreXml`: header `<?xml version="1.0"?>`, indentation of 2/4 spaces, `\n` line endings;
 /// `esc` **does not replace the apostrophe** (unlike `BroadcastXml.esc`).
 public enum ScoreXml {

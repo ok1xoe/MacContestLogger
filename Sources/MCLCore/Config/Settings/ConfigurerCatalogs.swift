@@ -36,11 +36,20 @@ public enum ConfigurerCatalogs {
         accents.first { $0.key == key }?.labelKey ?? unknownAccentLabelKey
     }
 
-    /// `SCOREBOARDS` (`ScoreReportingTab.kt:69-72`): name → posting URL, in order.
+    /// Scoreboard presets, name → posting URL, in order (the first is the default). Differs from Kotlin `SCOREBOARDS`
+/// (`ScoreReportingTab.kt:69-72`): a dead preset was replaced. A saved URL that matches no
+/// preset is shown as "custom URL" and kept as it is.
     public static let scoreboards: [(name: String, url: String)] = [
         ("contestonlinescore.com", "https://contestonlinescore.com/post/"),
-        ("cqcontest.net", "https://cqcontest.net/post.php"),
+        ("contest.run", "http://contest.run"),
+        ("Score Distributor (all scoreboards)", "http://scoredistributor.net"),
+        ("hamscore.com", "https://hamscore.com/postxml/"),
     ]
+
+    /// The preset name for a configured URL, `nil` when it matches none (shown as a custom URL, never rewritten).
+    public static func scoreboardName(forUrl url: String) -> String? {
+        scoreboards.first { $0.url == url }?.name
+    }
 
     /// `MAP_SCHEMES` (`ui/MapStyle.kt:21-42`): key → Czech translation key, in order (colours live in the views).
     public static let mapSchemes: [(key: String, labelKey: String)] = [

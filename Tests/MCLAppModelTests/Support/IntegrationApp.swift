@@ -22,7 +22,7 @@ final class ScriptedOnline: @unchecked Sendable {
     private struct State {
         var clubLogOutcomes: [ClubLogClient.Outcome] = []
         var uploads: [Upload] = []
-        var scoreAnswers: [Result<Int, ScriptedFailure>] = []
+        var scoreAnswers: [Result<ScoreResponse, ScriptedFailure>] = []
         var posts: [ScorePost] = []
     }
 
@@ -40,7 +40,7 @@ final class ScriptedOnline: @unchecked Sendable {
         state.withLock { $0.clubLogOutcomes = outcomes }
     }
 
-    func scriptScore(_ answers: [Result<Int, ScriptedFailure>]) {
+    func scriptScore(_ answers: [Result<ScoreResponse, ScriptedFailure>]) {
         state.withLock { $0.scoreAnswers = answers }
     }
 
@@ -57,9 +57,9 @@ final class ScriptedOnline: @unchecked Sendable {
                 }
             },
             postScore: { [self] url, xml in
-                let answer: Result<Int, ScriptedFailure> = state.withLock { s in
+                let answer: Result<ScoreResponse, ScriptedFailure> = state.withLock { s in
                     s.posts.append(ScorePost(url: url, xml: xml))
-                    return s.scoreAnswers.isEmpty ? .success(200) : s.scoreAnswers.removeFirst()
+                    return s.scoreAnswers.isEmpty ? .success(ScoreResponse(status: 200)) : s.scoreAnswers.removeFirst()
                 }
                 return try answer.get()
             })

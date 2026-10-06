@@ -147,7 +147,7 @@ import Testing
     /// the next due time; the attempt time is remembered either way.
     @Test func aServerErrorIsShownAndTheSameLogIsPostedAgain() async throws {
         let app = try await IntegrationApp.make(script: { online, _ in
-            online.scriptScore([.success(500), .failure(ScriptedOnline.ScriptedFailure(message: "boom")), .success(204)])
+            online.scriptScore([.success(500), .success(ScoreResponse(status: 404, detail: "Contest not supported")), .failure(ScriptedOnline.ScriptedFailure(message: "boom")), .success(204)])
         }, configure: { config, _ in Self.score(&config) })
         try await app.app.startCqWwCw()
         await app.app.logContestQso(call: "OK1ABC", zone: "15")
@@ -159,15 +159,20 @@ import Testing
         #expect(app.online.posts.count == 1)
         app.now.advance(seconds: 301)
         app.integrationClock.advance(by: 60_000)
+        await eventually("404 with reason") {
+            app.services.scoreReportStatus.czech == "Server vrátil HTTP 404: Contest not supported"
+        }
+        app.now.advance(seconds: 301)
+        app.integrationClock.advance(by: 60_000)
         await eventually("failure") { app.services.scoreReportStatus.czech == "Odeslání skóre selhalo: boom" }
         app.now.advance(seconds: 301)
         app.integrationClock.advance(by: 60_000)
         await eventually("accepted") { app.services.scoreReportStatus.czech.hasSuffix("(HTTP 204)") }
-        #expect(app.online.posts.count == 3)
+        #expect(app.online.posts.count == 4)
         app.now.advance(seconds: 301)
         app.integrationClock.advance(by: 60_000)
         await app.services.settle()
-        #expect(app.online.posts.count == 3)
+        #expect(app.online.posts.count == 4)
     }
 
     @Test func sendNowPostsEvenWhenDisabledAndNotDue() async throws {

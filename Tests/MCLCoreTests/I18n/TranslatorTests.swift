@@ -131,9 +131,9 @@ import Testing
         // 2 Settings labels of the SCP and N+1 switches (section 73) and
         // 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and
         // 1 accessibility label of the DX Cluster window parallel switch.
-        #expect(map.count == 1_106)
+        #expect(map.count == 1_110)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_106)
+        #expect(german.count == 1_110)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

@@ -35,4 +35,24 @@ import Testing
         #expect(code == 200)
         #expect(FakeHttpServer.formDecoded(server.body(0)) == "xml=<x>1</x>")
     }
+
+    /// A rejection carries the short reason from the body; a 2xx and an HTML error page carry none.
+    @Test func rejectionReasonComesFromTheBody() async throws {
+        let poster = ScorePoster(http: JavaHttpClient(connectTimeout: ScorePoster.connectTimeout, redirect: .normal),
+                                 requestTimeout: 120)
+        for (status, body, expected) in [
+            (404, "Contest not supported\n", "Contest not supported"),
+            (400, "Empty or wrong callsign", "Empty or wrong callsign"),
+            (500, "<html><body>Oops</body></html>", nil),
+            (400, "", nil),
+            (200, "OK", nil),
+        ] as [(Int, String, String?)] {
+            let server = try FakeHttpServer(response: .init(status: status, body: body))
+            defer { server.stop() }
+            let url = "http://127.0.0.1:\(server.port)/"
+            let response = try await onOwnThread { try poster.postDetailed(url, xml: "<x/>") }
+            #expect(response == ScoreResponse(status: status, detail: expected))
+        }
+        #expect(ScoreReportPolicy.detail(fromBody: String(repeating: "a", count: 200))?.count == 81)
+    }
 }

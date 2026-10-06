@@ -212,7 +212,7 @@ public final class OnlineServicesModel {
 
     /// On the scoreboard lane: the breakdown (`nil` when it cannot be computed — Kotlin returns without a trace),
     /// the XML and the post.
-    nonisolated private static func runScoreJob(_ job: ScoreJob, post: @Sendable (String, String) throws -> Int)
+    nonisolated private static func runScoreJob(_ job: ScoreJob, post: @Sendable (String, String) throws -> ScoreResponse)
         -> ScoreAttempt {
         let breakdown: ScoreBreakdown
         do {
@@ -225,9 +225,18 @@ public final class OnlineServicesModel {
                                          now: job.now.date)
         let result: ScoreReportPolicy.PostResult
         do {
-            result = .http(try post(job.url, xml))
+            let response: ScoreResponse = try post(job.url, xml)
+            if let detail = response.detail, !(200...299).contains(response.status) {
+                result = .rejected(response.status, detail: detail)
+            } else {
+                result = .http(response.status)
+            }
         } catch {
-            result = .failure(ErrorText.message(error))
+            if let http = error as? JavaHttpError {
+                result = ScoreReportPolicy.result(failure: http, url: job.url)
+            } else {
+                result = .failure(ErrorText.message(error))
+            }
         }
         return .posted(result, total: breakdown.score.total)
     }

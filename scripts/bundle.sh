@@ -46,7 +46,9 @@
 #   - qrz.com                 — QrzClient (xmldata.qrz.com, callbook lookup)
 #   - clublog.org             — ClubLogClient (realtime upload)
 #   - contestonlinescore.com  — ScorePoster / AppConfig default scoreboard URL
-#   - cqcontest.net           — the second built-in scoreboard preset (Kotlin ScoreReportingTab, https://cqcontest.net/post.php)
+#   - hamscore.com           — built-in scoreboard preset (https://hamscore.com/postxml/)
+#   The plain-HTTP scoreboard presets (http://scoredistributor.net, http://contest.run) get no entry of their own:
+#   they rely on NSAllowsArbitraryLoads above, like any other user-typed http:// scoreboard URL.
 #   - supercheckpartial.com   — ScpDownloader (www.supercheckpartial.com/MASTER.SCP)
 #   - reversebeacon.net       — RbnLink (www.reversebeacon.net spot lookup)
 #   - raw.githubusercontent.com — DefinitionUpdater (contest definition updates)
