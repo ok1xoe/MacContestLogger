@@ -209,11 +209,27 @@ public final class ContestModel {
         return try runtime.log(call: call, band: band, mode: mode, exchange: exchange, ownQth: ownQth, at: at)
     }
 
-    /// Menu `contest.none` (Kotlin `contest.deactivate()`; the logbook keeps its active contest).
+    /// Menu `contest.none` (Kotlin `contest.deactivate()`): free logging. **A deliberate divergence from Kotlin**,
+    /// whose logbook kept its active contest (the next QSOs went into that contest's log unscored): here the
+    /// logbook leaves the contest too, so new QSOs are stored without a contest and the log shows the free-logging
+    /// QSOs. One item of the activation chain; the entry accepts no input until the log is re-read.
     public func deactivate() {
         runtime.deactivate()
         activeSetup = nil
+        qtcs = []
         sync()
+        beginActivation()
+        let previous: Task<Bool, Never>? = activationChain
+        let task = Task { () -> Bool in
+            _ = await previous?.value
+            defer { self.endActivation() }
+            // An activation already in flight at the click finished after it: its contest stays open.
+            guard !self.isActive else { return false }
+            await self.perform { try await self.logbook.setActiveContest(nil) }
+            await self.perform { try await self.logbook.refresh() }
+            return false
+        }
+        activationChain = task
     }
 
     // MARK: - new, continue, open

@@ -42,16 +42,11 @@ public final class LogbookService {
     public var clockOffset: TimeInterval = 0
 
     /// Active contest: `log`/`findAll`/`count`/`nextSerial` without an explicit
-    /// `contestId` follow this value. `""` (Java `null`) = no contest —
+    /// `contestId` follow this value. `""` (Java `null`) = no contest (free logging) —
     /// the same sentinel as `Qso.contestId`. `LogbookRepository` translates it back to `NULL`
-    /// at the SQL boundary (see `sqlContestId`), so:
-    /// logged QSOs have `contest_id IS NULL` (as in Java, where `qso.setContestId(null)`
-    /// + `ps.setString` writes `NULL`) and `findAll()`/`count()` return **nothing**,
-    /// because `contest_id=?` with a bound `NULL` matches no row. The practical
-    /// consequence — and exactly what Java does too: without an active contest `findAll()` is
-    /// empty, `count()` is `0` and `nextSerial()` is `1`, however many QSOs were
-    /// logged in the meantime. The state is reachable (Kotlin `AppState`
-    /// calls `setActiveContest(null)` after switching the database).
+    /// at the SQL boundary (see `sqlContestId`), so logged QSOs have `contest_id IS NULL`
+    /// (as in Java) and `findAll()`/`count()`/`nextSerial()` follow those free-logging QSOs
+    /// (a deliberate divergence: Java's `contest_id=?` with a bound `NULL` matched no row).
     public var activeContestId: String = ""
 
     public init(repository: LogbookRepository, now: @escaping () -> Date = Date.init) {

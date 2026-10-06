@@ -150,15 +150,19 @@ import Testing
         #expect(app.model.status.message.hasPrefix("Skóre přepočteno: 1 QSO"))
     }
 
-    @Test func noneDeactivatesOnlyTheSession() async throws {
+    @Test func noneSwitchesTheLogbookToFreeLogging() async throws {
         let app = try await TestApp.make()
         try await app.startCqWwCw()
         let id: String? = app.model.contest.activeId
+        #expect(app.model.logbook.activeContestId == id)
         app.model.contest.deactivate()
         #expect(!app.model.contest.isActive)
         #expect(app.model.contest.score == nil)
-        // Kotlin `contest.deactivate()` leaves the logbook's active contest.
-        #expect(app.model.logbook.activeContestId == id)
+        // The entry waits until the logbook has left the contest (Kotlin kept it).
+        #expect(!app.model.acceptsEntryInput)
+        await app.model.contest.settleActivations()
+        #expect(app.model.acceptsEntryInput)
+        #expect(app.model.logbook.activeContestId == "")
         #expect(!app.model.logbook.visibleColumns.contains(.points))
     }
 

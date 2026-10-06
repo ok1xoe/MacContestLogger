@@ -77,19 +77,13 @@ import Testing
         #expect(try s.nextSerial() == 2) // c1 has 1 QSO → next is 2
     }
 
-    // MARK: - Without an active contest (covered by neither the Java nor the Swift test)
+    // MARK: - Without an active contest (free logging)
 
-    /// The "no active contest" state (`activeContestId == ""`, Java `null`). The Java
-    /// `LogbookServiceTest`/`LogbookServiceContestTest` never test it — they always
-    /// call `setActiveContest(...)` — yet it is reachable: Kotlin `AppState` calls
-    /// `logbook.setActiveContest(null)` after switching the database.
-    ///
-    /// Java: `log()` calls `qso.setContestId(null)` → `ps.setString(…, null)` → SQL
-    /// `NULL`. `findAll()`/`count()` run `WHERE deleted=0 AND contest_id=?` with a bound
-    /// `NULL`, and `NULL = NULL` is `NULL` in SQL, i.e. false — so they **never return anything**,
-    /// not even the rows that were just written. Measured on frozen Java v1.1.1: after two QSOs
-    /// `findAll().size()=0`, `count()=0`, `nextSerial()=1`.
-    @Test func withoutActiveContestNothingIsVisibleAndSerialStaysAtOne() throws {
+    /// The "no active contest" state (`activeContestId == ""`, Java `null`) is free logging: QSOs are
+    /// stored with `contest_id` SQL `NULL` (as in Java) and `findAll()`/`count()`/`nextSerial()` follow
+    /// exactly those rows. A deliberate divergence from Java v1.1.1, where `contest_id=?` with a bound
+    /// `NULL` matched nothing; a contest's log and the free-logging log never mix.
+    @Test func withoutActiveContestTheFreeLoggingQsosAreTheLog() throws {
         let repo = try LogbookRepository.inMemory()
         let s = LogbookService(repository: repo) // activeContestId == "" (Java null)
 
@@ -97,22 +91,28 @@ import Testing
         try s.log(&aa1a)
         var bb2b = contestQso("BB2B")
         try s.log(&bb2b)
+        s.activeContestId = "c1"
+        var cc3c = contestQso("CC3C")
+        try s.log(&cc3c)
 
-        #expect(try s.findAll().isEmpty, "without an active contest, contest_id=? never returns anything")
-        #expect(try s.count() == 0)
-        #expect(try s.nextSerial() == 1, "on-air serial number starts at 1")
+        #expect(try s.findAll().map(\.call) == ["CC3C"], "the contest sees only its own QSO")
+        #expect(try s.count() == 1)
 
-        // The rows are in the logbook nonetheless — the unfiltered path sees them.
-        #expect(try s.findAllIncludingDeleted().count == 2)
+        s.activeContestId = ""
+        #expect(try s.findAll().map(\.call) == ["AA1A", "BB2B"])
+        #expect(try s.findAll().allSatisfy { $0.contestId.isEmpty })
+        #expect(try s.count() == 2)
+        #expect(try s.nextSerial() == 3)
+        #expect(try s.findAllIncludingDeleted().count == 3)
 
-        // And in the file they have `contest_id` as SQL NULL, not an empty TEXT (as in Java).
+        // In the file they have `contest_id` as SQL NULL, not an empty TEXT (as in Java).
         let stmt = try repo.connection.prepare("SELECT typeof(contest_id) FROM qso ORDER BY id")
         defer { stmt.finalize() }
         var types: [String] = []
         while try stmt.step() {
             types.append(stmt.columnText(at: 0) ?? "?")
         }
-        #expect(types == ["null", "null"], "contest_id must be NULL, not ''")
+        #expect(types == ["null", "null", "text"], "contest_id must be NULL, not ''")
     }
 
     // MARK: - `ClockOffsetTest.newQsoTimeIsCorrected`

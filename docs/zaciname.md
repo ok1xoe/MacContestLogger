@@ -63,6 +63,23 @@ Logged contacts appear in the [log window](log-window.md), the score in the
 [Score window](score-window.md), and the multiplier breakdown in the
 [multiplier windows](multipliers-window.md).
 
+## Free logging (without a contest)
+
+You do not need a contest to log. With **Závod → Žádný (volné logování)**
+(Contest → None (free logging)), the `CLOSE` command, or simply before you open a
+contest, the entry window has generic fields (received report and exchange) and
+**Enter** / **Log It** saves the QSO into the open database without a contest — no
+points or multipliers, the country is filled in as usual.
+
+- The [log window](log-window.md) then shows only the free-logging QSOs; opening a
+  contest again shows only that contest's QSOs. The two logs never mix.
+- The same callsign on the same band is flagged as a dupe, but it is only a
+  warning — the QSO is still logged.
+- **Export ADIF** writes the free-logging QSOs (without `CONTEST_ID`); Cabrillo
+  needs a contest.
+- Free-logging QSOs stay on this station: they are not sent to the
+  [network logbook](multi-op.md).
+
 ## After the contest
 
 **Databáze → Export** (Database → Export): Cabrillo for the organizers, ADIF for

@@ -77,9 +77,9 @@ import Testing
         await model.exports.importQsos(from: file)
 
         #expect(model.status.message == "Importováno 1 QSO (Cabrillo) z log.log")
-        // Stored without a contest; the log of „no contest" lists nothing (Kotlin `findAll(null)`).
-        #expect(model.logbook.rows.isEmpty)
-        #expect(model.logbook.qsoCount == 0)
+        // Stored without a contest: the free-logging log lists it (Kotlin's `findAll(null)` listed nothing).
+        #expect(model.logbook.rows.map(\.call) == ["DL1ABC"])
+        #expect(model.logbook.qsoCount == 1)
         let row: Qso = try #require(try await Self.stored(app).first)
         #expect(row.exchangeRcvd == "14")
         #expect(row.rstRcvd == "599")

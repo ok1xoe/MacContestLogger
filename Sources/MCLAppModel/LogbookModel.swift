@@ -155,8 +155,11 @@ public final class LogbookModel {
 
     /// Kotlin `nextSerial()` = `reservedSerial ?: logbook.nextSerial()` (`AS:2736`): the number reserved at the serial
     /// server, unless a submission already took it.
+    /// Free logging (no active contest) always counts locally: its QSOs never reach the cluster.
     private var serverSerial: Int? {
-        guard let reserved = cluster?.reservedSerial, reserved != serverSerialInUse else { return nil }
+        guard !activeContestId.isEmpty, let reserved = cluster?.reservedSerial, reserved != serverSerialInUse else {
+            return nil
+        }
         return reserved
     }
 
@@ -387,6 +390,12 @@ public final class LogbookModel {
     }
 
     // MARK: - edits and deletes
+
+    /// A free-logging QSO (no contest) never goes to the cluster — not its insert, edit or delete: the wire carries
+    /// no contest and a receiving station would file it under its own active contest.
+    nonisolated static func syncsToCluster(_ qso: Qso) -> Bool {
+        !qso.contestId.isEmpty
+    }
 
     /// What an edit job returns to the main thread.
     private struct EditResult: Sendable {
@@ -763,7 +772,9 @@ public final class LogbookModel {
                 showEdited(new)
                 if outwardGate(new) {
                     onQsoEdited?(old, new)
-                    cluster?.publishUpdate(new)
+                    if Self.syncsToCluster(new) {
+                        cluster?.publishUpdate(new)
+                    }
                 }
             }
         }
@@ -831,7 +842,7 @@ public final class LogbookModel {
                 ids.insert(id)
                 if outwardGate(qso) {
                     onQsoDeleted?(qso)
-                    if result.tombstoned && !qso.uuid.isEmpty {
+                    if result.tombstoned && !qso.uuid.isEmpty && Self.syncsToCluster(qso) {
                         cluster?.publishDelete(qso)
                     }
                 }

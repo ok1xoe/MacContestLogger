@@ -124,7 +124,10 @@ enum SyncScripts {
                 for q in rows {
                     out += coordRow(q)
                 }
-                out.append(String(try x.logbook.findAll().count))
+                // Without a contest `findAll()` lists the free-logging QSOs — a deliberate divergence from Java
+                // v1.1.1, whose `contest_id=?` with a bound NULL matched nothing; the Java column is kept here.
+                let listed: Int = x.logbook.activeContestId.isEmpty ? 0 : try x.logbook.findAll().count
+                out.append(String(listed))
                 out.append(String(x.spots.count))
                 for sp in x.spots.values {
                     let parts: [String] = [sp.stationId ?? "null", sp.dxCall ?? "null", String(sp.freqHz)]
