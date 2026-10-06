@@ -148,7 +148,6 @@ struct MacContestLoggerApp: App {
         dialog(.databaseNew) { NewDatabaseWindowView(host: host) }
         dialog(.databaseOpen) { OpenDatabaseWindowView(host: host) }
         dialog(.operatorLogin) { OperatorWindowView(host: host) }
-        dialog(.callbookResult) { CallbookResultWindowView(host: host) }
     }
 
     /// The info and tool windows: Info (`rate`), the goal windows, statistics, score, dupesheet, skeds, QTC, the

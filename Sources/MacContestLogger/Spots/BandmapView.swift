@@ -382,11 +382,12 @@ final class BandmapCanvas: NSView {
             addItem(menu, language.tr("Blacklist volačky %s", .string(spot.dxCall))) { model.blacklistCall(spot) }
             addItem(menu, "Blacklist spottera " + spot.spotter) { model.blacklistSpotter(spot) }
             addItem(menu, "Odebrat spot") { model.remove(spot) }
-            addItem(menu, "QRZ.com") { model.openQrz(spot) }
-            addItem(menu, "HamQTH") { model.openHamQth(spot) }
-            for service in CallbookService.allCases {
-                addItem(menu, language.tr("Dohledat na %s", .string(service.displayName)),
-                        enabled: model.canLookup(on: service)) { model.lookup(spot, on: service) }
+            // Same items and order as the log window's row menu (both open the call's page in the browser).
+            addItem(menu, language.tr("Dohledat na %s", .string(CallbookService.hamQth.displayName))) {
+                model.openHamQth(spot)
+            }
+            addItem(menu, language.tr("Dohledat na %s", .string(CallbookService.qrz.displayName))) {
+                model.openQrz(spot)
             }
             menu.addItem(.separator())
         }

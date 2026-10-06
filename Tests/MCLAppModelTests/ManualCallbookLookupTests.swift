@@ -55,84 +55,73 @@ import Testing
     @Test func badPasswordNetworkErrorAndNoCredentialsAreTexts() async throws {
         let spot = try await Self.make(qrz: false)
         let callbook: CallbookModel = spot.model.callbook
-        spot.http.route("hamqth.com/xml.php?u=", "<HamQTH><session><error>Wrong user name or password</error></session></HamQTH>")
-        callbook.lookupInWindow("OK1ABC", service: .hamQth)
+        spot.http.route("hamqth.com/xml.php?u=",
+                        "<HamQTH><session><error>Wrong user name or password</error></session></HamQTH>")
+        callbook.lookupNow("OK1ABC", service: .hamQth, typedCall: { "OK1ABC" })
         await callbook.settle()
-        #expect(callbook.windowLookup?.state == .badCredentials("Wrong user name or password"))
-        #expect(callbook.windowLookup?.problem == ContestMessage("Chybné přihlášení (%s)",
-                                                                .string("Wrong user name or password")))
+        #expect(callbook.entryLookup?.state == .badCredentials("Wrong user name or password"))
+        #expect(callbook.entryLookup?.problem == ContestMessage("Chybné přihlášení (%s)",
+                                                               .string("Wrong user name or password")))
         // QRZ.com has no credentials here: nothing is asked.
         let asked: Int = spot.http.urls.count
-        callbook.lookupInWindow("OK1ABC", service: .qrz)
+        callbook.lookupNow("OK1ABC", service: .qrz, typedCall: { "OK1ABC" })
         await callbook.settle()
-        #expect(callbook.windowLookup?.state == .notConfigured)
+        #expect(callbook.entryLookup?.state == .notConfigured)
         #expect(spot.http.urls.count == asked)
         #expect(!callbook.isConfigured(.qrz) && callbook.isConfigured(.hamQth))
         // No route = the request fails.
         let offline = try await Self.make()
-        offline.model.callbook.lookupInWindow("OK1ABC", service: .qrz)
+        offline.model.callbook.lookupNow("OK1ABC", service: .qrz, typedCall: { "OK1ABC" })
         await offline.model.callbook.settle()
-        #expect(offline.model.callbook.windowLookup?.state == .networkError("no route"))
-    }
-
-    @Test func theResultWindowGetsTheRecordAndOpensThePage() async throws {
-        let spot = try await Self.make()
-        spot.http.hamQth(call: "DL1ABC", grid: "JO62", name: "Hans", cq: "14", itu: "28")
-        let callbook: CallbookModel = spot.model.callbook
-        var shown = 0
-        callbook.showLookupWindow = { shown += 1 }
-        callbook.lookupInWindow("dl1abc", service: .hamQth)
-        #expect(shown == 1)
-        #expect(callbook.windowLookup?.state == .loading)
-        await callbook.settle()
-        let result: ManualLookupResult = try #require(callbook.windowLookup)
-        #expect(result.record == HamQthRecord(grid: "JO62", name: "Hans", cqZone: "14", ituZone: "28"))
-        callbook.openOnWeb(result)
-        callbook.openOnWeb(ManualLookupResult(call: "W1AW", service: .qrz, state: .notFound))
-        await eventually("pages") { spot.opener.urls.count == 2 }
-        #expect(spot.opener.urls == ["https://www.hamqth.com/DL1ABC", "https://www.qrz.com/db/W1AW"])
+        #expect(offline.model.callbook.entryLookup?.state == .networkError("no route"))
     }
 
     @Test func inertNetworkReportsDisabled() async throws {
         let spot = try await Self.make(inert: true)
         let callbook: CallbookModel = spot.model.callbook
-        callbook.lookupInWindow("OK1ABC", service: .hamQth)
+        callbook.lookupNow("OK1ABC", service: .hamQth, typedCall: { "OK1ABC" })
         await callbook.settle()
-        #expect(callbook.windowLookup?.state == .networkDisabled)
+        #expect(callbook.entryLookup?.state == .networkDisabled)
         #expect(spot.http.urls.isEmpty)
     }
 
-    @Test func theBandmapMenuLooksUpOnlyConfiguredServices() async throws {
-        let spot = try await Self.make(qrz: false)
-        spot.http.hamQth(call: "DL1ABC", grid: "JO62")
+    @Test func theBandmapMenuOpensTheCallsPageWithoutCredentials() async throws {
+        let spot = try await Self.make(hamQth: false, qrz: false)
         let bandmap: BandmapModel = spot.model.bandmap
-        #expect(bandmap.canLookup(on: .hamQth))
-        #expect(!bandmap.canLookup(on: .qrz))
         let target: DxSpot = BandmapModelTests.spot("DL1ABC", 14_100_000)
-        bandmap.lookup(target, on: .qrz)
-        #expect(spot.model.callbook.windowLookup == nil)
-        bandmap.lookup(target, on: .hamQth)
-        await spot.model.callbook.settle()
-        #expect(spot.model.callbook.windowLookup?.record?.grid == "JO62")
+        bandmap.openQrz(target)
+        bandmap.openHamQth(target)
+        await eventually("pages") { spot.opener.urls.count == 2 }
+        #expect(spot.opener.urls == ["https://www.qrz.com/db/DL1ABC", "https://www.hamqth.com/DL1ABC"])
+        #expect(spot.http.urls.isEmpty)
     }
 
-    @Test func theLogMenuOffersBothServicesGreyedWithoutCredentials() async throws {
+    @Test func theLogMenuOpensTheCallsPage() async throws {
         let app = try await PortedApp.make()
         try await app.startCqWw()
         await app.log(call: "W1AW", zone: "5")
         await app.model.logbook.settle()
         let id: Int64 = try #require(app.model.logbook.rows.first { $0.call == "W1AW" }?.id)
-        var asked: [String] = []
+        var opened: [String] = []
         let table = LogTableModel(logbook: app.model.logbook, windows: app.model.windows, status: app.model.status,
-                                  lookupCall: { call, service in asked.append(call + "@" + service.rawValue) },
-                                  isConfigured: { $0 == .hamQth })
+                                  openCallPage: { call, service in opened.append(call + "@" + service.rawValue) })
         let items: [LogTableModel.LookupItem] = table.lookupItems(forRow: id)
         #expect(items.map(\.title) == [ContestMessage("Dohledat na %s", .string("HamQTH")),
                                        ContestMessage("Dohledat na %s", .string("QRZ.com"))])
-        #expect(items.map(\.isEnabled) == [true, false])
+        #expect(items.map(\.isEnabled) == [true, true])
         table.perform(items[0])
         table.perform(items[1])
-        #expect(asked == ["W1AW@hamqth"])
+        #expect(opened == ["W1AW@hamqth", "W1AW@qrz"])
         #expect(table.lookupItems(forRow: nil).isEmpty)
+    }
+
+    @Test func theMenuOpensTheRealPagesOfTheModel() async throws {
+        let spot = try await Self.make(hamQth: false, qrz: false)
+        spot.model.callbook.openPage(" ok1abc ", on: .hamQth)
+        spot.model.callbook.openPage("ok1abc", on: .qrz)
+        spot.model.callbook.openPage("  ", on: .qrz)
+        await spot.model.callbook.settle()
+        await eventually("pages") { spot.opener.urls.count == 2 }
+        #expect(spot.opener.urls == ["https://www.hamqth.com/OK1ABC", "https://www.qrz.com/db/OK1ABC"])
     }
 }
