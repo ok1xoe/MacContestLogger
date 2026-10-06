@@ -608,6 +608,8 @@ enum UiParityGSections {
     static func mask(_ value: String) -> String {
         value.replacingOccurrences(of: "\\d{4}-\\d{2}-\\d{2}T[\\d:.]+Z", with: "<instant>", options: .regularExpression)
             .replacingOccurrences(of: "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}", with: "<instant>", options: .regularExpression)
+            // The status shows `HH:mm:ss UTC` where Java printed the raw Instant (deliberate divergence).
+            .replacingOccurrences(of: "\\d{2}:\\d{2}:\\d{2} UTC", with: "<instant>", options: .regularExpression)
     }
 
     static func broadcast(_ path: String, _ f: [String], _ ctx: Ctx) throws -> Step {
