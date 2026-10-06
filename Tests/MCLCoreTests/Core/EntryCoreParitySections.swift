@@ -115,6 +115,21 @@ enum EntryCoreParitySections {
         return [(path, [F.tx(combo.format()), X.b(KeyCombo.isModifierKey(code)), X.b(combo.isAllowedShortcut)])]
     }
 
+    /// The Java v1.1.1 default of an action. The two spot jumps are a deliberate divergence: Java keeps Ctrl+↓/↑,
+    /// Swift defaults to Cmd+↓/↑ because macOS takes Ctrl+arrows for Mission Control (pinned in
+    /// `KeyBindingsTests`/`KeyComboMeasuredTests`). The reference is replayed with Java's keys for those two.
+    static func javaDefaultKeys(_ action: ShortcutAction) -> String {
+        switch action {
+        case .nextSpotUp: "Ctrl+DOWN"
+        case .nextSpotDown: "Ctrl+UP"
+        default: action.defaultKeys
+        }
+    }
+
+    static func javaDefaultCombo(_ action: ShortcutAction) -> KeyCombo {
+        KeyCombo.parse(javaDefaultKeys(action))!
+    }
+
     static func keyAction(_ path: String, _ f: [String]) throws -> Rows {
         if path.hasPrefix("id/") {
             return [(path, [ShortcutAction.byId(X.text(f[0]))?.name ?? "~"])]
@@ -123,14 +138,14 @@ enum EntryCoreParitySections {
         let index: Int = try X.int(f[0])
         guard index >= 0, index < all.count else { throw X.Malformed(text: f[0]) }
         let a: ShortcutAction = all[index]
-        let combo: String = a.defaultCombo().format()
-        return [(path, [a.name, F.tx(a.id), F.tx(a.label), F.tx(a.defaultKeys), F.tx(combo)])]
+        let combo: String = javaDefaultCombo(a).format()
+        return [(path, [a.name, F.tx(a.id), F.tx(a.label), F.tx(javaDefaultKeys(a)), F.tx(combo)])]
     }
 
     static func keyBindings(_ path: String, _ f: [String]) throws -> Rows {
         let all: [ShortcutAction] = ShortcutAction.allCases
         if f[0] == "~" {
-            let none = KeyBindings(nil)
+            let none = KeyBindings(nil, defaults: javaDefaultCombo)
             return [(path + "/combo", all.map { none.comboFor($0)?.format() ?? "~" })]
         }
         let count: Int = try X.int(f[0])
@@ -143,7 +158,7 @@ enum EntryCoreParitySections {
             overrides[id] = value
             values.append(value)
         }
-        let bindings = KeyBindings(overrides)
+        let bindings = KeyBindings(overrides, defaults: javaDefaultCombo)
         var combos: [String] = []
         var conflicts: [String] = []
         for action in all {
@@ -153,7 +168,7 @@ enum EntryCoreParitySections {
                 conflicts.append("\(action.name):\(others.map(\.name).joined(separator: "/"))")
             }
         }
-        var probes: [KeyCombo] = all.map { $0.defaultCombo() }
+        var probes: [KeyCombo] = all.map(javaDefaultCombo)
         probes += values.compactMap { KeyCombo.parse($0) }
         let resolved: [String] = probes.map { combo in
             "\(F.tx(combo.format()))=\(bindings.resolve(combo)?.name ?? "~")"

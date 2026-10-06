@@ -16,7 +16,7 @@ would be confusing. In a contest, muscle memory beats platform habit.
 In practice this is not a problem: **macOS system shortcuts use ⌘**, so
 `Ctrl+letter` is free. The application also takes them before they reach the field.
 The exception is **Ctrl+arrows**, which Mission Control takes — which is why
-`Cmd+↓/↑` is worthwhile for jumping between spots (see below).
+jumping between spots defaults to **Cmd+↓/↑** instead (see below).
 
 **Cmd is a fully valid choice.** In **Nastavení → Klávesy** (Settings → Keys) every
 action can be remapped and `Cmd+…` is a valid combination (stored as `"Cmd+DOWN"`).
@@ -87,16 +87,18 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 
 | Key | Action |
 |---|---|
-| **Ctrl+↓ / Ctrl+↑** | next spot **higher / lower** on the band (dupes are skipped) |
+| **Cmd+↓ / Cmd+↑** | next spot **higher / lower** on the band (dupes are skipped) |
 | **Ctrl+Alt+↓ / ↑** | next spot that is a **new multiplier** |
 | **Shift+Alt+↓ / ↑** | next **own** spot (Store / self-spot) |
-| **Alt+D** | removes the spot of the callsign in the field (or the spot on the frequency) |
-| **Alt+Shift+D** | the same and puts the callsign on the **blacklist** |
+| **Alt+D** | removes the spot of the callsign in the field (or the spot on the frequency); in the Bandmap window the spot under the mouse |
+| **Alt+Shift+D** | the same and puts the callsign on the **blacklist** (also in the Bandmap window) |
 | **Alt+P** / **Spot It** button | spot to the DX cluster (needs a frequency, as above) |
 | **Ctrl+P** | spot with a comment (needs a frequency, as above) |
 | **Alt+O** / **Store** button | stores the callsign from the field in the bandmap at the current frequency (needs a frequency: connect the radio or type it into the frequency field) |
-| **Alt+M** / **Mark** button | marks the frequency in the bandmap as occupied (needs a frequency, as above) |
+| **Alt+M** / **Mark** button | marks the frequency in the bandmap as occupied (needs a frequency, as above; also while the Bandmap window has the focus) |
 | **Ctrl+Tab** | show / hide the DX cluster window |
+
+Alt+M, Alt+D and Alt+Shift+D also work while the Bandmap window is the active window, with your own key assignments. In the Bandmap window Alt+D removes the spot under the mouse pointer; with the pointer elsewhere it acts as in the entry window.
 
 ## Rotator and antennas
 
@@ -132,14 +134,17 @@ lists all entry window actions with their keys.
 The basics of entry cannot be remapped: F1–F12 (messages and their Shift/Ctrl+Shift variants),
 Enter, Esc, Tab, space bar, arrows (tuning / SCP suggestions), PgUp/PgDn (CW speed) and "=".
 
-Typical use on a Mac: **Ctrl+↓/↑** is taken by Mission Control — remap the jumps between
-spots to, say, **Cmd+↓/↑** and you do not have to change system shortcuts.
+Typical use on a Mac: **Ctrl+↓/↑** (the N1MM key for jumping between spots) is taken by
+Mission Control, so the jumps default to **Cmd+↓/↑** and you do not have to change system
+shortcuts. An existing remapping you saved keeps working; remap to **Ctrl+↓/↑** if you
+turned the Mission Control shortcuts off.
 
 ## macOS: conflicts with the system
 
-- **Ctrl+↑/↓/←/→** are used by macOS by default for Mission Control and Spaces. To make
-  jumping between spots work, turn them off in System Settings → Keyboard →
-  Keyboard Shortcuts → Mission Control.
+- **Ctrl+↑/↓/←/→** are used by macOS by default for Mission Control and Spaces, which is why
+  the jumps between spots are on **Cmd+↓/↑** here. To use the N1MM keys **Ctrl+↓/↑** instead,
+  turn the system shortcuts off in System Settings → Keyboard → Keyboard Shortcuts →
+  Mission Control and remap the action in Settings → Keys.
 - **F-keys:** when they change brightness or volume, hold **fn**, or turn on "Use
   F1, F2, etc. keys as standard function keys".
 - **Option+F11** may be captured by the system. Run/S&P automation can also be toggled with the command
