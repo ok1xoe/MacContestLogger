@@ -54,7 +54,7 @@ struct OtherTab: View {
             SettingsField(caption: language.tr("NTP server (prázdné = vypnuto)")) {
                 SettingsTextField(text: $draft.ntpServer)
             }
-            .frame(width: 280)
+            .frame(maxWidth: 280, alignment: .leading)
             SettingsCheckbox(label: language.tr("Opravovat čas nově zapsaných QSO o zjištěnou odchylku"),
                              isOn: $draft.ntpCorrect)
             SettingsCaption(language.tr(
@@ -73,7 +73,7 @@ private struct LanguageGroup: View {
         let language: LanguageModel = app.language
         let languages: [LanguageCatalog.Language] = app.settingsTools.languages
         SettingsGroup(title: "Jazyk / Language") {
-            HStack(alignment: .bottom, spacing: 8) {
+            FlowLayout(spacing: 8) {
                 SettingsField(caption: "Jazyk") {
                     SettingsDropdown(label: LanguageChoice.selectedLabel(code: draft.language, in: languages),
                                      options: languages.map(LanguageChoice.label), language: language) { picked in
@@ -139,7 +139,7 @@ private struct AppearanceGroup: View {
                     }
                 }
             }
-            .frame(width: 260, alignment: .leading)
+            .frame(maxWidth: 260, alignment: .leading)
             SettingsCaption(language.tr(
                 "Vysoký kontrast = černé pozadí a žlutý akcent pro noční provoz. Velikost písma má každé okno vlastní (A− / A+ vpravo nahoře)."))
         }
