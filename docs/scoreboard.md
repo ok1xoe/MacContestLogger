@@ -5,12 +5,21 @@ Equivalent of N1MM / DXLog **Score Reporting**. **"Nastavení → Score Reportin
 
 - **"Odesílat průběžné skóre"** (Send running score) — turns sending on (only in a
   contest, only after the log changes).
-- **Scoreboard**: contestonlinescore.com or cqcontest.net, or a custom URL.
+- **Scoreboard**: a preset or a custom URL. Presets: contestonlinescore.com
+  (default), contest.run (`http://contest.run`), Score Distributor
+  (`http://scoredistributor.net`, forwards the score to the online scoreboards)
+  and hamscore.com. contest.run and Score Distributor are plain HTTP only. A
+  previously saved URL that matches no preset is kept and shown as a custom URL.
+  contest.run expects its own contest ids (e.g. `CQ-WW-RTTY`, `RDXC`) in
+  `<contest>`; its answer "Contest or alias not found" means the contest name
+  differs.
 - **Interval** (minimum 2 minutes, default 5).
 - **"Rozpad po pásmech a módech"** (Breakdown by bands and modes) — QSOs, points
   and multipliers for each band × mode.
 - **"Odeslat teď"** (Send now) saves the settings and sends the score immediately;
-  below the button is the status of the last send (HTTP code or error).
+  below the button is the status of the last send (HTTP code, with the reason the
+  server gives for a rejection such as "Contest not supported", or a readable
+  error: server unreachable, timed out, invalid address).
 
 An XML `<dynamicresults>` document (contest, callsign, operators, categories from
 the contest setup, zones and locator, breakdown, score, UTC time) is sent as the

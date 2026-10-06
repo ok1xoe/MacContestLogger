@@ -55,8 +55,48 @@ public enum ScoreReportPolicy {
     public enum PostResult: Equatable, Sendable {
         /// The server answered with this HTTP status.
         case http(Int)
+        /// A non-2xx answer with the reason the server gave in the body.
+        case rejected(Int, detail: String)
         /// The post failed; the message is the exception message (`nil` prints `null`).
         case failure(String?)
+        /// The server could not be reached (connection refused, unknown host); the host is shown.
+        case unreachable(host: String)
+        /// The connection or the request timed out; the host is shown.
+        case timedOut(host: String)
+        /// The posting URL is not a valid address.
+        case invalidAddress
+    }
+
+    /// Longest reason taken from a rejection body.
+    public static let maxDetailLength = 80
+
+    /// The first line of a short plain-text body, trimmed and capped at `maxDetailLength`; `nil` for an empty body or
+    /// one that looks like HTML (an error page).
+    public static func detail(fromBody body: String) -> String? {
+        guard !body.contains("<"), !body.contains("\0") else { return nil }
+        let line: Substring = body.split(whereSeparator: \.isNewline).first { !$0.trimmingCharacters(in: .whitespaces).isEmpty } ?? ""
+        let text: String = line.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return nil }
+        return text.count > maxDetailLength ? String(text.prefix(maxDetailLength)) + "…" : text
+    }
+
+    /// Maps a failed post to a result with a readable text: unreachable / timeout / invalid address get their own
+    /// Czech texts, anything else keeps the exception message.
+    public static func result(failure error: JavaHttpError, url: String) -> PostResult {
+        let host: String = URL(string: url)?.host ?? url
+        switch error {
+        case .illegalArgument:
+            return .invalidAddress
+        case .io(let io):
+            switch io.javaClass {
+            case "java.net.ConnectException", "java.net.UnknownHostException", "java.nio.channels.UnresolvedAddressException":
+                return .unreachable(host: host)
+            case "java.net.http.HttpTimeoutException", "java.net.http.HttpConnectTimeoutException":
+                return .timedOut(host: host)
+            default:
+                return .failure(io.message)
+            }
+        }
     }
 
     public struct Outcome: Equatable, Sendable {
@@ -75,8 +115,16 @@ public enum ScoreReportPolicy {
             return Outcome(status: status, accepted: true)
         case .http(let code):
             return Outcome(status: .tr("Server vrátil HTTP %s", .int(code)), accepted: false)
+        case .rejected(let code, let detail):
+            return Outcome(status: .tr("Server vrátil HTTP %s: %s", .int(code), .string(detail)), accepted: false)
         case .failure(let message):
             return Outcome(status: .tr("Odeslání skóre selhalo: %s", .string(message)), accepted: false)
+        case .unreachable(let host):
+            return Outcome(status: .tr("Odeslání skóre selhalo: server nedostupný (%s)", .string(host)), accepted: false)
+        case .timedOut(let host):
+            return Outcome(status: .tr("Odeslání skóre selhalo: vypršel čas (%s)", .string(host)), accepted: false)
+        case .invalidAddress:
+            return Outcome(status: .tr("Odeslání skóre selhalo: neplatná adresa"), accepted: false)
         }
     }
 }

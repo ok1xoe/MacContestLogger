@@ -30,7 +30,7 @@ struct ScoreReportingTab: View {
 
     private var serverGroup: some View {
         let boards = ConfigurerCatalogs.scoreboards
-        let current: String = boards.first { $0.url == draft.srUrl }?.name ?? language.tr("vlastní URL")
+        let current: String = ConfigurerCatalogs.scoreboardName(forUrl: draft.srUrl) ?? language.tr("vlastní URL")
         return SettingsGroup(title: "Server") {
             HStack(alignment: .top, spacing: 12) {
                 SettingsField(caption: "Scoreboard") {
