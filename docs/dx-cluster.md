@@ -20,9 +20,16 @@ main connection from the **DX Cluster** window, others can run:
 4. Below the status of the main connection is a line `Souběžně: RBN ✓ · Skimmer ...`
    ("Simultaneously: ...") (✓ logged in, ... connected, ✗ disconnected). A dropped
    connection is reopened after the next save of the settings.
+5. The same line in the DX Cluster window is a quick switch: after **"Souběžně"**
+   there is one checkbox per favorite (with its state mark), so you can stop
+   receiving RBN spots, or start them again, without opening the settings. Ticking
+   or unticking works like the checkbox in Settings → DX Cluster plus OK: it is
+   saved (so it survives a restart and Settings shows the same) and the connection
+   is opened and logged in, or closed ("Souběžné spojení ukončeno").
 
 A favorite to which the main window is currently connected is not duplicated as a
-simultaneous one. Unticking **"Souběžně"** closes the connection. Commands from
+simultaneous one; it is not offered in the switch and cannot be ticked while the
+main window uses it. Unticking **"Souběžně"** closes the connection. Commands from
 the DX Cluster window go only to the main connection.
 
 ## CW Skimmer / RBN

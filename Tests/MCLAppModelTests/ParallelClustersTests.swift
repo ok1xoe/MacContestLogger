@@ -116,4 +116,75 @@ import Testing
         await spot.settle()
         #expect(spot.model.messages.lines.count == 1)
     }
+
+    // MARK: - the DX Cluster window's switch
+
+    @Test func switchingOffClosesPersistsAndSettingsFollow() async throws {
+        let spot = try await SpotApp.make { config, server in
+            config.dxCluster.favorites = [server.favorite(name: "RBN", parallel: true)]
+        }
+        await eventually("connected") { spot.dx.parallel.values.first?.connected == true }
+        #expect(spot.dx.parallelChoices.map(\.isOn) == [true])
+
+        spot.dx.setParallel(false, favoriteAt: 0)
+        #expect(spot.dx.parallelKeys.isEmpty)
+        #expect(spot.model.config.config.dxCluster.favorites[0].parallel == false)
+        #expect(spot.dx.parallelChoices.map(\.isOn) == [false])
+        #expect(spot.dx.parallelChoices[0].mark == nil)
+        await spot.settle()
+        #expect(spot.logText.contains("· Souběžné spojení ukončeno"))
+        await eventually("closed") { spot.server.openConnections == 0 }
+
+        await spot.model.config.flush()
+        let saved: AppConfig = ConfigStore(file: spot.app.dataDir.appendingPathComponent("config.json")).load()
+        #expect(saved.dxCluster.favorites[0].parallel == false)
+
+        let settings: SettingsModel = spot.model.settings
+        settings.open()
+        await settings.settle()
+        let draft: ConfigurerDraft = try #require(settings.draft)
+        #expect(draft.dxFavorites.map(\.isParallel) == [false])
+    }
+
+    @Test func switchingOnConnectsAndPersists() async throws {
+        let spot = try await SpotApp.make { config, server in
+            config.dxCluster.favorites = [server.favorite(name: "RBN", login: "OK1XXX")]
+        }
+        #expect(spot.dx.parallelChoices.map(\.isOn) == [false])
+        #expect(spot.dx.parallelKeys.isEmpty)
+
+        spot.dx.setParallel(true, favoriteAt: 0)
+        await eventually("connected") { spot.dx.parallel.values.first?.connected == true }
+        #expect(spot.dx.parallelKeys.count == 1)
+        #expect(spot.dx.parallelChoices[0].isOn)
+        #expect(spot.dx.parallelChoices[0].mark == "…")
+        await eventually("login sent") { spot.server.lines(0) == ["OK1XXX"] }
+
+        await spot.model.config.flush()
+        let saved: AppConfig = ConfigStore(file: spot.app.dataDir.appendingPathComponent("config.json")).load()
+        #expect(saved.dxCluster.favorites[0].parallel)
+
+        let settings: SettingsModel = spot.model.settings
+        settings.open()
+        await settings.settle()
+        #expect(try #require(settings.draft).dxFavorites.map(\.isParallel) == [true])
+    }
+
+    @Test func theMainConnectionsFavouriteIsNotOfferedAndCannotBeSwitchedOn() async throws {
+        let spot = try await SpotApp.make()
+        let node: DxClusterFavorite = spot.server.favorite(name: "Node")
+        var other: DxClusterFavorite = DxClusterFavorite(name: "RBN", host: "127.0.0.1", port: spot.server.port + 1,
+                                                         login: "", password: "")
+        other.parallel = false
+        spot.model.config.config.dxCluster.favorites = [node, other]
+        #expect(spot.dx.parallelChoices.map(\.id) == [0, 1])
+
+        await spot.connectMain(node)
+        #expect(spot.dx.parallelChoices.map(\.id) == [1])
+        spot.dx.setParallel(true, favoriteAt: 0)
+        #expect(spot.model.config.config.dxCluster.favorites[0].parallel == false)
+        #expect(spot.dx.parallelKeys.isEmpty)
+        await spot.settle()
+        #expect(spot.server.connectionCount == 1)
+    }
 }

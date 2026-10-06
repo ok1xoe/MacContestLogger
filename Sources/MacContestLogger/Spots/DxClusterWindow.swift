@@ -215,15 +215,34 @@ struct DxClusterWindowView: View {
         .accessibilityIdentifier("dxcluster.favorite")
     }
 
-    /// `tr("Souběžně: %s")` over the parallel connections; hidden without any.
+    /// „Souběžně:" and one checkbox per favourite that can run in parallel (RBN, skimmers), each with its state mark;
+    /// hidden without such favourites. The main connection's favourite is not offered.
     @ViewBuilder
     private func parallelRow(_ app: AppModel) -> some View {
         let language: LanguageModel = app.language
-        if let summary = ClusterTexts.parallelSummary(app.dxCluster.parallelSnapshots) {
-            Text(verbatim: summary.text(language.translator, decimalSeparator: language.decimalSeparator))
-                .windowFont(11)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 12)
+        let cluster: DxClusterModel = app.dxCluster
+        let choices: [DxClusterModel.ParallelChoice] = cluster.parallelChoices
+        if !choices.isEmpty {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(verbatim: language.tr("Souběžně"))
+                    .windowFont(11)
+                    .foregroundStyle(.secondary)
+                FlowLayout(spacing: 10) {
+                    ForEach(choices) { choice in
+                        let name: String = ClusterTexts.favLabel(choice.favorite, translator: language.translator)
+                        let label: String = choice.mark.map { name + " " + $0 } ?? name
+                        Toggle(isOn: Binding(get: { choice.isOn },
+                                             set: { cluster.setParallel($0, favoriteAt: choice.id) })) {
+                            Text(verbatim: label).windowFont(11)
+                        }
+                        .toggleStyle(.checkbox)
+                        .accessibilityLabel(language.tr(ClusterTexts.parallelToggleKey, .string(name)))
+                        .accessibilityValue(choice.mark ?? "")
+                        .accessibilityIdentifier("dxcluster.parallel.\(choice.id)")
+                    }
+                }
+            }
+            .padding(.horizontal, 12)
         }
     }
 

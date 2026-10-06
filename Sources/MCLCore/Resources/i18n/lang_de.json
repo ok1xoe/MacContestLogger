@@ -704,6 +704,7 @@
  "Soubor nese sloupce pásem. Vyber, ze kterého se má plán vzít.": "Die Datei hat Bandspalten. Wähle die, aus der der Plan kommen soll.",
  "Soubor už existuje, nechal jsem ho být. Uprav ho v textovém editoru.": "Die Datei gibt es schon, ich habe sie unangetastet gelassen. Bearbeite sie in einem Texteditor.",
  "Souběžné spojení ukončeno": "Parallele Verbindung beendet",
+ "Souběžné spojení: %s": "Parallele Verbindung: %s",
  "Souběžně": "Parallel",
  "Souběžně: %s": "Parallel: %s",
  "Split zapnut (vysílám na VFO B)": "Split ein (Senden auf VFO B)",

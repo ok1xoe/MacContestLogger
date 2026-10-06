@@ -15,16 +15,16 @@ import Testing
 
     /// The shipped `lang_en.json` / `lang_de.json` intentionally differ from Java v1.1.1: 61 keys were appended for
     /// Kotlin literals the Swift UI translates, the 20 `menu.json` labels Java leaves out
-    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups. The Java measurement stays as it was; these are its cells for the shipped files
+    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 accessibility label of the DX Cluster window parallel switch. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
-        "81929": "86058", "afc6becd4f499483": "9a15b322e25363d6",
-        "87423": "91798", "d0c67e41ffca0e5d": "a39adf7a7300dfa1",
-        "1006": "1104",
+        "81929": "86114", "afc6becd4f499483": "0c8a954864f14ef0",
+        "87423": "91855", "d0c67e41ffca0e5d": "a07d07d36add924e",
+        "1006": "1105",
         "cc0ee26c076bc811dcc8325b5de39f43b89e7c0e8805e23db59cea0b4def8a4f":
-            "0fc4f575aca316bca31c01c55aa224b12de03c93ac13e33dab51d3723b0fba02",
+            "03993c3ba7bf12590b9f7e0640f0f09772355a78739361e9f9e8afda6d45fd5e",
         "2c37f524ad0b3da50e3eac30e91daf1f8bbe8353c3f844467c667a8f5f881bdb":
-            "27e142b853ab0374654406d25340ba1473e8549108d772b3b036f58db0948446",
+            "da464834cf53cb2b3f2f9199ea1871d6c2fe80c2c706ff8da877d9d4f866947f",
     ]
 
     /// A Java cell describing a shipped file, adjusted to the Swift files (`shippedFileCells`). Only whole
