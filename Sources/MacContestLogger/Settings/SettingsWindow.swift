@@ -149,7 +149,7 @@ struct SettingsContent: View {
     }
 }
 
-/// OK and „Zrušit", centred (`CW:127-135`).
+/// OK, „Použít" (save, window stays open; off without changes) and „Zrušit", centred (`CW:127-135`).
 struct SettingsFooter: View {
     let app: AppModel
 
@@ -165,6 +165,14 @@ struct SettingsFooter: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(settings.isSaving || settings.draft == nil)
+            Button {
+                Task { await settings.apply() }
+            } label: {
+                Text(verbatim: app.language.tr("Použít"))
+                    .frame(minWidth: 60)
+            }
+            .keyboardShortcut("s", modifiers: .command)
+            .disabled(settings.isSaving || !settings.hasChanges)
             Button {
                 settings.cancel()
             } label: {

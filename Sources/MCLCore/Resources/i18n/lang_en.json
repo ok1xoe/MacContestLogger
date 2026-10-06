@@ -1108,5 +1108,6 @@
  "Chyba sítě (%s)": "Network error (%s)",
  "Síť je vypnutá (MCL_INERT_NETWORK)": "Network is disabled (MCL_INERT_NETWORK)",
  "Chybí přihlašovací údaje": "Credentials missing",
- "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "No frequency entered — connect the radio or type it into the frequency field"
+ "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "No frequency entered — connect the radio or type it into the frequency field",
+ "Použít": "Apply"
 }

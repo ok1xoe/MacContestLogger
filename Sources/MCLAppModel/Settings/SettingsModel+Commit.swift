@@ -65,10 +65,25 @@ extension SettingsModel {
         return saved
     }
 
+    /// „Použít": the whole commit of OK (same validation, write and effects); the window stays open on the same
+    /// tab and the draft is read again from the committed configuration. A failed write keeps the draft and the
+    /// window like OK. Nothing happens without changes.
+    @discardableResult
+    public func apply() async -> Bool {
+        guard hasChanges, let committed = draft else { return false }
+        let saved: Bool = await commit(reconnectRig: false)
+        if saved {
+            await rereadDraft(committed: committed)
+        }
+        return saved
+    }
+
     /// „Odeslat teď" in Score reporting (`commitConfigurer(state, draft); state.reportScoreNow()`): the
     /// whole commit, then the report through its port whatever the commit's result; the window stays open.
     public func sendScoreNow() async {
-        _ = await commit(reconnectRig: false)
+        if let committed = draft, await commit(reconnectRig: false) {
+            await rereadDraft(committed: committed)
+        }
         services.reportScoreNow()
     }
 
