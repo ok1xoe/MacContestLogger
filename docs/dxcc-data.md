@@ -58,8 +58,10 @@ same DXCC number.
 
 ### Which date is used
 
-- Filling in the country of a QSO when it is logged or imported, and *Přepočítat DXCC v deníku…*, use
-  the **QSO time**.
-- Everything else — the contest engine's multipliers and points, spots, the Info lines, the map — uses
-  the **current date**. For live operating this is the same; rescoring an old log applies today's
-  exceptions to its multipliers.
+- Every QSO is evaluated at **its own time**: filling in its country when it is logged or imported,
+  *Přepočítat DXCC v deníku…*, the contest engine's points and multipliers when logging, when an
+  open contest is replayed or rescored, the move-multipliers check, and `mcl-scorecheck` (the date and
+  time of each Cabrillo `QSO:` line). Rescoring an old log therefore gives the same result as when it
+  was logged.
+- Live calls that are not QSOs yet — spots, the band map, the Info lines, the map, the entry window
+  preview — use the **current date**.

@@ -50,7 +50,16 @@ public final class DxccMultiplierSet: MultiplierSet {
     }
 
     public func deriveFromCallsign(_ callsign: String?) -> Resolution {
-        if let entity = resolver.resolve(callsign) {
+        resolution(callsign, resolver.resolve(callsign))
+    }
+
+    /// As of the QSO date (Club Log data; the other resolvers ignore the date and answer as above).
+    public func deriveFromCallsign(_ callsign: String?, at date: Date?) -> Resolution {
+        resolution(callsign, resolver.resolve(callsign, at: date))
+    }
+
+    private func resolution(_ callsign: String?, _ resolved: DxccEntity?) -> Resolution {
+        if let entity = resolved {
             return .valid(String(entity.entityCode))
         }
         // Java "…" + callsign: null prints as "null"

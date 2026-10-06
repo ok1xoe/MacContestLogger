@@ -235,6 +235,78 @@ import Testing
         #expect(with.dxcc?.resolve("OK1XOE")?.adifDxcc == 503)
     }
 
+    // MARK: - contest engine at the QSO date
+
+    /// CQ WW CW over the Club Log fixture (KC4AAA is Antarctica only in 2020, USA otherwise).
+    static func cqWwSession() throws -> ContestSession {
+        let root = try #require(Bundle.module.url(forResource: "contest-data", withExtension: nil))
+        let environment = ContestEnvironment.load(dataRoot: root.path, dxccDir: nil, fallbackDataRoot: "/nonexistent",
+                                                  clubLog: try fixture())
+        let definition = try #require(environment.catalog.first { $0.id == "cq-ww-cw" })
+        return ContestSession(definition: definition, dxcc: try #require(environment.dxcc),
+                              registry: try #require(environment.registry), myCall: "OK1XOE")
+    }
+
+    static func countryKey(_ result: ContestSession.LogResult) -> String? {
+        result.multipliers.first { $0.bindingId == "countries" }?.key
+    }
+
+    static func qso(_ call: String, _ time: String, zone: String) -> (call: String, at: Date, exchange: String) {
+        (call, date(time), "599 " + zone)
+    }
+
+    @Test func engineScoresTheEntityValidAtTheQsoDate() throws {
+        let session = try Self.cqWwSession()
+        var exchange = JavaLinkedMap<String>()
+        exchange.put("rst", "599")
+        exchange.put("zone", "39")
+        let old = try session.log(call: "KC4AAA", band: "20m", mode: "CW", receivedRaw: exchange,
+                                  at: Self.date("2020-06-01T10:00:00+00:00"))
+        #expect(Self.countryKey(old) == "13")
+        #expect(old.context.workedEntity?.adifDxcc == 13)
+        let new = try session.log(call: "KC4AAA", band: "15m", mode: "CW", receivedRaw: exchange,
+                                  at: Self.date("2022-06-01T10:00:00+00:00"))
+        #expect(Self.countryKey(new) == "291")
+        // A preview (move multipliers, spots) is evaluated at its own time too.
+        let preview = try session.preview(call: "KC4AAA", band: "10m", mode: "CW", receivedRaw: exchange,
+                                          at: Self.date("2020-03-01T00:00:00+00:00"))
+        #expect(Self.countryKey(preview) == "13")
+    }
+
+    @Test func rescoringAnOldLogIsStable() throws {
+        let log = [
+            Self.qso("KC4AAA", "2020-06-01T10:00:00+00:00", zone: "39"),
+            Self.qso("OK0XX", "2025-01-15T10:00:00+00:00", zone: "15"),
+            Self.qso("UA9XYZ", "2026-02-01T10:00:00+00:00", zone: "18"),
+            Self.qso("DL1ABC", "2026-02-01T10:05:00+00:00", zone: "14"),
+        ]
+        var keys: [[String?]] = []
+        var scores: [ScoreState] = []
+        for _ in 0..<2 {
+            let session = try Self.cqWwSession()
+            var replayed: [String?] = []
+            for q in log {
+                let result = try session.replayLogged(call: q.call, band: "20m", mode: "CW",
+                                                      exchangeRcvdFlat: q.exchange, serialRcvd: nil, at: q.at)
+                replayed.append(Self.countryKey(result))
+            }
+            keys.append(replayed)
+            scores.append(try session.score())
+        }
+        // Antarctica in 2020; OK0XX was an invalid operation in January 2025 (no country multiplier).
+        #expect(keys[0] == ["13", nil, "15", "230"])
+        #expect(keys[0] == keys[1])
+        #expect(scores[0] == scores[1])
+        #expect(scores[0].multByGroup["countries"] == 3)
+    }
+
+    @Test func cabrilloQsoDateForScoreCheck() {
+        #expect(ScoreCheck.qsoDate("2020-06-01", "1005") == Self.date("2020-06-01T10:05:00+00:00"))
+        #expect(ScoreCheck.qsoDate("2020-13-01", "1005") == nil)
+        #expect(ScoreCheck.qsoDate("2020-06-01", "10:05") == nil)
+        #expect(ScoreCheck.qsoDate("x", "1005") == nil)
+    }
+
     // MARK: - cache
 
     @Test func spacingOfRequestsWithAnInjectedClock() {

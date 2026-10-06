@@ -395,7 +395,7 @@ public final class ContestSession: Sendable {
     /// Preview (without writing) — for highlighting in the UI while typing. Dupe at time `at` (default "now").
     public func preview(call: String?, band: String?, mode: String?, receivedRaw: JavaLinkedMap<String>?,
                         ownQth: String? = nil, at: Date = Date()) throws(ContestSessionError) -> LogResult {
-        let context = try build(call, band, mode, receivedRaw, ownQth)
+        let context = try build(call, band, mode, receivedRaw, ownQth, at)
         let points: Int32
         do {
             points = try PointsCalculator.points(definition, context)
@@ -414,18 +414,24 @@ public final class ContestSession: Sendable {
 
     /// Counts a QSO into the score at time `at` (TOUR session; default "now", `nil` = Java `null`
     /// `Instant` — the session is not counted). See the type description.
+    ///
+    /// The DXCC data are evaluated as of `dxccAt`, else `at` (else now) — only Club Log's `cty.xml` has
+    /// date-ranged records, the other sources ignore the date.
     @discardableResult
     public func log(call: String?, band: String?, mode: String?, receivedRaw: JavaLinkedMap<String>?,
-                    at: Date? = Date(), ownQth: String? = nil) throws(ContestSessionError) -> LogResult {
+                    at: Date? = Date(), ownQth: String? = nil,
+                    dxccAt: Date? = nil) throws(ContestSessionError) -> LogResult {
         try log(call: call, band: band, mode: mode, receivedRaw: receivedRaw,
-                atEpochSecond: at.map { Tour.epochSecond(of: $0) }, ownQth: ownQth)
+                atEpochSecond: at.map { Tour.epochSecond(of: $0) }, ownQth: ownQth, dxccAt: dxccAt ?? at)
     }
 
     /// `log` with the time in epoch seconds (exact like Java `Instant`).
     @discardableResult
     public func log(call: String?, band: String?, mode: String?, receivedRaw: JavaLinkedMap<String>?,
-                    atEpochSecond: Int64?, ownQth: String? = nil) throws(ContestSessionError) -> LogResult {
-        let context = try build(call, band, mode, receivedRaw, ownQth)
+                    atEpochSecond: Int64?, ownQth: String? = nil,
+                    dxccAt: Date? = nil) throws(ContestSessionError) -> LogResult {
+        let date: Date? = dxccAt ?? atEpochSecond.map { Date(timeIntervalSince1970: TimeInterval($0)) }
+        let context = try build(call, band, mode, receivedRaw, ownQth, date)
         guard let band, !JavaText.isBlank(band) else {
             // A QSO without a band cannot be scored or assigned to per-band multipliers, and the logbook
             // replay omits it (the live score must match the replayed one).
@@ -523,9 +529,10 @@ public final class ContestSession: Sendable {
     }
 
     private func build(_ call: String?, _ band: String?, _ mode: String?, _ receivedRaw: JavaLinkedMap<String>?,
-                       _ ownQth: String?) throws(ContestSessionError) -> QsoContext {
+                       _ ownQth: String?, _ date: Date?) throws(ContestSessionError) -> QsoContext {
         do {
-            return try factory.build(call: call, band: band, mode: mode, receivedRaw: receivedRaw, ownQth: ownQth)
+            return try factory.build(call: call, band: band, mode: mode, receivedRaw: receivedRaw, ownQth: ownQth,
+                                     at: date)
         } catch {
             throw ContestSessionError(error)
         }

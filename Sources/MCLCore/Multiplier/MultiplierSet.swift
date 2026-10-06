@@ -33,4 +33,15 @@ public protocol MultiplierSet: Sendable {
 
     /// Deriving the key from a callsign (DXCC, WPX); otherwise `unsupported`.
     func deriveFromCallsign(_ callsign: String?) -> Resolution
+
+    /// `deriveFromCallsign` as of a QSO date (`nil` = now). Only a set over date-ranged DXCC data (Club Log) uses
+    /// the date; the default ignores it.
+    func deriveFromCallsign(_ callsign: String?, at date: Date?) -> Resolution
+}
+
+extension MultiplierSet {
+
+    public func deriveFromCallsign(_ callsign: String?, at date: Date?) -> Resolution {
+        deriveFromCallsign(callsign)
+    }
 }

@@ -259,8 +259,8 @@ public enum ScoreCheck {
             let t = text.javaTrim(line)
             if text.upperStartsWith(t, CabrilloText.qsoPrefix) {
                 let rest = text.javaTrim(t.lowerBound + CabrilloText.qsoPrefix.count..<t.upperBound)
-                if let his = try logLine(session, text, rest, sent), dxcc.resolve(his) == nil {
-                    unresolved.append(his)
+                if let his = try logLine(session, text, rest, sent), dxcc.resolve(his.call, at: his.date) == nil {
+                    unresolved.append(his.call)
                 }
             }
         }
@@ -288,7 +288,7 @@ public enum ScoreCheck {
     /// rcvdCall [rcvd…]`. A shorter line is silently skipped (`nil`). Received fields are taken by
     /// the class of the counterpart and mapped positionally after `rcvdCall`.
     private static func logLine(_ session: ContestSession, _ text: CabrilloText, _ rest: Range<Int>,
-                                _ sent: Int) throws(Failure) -> String? {
+                                _ sent: Int) throws(Failure) -> (call: String, date: Date?)? {
         let tok = text.splitWhitespace(rest)
         let rcvdCallIdx = 5 + sent
         if tok.count <= rcvdCallIdx {
@@ -309,14 +309,34 @@ public enum ScoreCheck {
                 received.put(field.id, text.string(tok[idx]))
             }
         }
+        // The QSO's date and time for the DXCC lookup (Club Log data are date-ranged; the other sources ignore it).
+        let date: Date? = qsoDate(text.string(tok[2]), text.string(tok[3]))
         do {
             // Java 4-argument `log` with `Instant.now()` (without TOUR the time is irrelevant)
             try session.log(call: hisCall, band: band(text.string(tok[0])), mode: mode(text.string(tok[1])),
-                            receivedRaw: received)
+                            receivedRaw: received, dxccAt: date)
         } catch {
             throw Failure(error)
         }
-        return hisCall
+        return (hisCall, date)
+    }
+
+    /// Cabrillo `yyyy-mm-dd` + `hhmm` (UTC); `nil` when either does not read.
+    static func qsoDate(_ day: String, _ time: String) -> Date? {
+        let d = day.split(separator: "-")
+        guard d.count == 3, let year = Int(d[0]), let month = Int(d[1]), let dayOfMonth = Int(d[2]),
+              time.count == 4, time.allSatisfy({ $0.isASCII && $0.isNumber }),
+              let hour = Int(time.prefix(2)), let minute = Int(time.suffix(2)) else { return nil }
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = dayOfMonth
+        components.hour = hour
+        components.minute = minute
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        guard components.isValidDate(in: calendar) else { return nil }
+        return calendar.date(from: components)
     }
 
     // MARK: - contest detection
