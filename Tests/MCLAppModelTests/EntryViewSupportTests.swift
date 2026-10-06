@@ -156,6 +156,7 @@ import Testing
         let app = try await TestApp.make()
         try await app.startCqWwCw()
         app.model.contest.deactivate()
+        await app.model.contest.settleActivations()
         let entry: EntryModel = app.model.entry
         entry.setFrequency("14025")
         entry.callChanged("OK1ABC")

@@ -85,21 +85,63 @@ import Testing
         #expect(app.model.status.message == "DL1ABC v módu SSB — závod ho nemá, nepočítá se")
     }
 
-    @Test func withoutAContestNothingIsStored() async throws {
+    /// Free logging: the QSO goes into the open logbook without a contest (Kotlin refused it).
+    @Test func withoutAContestTheQsoIsStoredInTheOpenLogbook() async throws {
         let app = try await TestApp.make()
         let entry: EntryModel = app.model.entry
         entry.setFrequency("14025")
         entry.callChanged("DL1ABC")
+        entry.setMode(.cw)
+        entry.editExchange("579 Jan")
         entry.submit()
         await entry.settle()
-        #expect(app.model.logbook.rows.isEmpty)
-        #expect(app.model.status.message == QsoLogPipeline.noActiveContestStatus)
+        let qso: Qso = try #require(app.model.logbook.rows.first)
+        #expect(app.model.logbook.rows.count == 1)
+        #expect(qso.contestId == "")
+        #expect(qso.call == "DL1ABC")
+        #expect(qso.band == .m20)
+        #expect(qso.mode == .cw)
+        #expect(qso.exchangeRcvd == "579 Jan")
+        #expect(qso.operator == "OK1XOE")
+        #expect(qso.dxccName == "Germany")
+        #expect(qso.points == 0)
+        #expect(!qso.uuid.isEmpty)
+        #expect(app.model.logbook.qsoCount == 1)
+        #expect(app.model.status.message == "")
+        let stored: [Qso] = try await app.model.database.handle.run { try $0.service.findAllIncludingDeleted() }
+        #expect(stored.map(\.call) == ["DL1ABC"])
+        #expect(stored.first?.contestId == "")
     }
 
-    @Test func freeLoggingAfterContestNoneUsesTheLogbookContest() async throws {
+    /// The same call on the same band among the free-logging QSOs is flagged, never blocked.
+    @Test func freeLoggingDupeIsAWarningOnly() async throws {
+        let app = try await TestApp.make()
+        let entry: EntryModel = app.model.entry
+        entry.setFrequency("14025")
+        entry.callChanged("DL1ABC")
+        #expect(!entry.isDupe)
+        entry.submit()
+        await entry.settle()
+        entry.callChanged("DL1ABC")
+        #expect(entry.isDupe)
+        entry.submit()
+        await entry.settle()
+        #expect(app.model.logbook.rows.map(\.call) == ["DL1ABC", "DL1ABC"])
+        entry.setFrequency("7025")
+        entry.callChanged("DL1ABC")
+        #expect(!entry.isDupe)
+    }
+
+    /// „Žádný (volné logování)" after a contest: the log shows the free-logging QSOs only; opening the contest
+    /// again shows its own QSOs only.
+    @Test func freeLoggingAndTheContestKeepSeparateLogs() async throws {
         let app = try await TestApp.make()
         try await app.startCqWwCw()
+        let id: String = try #require(app.model.contest.activeId)
+        await app.logContestQso(call: "DL1ABC", zone: "14")
         app.model.contest.deactivate()
+        await app.model.contest.settleActivations()
+        #expect(app.model.logbook.rows.isEmpty)
         let entry: EntryModel = app.model.entry
         entry.setFrequency("7010")
         entry.callChanged("W1AW")
@@ -107,10 +149,48 @@ import Testing
         entry.submit()
         await entry.settle()
         let qso: Qso = try #require(app.model.logbook.rows.first)
+        #expect(app.model.logbook.rows.count == 1)
+        #expect(qso.call == "W1AW")
+        #expect(qso.contestId == "")
         #expect(qso.exchangeRcvd == " 42 ")
-        #expect(qso.serialRcvd == 42)
         #expect(qso.band == .m40)
         #expect(app.model.contest.score == nil)
+        // A contest dupe is no free-logging dupe.
+        entry.setFrequency("14025")
+        entry.callChanged("DL1ABC")
+        #expect(!entry.isDupe)
+        entry.wipe()
+
+        #expect(await app.model.contest.open(contestId: id))
+        #expect(app.model.logbook.rows.map(\.call) == ["DL1ABC"])
+        #expect(app.model.contest.score?.qsoCount == 1)
+
+        // Free logging again shows the free-logging QSOs.
+        app.model.contest.deactivate()
+        await app.model.contest.settleActivations()
+        #expect(app.model.logbook.rows.map(\.call) == ["W1AW"])
+    }
+
+    /// The ADIF export without a contest writes the free-logging QSOs (Cabrillo stays contest-only).
+    @Test func freeLoggingQsosExportToAdif() async throws {
+        let app = try await TestApp.make()
+        try await app.startCqWwCw()
+        await app.logContestQso(call: "DL1ABC", zone: "14")
+        app.model.contest.deactivate()
+        await app.model.contest.settleActivations()
+        let entry: EntryModel = app.model.entry
+        entry.setFrequency("7010")
+        entry.callChanged("W1AW")
+        entry.submit()
+        await entry.settle()
+        let file: URL = app.dir.child("free.adi")
+        await app.model.exports.exportAdif(to: file)
+        let text: String = try String(contentsOf: file, encoding: .utf8)
+        #expect(text.contains("<CALL:4>W1AW"))
+        #expect(!text.contains("DL1ABC"))
+        #expect(!text.contains("CONTEST_ID"))
+        await app.model.exports.exportCabrillo(to: app.dir.child("free.log"))
+        #expect(app.model.status.message == "Cabrillo: není aktivní závod")
     }
 
     @Test func commonCallsignsAreNotCommands() throws {

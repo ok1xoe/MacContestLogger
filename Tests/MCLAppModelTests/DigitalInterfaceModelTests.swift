@@ -238,7 +238,7 @@ import Testing
         #expect(app.model.operating.cqRepeat)
         #expect(digital.key(.escape, down: false, shift: false))
         #expect(!app.model.operating.cqRepeat)
-        // Enter logs (without a contest the entry says so); the press alone does nothing.
+        // Enter logs (without a contest into the free-logging log); the press alone does nothing.
         app.entry.setFrequency("14025")
         app.entry.callChanged("DL1ABC")
         #expect(!app.entry.esmActive)
@@ -248,6 +248,6 @@ import Testing
         #expect(digital.key(.enter, down: false, shift: false))
         await app.model.entry.settle()
         await runMainQueue()
-        #expect(app.status == "Není aktivní závod — QSO se neuložilo. Založ nebo otevři závod.")
+        #expect(app.model.logbook.rows.map(\.call) == ["DL1ABC"])
     }
 }

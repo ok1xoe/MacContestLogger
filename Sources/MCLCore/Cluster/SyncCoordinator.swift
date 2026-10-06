@@ -67,12 +67,22 @@ public final class SyncCoordinator: @unchecked Sendable {
             }
         } else {
             var qso: Qso = WireMapper.toQso(state)
-            qso.contestId = logbook.activeContestId
+            qso.contestId = try Self.filingContest(logbook)
             if state.qso?.call == nil {
                 try rejectNullCall(qso, logbook)
             }
             try logbook.upsertByUuid(qso)
         }
+    }
+
+    /// The contest an incoming state is filed under: the logbook's active contest. In free logging (none) it is
+    /// the last opened contest (`meta.last_contest_id`), as when Kotlin's logbook kept its contest after
+    /// „Žádný": the cluster's QSOs never land in the free-logging log.
+    static func filingContest(_ logbook: LogbookService) throws -> String {
+        if !logbook.activeContestId.isEmpty {
+            return logbook.activeContestId
+        }
+        return try logbook.repository.metaGet("last_contest_id") ?? ""
     }
 
     /// A state without a callsign (`qso == null` or `call == null`) is not written by the Java logbook: `upsertByUuid` binds

@@ -39,12 +39,9 @@ public enum LogEffect: Equatable, Sendable {
 /// prepares the QSO and returns the effects in Kotlin order.
 public enum QsoLogPipeline {
 
-    /// Status text when no contest is open; the QSO is not saved.
-    public static let noActiveContestStatus = "Není aktivní závod — QSO se neuložilo. Založ nebo otevři závod."
-
     /// What `AppState.log` reads from the application state.
     public struct Context: Sendable {
-        /// Active contest of the logbook (`logbook.getActiveContest()`); blank = none.
+        /// Active contest of the logbook (`logbook.getActiveContest()`); blank = none (free logging).
         public var activeContestId: String?
         /// Current operator (`operatorCall`).
         public var operatorCall: String
@@ -100,23 +97,20 @@ public enum QsoLogPipeline {
 
     /// Prepares the QSO and lists the effects.
     ///
-    /// Without an active contest only the status text is returned and the QSO is untouched.
-    /// Otherwise the operator is filled when blank (imported QSOs bring their own), the missing
-    /// country data is filled, the station id is set when sync runs, and the effects follow:
-    /// persist → revision → dupe index → table row → reserved serial → count → cluster publish, then —
-    /// only for a QSO that was not imported — simulator, RIT, Club Log, plugins, broadcast, WSJT-X.
+    /// The operator is filled when blank (imported QSOs bring their own), the missing country data is
+    /// filled, the station id is set when sync runs, and the effects follow: persist → revision → dupe
+    /// index → table row → reserved serial → count → cluster publish, then — only for a QSO that was not
+    /// imported — simulator, RIT, Club Log, plugins, broadcast, WSJT-X.
     ///
-    /// `contestLog` comes last when `context.logToContest` is set — also after a refusal, because the
-    /// Kotlin entry window calls `contest.log` right after `state.log` whatever it did (the session is
-    /// then normally inactive and ignores it).
+    /// Without an active contest (free logging) the QSO is stored too, into the open logbook without a
+    /// contest (`contest_id` NULL). **A deliberate divergence from Kotlin**, which refused it with a status
+    /// text. Such a QSO never goes to the cluster (no publish, no server serial): the wire carries no
+    /// contest and a receiving station would file it under its own active contest.
+    ///
+    /// `contestLog` comes last when `context.logToContest` is set, because the Kotlin entry window calls
+    /// `contest.log` right after `state.log` (the session ignores it when inactive).
     public static func plan(qso: Qso, isImported: Bool, context: Context) -> (Qso, [LogEffect]) {
-        guard let contestId = context.activeContestId, !KotlinText.isBlank(contestId) else {
-            var refused: [LogEffect] = [.status(noActiveContestStatus)]
-            if context.logToContest {
-                refused.append(.contestLog)
-            }
-            return (qso, refused)
-        }
+        let inContest: Bool = context.activeContestId.map { !KotlinText.isBlank($0) } ?? false
         var prepared = qso
         if KotlinText.isBlank(prepared.operator) {
             prepared.operator = context.operatorCall
@@ -128,11 +122,11 @@ public enum QsoLogPipeline {
             prepared.stationId = stationId
         }
         var effects: [LogEffect] = [.persist, .bumpRevision, .addDupe, .appendRow]
-        if let reserved = context.reservedSerial, prepared.serialSent == reserved {
+        if inContest, let reserved = context.reservedSerial, prepared.serialSent == reserved {
             effects.append(.consumeReservedSerial)
         }
         effects.append(.refreshCount)
-        if context.syncStationId != nil {
+        if inContest && context.syncStationId != nil {
             effects.append(.publishInsert)
         }
         if !isImported {

@@ -142,6 +142,47 @@ final class Done {
         #expect(a.model.logbook.qsoCount == 0)
     }
 
+    /// Free logging never reaches the cluster (the wire has no contest; B would file it under its own), and a
+    /// state arriving meanwhile is filed under the last contest, never in the free-logging log.
+    @Test func freeLoggingStaysOffTheCluster() async throws {
+        let hub = InMemorySyncTransport()
+        let now = NetStation.start()
+        let a = try await NetStation.make(id: "OP1", hub: hub, now: now)
+        let b = try await NetStation.make(id: "OP2", hub: hub, now: now)
+        try await a.activate()
+        try await b.activate()
+        let contestId: String = try #require(a.model.contest.activeId)
+
+        a.model.contest.deactivate()
+        await a.model.contest.settleActivations()
+        let entry: EntryModel = a.model.entry
+        entry.setFrequency("7010")
+        entry.callChanged("W1AW")
+        entry.submit()
+        await entry.settle()
+        var edited: Qso = try #require(a.model.logbook.rows.first)
+        let old: Qso = edited
+        edited.comment = "tnx"
+        _ = await a.model.logbook.update(LogbookMutations.Edit(old: old, new: edited))
+        await a.settle()
+        #expect(a.model.logbook.rows.map(\.call) == ["W1AW"])
+
+        // B's contest QSO reaches A (a barrier: anything A had published is on the hub before it).
+        await b.log("DL1ABC")
+        await a.settle()
+        await b.settle()
+        #expect(b.model.logbook.rows.map(\.call) == ["DL1ABC"])
+        let stored: [Qso] = try await a.model.database.handle.run { try $0.service.findAllIncludingDeleted() }
+        #expect(stored.first { $0.call == "DL1ABC" }?.contestId == contestId)
+        await a.settle()
+        #expect(a.model.logbook.rows.map(\.call) == ["W1AW"])
+
+        await a.model.logbook.delete(a.model.logbook.rows)
+        await a.settle()
+        await b.settle()
+        #expect(b.model.logbook.rows.map(\.call) == ["DL1ABC"])
+    }
+
     @Test func aDeleteWithoutTheClusterIsHard() async throws {
         let hub = InMemorySyncTransport()
         let a = try await NetStation.make(id: "OP1", hub: hub, enabled: false)

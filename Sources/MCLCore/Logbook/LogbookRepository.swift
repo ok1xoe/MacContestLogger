@@ -231,13 +231,12 @@ public final class LogbookRepository {
 
     /// Active QSOs of the given contest (tombstones excluded). Corresponds to `findAll(String)`.
     ///
-    /// Without an active contest (`contestId == ""`, Java `null`) SQL `NULL` is bound
-    /// and `contest_id=?` returns **nothing, ever** — including rows that themselves have
-    /// `contest_id IS NULL`. That is not a bug but the literal Java semantics
-    /// (`ps.setString(1, null)` + `contest_id=?`); hence `=?` stays here, not `IS ?`.
+    /// Without an active contest (`contestId == ""`) these are the free-logging QSOs, the rows with
+    /// `contest_id IS NULL`. **A deliberate divergence from Java v1.1.1**, which bound SQL `NULL` to
+    /// `contest_id=?` and so never returned anything there (it did not save free-logging QSOs either).
     public func findAll(contestId: String) throws -> [Qso] {
         let stmt = try connection.prepare(
-            "SELECT * FROM qso WHERE deleted=0 AND contest_id=? ORDER BY timestamp_utc ASC, id ASC")
+            "SELECT * FROM qso WHERE deleted=0 AND contest_id IS ? ORDER BY timestamp_utc ASC, id ASC")
         defer { stmt.finalize() }
         try stmt.bindText(Self.sqlContestId(contestId), at: 1)
         var result: [Qso] = []
@@ -247,10 +246,10 @@ public final class LogbookRepository {
         return result
     }
 
-    /// Corresponds to `count(String)`. Without an active contest (`""`) it returns `0` for the same
-    /// reason as `findAll(contestId:)` above.
+    /// Corresponds to `count(String)`. Without an active contest (`""`) it counts the free-logging QSOs,
+    /// like `findAll(contestId:)` above.
     public func count(contestId: String) throws -> Int {
-        let stmt = try connection.prepare("SELECT COUNT(*) FROM qso WHERE deleted=0 AND contest_id=?")
+        let stmt = try connection.prepare("SELECT COUNT(*) FROM qso WHERE deleted=0 AND contest_id IS ?")
         defer { stmt.finalize() }
         try stmt.bindText(Self.sqlContestId(contestId), at: 1)
         guard try stmt.step() else { return 0 }
@@ -259,9 +258,8 @@ public final class LogbookRepository {
 
     /// The next serial number for the given contest — sent on the air. Computes `count(contestId:) + 1`,
     /// i.e. exactly what `findAll(contestId:)` returns (active QSOs, `xqso` counts,
-    /// tombstone does not): an empty contest → `1`. Without an active contest (`""`) it is always `1`,
-    /// because `count(contestId: "")` is always `0` — as in Java. Corresponds to
-    /// `nextSerial(String)`.
+    /// tombstone does not): an empty contest → `1`. Without an active contest (`""`) it follows the
+    /// free-logging QSOs. Corresponds to `nextSerial(String)`.
     public func nextSerial(contestId: String) throws -> Int {
         try count(contestId: contestId) + 1
     }

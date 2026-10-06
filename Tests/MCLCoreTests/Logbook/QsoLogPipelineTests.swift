@@ -48,23 +48,30 @@ import Testing
         )
     }
 
-    @Test func noActiveContestRefusesWithStatus() {
+    /// Free logging (no active contest, a Swift divergence from Kotlin's refusal): the QSO is stored and
+    /// prepared as usual, with every local effect, but never published to the cluster and never taking the
+    /// cluster's server serial.
+    @Test func freeLoggingStoresTheQsoWithoutClusterEffects() {
         for contest in [nil, "", " ", "\u{00A0}"] as [String?] {
             var ctx = Self.fullContext()
             ctx.activeContestId = contest
             ctx.logToContest = false
             let (q, effects) = QsoLogPipeline.plan(qso: Self.qso(), isImported: false, context: ctx)
-            #expect(effects == [.status("Není aktivní závod — QSO se neuložilo. Založ nebo otevři závod.")])
-            #expect(q == Self.qso()) // untouched: no operator, no country, no station id
+            #expect(effects == [
+                .persist, .bumpRevision, .addDupe, .appendRow, .refreshCount,
+                .simulator, .clearRit, .clubLog, .plugin, .broadcast, .wsjtx,
+            ], "\(String(describing: contest))")
+            #expect(q.operator == "OK1XOE")
+            #expect(q.dxccName == "Czech Republic")
         }
     }
 
-    /// The entry window calls `contest.log` right after `state.log`, even when `state.log` refused.
-    @Test func refusalStillLogsIntoContestWhenAsked() {
+    /// The entry window calls `contest.log` right after `state.log`, also in free logging.
+    @Test func freeLoggingStillLogsIntoContestWhenAsked() {
         var ctx = Self.fullContext()
         ctx.activeContestId = nil
-        let (_, effects) = QsoLogPipeline.plan(qso: Self.qso(), isImported: false, context: ctx)
-        #expect(effects == [.status(QsoLogPipeline.noActiveContestStatus), .contestLog])
+        let (_, effects) = QsoLogPipeline.plan(qso: Self.qso(), isImported: true, context: ctx)
+        #expect(effects == [.persist, .bumpRevision, .addDupe, .appendRow, .refreshCount, .contestLog])
     }
 
     @Test func effectOrderMatchesKotlin() {

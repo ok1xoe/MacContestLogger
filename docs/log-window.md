@@ -2,6 +2,10 @@
 
 ![Log window with the points and multipliers columns](img/log-window.png)
 
+The window shows the QSOs of the active contest. In free logging (no contest
+open) it shows the QSOs logged without a contest — see
+[Getting started → Free logging](zaciname.md#free-logging-without-a-contest).
+
 ## Bulk edits
 
 In selection mode (select rows by clicking, Shift+click for a range, Cmd+click for

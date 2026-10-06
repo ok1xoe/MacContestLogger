@@ -321,6 +321,7 @@ struct PortedApp {
         await app.enter("CLOSE")
         _ = MenuActions.performPending(app: app.model)
         #expect(!app.model.contest.isActive)
+        await app.model.contest.settleActivations()
         await app.enter("NEW")
         #expect(app.model.dialogs.isOpen(.newContest))
         await app.enter("OPEN")

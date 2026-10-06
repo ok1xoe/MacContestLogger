@@ -3,7 +3,8 @@
 ## ADIF
 
 **"Nastavení → Export ADIF…"** (Settings → Export ADIF...) (or the command
-`EXPORT`) writes ADIF 3.1.4:
+`EXPORT`) writes ADIF 3.1.4 with the QSOs of the active contest — or, in free
+logging, the QSOs logged without a contest:
 
 | Field | Content |
 |---|---|
