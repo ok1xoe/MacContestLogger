@@ -18,7 +18,7 @@ public final class MenuModel {
         "contest.new", "contest.open", "contest.rescore", "contest.none", "database.new", "database.open",
         "window.log", "settings.exportCabrillo", "settings.export", "settings.downloadScp", "contest.postcontest",
         "settings.import", "settings.merge", "settings.exportEdi", "settings.exportOther", "settings.print",
-        "database.refillDxcc", "contest.updateCallHistory", "contest.updateDefinitions", "contest.editor",
+        "database.refillDxcc", "database.updateClubLogDxcc", "contest.updateCallHistory", "contest.updateDefinitions", "contest.editor",
         "settings.profiles", "settings.open", "contest.record", "window.catlog", "window.rotator",
         "window.cwkeyboard", "window.cwreader", "window.digitalinterface", "window.waterfall", "beacons.load",
         "window.dxcluster", "window.bandmap", "window.availmult", "window.blacklist", "window.netstatus",

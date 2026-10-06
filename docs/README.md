@@ -49,6 +49,7 @@ version looks slightly different, but the controls and their meaning are the sam
 ## Data and extensions
 
 - [Import and export](import-export.md)
+- [DXCC data and Club Log](dxcc-data.md)
 - [Contest definition editor](definition-editor.md)
 - [Scripts and plugins](scripting.md)
 

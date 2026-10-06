@@ -1,3 +1,4 @@
+import Foundation
 import os
 
 /// QSO context build error: an expression in `stationClasses[].when.expr` (`StationClassifier`),
@@ -80,10 +81,12 @@ public final class QsoContextFactory: Sendable {
         self.bonus.withLock { $0 = predicate }
     }
 
-    /// - Parameter ownQth: my county (rover / county line), otherwise `nil`
+    /// - Parameters:
+    ///   - ownQth: my county (rover / county line), otherwise `nil`
+    ///   - date: the QSO time for the DXCC lookup (`nil` = now; only Club Log data use it)
     public func build(call: String?, band: String?, mode: String?, receivedRaw: JavaLinkedMap<String>?,
-                      ownQth: String? = nil) throws(QsoContextError) -> QsoContext {
-        let worked = dxcc.resolve(call)
+                      ownQth: String? = nil, at date: Date? = nil) throws(QsoContextError) -> QsoContext {
+        let worked = dxcc.resolve(call, at: date)
         let workedClass: String?
         do {
             workedClass = try StationClassifier.classify(definition, worked: worked, own: ownEntity)
@@ -108,6 +111,6 @@ public final class QsoContextFactory: Sendable {
         let qth: String? = ownQth.flatMap { JavaText.isBlank($0) ? nil : JavaText.trim($0).uppercased() }
         return QsoContext(call: call, band: band, mode: mode, received: received, workedEntity: worked,
                           ownEntity: ownEntity, workedClass: workedClass, ownGrid: myGrid, ownItuZone: ownItuZone,
-                          ownQth: qth, bonusStation: call.map { isBonus($0) } ?? false)
+                          ownQth: qth, bonusStation: call.map { isBonus($0) } ?? false, date: date)
     }
 }

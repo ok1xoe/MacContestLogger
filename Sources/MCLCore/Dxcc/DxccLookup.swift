@@ -20,4 +20,15 @@ public protocol DxccLookup: Sendable {
 
     /// All entities (for enumerating a multiplier set).
     func entities() -> [DxccEntity]
+
+    /// Resolves a callsign as of a QSO date (`nil` = now). Only a source with date-ranged records (Club Log's
+    /// `cty.xml`) uses the date; the default ignores it and answers `resolve(_:)`.
+    func resolve(_ callsign: String?, at date: Date?) -> DxccEntity?
+}
+
+extension DxccLookup {
+
+    public func resolve(_ callsign: String?, at date: Date?) -> DxccEntity? {
+        resolve(callsign)
+    }
 }

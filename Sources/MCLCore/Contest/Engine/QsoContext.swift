@@ -1,3 +1,4 @@
+import Foundation
 import os
 
 /// A QSO enriched by resolvers — input for the evaluators (points, multipliers, dupe). The evaluators
@@ -25,6 +26,9 @@ public struct QsoContext: Sendable {
     public let ownItuZone: String?
     public let ownQth: String?
     public let bonusStation: Bool
+    /// The QSO time the DXCC data were evaluated at (`nil` = now). Only Club Log's `cty.xml` has date-ranged
+    /// records; the multiplier sets derive from the callsign as of this date.
+    public let date: Date?
 
     /// Map of expression variables, built only on the first read (`expressionVariables`).
     private let variablesCache = VariablesCache()
@@ -32,7 +36,7 @@ public struct QsoContext: Sendable {
     public init(call: String?, band: String?, mode: String?, received: JavaLinkedMap<ExchangeValue>?,
                 workedEntity: DxccEntity?, ownEntity: DxccEntity?, workedClass: String?,
                 ownGrid: String? = nil, ownItuZone: String? = nil, ownQth: String? = nil,
-                bonusStation: Bool = false) {
+                bonusStation: Bool = false, date: Date? = nil) {
         self.call = call
         self.band = band
         self.mode = mode
@@ -44,6 +48,7 @@ public struct QsoContext: Sendable {
         self.ownItuZone = ownItuZone
         self.ownQth = ownQth
         self.bonusStation = bonusStation
+        self.date = date
     }
 
     /// Expression variables (`QsoVariables.of(self)`) built **once per QSO**.

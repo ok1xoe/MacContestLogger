@@ -114,6 +114,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var clPassword: String = ""
     public var clCallsign: String = ""
     public var clApiKey: String = ""
+    /// `clubLog.ctyEnabled` (Swift only): DXCC from Club Log's `cty.xml`.
+    public var clCtyEnabled: Bool = true
     public var srEnabled: Bool = false
     public var srUrl: String = ""
     public var srMinutes: String = ""
@@ -354,6 +356,7 @@ extension ConfigurerDraft {
         clPassword = config.clubLog.appPassword
         clCallsign = config.clubLog.callsign
         clApiKey = config.clubLog.apiKey
+        clCtyEnabled = config.clubLog.ctyEnabled
         srEnabled = config.scoreReportingEnabled
         srUrl = config.scoreReportingUrl
         srMinutes = String(config.scoreReportingMinutes)

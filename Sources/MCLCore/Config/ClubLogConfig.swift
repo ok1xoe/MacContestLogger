@@ -11,8 +11,11 @@ public struct ClubLogConfig: Codable, Equatable, Sendable {
     public var callsign: String = ""
     /// Application API key (Club Log issues it to developers / on request).
     public var apiKey: String = ""
+    /// DXCC from Club Log's `cty.xml` (Swift only): a daily download at start-up when the API key is set, and the
+    /// cached copy as the DXCC source when one exists. Off = the local DXCC data only, no download at start-up.
+    public var ctyEnabled: Bool = true
 
-    enum CodingKeys: String, CodingKey { case enabled, email, appPassword, callsign, apiKey }
+    enum CodingKeys: String, CodingKey { case enabled, email, appPassword, callsign, apiKey, ctyEnabled }
 
     public init() {}
 
@@ -24,6 +27,7 @@ public struct ClubLogConfig: Codable, Equatable, Sendable {
         appPassword = c.value(.appPassword, default: d.appPassword)
         callsign = c.value(.callsign, default: d.callsign)
         apiKey = c.value(.apiKey, default: d.apiKey)
+        ctyEnabled = c.value(.ctyEnabled, default: d.ctyEnabled)
     }
 
     /// Is everything needed to send to Club Log Live Stream filled in?

@@ -110,11 +110,13 @@ import Testing
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Fixtures/jvm-probes/full-config.json")
         let decoded = try JSONDecoder().decode(AppConfig.self, from: try Data(contentsOf: url))
-        // The two SCP / N+1 switches and the preferred callbook are Swift-only keys (v1.1.1 would reject them), so the probe file has neither.
+        // The two SCP / N+1 switches, the preferred callbook and Club Log's DXCC switch are Swift-only keys (v1.1.1
+        // would reject them), so the probe file has none of them.
         var expected = Self.fullConfig()
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
         expected.preferredCallbook = "hamqth"
+        expected.clubLog.ctyEnabled = true
         #expect(decoded == expected)
     }
 
@@ -240,6 +242,7 @@ import Testing
         w.same(\.clPassword, \.clubLog.appPassword, "clpw")
         w.same(\.clCallsign, \.clubLog.callsign, "OK1CLB")
         w.same(\.clApiKey, \.clubLog.apiKey, "api-key")
+        w.same(\.clCtyEnabled, \.clubLog.ctyEnabled, false)
         w.same(\.srEnabled, \.scoreReportingEnabled, true)
         w.same(\.srUrl, \.scoreReportingUrl, "https://cqcontest.net/post.php")
         w.number(\.srMinutes, \.scoreReportingMinutes, 7)

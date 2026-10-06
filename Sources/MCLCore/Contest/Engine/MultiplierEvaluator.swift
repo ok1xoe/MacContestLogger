@@ -1,3 +1,5 @@
+import Foundation
+
 /// Evaluates a QSO's multipliers. `preview` does not change the tracker (while typing), `commit` counts the new ones.
 /// A QSO is never blocked; unknown and suspicious values are accepted and flagged. Port of Java
 /// `engine/MultiplierEvaluator.java`.
@@ -98,7 +100,7 @@ public struct MultiplierEvaluator: Sendable {
         let fromCallsign = JavaChar.equalsIgnoreCase("callsign", binding.from)
 
         let resolution = fromCallsign
-            ? set.deriveFromCallsign(context.call)
+            ? set.deriveFromCallsign(context.call, at: context.date)
             : set.normalize(context.fieldRaw(binding.from))
 
         // Failure: from the callsign = suspicious (a garbled callsign), from a field = invalid format.

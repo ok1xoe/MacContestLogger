@@ -54,10 +54,17 @@ public struct ContestEnvironment: Sendable {
     }
 
     /// Loads the environment. `dxccDir` is the DXCC data directory (Kotlin `~/dxcc-json`); `nil` = no DXCC.
-    public static func load(dataRoot configured: String?, dxccDir: String?,
-                            fallbackDataRoot: String) -> ContestEnvironment {
+    ///
+    /// `clubLog` = the cached Club Log `cty.xml` (Settings → Score Reporting, on by default once a copy exists): when
+    /// given, it is the DXCC source (`ClubLogCtyResolver`, names and ITU zones from the `dxccDir` data where it knows
+    /// the entity); `nil` leaves the `dxccDir` source exactly as before.
+    public static func load(dataRoot configured: String?, dxccDir: String?, fallbackDataRoot: String,
+                            clubLog: ClubLogCtyData? = nil) -> ContestEnvironment {
         var problems: [ContestMessage] = []
-        let dxcc: (any DxccLookup)? = dxccDir.flatMap { loadDxcc(URL(fileURLWithPath: $0)) }
+        let local: (any DxccLookup)? = dxccDir.flatMap { loadDxcc(URL(fileURLWithPath: $0)) }
+        let dxcc: (any DxccLookup)? = clubLog.map {
+            ClubLogCtyResolver($0, localNames: ClubLogCtyResolver.localNames(from: local))
+        } ?? local
         let root: URL = dataRoot(configured: configured, fallback: fallbackDataRoot)
         let multipliers: URL = root.appendingPathComponent("multipliers")
         var registry: MultiplierSetRegistry?

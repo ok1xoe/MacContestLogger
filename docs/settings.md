@@ -21,7 +21,7 @@ All Settings tabs are functional (the earlier mock-ups of the N1MM layout have b
 | CW klíč (CW keyer) | Winkeyer / CAT keying |
 | Mode Control | mode in the log taken from the rig / band plan / always fixed; RTTY sent to the rig as FSK or AFSK |
 | Antennas | antenna table, rotator (rotctld, UDP) |
-| Score Reporting | online scoreboard, Club Log |
+| Score Reporting | online scoreboard, Club Log Live Stream, DXCC from Club Log ([DXCC data](dxcc-data.md)) |
 | Broadcast Data, WSJT/JTDX, Audio, Stanice (Station), Závod (Contest), Cluster, DX Cluster, Online callbooks, Bandplán (Band plan), Digi frekvence (Digi frequencies), Mapa (Map) | unchanged |
 
 ## OK, Apply and Cancel

@@ -329,8 +329,8 @@ import Testing
         var differences: [String] = []
         Self.compareKeys(java, swift, path: "", into: &differences)
         // The Swift-only keys (`ProfileMergeSchema.swiftOnlyProperties`) are written by Swift only, by design.
-        let swiftOnly: Set<String> = Set(ProfileMergeSchema.swiftOnlyProperties[ProfileMergeSchema.root, default: []]
-            .map { "/" + $0.name + " only in Swift" })
+        let swiftOnly: Set<String> = Set(ProfileMergeSchema.swiftOnlyPaths
+            .map { "/" + $0.joined(separator: "/") + " only in Swift" })
         differences.removeAll { swiftOnly.contains($0) }
         #expect(differences.isEmpty, Comment(rawValue: differences.joined(separator: "\n") + "\n" + Self.swiftOnlyHint))
     }
@@ -339,11 +339,13 @@ import Testing
     /// (Java has no such message to match), so the count is brought back to Java's before comparing.
     static func withoutSwiftOnlyCount(_ message: String?) -> String? {
         guard let message else { return nil }
-        let extra: Int = ProfileMergeSchema.swiftOnlyProperties[ProfileMergeSchema.root, default: []].count
-        guard extra > 0, message.contains("(class cz.ok1xoe.maccontestlogger.config.AppConfig)"),
-              let range = message.range(of: #"\((\d+) known properties"#, options: .regularExpression),
-              let count = Int(message[range].filter(\.isNumber)) else { return message }
-        return message.replacingCharacters(in: range, with: "(\(count - extra) known properties")
+        for (owner, properties) in ProfileMergeSchema.swiftOnlyProperties
+        where !properties.isEmpty && message.contains("(class " + owner + ")") {
+            guard let range = message.range(of: #"\((\d+) known properties"#, options: .regularExpression),
+                  let count = Int(message[range].filter(\.isNumber)) else { return message }
+            return message.replacingCharacters(in: range, with: "(\(count - properties.count) known properties")
+        }
+        return message
     }
 
     static func compareKeys(_ java: ProfileJson, _ swift: ProfileJson, path: String, into out: inout [String]) {

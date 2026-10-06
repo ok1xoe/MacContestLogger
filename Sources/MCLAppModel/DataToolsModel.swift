@@ -31,16 +31,26 @@ public final class DataToolsModel {
         public let cancel: String
     }
 
-    @ObservationIgnored private let contest: ContestModel
+    @ObservationIgnored let contest: ContestModel
     @ObservationIgnored private let logbook: LogbookModel
     @ObservationIgnored private let callData: CallDataModel
-    @ObservationIgnored private let config: ConfigModel
-    @ObservationIgnored private let status: StatusModel
-    @ObservationIgnored private let language: LanguageModel
-    @ObservationIgnored private let messages: MessagesModel
-    @ObservationIgnored private let dataDir: URL
-    @ObservationIgnored private let now: @Sendable () -> Date
+    @ObservationIgnored let config: ConfigModel
+    @ObservationIgnored let status: StatusModel
+    @ObservationIgnored let language: LanguageModel
+    @ObservationIgnored let messages: MessagesModel
+    @ObservationIgnored let dataDir: URL
+    @ObservationIgnored let now: @Sendable () -> Date
     @ObservationIgnored let definitionSource: DefinitionSource
+    /// The download of Club Log's `cty.xml`; `nil` = no network (tests, `MCL_INERT_NETWORK`).
+    @ObservationIgnored let clubLogFetcher: (any DataFetcher)?
+    @ObservationIgnored var clubLogChain: Task<Void, Never>?
+    @ObservationIgnored var observedCtyEnabled: Bool?
+    /// The Club Log DXCC line of Settings → Score Reporting (`nil` until the cache state is read).
+    public internal(set) var clubLogCtyStatus: ContestMessage?
+    /// The result of the last Club Log DXCC update in this session (Settings → Score Reporting).
+    public internal(set) var clubLogCtyResult: ContestMessage?
+    /// A Club Log DXCC update is running (the Settings button is off meanwhile).
+    public internal(set) var clubLogCtyRunning: Bool = false
     @ObservationIgnored private var definitionChain: Task<Void, Never>?
     @ObservationIgnored private var tasks: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored private var nextTaskId: Int = 0
@@ -56,6 +66,7 @@ public final class DataToolsModel {
         let dataDir: URL
         let now: @Sendable () -> Date
         let definitionSource: DefinitionSource
+        var clubLogFetcher: (any DataFetcher)? = nil
     }
 
     init(_ dependencies: Dependencies) {
@@ -69,6 +80,7 @@ public final class DataToolsModel {
         dataDir = dependencies.dataDir
         now = dependencies.now
         definitionSource = dependencies.definitionSource
+        clubLogFetcher = dependencies.clubLogFetcher
     }
 
     // MARK: - DXCC refill
@@ -256,7 +268,7 @@ public final class DataToolsModel {
 
     // MARK: - tasks
 
-    private func track(_ body: @escaping @MainActor () async -> Void) {
+    func track(_ body: @escaping @MainActor () async -> Void) {
         let id: Int = nextTaskId
         nextTaskId += 1
         tasks[id] = Task { [weak self] in

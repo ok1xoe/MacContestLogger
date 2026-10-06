@@ -198,6 +198,7 @@ extension ConfigurerDraft {
         config.clubLog.appPassword = clPassword
         config.clubLog.callsign = JavaText.toUpperCase(Self.trim(clCallsign))
         config.clubLog.apiKey = Self.trim(clApiKey)
+        config.clubLog.ctyEnabled = clCtyEnabled
         config.scoreReportingEnabled = srEnabled
         config.scoreReportingUrl = Self.trim(srUrl)
         config.scoreReportingMinutes = ConfigurerRows.toIntOrNull(srMinutes) ?? 5

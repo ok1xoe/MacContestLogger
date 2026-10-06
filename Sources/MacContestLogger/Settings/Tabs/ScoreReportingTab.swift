@@ -25,6 +25,7 @@ struct ScoreReportingTab: View {
                 SettingsCaption(language.text(app.onlineServices.scoreReportStatus))
             }
             clubLogGroup
+            clubLogDxccGroup
         }
     }
 
@@ -80,6 +81,30 @@ struct ScoreReportingTab: View {
             SettingsCaption(language.tr(
                 "Heslo aplikace vytvoříš na clublog.org → Settings → App Passwords. API klíč vydává Club Log (Helpdesk). Nepovedené odeslání se opakuje, dokud aplikace běží."))
             SettingsCaption(language.text(app.onlineServices.clubLogStatus))
+        }
+    }
+
+    /// DXCC from Club Log's `cty.xml` (Swift only): the switch, the manual update and the cache line. The download
+    /// uses the API key above; the button is off while an update runs.
+    private var clubLogDxccGroup: some View {
+        let tools: DataToolsModel = app.dataTools
+        return SettingsGroup(title: language.tr("DXCC z Club Logu (cty.xml)")) {
+            SettingsCheckbox(label: language.tr("Používat DXCC z Club Logu (stažení nejvýš jednou denně)"),
+                             isOn: $draft.clCtyEnabled)
+            HStack(spacing: 12) {
+                SettingsButton(language.tr("Aktualizovat DXCC z Club Logu")) {
+                    tools.updateClubLogDxcc()
+                }
+                .disabled(tools.clubLogCtyRunning)
+                if let line = tools.clubLogCtyStatus {
+                    SettingsCaption(language.text(line))
+                }
+            }
+            SettingsCaption(language.tr(
+                "Stáhne se s API klíčem výše nejvýš jednou za 24 hodin, vyhledávání je vždy místní. Bez stažené kopie se používají místní data (~/dxcc-json)."))
+            if let result = tools.clubLogCtyResult {
+                SettingsCaption(language.text(result))
+            }
         }
     }
 }
