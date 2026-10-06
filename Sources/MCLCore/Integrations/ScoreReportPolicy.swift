@@ -65,12 +65,18 @@ public enum ScoreReportPolicy {
         public let accepted: Bool
     }
 
+    /// The time of a report for the status line: `HH:mm:ss UTC` (Java printed the raw `Instant`).
+    public static func utcTime(_ instant: JavaInstant) -> String {
+        let second: Int64 = ((instant.epochSecond % 86_400) + 86_400) % 86_400
+        return String(format: "%02d:%02d:%02d UTC", Int(second / 3600), Int(second / 60 % 60), Int(second % 60))
+    }
+
     /// `tr("Skóre %s odesláno %s (HTTP %s)", total, now, code)` for 200…299, `tr("Server vrátil HTTP %s", code)`
     /// otherwise, `tr("Odeslání skóre selhalo: %s", message)` on a failure.
     public static func outcome(_ result: PostResult, total: Int64, now: JavaInstant) -> Outcome {
         switch result {
         case .http(let code) where (200...299).contains(code):
-            let status: EntryStatus = .tr("Skóre %s odesláno %s (HTTP %s)", .int(Int(total)), .string(now.toString()),
+            let status: EntryStatus = .tr("Skóre %s odesláno %s (HTTP %s)", .int(Int(total)), .string(Self.utcTime(now)),
                                           .int(code))
             return Outcome(status: status, accepted: true)
         case .http(let code):

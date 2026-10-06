@@ -13,6 +13,8 @@ import Testing
     static func mask(_ text: String) -> String {
         text.replacingOccurrences(of: "\\d{4}-\\d{2}-\\d{2}T[\\d:.]+Z", with: "<instant>", options: .regularExpression)
             .replacingOccurrences(of: "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}", with: "<instant>", options: .regularExpression)
+            // The status shows `HH:mm:ss UTC` where Java printed the raw Instant (deliberate divergence).
+            .replacingOccurrences(of: "\\d{2}:\\d{2}:\\d{2} UTC", with: "<instant>", options: .regularExpression)
     }
 
     /// The QSO the probe imported before reporting (ADIF: DL1ABC, 20m CW, report 599, zone 14).
@@ -153,7 +155,7 @@ import Testing
         let at = JavaInstant.ofEpochSecond(1_791_021_600, 123_456_000)!
         let ok = ScoreReportPolicy.outcome(.http(200), total: 1234, now: at)
         #expect(ok.accepted)
-        #expect(ok.status.czech == "Skóre 1234 odesláno 2026-10-03T10:00:00.123456Z (HTTP 200)")
+        #expect(ok.status.czech == "Skóre 1234 odesláno 10:00:00 UTC (HTTP 200)")
         #expect(ScoreReportPolicy.outcome(.http(299), total: 1, now: at).accepted)
         #expect(!ScoreReportPolicy.outcome(.http(199), total: 1, now: at).accepted)
         let bad = ScoreReportPolicy.outcome(.http(500), total: 1, now: at)
