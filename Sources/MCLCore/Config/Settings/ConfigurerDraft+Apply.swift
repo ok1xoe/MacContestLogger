@@ -192,6 +192,7 @@ extension ConfigurerDraft {
         config.callHistoryFile = Self.trim(callHistoryFile)
         config.scpSuggestionsEnabled = scpSuggestionsEnabled
         config.nPlusOneEnabled = nPlusOneEnabled
+        config.preferredCallbook = CallbookService(configValue: preferredCallbook).rawValue
         config.clubLog.enabled = clEnabled
         config.clubLog.email = Self.trim(clEmail)
         config.clubLog.appPassword = clPassword

@@ -21,6 +21,8 @@ public final class DialogsModel {
         case databaseOpen = "db-open"
         /// The operator at the key (Kotlin `OperatorDialog`, Ctrl+O / OPON).
         case operatorLogin = "operator"
+        /// The result of a manual callbook lookup (log and band map menus).
+        case callbookResult = "callbook-result"
 
         /// Kotlin default size.
         public var defaultSize: CGSize {
@@ -31,6 +33,7 @@ public final class DialogsModel {
             case .databaseNew: return CGSize(width: 420, height: 200)
             case .databaseOpen: return CGSize(width: 420, height: 360)
             case .operatorLogin: return CGSize(width: 400, height: 230)
+            case .callbookResult: return CGSize(width: 380, height: 300)
             }
         }
 
@@ -83,6 +86,8 @@ public final class DialogsModel {
     public private(set) var confirmation: Confirmation?
     /// The operator window (Kotlin `showOperatorDialog`, window id `operator`).
     public private(set) var showOperator: Bool = false
+    /// The manual callbook lookup's result window (id `callbook-result`).
+    public private(set) var showCallbookResult: Bool = false
     /// Raised when the app should quit (EXITNOW, or EXIT confirmed); the app layer quits through `AppQuit.request`.
     public private(set) var quitRequest: Int = 0
     /// What the wipe and delete confirmations do (wired by the app model).
@@ -123,6 +128,7 @@ public final class DialogsModel {
         case .databaseNew: return showNewDatabase
         case .databaseOpen: return showOpenDatabase
         case .operatorLogin: return showOperator
+        case .callbookResult: return showCallbookResult
         }
     }
 
@@ -160,6 +166,8 @@ public final class DialogsModel {
             showOpenDatabase = open
         case .operatorLogin:
             showOperator = open
+        case .callbookResult:
+            showCallbookResult = open
         }
     }
 

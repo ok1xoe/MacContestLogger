@@ -18,6 +18,20 @@ struct OnlineCallbooksTab: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            SettingsGroup(title: language.tr("Preferovaný online callbook")) {
+                Picker(selection: $draft.preferredCallbook) {
+                    ForEach(CallbookService.allCases, id: \.rawValue) { service in
+                        Text(verbatim: service.displayName).tag(service.rawValue)
+                    }
+                } label: {
+                    EmptyView()
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityLabel(Text(verbatim: language.tr("Preferovaný online callbook")))
+                SettingsCaption(language.tr(
+                    "Tlačítko v okně zadávání dohledá volačku na této službě, i mimo vybrané módy. Vyžaduje přihlašovací údaje."))
+            }
             Picker(selection: $subState.value) {
                 Text(verbatim: "HamQTH").tag(0)
                 Text(verbatim: "QRZ.com").tag(1)

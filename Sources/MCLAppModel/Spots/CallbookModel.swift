@@ -28,6 +28,10 @@ public final class CallbookModel {
     @ObservationIgnored public let hamQthLog: HamQthLog
     /// The record of the entry field's call; `nil` = none or not found.
     public private(set) var callbookRecord: CallbookHit?
+    /// What the entry window's lookup button found for its call (shown on the callbook line when not found).
+    public private(set) var entryLookup: ManualLookupResult?
+    /// The result window's content (the log and band map menus); `nil` = nothing asked yet.
+    public private(set) var windowLookup: ManualLookupResult?
     /// Rises when the offline grid data have loaded (a spot analysis built before must be rebuilt).
     public private(set) var gridGeneration: Int = 0
 
@@ -43,6 +47,8 @@ public final class CallbookModel {
     @ObservationIgnored private var gridRequested = false
     @ObservationIgnored private var hamQth: HamQthClient
     @ObservationIgnored private var qrz: QrzClient
+    /// Opens the result window (wired by the app to `DialogsModel`).
+    @ObservationIgnored var showLookupWindow: @MainActor () -> Void = {}
     /// The current spot analysis (needs-lookup gate, spot category); wired by the app.
     @ObservationIgnored var analyzer: @MainActor () -> SpotAnalyzer? = { nil }
 
@@ -142,6 +148,94 @@ public final class CallbookModel {
             guard let self, CallbookPolicy.key(typedCall()) == key else { return }
             self.callbookRecord = merged.isEmpty ? nil : CallbookHit(call: key, record: merged)
         })
+    }
+
+    // MARK: - manual lookups
+
+    /// The service of the entry window's button (Settings → Online callbooks).
+    public var preferredService: CallbookService {
+        CallbookService(configValue: config.config.preferredCallbook)
+    }
+
+    /// Does the service have credentials? (Read from the config, so the buttons follow a saved Settings change.)
+    public func isConfigured(_ service: CallbookService) -> Bool {
+        let settings: AppConfig = config.config
+        switch service {
+        case .hamQth:
+            return !KotlinStrings.trim(settings.hamQth.username).isEmpty && !settings.hamQth.password.isEmpty
+        case .qrz:
+            return !KotlinStrings.trim(settings.qrz.username).isEmpty && !settings.qrz.password.isEmpty
+        }
+    }
+
+    /// The entry window's button: looks `call` up on `service` now (no debounce, no mode filter; credentials are
+    /// required). A record goes to the callbook line and so through the prefill of the automatic lookup; a failure
+    /// is shown on that line. `typedCall` = the call in the field when the answer arrives.
+    public func lookupNow(_ call: String, service: CallbookService, typedCall: @escaping @MainActor () -> String) {
+        let key: String = CallbookPolicy.key(call)
+        guard !key.isEmpty else { return }
+        entryLookup = ManualLookupResult(call: key, service: service, state: .loading)
+        runManual(key, service) { [weak self] result in
+            guard let self, CallbookPolicy.key(typedCall()) == key else { return }
+            if let record = result.record {
+                self.entryLookup = nil
+                self.callbookRecord = CallbookHit(call: key, record: record)
+            } else {
+                self.entryLookup = result
+            }
+        }
+    }
+
+    /// The log and band map menus: looks `call` up on `service` and shows the result window.
+    public func lookupInWindow(_ call: String, service: CallbookService) {
+        let key: String = CallbookPolicy.key(call)
+        guard !key.isEmpty else { return }
+        windowLookup = ManualLookupResult(call: key, service: service, state: .loading)
+        showLookupWindow()
+        runManual(key, service) { [weak self] result in
+            guard let self, self.windowLookup?.call == key, self.windowLookup?.service == service else { return }
+            self.windowLookup = result
+        }
+    }
+
+    /// „Otevřít na webu" of the result window.
+    public func openOnWeb(_ result: ManualLookupResult) {
+        open(result.service.pageURL(call: result.call))
+    }
+
+    private func runManual(_ key: String, _ service: CallbookService,
+                           finish: @escaping @MainActor (ManualLookupResult) -> Void) {
+        guard isConfigured(service) else {
+            finish(ManualLookupResult(call: key, service: service, state: .notConfigured))
+            return
+        }
+        if network.isInert {
+            finish(ManualLookupResult(call: key, service: service, state: .networkDisabled))
+            return
+        }
+        let settings: AppConfig = config.config
+        let recorder = RecordingHttpGetter(network.http)
+        let client: any CallbookClient = service == .hamQth
+            ? HamQthClient(username: settings.hamQth.username, password: settings.hamQth.password,
+                           log: hamQthLog, http: recorder)
+            : QrzClient(username: settings.qrz.username, password: settings.qrz.password, log: hamQthLog,
+                        http: recorder)
+        let dxcc: (any DxccLookup)? = contest.runtime.dxccLookup
+        let cache: CallbookCache = self.cache
+        let generation: Int = cache.generation
+        lane.submit({ () -> ManualLookupResult in
+            let record: HamQthRecord = (try? client.lookup(key)) ?? .empty
+            if !record.isEmpty {
+                if !cache.contains(key) || cache.record(key)?.isEmpty == true {
+                    cache.store(key, record, generation: generation)
+                }
+                return ManualLookupResult(call: key, service: service,
+                                          state: .found(record, country: dxcc?.resolve(key)?.name))
+            }
+            let state = ManualLookupClassifier.problem(for: service, failure: recorder.failure,
+                                                       exchanges: recorder.exchanges)
+            return ManualLookupResult(call: key, service: service, state: state)
+        }, then: finish)
     }
 
     // MARK: - the spots

@@ -758,6 +758,9 @@ public final class AppModel {
         for panel in [model.panel(vfo: 0), model.vfoB] {
             let entry: EntryModel = panel.entry
             entry.spotNavigation = model.spotNavigation
+            model.callbook.showLookupWindow = { [weak dialogs = model.dialogs] in
+                dialogs?.setOpen(.callbookResult, true)
+            }
             entry.helpOpener = { [weak callbook = model.callbook] in
                 callbook?.openHelp()
             }
@@ -766,6 +769,9 @@ public final class AppModel {
             }
             panel.suggestions.callbookSource = { [weak callbook = model.callbook] in
                 callbook?.callbookRecord
+            }
+            panel.suggestions.lookupSource = { [weak callbook = model.callbook] in
+                callbook?.entryLookup
             }
             panel.suggestions.callbookActive = { [weak entry] in
                 entry?.isActivePanel ?? false

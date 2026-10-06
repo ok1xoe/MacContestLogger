@@ -192,6 +192,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var scpSuggestionsEnabled = true
     /// Show the `N+1:` row (calls one character off) under the call field and compute it. Swift-only key.
     public var nPlusOneEnabled = true
+    /// The online callbook of the entry window's manual lookup button: `"hamqth"` or `"qrz"` (see
+    /// `CallbookService`). Swift-only key.
+    public var preferredCallbook = CallbookService.hamQth.rawValue
 
     /// Call history file in N1MM format (pre-filling the exchange); empty = none.
     public var callHistoryFile = ""
@@ -221,7 +224,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case language, themeMode, themeAccent
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
-        case scpSuggestionsEnabled, nPlusOneEnabled
+        case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook
         case callHistoryFile, databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -321,6 +324,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
 
         scpSuggestionsEnabled = c.value(.scpSuggestionsEnabled, default: d.scpSuggestionsEnabled)
         nPlusOneEnabled = c.value(.nPlusOneEnabled, default: d.nPlusOneEnabled)
+        preferredCallbook = CallbookService(configValue: c.value(.preferredCallbook, default: d.preferredCallbook))
+            .rawValue
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)

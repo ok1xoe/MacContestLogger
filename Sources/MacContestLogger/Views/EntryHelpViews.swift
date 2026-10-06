@@ -53,11 +53,20 @@ private struct WorkedBandChip: View {
 /// Kotlin's callbook row (`EP:1185-1192`): „Callbook: " and the record of the typed call — name, locator, zones —
 /// when the callbook has one (the text is not translated in Kotlin).
 struct CallbookLineView: View {
+    let app: AppModel
     let panel: EntryPanel
 
     var body: some View {
         if let line = panel.suggestions.callbookLine {
             Text(verbatim: line)
+                .windowFont(11, weight: .medium)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("entry.callbook")
+        } else if let result = panel.suggestions.callbookProblem {
+            // The answer to the lookup button when it found nothing (a found record is the line above).
+            let language: LanguageModel = app.language
+            let text: String = result.problem.map { language.text($0) } ?? language.tr("Dohledávám…")
+            Text(verbatim: "Callbook: " + result.service.displayName + " — " + text)
                 .windowFont(11, weight: .medium)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("entry.callbook")

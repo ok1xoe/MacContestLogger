@@ -384,6 +384,10 @@ final class BandmapCanvas: NSView {
             addItem(menu, "Odebrat spot") { model.remove(spot) }
             addItem(menu, "QRZ.com") { model.openQrz(spot) }
             addItem(menu, "HamQTH") { model.openHamQth(spot) }
+            for service in CallbookService.allCases {
+                addItem(menu, language.tr("Dohledat na %s", .string(service.displayName)),
+                        enabled: model.canLookup(on: service)) { model.lookup(spot, on: service) }
+            }
             menu.addItem(.separator())
         }
         addItem(menu, language.tr("Smazat všechny spoty")) { model.clearSpots() }
@@ -393,11 +397,13 @@ final class BandmapCanvas: NSView {
         menu.popUp(positioning: nil, at: point, in: self)
     }
 
-    private func addItem(_ menu: NSMenu, _ title: String, _ run: @escaping @MainActor () -> Void) {
+    private func addItem(_ menu: NSMenu, _ title: String, enabled: Bool = true,
+                         _ run: @escaping @MainActor () -> Void) {
         let action = MenuItemAction(run)
         menuActions.append(action)
         let item = NSMenuItem(title: title, action: #selector(MenuItemAction.fire), keyEquivalent: "")
         item.target = action
+        item.isEnabled = enabled
         menu.addItem(item)
     }
 }

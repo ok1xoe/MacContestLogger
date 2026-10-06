@@ -51,6 +51,20 @@ public final class SuggestionsModel {
 
     /// The spot calls of the cluster buffer (Kotlin `state.dxCluster.spots.snapshot().map { it.dxCall() }`).
     @ObservationIgnored public var spotCalls: @MainActor () -> [String] = { [] }
+    /// The call in this window's call field (the manual lookup button's input).
+    public var currentCall: String {
+        formSource().call
+    }
+
+    /// The failed answer of the manual lookup button for the call typed here (`nil` = none, found or another call).
+    public var callbookProblem: ManualLookupResult? {
+        guard let result = lookupSource(), result.problem != nil || result.state == .loading,
+              result.call == CallbookPolicy.key(formSource().call) else { return nil }
+        return result
+    }
+
+    /// The app's manual lookup of the entry button (`CallbookModel.entryLookup`).
+    @ObservationIgnored public var lookupSource: @MainActor () -> ManualLookupResult? = { nil }
     /// The app's callbook record (`AppState.callbookRecord`).
     @ObservationIgnored public var callbookSource: @MainActor () -> CallbookHit? = { nil }
     /// `state.lookupCallbook(call)` after the 700 ms pause (wired by the app).
