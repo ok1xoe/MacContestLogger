@@ -779,6 +779,11 @@ public final class AppModel {
             }
             entry.selfSpotTuned()
         }
+        model.bandmap.spotNavigation = model.spotNavigation
+        model.bandmap.keyEntry = { [weak model] in
+            guard let model else { return nil }
+            return model.vfoB.entry.isActivePanel ? model.vfoB.entry : model.entry
+        }
         model.contest.onDefaultSpotFilters = { [weak availMult = model.availMult] bands, modes in
             availMult?.setDefaults(bands: bands, modes: modes)
         }

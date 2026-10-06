@@ -321,6 +321,28 @@ final class BandmapCanvas: NSView {
 
     // MARK: - pointer
 
+    /// The mouse position over the map: the spot under it is the target of Alt+D (`BandmapModel.handleKey`).
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        for area in trackingAreas {
+            removeTrackingArea(area)
+        }
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow,
+                                                              .inVisibleRect], owner: self, userInfo: nil))
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        guard let model, let state else { return }
+        let point: NSPoint = convert(event.locationInWindow, from: nil)
+        let metrics: Metrics = metrics(state)
+        model.pointerMoved(x: Float(point.x), y: Float(point.y), height: Float(bounds.height), axisX: metrics.axisX,
+                           rowH: metrics.rowH)
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        model?.pointerLeft()
+    }
+
     override func mouseDown(with event: NSEvent) {
         if event.modifierFlags.contains(.control) {
             rightMouseDown(with: event)

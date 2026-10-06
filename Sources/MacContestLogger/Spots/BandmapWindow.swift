@@ -10,6 +10,55 @@ final class BandmapFontField: ObservableObject {
     @Published var text: String = String(BandmapViewport.defaultSpotFont)
 }
 
+/// The Bandmap window's spot keys (Alt+M, Alt+D, Alt+Shift+D): a local `NSEvent` monitor — the application's own
+/// events only — that hands key presses and releases to `BandmapModel.handleKey` while the Bandmap window is the key
+/// window. Other keys pass on untouched. Removed when the window closes.
+@MainActor
+final class BandmapKeyMonitor: ObservableObject {
+    private var token: Any?
+    private weak var window: NSWindow?
+    private var observer: NSObjectProtocol?
+    private var model: BandmapModel?
+
+    func install(window: NSWindow, model: BandmapModel) {
+        guard self.window !== window || token == nil else { return }
+        remove()
+        self.window = window
+        self.model = model
+        token = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
+            guard let snapshot = KeyEventBridge.snapshot(event) else { return event }
+            let consumed: Bool = MainActor.assumeIsolated {
+                self?.handle(snapshot) ?? false
+            }
+            return consumed ? nil : event
+        }
+        observer = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window,
+                                                          queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.remove() }
+        }
+    }
+
+    func remove() {
+        if let token {
+            NSEvent.removeMonitor(token)
+        }
+        token = nil
+        if let observer {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        observer = nil
+        window = nil
+        model = nil
+    }
+
+    private func handle(_ snapshot: KeyEventSnapshot) -> Bool {
+        guard let window, window.isKeyWindow, window.windowNumber == snapshot.windowNumber, let model else {
+            return false
+        }
+        return model.handleKey(snapshot.event)
+    }
+}
+
 /// Kotlin `BandmapWindow` (`bandmap` 460×640, `BandmapWindow.kt:75-360`): the window stepper top-right,
 /// the tuned frequency with the zoom buttons and the spot font field, then the band map. Without a tuned band only
 /// the hint „Bandmapa — nalaď pásmo" shows.
@@ -21,6 +70,7 @@ struct BandmapWindowView: View {
     @StateObject private var session = WindowSession(id: BandmapWindowView.id, persistSize: true,
                                                      defaultSize: CGSize(width: 460, height: 640))
     @StateObject private var font = BandmapFontField()
+    @StateObject private var keyMonitor = BandmapKeyMonitor()
 
     var body: some View {
         Group {
@@ -29,6 +79,9 @@ struct BandmapWindowView: View {
                     .modifier(RadioWindowChrome(host: host, app: app, id: Self.id, title: "Bandmapa",
                                                 binder: session.binder))
                     .onAppear { app.bandmap.windowOpened() }
+                    .background(WindowAccessor { window in
+                        keyMonitor.install(window: window, model: app.bandmap)
+                    })
             } else {
                 Color.clear
             }
