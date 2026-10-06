@@ -132,8 +132,10 @@ import Testing
         #expect(Self.route(Self.down(upKey), context(-1, 0)) == .tune(-1))
         #expect(Self.route(Self.down(downKey), context(-1, 0)) == .tune(1))
         #expect(Self.route(Self.up(downKey), context(-1, 3)) == .passThrough)
-        // Ctrl+↓ is a binding (NEXT_SPOT_UP), Alt+Shift+↓ too (NEXT_SELF_UP).
-        #expect(Self.route(Self.down(downKey, Self.ctrl), context(-1, 3)) == .action(.nextSpotUp))
+        // Cmd+↓ is a binding (NEXT_SPOT_UP; Ctrl+arrows belong to Mission Control), Alt+Shift+↓ too (NEXT_SELF_UP).
+        #expect(Self.route(Self.down(downKey, Self.meta), context(-1, 3)) == .action(.nextSpotUp))
+        #expect(Self.route(Self.down(upKey, Self.meta), context(-1, 3)) == .action(.nextSpotDown))
+        #expect(Self.route(Self.down(downKey, Self.ctrl), context(-1, 3)) != .action(.nextSpotUp))
         #expect(Self.route(Self.down(downKey, Self.alt | Self.shift), context(-1, 3)) == .action(.nextSelfUp))
     }
 
