@@ -62,7 +62,7 @@ struct CwKeyerTab: View {
                     }
                 }
             }
-            .frame(width: 320, alignment: .leading)
+            .frame(maxWidth: 320, alignment: .leading)
             SettingsCheckbox(label: language.tr("Pořadová čísla s úvodními nulami (007)"), isOn: $draft.cwLeadingZeros)
         }
     }
