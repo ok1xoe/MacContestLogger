@@ -1102,5 +1102,6 @@
  "Chybné přihlášení (%s)": "Anmeldung fehlgeschlagen (%s)",
  "Chyba sítě (%s)": "Netzwerkfehler (%s)",
  "Síť je vypnutá (MCL_INERT_NETWORK)": "Netzwerk ist deaktiviert (MCL_INERT_NETWORK)",
- "Chybí přihlašovací údaje": "Zugangsdaten fehlen"
+ "Chybí přihlašovací údaje": "Zugangsdaten fehlen",
+ "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "Keine Frequenz eingegeben — Funkgerät verbinden oder Frequenz ins Frequenzfeld eingeben"
 }

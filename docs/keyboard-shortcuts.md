@@ -92,10 +92,10 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Shift+Alt+↓ / ↑** | next **own** spot (Store / self-spot) |
 | **Alt+D** | removes the spot of the callsign in the field (or the spot on the frequency); in the Bandmap window the spot under the mouse |
 | **Alt+Shift+D** | the same and puts the callsign on the **blacklist** (also in the Bandmap window) |
-| **Alt+P** / **Spot It** button | spot to the DX cluster |
-| **Ctrl+P** | spot with a comment |
-| **Alt+O** / **Store** button | stores the callsign from the field in the bandmap at the current frequency |
-| **Alt+M** / **Mark** button | marks the frequency in the bandmap as occupied (also while the Bandmap window has the focus) |
+| **Alt+P** / **Spot It** button | spot to the DX cluster (needs a frequency, as above) |
+| **Ctrl+P** | spot with a comment (needs a frequency, as above) |
+| **Alt+O** / **Store** button | stores the callsign from the field in the bandmap at the current frequency (needs a frequency: connect the radio or type it into the frequency field) |
+| **Alt+M** / **Mark** button | marks the frequency in the bandmap as occupied (needs a frequency, as above; also while the Bandmap window has the focus) |
 | **Ctrl+Tab** | show / hide the DX cluster window |
 
 Alt+M, Alt+D and Alt+Shift+D also work while the Bandmap window is the active window, with your own key assignments. In the Bandmap window Alt+D removes the spot under the mouse pointer; with the pointer elsewhere it acts as in the entry window.
