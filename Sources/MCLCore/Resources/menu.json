@@ -64,7 +64,8 @@
       "children": [
         { "id": "database.new",  "label": "Nová databáze…",     "state": "enable" },
         { "id": "database.open", "label": "Otevřít databázi…",  "state": "enable" },
-        { "id": "database.refillDxcc", "label": "Přepočítat DXCC v deníku…", "state": "enable" }
+        { "id": "database.refillDxcc", "label": "Přepočítat DXCC v deníku…", "state": "enable" },
+        { "id": "database.updateClubLogDxcc", "label": "Aktualizovat DXCC z Club Logu", "state": "enable" }
       ]
     },
     {

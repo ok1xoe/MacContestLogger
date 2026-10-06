@@ -370,7 +370,8 @@ public final class AppModel {
                                      status: status, now: environment.now)
 
         let contestEnvironment: ContestEnvironment = await ContestModel.loadEnvironment(
-            contestDataDir: loaded.contestDataDir, dxccDir: environment.dxccDir, dataDir: dataDir)
+            contestDataDir: loaded.contestDataDir, dxccDir: environment.dxccDir, dataDir: dataDir,
+            clubLogDxcc: loaded.clubLog.ctyEnabled)
         let logbook = LogbookModel(database: database, status: status)
         logbook.ownStationId = { [weak config] in
             config?.config.cluster.stationId ?? ""
@@ -436,7 +437,8 @@ public final class AppModel {
         let dataTools = DataToolsModel(DataToolsModel.Dependencies(
             contest: contest, logbook: logbook, callData: callData, config: config, status: status,
             language: language, messages: messages, dataDir: dataDir, now: environment.now,
-            definitionSource: environment.definitionSource ?? DataToolsModel.DefinitionSource()))
+            definitionSource: environment.definitionSource ?? DataToolsModel.DefinitionSource(),
+            clubLogFetcher: environment.network.clubLogCty))
         let definitionEditor = DefinitionEditorModel(
             config: config, contest: contest, language: language, dataDir: dataDir,
             clock: environment.definitionCheckClock ?? MainQueueRescoreClock())
@@ -961,6 +963,9 @@ public final class AppModel {
         model.extraMenuActions["contest.updateCallHistory"] = { [weak model] in
             model?.dataTools.updateCallHistoryFromLog()
         }
+        model.extraMenuActions["database.updateClubLogDxcc"] = { [weak model] in
+            model?.dataTools.updateClubLogDxcc()
+        }
         model.extraMenuActions["contest.updateDefinitions"] = { [weak model] in
             model?.dataTools.updateDefinitions()
         }
@@ -968,6 +973,8 @@ public final class AppModel {
             model?.definitionEditor.refresh()
         }
         model.definitionEditor.observeDataDir()
+        // Club Log `cty.xml`: the daily check in the background (no network without the fetcher).
+        model.dataTools.startClubLogDxccCheck()
     }
 
     /// The callsign help of the entry window (Kotlin `EP:271-295, 623-669`): the databases load at start

@@ -30,8 +30,13 @@ enum UiParityCSections {
     /// configuration as v1.1.1 would write it, for comparing with the Java reference.
     static func javaFields(of config: AppConfig) throws -> [String: ProfileJson] {
         var fields = try ProfileMerge.fields(of: config)
-        for property in ProfileMergeSchema.swiftOnlyProperties.values.joined() {
-            fields[property.name] = nil
+        for path in ProfileMergeSchema.swiftOnlyPaths {
+            if path.count == 1 {
+                fields[path[0]] = nil
+            } else if path.count == 2, case .object(var inner)? = fields[path[0]] {
+                inner[path[1]] = nil
+                fields[path[0]] = .object(inner)
+            }
         }
         return fields
     }

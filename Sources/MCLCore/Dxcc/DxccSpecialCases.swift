@@ -33,14 +33,23 @@ public struct DxccSpecialCases: DxccLookup {
     /// The order of steps copies Java: the delegate is **always** queried (even for an empty
     /// callsign), then the decision is made.
     public func resolve(_ callsign: String?) -> DxccEntity? {
-        let base = delegate.resolve(callsign)
+        corrected(callsign) { delegate.resolve($0) }
+    }
+
+    /// The same correction over the delegate's dated lookup (Club Log data; the others ignore the date).
+    public func resolve(_ callsign: String?, at date: Date?) -> DxccEntity? {
+        corrected(callsign) { delegate.resolve($0, at: date) }
+    }
+
+    private func corrected(_ callsign: String?, _ lookup: (String?) -> DxccEntity?) -> DxccEntity? {
+        let base = lookup(callsign)
         guard let callsign, !JavaText.isBlank(callsign) else {
             return base
         }
         let norm = DxccResolver.normalize(callsign)
         if norm.hasPrefix("KG4") && !Self.isGuantanamoKg4(norm) {
             // KG4 with a suffix other than two characters is the USA, not Guantanamo.
-            let usa = delegate.resolve(Self.usaProbe)
+            let usa = lookup(Self.usaProbe)
             let baseAlreadyUsa = base != nil && usa != nil && base!.entityCode == usa!.entityCode
             if usa != nil && !baseAlreadyUsa {
                 return usa

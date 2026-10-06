@@ -101,13 +101,16 @@ public final class ContestModel {
     }
 
     /// Loads the contest environment off the main thread (`contestDataDir`, fallback `dataDir/contest-data`;
-    /// DXCC from `dxccDir`, Kotlin `~/dxcc-json`).
-    public nonisolated static func loadEnvironment(contestDataDir: String?, dxccDir: URL?,
-                                                   dataDir: URL) async -> ContestEnvironment {
+    /// DXCC from `dxccDir`, Kotlin `~/dxcc-json`). With `clubLogDxcc` the cached Club Log `cty.xml` in
+    /// `dataDir/clublog` is the DXCC source when a copy exists.
+    public nonisolated static func loadEnvironment(contestDataDir: String?, dxccDir: URL?, dataDir: URL,
+                                                   clubLogDxcc: Bool = false) async -> ContestEnvironment {
         let fallback: String = dataDir.appendingPathComponent("contest-data").path
         let dxcc: String? = dxccDir?.path
+        let cache = ClubLogCtyCache(dataDir: dataDir)
         let loaded: ContestEnvironment? = try? await BlockingQueue.run {
-            ContestEnvironment.load(dataRoot: contestDataDir, dxccDir: dxcc, fallbackDataRoot: fallback)
+            ContestEnvironment.load(dataRoot: contestDataDir, dxccDir: dxcc, fallbackDataRoot: fallback,
+                                    clubLog: clubLogDxcc ? cache.load() : nil)
         }
         return loaded ?? ContestEnvironment.load(dataRoot: nil, dxccDir: nil, fallbackDataRoot: "/nonexistent")
     }
@@ -656,7 +659,8 @@ public final class ContestModel {
         let id: String? = activeId
         if let source = environmentSource {
             environment = await Self.loadEnvironment(contestDataDir: config.config.contestDataDir,
-                                                     dxccDir: source.dxccDir, dataDir: source.dataDir)
+                                                     dxccDir: source.dxccDir, dataDir: source.dataDir,
+                                                     clubLogDxcc: config.config.clubLog.ctyEnabled)
         }
         runtime = Self.makeRuntime(environment, config: config)
         activeSetup = nil

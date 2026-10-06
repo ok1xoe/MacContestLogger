@@ -1108,5 +1108,21 @@
  "Chyba sítě (%s)": "Network error (%s)",
  "Síť je vypnutá (MCL_INERT_NETWORK)": "Network is disabled (MCL_INERT_NETWORK)",
  "Chybí přihlašovací údaje": "Credentials missing",
- "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "No frequency entered — connect the radio or type it into the frequency field"
+ "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "No frequency entered — connect the radio or type it into the frequency field",
+ "Aktualizovat DXCC z Club Logu": "Update DXCC from Club Log",
+ "DXCC z Club Logu (cty.xml)": "DXCC from Club Log (cty.xml)",
+ "Používat DXCC z Club Logu (stažení nejvýš jednou denně)": "Use DXCC from Club Log (downloaded at most once a day)",
+ "Stáhne se s API klíčem výše nejvýš jednou za 24 hodin, vyhledávání je vždy místní. Bez stažené kopie se používají místní data (~/dxcc-json).": "Downloaded with the API key above at most once every 24 hours; every lookup is local. Without a downloaded copy the local data (~/dxcc-json) are used.",
+ "Stahuji DXCC z Club Logu…": "Downloading DXCC from Club Log…",
+ "DXCC z Club Logu aktualizováno: %s entit, %s výjimek, %s prefixů": "DXCC from Club Log updated: %s entities, %s exceptions, %s prefixes",
+ "Poslední stažení cty.xml: %s": "Last cty.xml download: %s",
+ "cty.xml z Club Logu zatím nebyl stažen": "cty.xml has not been downloaded from Club Log yet",
+ "Aktualizace DXCC z Club Logu selhala: %s (zůstávají dosavadní data)": "DXCC update from Club Log failed: %s (the current data stay)",
+ "Club Log: chybí API klíč (Nastavení → Score Reporting)": "Club Log: API key missing (Settings → Score Reporting)",
+ "DXCC z Club Logu je aktuální, další stažení je možné po %s": "DXCC from Club Log is up to date, the next download is possible after %s",
+ "Club Log odmítl API klíč (HTTP 403)": "Club Log refused the API key (HTTP 403)",
+ "poškozená data (gzip)": "corrupt data (gzip)",
+ "nelze uložit: %s": "cannot save: %s",
+ "cty.xml: chybí element <clublog>": "cty.xml: the <clublog> element is missing",
+ "cty.xml: žádné entity nebo prefixy": "cty.xml: no entities or prefixes"
 }

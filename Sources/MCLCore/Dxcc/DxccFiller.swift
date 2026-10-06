@@ -13,6 +13,9 @@ import Foundation
 ///
 /// Port of the Java `dxcc/DxccFiller.java` (final utility class, static methods only).
 ///
+/// The lookup is made as of the QSO time (`resolve(_:at:)` with `timestampUtc`): only Club Log's `cty.xml` has
+/// date-ranged records, the other sources ignore the date, so their results are unchanged.
+///
 /// **Differences forced by the `Qso` port:**
 /// - The Java `Qso` is a class and `fill` mutates it in place; the Swift `Qso` is a `struct`,
 ///   so the parameters are `inout`. The caller pattern from `AppState` (fill the log ->
@@ -51,7 +54,7 @@ public enum DxccFiller {
         if JavaText.isBlank(qso.call) {
             return false
         }
-        guard let e = dxcc.resolve(qso.call) else {
+        guard let e = dxcc.resolve(qso.call, at: qso.timestampUtc) else {
             return false
         }
         var changed = false
@@ -102,7 +105,7 @@ public enum DxccFiller {
         guard let dxcc, !JavaText.isBlank(qso.call) else {
             return false
         }
-        guard let e = dxcc.resolve(qso.call) else {
+        guard let e = dxcc.resolve(qso.call, at: qso.timestampUtc) else {
             return false
         }
         let name = e.name ?? ""

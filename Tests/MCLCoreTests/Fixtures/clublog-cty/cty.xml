@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic Club Log cty.xml for the parser and resolver tests (not real Club Log data).
+     Covers every section: entities (child elements and attributes, a deleted one, a broken one),
+     exceptions, prefixes (date ranges, ADIF 0), invalid operations and zone exceptions. -->
+<clublog date="2026-10-01T06:00:00+00:00" xmlns="https://clublog.org/cty/v1.2">
+  <entities>
+    <entity>
+      <adif>503</adif><name>CZECH REPUBLIC</name><prefix>OK</prefix><deleted>FALSE</deleted>
+      <cqz>15</cqz><cont>EU</cont><long>14.50</long><lat>50.00</lat><start>1993-01-01T00:00:00+00:00</start>
+    </entity>
+    <entity>
+      <adif>218</adif><name>CZECHOSLOVAKIA</name><prefix>OK</prefix><deleted>TRUE</deleted>
+      <cqz>15</cqz><cont>EU</cont><long>14.50</long><lat>50.00</lat><end>1992-12-31T23:59:59+00:00</end>
+    </entity>
+    <entity>
+      <adif>291</adif><name>UNITED STATES OF AMERICA</name><prefix>K</prefix><deleted>FALSE</deleted>
+      <cqz>5</cqz><cont>NA</cont><long>-91.00</long><lat>38.00</lat>
+    </entity>
+    <entity>
+      <adif>54</adif><name>EUROPEAN RUSSIA</name><prefix>UA</prefix><deleted>FALSE</deleted>
+      <cqz>16</cqz><cont>EU</cont><long>37.60</long><lat>55.80</lat>
+    </entity>
+    <entity>
+      <adif>15</adif><name>ASIATIC RUSSIA</name><prefix>UA9</prefix><deleted>FALSE</deleted>
+      <cqz>17</cqz><cont>AS</cont><long>82.90</long><lat>55.00</lat>
+    </entity>
+    <entity>
+      <adif>13</adif><name>ANTARCTICA</name><prefix>CE9</prefix><deleted>FALSE</deleted>
+      <cqz>39</cqz><cont>AN</cont><long>0.00</long><lat>-90.00</lat>
+    </entity>
+    <entity adif="230" name="FEDERAL REPUBLIC OF GERMANY" prefix="DL" deleted="FALSE" cqz="14" cont="EU"
+            long="10.00" lat="51.00"/>
+    <entity><name>NO ADIF NUMBER</name><prefix>ZZ</prefix></entity>
+  </entities>
+  <exceptions>
+    <exception record="1">
+      <call>KC4AAA</call><entity>ANTARCTICA</entity><adif>13</adif><cqz>39</cqz><cont>AN</cont>
+      <long>166.67</long><lat>-77.85</lat>
+      <start>2020-01-01T00:00:00+00:00</start><end>2020-12-31T23:59:59+00:00</end>
+    </exception>
+    <exception record="2">
+      <call>DL0XX/P</call><entity>CZECH REPUBLIC</entity><adif>503</adif><cqz>15</cqz><cont>EU</cont>
+      <long>14.50</long><lat>50.00</lat>
+    </exception>
+  </exceptions>
+  <prefixes>
+    <prefix record="10">
+      <call>OK</call><entity>CZECH REPUBLIC</entity><adif>503</adif><cqz>15</cqz><cont>EU</cont>
+      <long>14.50</long><lat>50.00</lat><start>1993-01-01T00:00:00+00:00</start>
+    </prefix>
+    <prefix record="11">
+      <call>OK</call><entity>CZECHOSLOVAKIA</entity><adif>218</adif><cqz>15</cqz><cont>EU</cont>
+      <long>14.50</long><lat>50.00</lat><end>1992-12-31T23:59:59+00:00</end>
+    </prefix>
+    <prefix record="12">
+      <call>K</call><entity>UNITED STATES OF AMERICA</entity><adif>291</adif><cqz>5</cqz><cont>NA</cont>
+      <long>-91.00</long><lat>38.00</lat>
+    </prefix>
+    <prefix record="13">
+      <call>W</call><entity>UNITED STATES OF AMERICA</entity><adif>291</adif><cqz>5</cqz><cont>NA</cont>
+      <long>-91.00</long><lat>38.00</lat>
+    </prefix>
+    <prefix record="14">
+      <call>UA</call><entity>EUROPEAN RUSSIA</entity><adif>54</adif><cqz>16</cqz><cont>EU</cont>
+      <long>37.60</long><lat>55.80</lat>
+    </prefix>
+    <prefix record="15">
+      <call>UA9</call><entity>ASIATIC RUSSIA</entity><adif>15</adif><cqz>17</cqz><cont>AS</cont>
+      <long>82.90</long><lat>55.00</lat>
+    </prefix>
+    <prefix record="16" call="DL" entity="FEDERAL REPUBLIC OF GERMANY" adif="230" cqz="14" cont="EU"
+            long="10.00" lat="51.00"/>
+    <prefix record="17">
+      <call>X5</call><entity>INVALID</entity><adif>0</adif>
+    </prefix>
+    <prefix record="18"><entity>NO CALL</entity><adif>503</adif></prefix>
+  </prefixes>
+  <invalid_operations>
+    <invalid record="20">
+      <call>OK0XX</call><start>2025-01-01T00:00:00+00:00</start><end>2025-01-31T23:59:59+00:00</end>
+    </invalid>
+  </invalid_operations>
+  <zone_exceptions>
+    <zone_exception record="30">
+      <call>UA9XYZ</call><zone>18</zone><start>2024-01-01T00:00:00+00:00</start>
+    </zone_exception>
+  </zone_exceptions>
+</clublog>

@@ -89,6 +89,8 @@ public struct NetworkPorts: Sendable {
     public var clock: ClockProbe
     /// The plugin runner (inert under `MCL_INERT_HARDWARE` too).
     public var plugins: PluginsPorts
+    /// The download of Club Log's `cty.xml` (at most once a day); `nil` = nothing is downloaded.
+    public var clubLogCty: (any DataFetcher)?
     /// `true` for the inert ports.
     public var isInert: Bool
 
@@ -99,7 +101,7 @@ public struct NetworkPorts: Sendable {
                     = NetworkPorts.inertTransport,
                 udp: UdpPorts = .inert, online: OnlinePorts = .inert,
                 clock: @escaping ClockProbe = NetworkPorts.inertClock,
-                plugins: PluginsPorts = .inert, isInert: Bool = false) {
+                plugins: PluginsPorts = .inert, clubLogCty: (any DataFetcher)? = nil, isInert: Bool = false) {
         self.makeSession = makeSession
         self.http = http
         self.urlOpener = urlOpener
@@ -108,6 +110,7 @@ public struct NetworkPorts: Sendable {
         self.online = online
         self.clock = clock
         self.plugins = plugins
+        self.clubLogCty = clubLogCty
         self.isInert = isInert
     }
 
@@ -145,7 +148,8 @@ public struct NetworkPorts: Sendable {
     /// The running app: telnet to the configured clusters, HTTPS to the callbooks, the system browser.
     public static let live = NetworkPorts(makeSession: sessions(), http: URLSessionHttpGetter(),
                                           urlOpener: .workspace, makeSyncTransport: liveTransport, udp: .live,
-                                          online: .live, clock: LiveClockProbe.probe, plugins: .live)
+                                          online: .live, clock: LiveClockProbe.probe, plugins: .live,
+                                          clubLogCty: URLSessionDataFetcher())
 
     /// `live`, unless `MCL_INERT_NETWORK` is set (the reading of `HardwarePorts.isInert`). The plugins stay inert
     /// under `MCL_INERT_HARDWARE` as well (they run local executables).

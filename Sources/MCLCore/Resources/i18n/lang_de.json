@@ -1108,5 +1108,21 @@
  "Chyba sítě (%s)": "Netzwerkfehler (%s)",
  "Síť je vypnutá (MCL_INERT_NETWORK)": "Netzwerk ist deaktiviert (MCL_INERT_NETWORK)",
  "Chybí přihlašovací údaje": "Zugangsdaten fehlen",
- "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "Keine Frequenz eingegeben — Funkgerät verbinden oder Frequenz ins Frequenzfeld eingeben"
+ "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu": "Keine Frequenz eingegeben — Funkgerät verbinden oder Frequenz ins Frequenzfeld eingeben",
+ "Aktualizovat DXCC z Club Logu": "DXCC von Club Log aktualisieren",
+ "DXCC z Club Logu (cty.xml)": "DXCC von Club Log (cty.xml)",
+ "Používat DXCC z Club Logu (stažení nejvýš jednou denně)": "DXCC von Club Log verwenden (Download höchstens einmal täglich)",
+ "Stáhne se s API klíčem výše nejvýš jednou za 24 hodin, vyhledávání je vždy místní. Bez stažené kopie se používají místní data (~/dxcc-json).": "Wird mit dem API-Schlüssel oben höchstens einmal in 24 Stunden geladen; jede Abfrage ist lokal. Ohne geladene Kopie werden die lokalen Daten (~/dxcc-json) verwendet.",
+ "Stahuji DXCC z Club Logu…": "Lade DXCC von Club Log…",
+ "DXCC z Club Logu aktualizováno: %s entit, %s výjimek, %s prefixů": "DXCC von Club Log aktualisiert: %s Gebiete, %s Ausnahmen, %s Präfixe",
+ "Poslední stažení cty.xml: %s": "Letzter cty.xml-Download: %s",
+ "cty.xml z Club Logu zatím nebyl stažen": "cty.xml wurde noch nicht von Club Log geladen",
+ "Aktualizace DXCC z Club Logu selhala: %s (zůstávají dosavadní data)": "DXCC-Aktualisierung von Club Log fehlgeschlagen: %s (bisherige Daten bleiben)",
+ "Club Log: chybí API klíč (Nastavení → Score Reporting)": "Club Log: API-Schlüssel fehlt (Einstellungen → Score Reporting)",
+ "DXCC z Club Logu je aktuální, další stažení je možné po %s": "DXCC von Club Log ist aktuell, der nächste Download ist nach %s möglich",
+ "Club Log odmítl API klíč (HTTP 403)": "Club Log hat den API-Schlüssel abgelehnt (HTTP 403)",
+ "poškozená data (gzip)": "beschädigte Daten (gzip)",
+ "nelze uložit: %s": "Speichern nicht möglich: %s",
+ "cty.xml: chybí element <clublog>": "cty.xml: das Element <clublog> fehlt",
+ "cty.xml: žádné entity nebo prefixy": "cty.xml: keine Gebiete oder Präfixe"
 }

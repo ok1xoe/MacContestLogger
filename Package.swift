@@ -70,6 +70,8 @@ let package = Package(
                 // Edge-case inputs of the ADIF/Cabrillo readers:
                 // `.copy` and `-text` so the bytes (BOM, CR, NBSP, Latin-1, invalid UTF-8) stay verbatim.
                 .copy("Fixtures/io-edge"),
+                // Synthetic Club Log `cty.xml` (every section) for the parser, resolver and cache tests.
+                .copy("Fixtures/clublog-cty"),
                 // Parity suite against Java over `io/`: synthetic definitions
                 // (without the Cabrillo field order, without `cabrillo:`) and gzipped references of both arms —
                 // `.copy` so the gzip bytes pass through unchanged.

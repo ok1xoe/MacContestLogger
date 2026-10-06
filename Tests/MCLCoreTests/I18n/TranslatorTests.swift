@@ -130,10 +130,11 @@ import Testing
         // tooltip line (a deliberate divergence from Java v1.1.1) and 2 accessibility labels of the SCP and N+1 rows (section 73) and
         // 2 Settings labels of the SCP and N+1 switches (section 73) and
         // 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and
-        // 1 accessibility label of the DX Cluster window parallel switch.
-        #expect(map.count == 1_110)
+        // 1 accessibility label of the DX Cluster window parallel switch and
+        // 16 keys of the Club Log DXCC update.
+        #expect(map.count == 1_126)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_110)
+        #expect(german.count == 1_126)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

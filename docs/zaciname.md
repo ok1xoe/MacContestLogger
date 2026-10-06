@@ -9,7 +9,7 @@ separate pages, linked where relevant.
 |---|---|
 | **macOS** | Apple Silicon and Intel; the `.dmg` installer is built by CI, or run from source: `scripts/bundle.sh --config release`, then open `build/app/MacContestLogger.app` |
 | **Contest definitions** | a directory with `contests/*.yaml` and `multipliers/*.yaml` — the repository ships `contest-data/` as a starting point. They are **not part of the application**; you enter the path in Settings |
-| **DXCC data** | `~/dxcc-json/` with `cty.dat` (more accurate) or `dxcc.json`. Without it, country and multiplier detection will not work. Get it with `git clone https://github.com/k0swe/dxcc-json ~/dxcc-json` |
+| **DXCC data** | `~/dxcc-json/` with `cty.dat` (more accurate) or `dxcc.json`. Without it, country and multiplier detection will not work. Get it with `git clone https://github.com/k0swe/dxcc-json ~/dxcc-json`. With a Club Log API key the app can also use Club Log's `cty.xml` ([DXCC data](dxcc-data.md)) |
 | **Radio** (optional) | via hamlib `rigctld` — see [Settings](settings.md) |
 
 ## First launch

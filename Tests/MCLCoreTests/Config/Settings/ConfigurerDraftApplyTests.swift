@@ -284,7 +284,8 @@ import Testing
     }
 
     /// The draft adds no configuration field — the applied configuration has exactly the keys of the input,
-    /// and the only Swift-only properties of the profile-merge schema are the two SCP / N+1 switches. (`contestDataDir` is set: a `nil`
+    /// and the Swift-only properties of the profile-merge schema are the SCP / N+1 switches, the preferred callbook and
+    /// Club Log's DXCC switch. (`contestDataDir` is set: a `nil`
     /// directory is not written and the draft fills it in.)
     @Test func appliedConfigurationHasNoNewKeys() throws {
         var config = AppConfig()
@@ -294,6 +295,6 @@ import Testing
         let after = try ProfileMerge.fields(of: out)
         #expect(Set(after.keys) == Set(before.keys))
         let extra = ProfileMergeSchema.swiftOnlyProperties.values.flatMap { $0.map(\.name) }
-        #expect(Set(extra) == ["scpSuggestionsEnabled", "nPlusOneEnabled", "preferredCallbook"])
+        #expect(Set(extra) == ["scpSuggestionsEnabled", "nPlusOneEnabled", "preferredCallbook", "ctyEnabled"])
     }
 }

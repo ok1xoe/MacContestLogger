@@ -16,15 +16,36 @@ enum ProfileMergeSchema {
     static let root: String = "cz.ok1xoe.maccontestlogger.config.AppConfig"
 
     /// Hand-maintained Swift-only properties by owning Java class (see the type's documentation): the two switches
-    /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`) and the preferred online callbook
-    /// (`preferredCallbook`).
+    /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`), the preferred online callbook
+    /// (`preferredCallbook`) and Club Log's DXCC data switch (`clubLog.ctyEnabled`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
             Property("nPlusOneEnabled", .boolean, .fieldDefault),
             Property("preferredCallbook", .string, .fieldDefault),
         ],
+        "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
+            Property("ctyEnabled", .boolean, .fieldDefault),
+        ],
     ]
+
+    /// The Swift-only keys as paths in a written configuration (`name` on the root, `owner/name` in a bean property
+    /// of the root), for the parity gates that compare against what v1.1.1 writes.
+    static let swiftOnlyPaths: [[String]] = {
+        var paths: [[String]] = []
+        let rootProperties: [Property] = generatedClasses[root]?.properties ?? []
+        for (owner, properties) in swiftOnlyProperties.sorted(by: { $0.key < $1.key }) {
+            let prefixes: [[String]] = owner == root
+                ? [[]]
+                : rootProperties.filter { $0.kind == .bean(owner) }.map { [$0.name] }
+            for prefix in prefixes {
+                for property in properties {
+                    paths.append(prefix + [property.name])
+                }
+            }
+        }
+        return paths
+    }()
 
     /// The schema in use: the generated table extended by `swiftOnlyProperties`.
     static let classes: [String: BeanClass] = extending(generatedClasses, with: swiftOnlyProperties)
