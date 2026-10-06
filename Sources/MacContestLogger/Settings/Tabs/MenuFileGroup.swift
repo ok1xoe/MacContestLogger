@@ -27,7 +27,7 @@ struct MenuFileGroup: View {
                 language.tr("Nabídky se berou z %s. Dokud tam soubor není, platí vestavěné menu z aplikace."),
                 .string(state?.file ?? language.tr("datového adresáře"))))
             SettingsText(sourceText(state), isError: state?.source == .userInvalid)
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 SettingsButton(language.tr("Vytvořit menu.json k úpravám")) {
                     openMessage = nil
                     tools.createMenuFile()

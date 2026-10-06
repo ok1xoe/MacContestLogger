@@ -21,7 +21,7 @@ struct AudioTab: View {
                 SettingsField(caption: language.tr("Hlas (např. Daniel, Samantha, Zuzana; prázdné = systémový)")) {
                     SettingsTextField(text: $draft.ttsVoice)
                 }
-                .frame(width: 360)
+                .frame(maxWidth: 360, alignment: .leading)
             }
             pttGroup
             filesGroup
@@ -80,7 +80,7 @@ struct AudioTab: View {
         SettingsGroup(title: "PTT") {
             SettingsCaption(language.tr(
                 "Vysílač se klíčuje příkazem CAT (rigctld „T 1\"), musí být připojený TRX. Bez CATu nebo s vypnutou volbou klíčuje VOX vysílače. Prodleva dá relé čas přepnout, než začne zvuk."))
-            HStack(alignment: .center, spacing: 12) {
+            FlowLayout(spacing: 12) {
                 SettingsCheckbox(label: language.tr("PTT přes CAT"), isOn: $draft.vkPttViaCat)
                     .frame(width: 220, alignment: .leading)
                 SettingsField(caption: "Prodleva PTT (ms)") {
