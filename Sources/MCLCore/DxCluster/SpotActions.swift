@@ -24,6 +24,8 @@ public enum SpotActions {
     public static let spotItNothing = "Spot: není co spotovat"
     /// Ctrl+P without a call.
     public static let commentNoCall = "Ctrl+P: zadej volačku ke spotu"
+    /// Mark, Store, Spot It and Ctrl+P with an empty (or zero) frequency field: nothing is spotted at 0 Hz.
+    public static let noFrequency = "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu"
     /// Ctrl+P prompt hint.
     public static let commentHint = "Komentář ke spotu"
 
@@ -66,10 +68,12 @@ public enum SpotActions {
     }
 
     /// Spot It (Alt+P, `EP:806-812`): the call from the field (Kotlin `trim()`) at the field frequency when it is not
-    /// blank and not a text command; otherwise the last logged QSO (`call ?: ""`); with neither `spotItNothing`.
+    /// blank and not a text command (without a frequency: `noFrequency`, a deliberate divergence from Java v1.1.1);
+    /// otherwise the last logged QSO (`call ?: ""`); with neither `spotItNothing`.
     public static func spotItTarget(call: String, isCommand: Bool, fieldFreqHz: Int64,
                                     lastQso: (call: String?, freqHz: Int64)?) -> Outcome<DxTarget> {
         if !KotlinText.isBlank(call) && !isCommand {
+            if fieldFreqHz <= 0 { return .rejected(.tr(noFrequency)) }
             return .accepted(DxTarget(call: KotlinText.trim(call), freqHz: fieldFreqHz))
         }
         guard let lastQso else { return .rejected(.tr(spotItNothing)) }

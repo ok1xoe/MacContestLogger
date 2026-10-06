@@ -142,7 +142,7 @@ extension EntryModel {
     }
 
     /// Store (Alt+O, the button, `EP:770-779`): the call of the field into the band map at the field's frequency (a
-    /// blank call or a command: `tr("Store: zadej volačku")`); the call field takes the focus.
+    /// blank call or a command: `tr("Store: zadej volačku")`; no frequency: `noFrequency`, nothing is stored); the call field takes the focus.
     public func storeCall() {
         guard let spots = spotNavigation else {
             unavailable()
@@ -150,6 +150,10 @@ extension EntryModel {
         }
         if KotlinStrings.isBlank(form.call) || hasCommand {
             status.show(ContestMessage(SpotActions.storeNoCall))
+            return
+        }
+        if form.freqHz <= 0 {
+            show(.tr(SpotActions.noFrequency))
             return
         }
         spots.store(call: KotlinStrings.trim(form.call), freqHz: form.freqHz)

@@ -100,9 +100,13 @@ public final class SpotNavigation {
         show(SpotActions.removed(target, blacklist: toBlacklist))
     }
 
-    /// Kotlin `markFrequency(freqHz)` (Alt+M, the Mark button): a `MARK` spot on the frequency; ≤ 0 does nothing.
+    /// Kotlin `markFrequency(freqHz)` (Alt+M, the Mark button): a `MARK` spot on the frequency; ≤ 0 adds nothing and
+    /// the status says that a frequency is missing (Kotlin stayed silent).
     public func mark(freqHz: Int64) {
-        guard let spot = SpotActions.markSpot(freqHz: freqHz) else { return }
+        guard let spot = SpotActions.markSpot(freqHz: freqHz) else {
+            show(.tr(SpotActions.noFrequency))
+            return
+        }
         buffer.add(spot)
         show(SpotActions.markStatus(freqHz: freqHz, translator: language.translator))
     }
@@ -164,6 +168,10 @@ public final class SpotNavigation {
     public func spotWithComment(call: String, freqHz: Int64) {
         guard let title = SpotActions.commentTitle(call: call) else {
             status.show(ContestMessage(SpotActions.commentNoCall))
+            return
+        }
+        guard freqHz > 0 else {
+            show(.tr(SpotActions.noFrequency))
             return
         }
         dialogs.prompt(title: .verbatim(title), hint: ContestMessage(SpotActions.commentHint), initial: "") {

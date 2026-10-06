@@ -92,10 +92,10 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Shift+Alt+↓ / ↑** | next **own** spot (Store / self-spot) |
 | **Alt+D** | removes the spot of the callsign in the field (or the spot on the frequency) |
 | **Alt+Shift+D** | the same and puts the callsign on the **blacklist** |
-| **Alt+P** / **Spot It** button | spot to the DX cluster |
-| **Ctrl+P** | spot with a comment |
-| **Alt+O** / **Store** button | stores the callsign from the field in the bandmap at the current frequency |
-| **Alt+M** / **Mark** button | marks the frequency in the bandmap as occupied |
+| **Alt+P** / **Spot It** button | spot to the DX cluster (needs a frequency, as above) |
+| **Ctrl+P** | spot with a comment (needs a frequency, as above) |
+| **Alt+O** / **Store** button | stores the callsign from the field in the bandmap at the current frequency (needs a frequency: connect the radio or type it into the frequency field) |
+| **Alt+M** / **Mark** button | marks the frequency in the bandmap as occupied (needs a frequency, as above) |
 | **Ctrl+Tab** | show / hide the DX cluster window |
 
 ## Rotator and antennas
