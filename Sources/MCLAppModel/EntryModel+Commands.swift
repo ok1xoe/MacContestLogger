@@ -135,7 +135,7 @@ extension EntryModel {
         // Esc releases a plugin's PTT too (plugin transmissions stay blocked until allowed again), and goes on to
         // stop everything else.
         rig?.operatorStopped()
-        let pluginPtt: Bool = rig?.releasePluginPtt() ?? false
+        let pluginPtt: Bool = rig?.releasePluginPtt(stoppingEverything: true) ?? false
         let keyer: any KeyerPort = ports.keyer
         if keyer.isTuning {
             _ = keyer.stopSending()

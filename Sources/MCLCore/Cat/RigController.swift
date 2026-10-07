@@ -180,3 +180,17 @@ extension RigController {
         return true
     }
 }
+
+/// `rigctld` answered a command with an error (`RPRT -n`): the command reached the rig's daemon and was refused, so
+/// nothing changed (unlike a timeout or a lost connection, after which the outcome is unknown).
+public struct CatRefusal: Error, CustomStringConvertible, Sendable {
+    public let message: String
+
+    public init(message: String) {
+        self.message = message
+    }
+
+    public var description: String {
+        message
+    }
+}

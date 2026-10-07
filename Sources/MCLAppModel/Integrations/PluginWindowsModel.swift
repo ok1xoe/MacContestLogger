@@ -67,6 +67,8 @@ public final class PluginWindowsModel {
     @ObservationIgnored private var pttCoolingDown = false
     /// Plugin keying requests on their way to the rig (an Esc meanwhile blocks plugin transmissions too).
     @ObservationIgnored private var keyingInFlight = 0
+    /// The plugin whose `tx.ptt on` is on its way to the rig (at most one: a second is refused meanwhile).
+    @ObservationIgnored private var pttKeyingPlugin: String?
     /// The operator stopped plugin transmissions (Esc or Stop while one was on): none until allowed again.
     public private(set) var transmissionsBlocked = false
     @ObservationIgnored private var messageTimer: (any RescoreTimer)?
@@ -864,6 +866,9 @@ public final class PluginWindowsModel {
             } else {
                 let keying: Bool = method.hasPrefix("tx.") && method != "tx.stop"
                 if keying { self.keyingInFlight += 1 }
+                let pttKey: Bool = method == "tx.ptt" && params["on"]?.boolValue == true
+                if pttKey { self.pttKeyingPlugin = plugin }
+                defer { if pttKey && self.pttKeyingPlugin == plugin { self.pttKeyingPlugin = nil } }
                 // The CAT epoch of admission: a revoke, stop or release before the command reaches the rig drops it.
                 let catEpoch: Int? = method == "cat.send" ? context.actions.catEpoch() : nil
                 result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
@@ -899,6 +904,13 @@ public final class PluginWindowsModel {
                 } else if method != "tx.stop" {
                     _ = context.actions.stop()
                 }
+                self.send(session, PluginOutbound.error(id: id, code: "permission",
+                                                        message: "the transmit permission was revoked"))
+                return
+            }
+            if case .failure = result, method.hasPrefix("tx."), method != "tx.stop",
+               !self.settings.effectivePermissions(session.package.manifest).contains("transmit") {
+                // Revoked while the key was on its way (the revoke dropped it): said as such.
                 self.send(session, PluginOutbound.error(id: id, code: "permission",
                                                         message: "the transmit permission was revoked"))
                 return
@@ -952,6 +964,9 @@ public final class PluginWindowsModel {
         defer { webInFlight[plugin] = max((webInFlight[plugin] ?? 1) - 1, 0) }
         let keying: Bool = method.hasPrefix("tx.") && method != "tx.stop"
         if keying { keyingInFlight += 1 }
+        let pttKey: Bool = method == "tx.ptt" && params["on"]?.boolValue == true
+        if pttKey { pttKeyingPlugin = plugin }
+        defer { if pttKey && pttKeyingPlugin == plugin { pttKeyingPlugin = nil } }
         let catEpoch: Int? = method == "cat.send" ? context.actions.catEpoch() : nil
         let result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
                                             context: context, readProbe: readProbe, catEpoch: catEpoch)
@@ -975,6 +990,10 @@ public final class PluginWindowsModel {
                              transmissionsBlocked ? "the operator stopped plugin transmissions"
                                                   : "the plugin stopped meanwhile")
             }
+        }
+        if case .failure = result, keying, !settings.effectivePermissions(package.manifest).contains("transmit") {
+            // Revoked while the key was on its way (the revoke dropped it): said as such.
+            return error("permission", "the transmit permission was revoked")
         }
         if case .success = result, sessions[plugin]?.phase != .running {
             return error("unavailable", "the plugin stopped meanwhile")
@@ -1241,6 +1260,9 @@ public final class PluginWindowsModel {
     private func stopTransmissions(of plugin: String) {
         if pttHolder == plugin {
             releasePtt(reason: nil)
+        } else if pttKeyingPlugin == plugin {
+            // Its `T 1` is still on its way: the release drops it before it is written (or releases what it keyed).
+            _ = context.actions.releasePtt()
         }
         if transmittingPlugin == plugin {
             _ = context.actions.stop()

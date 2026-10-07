@@ -303,7 +303,7 @@ extension AppModel {
         // active entry window.
         actions.stop = { [weak model] in
             guard let model else { return false }
-            let ptt: Bool = model.rig.releasePluginPtt()
+            let ptt: Bool = model.rig.releasePluginPtt(stoppingEverything: true)
             let repeating: Bool = model.operating.cqRepeat
             model.operating.applyCqRepeat(false)
             return model.keyer.stopSending() || repeating || ptt
@@ -311,6 +311,13 @@ extension AppModel {
         actions.ptt = { [weak model] on in
             guard let model else { return "no rig" }
             return await model.pluginKey(on)
+        }
+        model.rig.operatorKeying = { [weak model] index in
+            guard let model else { return false }
+            if model.keyer.voice.ptt.isKeyed(model.rig.lanes[index]) {
+                return true
+            }
+            return (model.keyer.isSending || model.keyer.isTuning) && index == model.rig.vfo.activeCatIndex
         }
         actions.pttHeld = { [weak model] in
             model?.rig.pluginPttRig != nil

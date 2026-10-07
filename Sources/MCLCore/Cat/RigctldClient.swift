@@ -186,8 +186,15 @@ public final class RigctldClient: RigController, @unchecked Sendable {
             return false
         }
         try send("T 1")
-        try expectRprtOk("zaklíčování (PTT)")
-        return true
+        let line = try readLine()
+        if Self.startsWith(line, "RPRT 0") {
+            return true
+        }
+        if Self.startsWith(line, "RPRT -") {
+            // rigctld answered with an error: the rig was not keyed.
+            throw CatRefusal(message: "rigctld odmítl zaklíčování (PTT): " + line)
+        }
+        throw CatException("rigctld odmítl zaklíčování (PTT): " + line)
     }
 
     public func sendMorse(_ text: String) throws {

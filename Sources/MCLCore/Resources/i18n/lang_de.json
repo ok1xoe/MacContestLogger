@@ -1221,5 +1221,7 @@
  "Povolit vysílání pluginů": "Senden der Plugins erlauben",
  "Zprávu pluginu přerušit po %s s": "Nachricht eines Plugins nach %s s abbrechen",
  "Pluginy smí vysílat nejvýš %s procent z každých 5 minut": "Plugins dürfen höchstens %s Prozent von je 5 Minuten senden",
- "PTT pluginu se nepodařilo uvolnit — zkontroluj vysílač!": "Die PTT des Plugins konnte nicht freigegeben werden — Sender prüfen!"
+ "PTT pluginu se nepodařilo uvolnit — zkontroluj vysílač!": "Die PTT des Plugins konnte nicht freigegeben werden — Sender prüfen!",
+ "Uvolnit znovu": "Erneut freigeben",
+ "Znovu uvolnit PTT pluginu": "PTT des Plugins erneut freigeben"
 }

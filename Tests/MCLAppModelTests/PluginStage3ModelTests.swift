@@ -305,35 +305,36 @@ import Testing
         #expect(rig.plugins.pttHolder == nil)
     }
 
-    /// A refused `T 1` is followed by `T 0` and reported to the plugin; without a rig the PTT is refused.
-    @Test func aFailedKeyIsReleasedAndReported() async throws {
-        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+    /// A `T 1` the rig's `rigctld` refuses keyed nothing: it is reported, nothing is owed and plugins key again once
+    /// the rig accepts. One whose outcome is unknown (the connection dropped) is released and owed until a `T 0`
+    /// gets through.
+    @Test func aRefusedKeyOwesNothingAndAnUnknownOneIsReleased() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
         defer { rig.rig.stop() }
         rig.rig.reject("T")
         let answer: PluginJSON = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
         #expect(answer["error"]?["code"] == .string("refused"))
+        #expect(answer["error"]?["message"]?.stringValue?.contains("nothing was keyed") == true)
         await rig.model.rig.settle()
-        // `T 1` refused → `T 0` at once; refused too, so a release is requested at once: `T 0` on the lane and over a
-        // fresh connection (both refused) — owed.
-        await eventually("released at once") {
-            rig.rig.commands.filter { $0.hasPrefix("T ") }.prefix(4) == ["T 1", "T 0", "T 0", "T 0"]
-        }
-        // Unconfirmed: a persistent warning, and no plugin keys meanwhile.
+        #expect(Self.pttCommands(rig) == ["T 1"])
+        #expect(!rig.model.rig.pluginPttUnconfirmed)
+        #expect(rig.model.rig.pluginPttRig == nil)
+        // The outcome unknown: the connection drops on `T 1`; its `T 0` fails too — owed, and only a `T 0` that gets
+        // through (here: the next connection's) clears it.
+        rig.rig.unreject("T")
+        rig.model.rig.releaseRetries = 0
+        rig.model.rig.freshPttRelease = { _, _ in false }
+        rig.rig.drop(on: "T 1")
+        _ = await rig.model.rig.pluginPtt(true)
+        await rig.model.rig.settle()
         #expect(rig.model.rig.pluginPttUnconfirmed)
         #expect(rig.model.rig.pluginPttRig == nil)
-        #expect(rig.plugins.pttHolder == nil)
-        rig.plugins.allowTransmissions()
-        let blocked: PluginJSON = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
-        #expect(blocked["error"]?["message"] == .string("an earlier PTT release is not confirmed yet"))
-        // A new connection whose `T 0` is refused again does not clear it either.
+        await eventually("lost") { !rig.model.rig.connected(vfo: 0) }
         rig.model.rig.toggle(vfo: 0)
-        await eventually("disconnected") { !rig.model.rig.connected(vfo: 0) }
-        rig.model.rig.toggle(vfo: 0)
-        await eventually("connected") { rig.model.rig.connected(vfo: 0) }
-        await eventually("owed T 0 tried") { rig.rig.commands.filter { $0 == "T 0" }.count >= 4 }
-        await rig.model.rig.settle()
-        #expect(rig.model.rig.pluginPttUnconfirmed)
-        #expect(!rig.rig.commands.filter { $0.hasPrefix("T ") }.dropFirst(1).contains("T 1"))
+        await eventually("released on the next connection") {
+            rig.model.rig.connected(vfo: 0) && !rig.model.rig.pluginPttUnconfirmed
+        }
+        #expect(Self.pttCommands(rig).last == "T 0")
     }
 
     /// Esc releases a plugin's PTT and still stops the keyer; the indicator goes.
@@ -962,5 +963,207 @@ import Testing
         #expect(await rig.model.pluginKey(true) == "the operator stopped plugin transmissions")
         await rig.model.rig.settle()
         #expect(Self.pttCommands(rig).filter { $0 == "T 1" }.count == 1)
+    }
+
+    // MARK: - sixth security review
+
+    /// A fresh-connection `T 0` of an older release never confirms a newer one: release #1 is confirmed on the lane
+    /// while its fresh `T 0` is still on its way; a plugin keys, release #2 comes while that `T 1` is on the wire;
+    /// the late fresh `T 0` of #1 must not clear #2.
+    @Test func anOlderFreshReleaseNeverConfirmsANewerOne() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer {
+            rig.rig.releaseAnswer()
+            rig.rig.stop()
+        }
+        let model = rig.model.rig
+        let gate = NSCondition()
+        let open = Box<Bool>(false)
+        let done = Box<Int>(0)
+        model.freshPttRelease = { _, _ in
+            gate.lock()
+            while !open.value { gate.wait() }
+            done.value += 1
+            gate.unlock()
+            return true
+        }
+        #expect(await model.pluginPtt(true) == nil)
+        #expect(model.releasePluginPtt())
+        await eventually("release #1 confirmed on the lane") { !model.pluginPttUnconfirmed }
+        rig.rig.holdAnswer(to: "T 1")
+        async let keyed: String? = model.pluginPtt(true)
+        await eventually("T 1 on the wire") { rig.rig.isHoldingAnswer }
+        #expect(model.releasePluginPtt())
+        gate.withLock {
+            open.value = true
+            gate.broadcast()
+        }
+        await eventually("the fresh T 0s went out") { gate.withLock { done.value } == 2 }
+        await model.settlePluginReleases()
+        #expect(model.pluginPttUnconfirmed, "a fresh T 0 of release #1 confirmed release #2")
+        rig.rig.releaseAnswer()
+        _ = await keyed
+        await eventually("confirmed after the key") { !model.pluginPttUnconfirmed }
+        #expect(Self.pttCommands(rig).last == "T 0")
+    }
+
+    /// A rig whose `rigctld` refuses `T 0`: the owed release is not resent on every poll; after the quick retries the
+    /// warning offers „Uvolnit znovu", which releases once the rig accepts.
+    @Test func aRefusedReleaseDoesNotFloodTheRig() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        model.releaseRetries = 0
+        model.releaseSlowRetryMs = 3_600_000
+        #expect(await model.pluginPtt(true) == nil)
+        rig.rig.reject("T")
+        #expect(model.releasePluginPtt())
+        await eventually("cannot confirm") { model.pluginPttCannotConfirm.contains(0) }
+        await model.settle()
+        let tried: Int = rig.rig.commands.filter { $0 == "T 0" }.count
+        let polls: Int = rig.rig.commands.filter { $0 == "f" }.count
+        await eventually("five more polls") { rig.rig.commands.filter { $0 == "f" }.count >= polls + 5 }
+        #expect(rig.rig.commands.filter { $0 == "T 0" }.count == tried, "T 0 resent per poll")
+        #expect(model.pluginPttUnconfirmed)
+        rig.rig.unreject("T")
+        model.retryPluginRelease()
+        await eventually("released by hand") { !model.pluginPttUnconfirmed }
+        #expect(model.pluginPttCannotConfirm.isEmpty)
+    }
+
+    /// After the quick retries a refused release is retried slowly, on the lane and over a fresh connection.
+    @Test func aRefusedReleaseKeepsBeingRetriedSlowly() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        model.releaseRetries = 0
+        model.releaseSlowRetryMs = 20
+        let fresh = Box<Int>(0)
+        let lock = NSLock()
+        model.freshPttRelease = { _, _ in
+            lock.withLock { fresh.value += 1 }
+            return false
+        }
+        #expect(await model.pluginPtt(true) == nil)
+        rig.rig.reject("T")
+        #expect(model.releasePluginPtt())
+        await eventually("retried on the lane") { rig.rig.commands.filter { $0 == "T 0" }.count >= 3 }
+        await eventually("retried over a fresh connection") { lock.withLock { fresh.value } >= 3 }
+        rig.rig.unreject("T")
+        await eventually("confirmed by a slow retry") { !model.pluginPttUnconfirmed }
+    }
+
+    /// A plugin that loses `transmit` while its `T 1` waits on the lane: the key is dropped before it is written.
+    @Test func aRevokeDropsAKeyStillQueued() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
+        defer {
+            rig.rig.releaseAnswer()
+            rig.rig.stop()
+        }
+        rig.rig.holdAnswer(to: "f")
+        await eventually("poll held") { rig.rig.isHoldingAnswer }
+        async let keyed: PluginJSON = Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        await eventually("T 1 queued on the lane") { rig.model.rig.pluginKeysInFlight[0] == 1 }
+        rig.plugins.setGrants("web", [])
+        rig.rig.releaseAnswer()
+        let answer: PluginJSON = await keyed
+        #expect(answer["error"]?["code"] == .string("permission"))
+        await eventually("confirmed") { !rig.model.rig.pluginPttUnconfirmed }
+        #expect(!Self.pttCommands(rig).contains("T 1"), "\(Self.pttCommands(rig))")
+    }
+
+    /// The release epoch is per rig: a release of the second rig never drops a plugin key queued for the first.
+    @Test func aReleaseOfTheOtherRigLeavesThisRigsKey() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
+        defer {
+            rig.rig.releaseAnswer()
+            rig.rig.stop()
+        }
+        let model = rig.model.rig
+        #expect(model.lanes.count == 2)
+        rig.rig.holdAnswer(to: "f")
+        await eventually("poll held") { rig.rig.isHoldingAnswer }
+        async let keyed: String? = model.pluginPtt(true)
+        await eventually("T 1 queued on the lane") { model.pluginKeysInFlight[0] == 1 }
+        model.requestRelease(1, waitForOperator: false)
+        #expect(model.pluginKeyEpoch(0) == 0)
+        rig.rig.releaseAnswer()
+        #expect(await keyed == nil)
+        #expect(Self.pttCommands(rig) == ["T 1"])
+        #expect(model.pluginPttRig == 0)
+        model.pluginPttOwed.remove(1)
+        model.releasePluginPtt()
+        await eventually("released") { !model.pluginPttUnconfirmed }
+    }
+
+    /// A plugin release never cuts the operator's own transmission on the rig: its `T 0` waits until that ended.
+    @Test func aPluginReleaseWaitsForTheOperatorsTransmission() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        let operatorOn = Box<Bool>(false)
+        model.operatorKeying = { _ in operatorOn.value }
+        #expect(await model.pluginPtt(true) == nil)
+        operatorOn.value = true
+        // The plugin side's release (its own `off`, the time limit, a revoke, its end).
+        #expect(model.releasePluginPtt())
+        await model.settle()
+        #expect(Self.pttCommands(rig) == ["T 1"], "the release cut the operator")
+        #expect(model.pluginPttUnconfirmed)
+        operatorOn.value = false
+        await eventually("released after the operator") { !model.pluginPttUnconfirmed }
+        #expect(Self.pttCommands(rig).last == "T 0")
+        // Esc stops the operator's transmission too: its release never waits.
+        rig.plugins.allowTransmissions()
+        #expect(await model.pluginPtt(true) == nil)
+        operatorOn.value = true
+        _ = rig.model.entry.stopSending()
+        await eventually("released at once") { Self.pttCommands(rig).last == "T 0" && !model.pluginPttUnconfirmed }
+    }
+
+    /// The quit drops queued plugin CAT and closes the plugin connection before the rigs disconnect.
+    @Test func theQuitClosesThePluginCatConnectionFirst() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "cat"], granted: ["cat"])
+        defer { rig.rig.stop() }
+        let channel = try #require(rig.model.rig.pluginCat)
+        _ = await Self.ask(rig, "cat.send", ["command": .string("f")])
+        #expect(channel.isOpen)
+        let openAtDisconnect = Box<Bool?>(nil)
+        rig.model.rig.beforeShutdownDisconnect = { openAtDisconnect.value = channel.isOpen }
+        await rig.model.rig.shutdown()
+        #expect(openAtDisconnect.value == false)
+    }
+
+    /// A rig that disconnects closes the plugin CAT connection (reopened with the next command).
+    @Test func aRigDisconnectClosesThePluginCatConnection() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "cat"], granted: ["cat"])
+        defer { rig.rig.stop() }
+        let channel = try #require(rig.model.rig.pluginCat)
+        _ = await Self.ask(rig, "cat.send", ["command": .string("f")])
+        #expect(channel.isOpen)
+        rig.model.rig.toggle(vfo: 0)
+        await eventually("disconnected") { !rig.model.rig.connected(vfo: 0) }
+        await eventually("closed") { !channel.isOpen }
+        rig.model.rig.toggle(vfo: 0)
+        await eventually("connected") { rig.model.rig.connected(vfo: 0) }
+        let again: PluginJSON = await Self.ask(rig, "cat.send", ["command": .string("f")])
+        #expect(again["result"]?["code"] == .int(0))
+        #expect(channel.isOpen)
+    }
+
+    /// A raw CAT command carries the epoch of its admission: a stop or revoke between admission and the rig drops it.
+    @Test func aCatCommandCarriesItsAdmissionEpoch() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "cat"], granted: ["cat"])
+        defer { rig.rig.stop() }
+        let admitted: Int = rig.model.rig.pluginCatEpoch.withLock { $0 }
+        rig.model.rig.pluginCatIdle(close: false)
+        let result = await PluginRpc.answer(method: "cat.send", params: ["command": .string("m")], permissions: ["cat"],
+                                            context: rig.plugins.context, catEpoch: admitted)
+        guard case .failure(let failure) = result else {
+            Issue.record("sent although stopped since its admission")
+            return
+        }
+        #expect(failure.message == "cancelled by a stop or release")
+        #expect(!rig.rig.commands.contains("+m"))
     }
 }

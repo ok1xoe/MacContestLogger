@@ -483,14 +483,22 @@ struct PluginTransmitIndicator: View {
                 Text(verbatim: text)
                     .windowFont(13, weight: .bold)
                 Spacer(minLength: 0)
+                if !app.rig.pluginPttCannotConfirm.isEmpty {
+                    Button {
+                        app.rig.retryPluginRelease()
+                    } label: {
+                        Text(verbatim: app.language.tr("Uvolnit znovu")).windowFont(12)
+                    }
+                    .accessibilityLabel(Text(verbatim: app.language.tr("Znovu uvolnit PTT pluginu")))
+                    .accessibilityIdentifier("pluginPttRetryRelease")
+                }
             }
             .foregroundStyle(Color(domain: DomainColors.dupe))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(RoundedRectangle(cornerRadius: 6).stroke(Color(domain: DomainColors.dupe), lineWidth: 2))
             .padding(.horizontal, 8)
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(Text(verbatim: text))
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("pluginPttUnconfirmed")
         }
         if app.pluginWindows.transmissionsBlocked && app.pluginWindows.transmitting == nil {

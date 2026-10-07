@@ -25,6 +25,8 @@ final class FakeRigctld: @unchecked Sendable {
     private var azimuthText = "123.0"
     /// The next `f` closes the connection instead of answering (a lost rig).
     private var dropOnRead = false
+    /// The next command line equal to this closes the connection instead of answering.
+    private var dropLine: String?
     /// Command words answered with `RPRT -1`.
     private var rejected: Set<String> = []
     /// The command line whose answer is held back (a late answer) until `releaseAnswer()`.
@@ -107,6 +109,11 @@ final class FakeRigctld: @unchecked Sendable {
 
     func dropNextRead() {
         lock.withLock { dropOnRead = true }
+    }
+
+    /// The next `line` closes the connection instead of answering (its outcome stays unknown to the client).
+    func drop(on line: String) {
+        lock.withLock { dropLine = line }
     }
 
     /// The next `line` is recorded at once but answered only after `releaseAnswer()` — the client's read times out
@@ -256,6 +263,10 @@ final class FakeRigctld: @unchecked Sendable {
             let word: String = words.first.map(String.init) ?? ""
             if rejected.contains(word) {
                 return ["RPRT -1"]
+            }
+            if dropLine == line {
+                dropLine = nil
+                return nil
             }
             switch word {
             case "f":

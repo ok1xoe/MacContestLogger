@@ -80,15 +80,28 @@ public final class RigModel {
     /// Raised by every release and operator stop: plugin CAT commands queued before it are dropped, so a safety
     /// `T 0` never waits behind them.
     let pluginCatEpoch = OSAllocatedUnfairLock(initialState: 0)
-    /// The plugin-PTT release epoch: raised by every requested release. A plugin `T 1` carries the epoch it was
-    /// issued in and is dropped right before it is written when a release came since.
-    let pluginKeyEpoch = OSAllocatedUnfairLock(initialState: 0)
+    /// The plugin-PTT release epoch of each rig: raised by every release requested for it. A plugin `T 1` carries
+    /// its rig's epoch and is dropped right before it is written when a release came since; a `T 0` confirms only
+    /// the epoch it was sent for.
+    let pluginKeyEpochs = OSAllocatedUnfairLock(initialState: [Int: Int]())
+    /// Rigs whose release waits for the operator's own transmission on them to end (its `T 0` would cut it).
+    @ObservationIgnored var pluginReleaseDeferred: Set<Int> = []
+    /// Rigs whose release could not be confirmed after the quick retries: the warning offers „Uvolnit znovu".
+    public internal(set) var pluginPttCannotConfirm: Set<Int> = []
+    /// Whether each rig was connected at its last snapshot (only transitions act).
+    @ObservationIgnored var rigConnected: [Int: Bool] = [:]
+    /// Rigs with a release retry scheduled.
+    @ObservationIgnored var releaseRetryScheduled: Set<Int> = []
+    /// The slow retry of a refused plugin release, while the rig stays connected.
+    @ObservationIgnored var releaseSlowRetryMs = 10_000
+    /// Whether the operator's voice, CW or tune keys rig `index` (wired by the app model).
+    @ObservationIgnored var operatorKeying: @MainActor (Int) -> Bool = { _ in false }
     /// Plugin `T 1`s queued or on their way, per rig: a fresh-connection `T 0` sent while one is pending may be
     /// overtaken by it and never confirms a release.
     @ObservationIgnored var pluginKeysInFlight: [Int: Int] = [:]
     /// Lane `T 0` retries of an unconfirmed release, per rig.
     @ObservationIgnored var releaseAttempts: [Int: Int] = [:]
-    /// How many times a failed lane `T 0` is retried (after 0.5, 1, 1.5 s …) before the next connection retries it.
+    /// How many quick retries a failed lane `T 0` gets (after 0.5, 1, 1.5 s …) before the slow ones.
     @ObservationIgnored var releaseRetries = 3
     /// Rigs with a plugin's raw CAT command on their lane right now (a release closes that connection first).
     /// The last resort of a plugin PTT release: `T 0` over a fresh connection to the rig's `rigctld` (host, port);

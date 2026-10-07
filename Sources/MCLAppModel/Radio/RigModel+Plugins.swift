@@ -9,15 +9,28 @@ extension RigModel {
 
     // MARK: - plugin PTT state machine
     //
-    // Per rig: idle → keying (a plugin `T 1` in flight) → keyed (`pluginPttRig`) → release requested (epoch raised,
-    // `pluginPttOwed`) → confirmed (owed cleared). A release is confirmed only by a `T 0` that went out after every
-    // plugin `T 1` issued before it: the lane `T 0` (the lane is first in, first out) or a fresh-connection `T 0`
-    // sent while no plugin `T 1` was pending on that rig. A plugin `T 1` that still keys after a release was requested
-    // triggers another release at once. While a release is unconfirmed no plugin keys.
+    // Per rig: idle → keying (a plugin `T 1` in flight) → keyed (`pluginPttRig`) → release requested (the rig's
+    // release epoch raised, `pluginPttOwed`) → confirmed (owed cleared).
+    // - A plugin `T 1` carries its rig's epoch and is dropped right before it is written (the connection held) when
+    //   a release was requested since; one that keyed anyway triggers another release at once.
+    // - Every `T 0` carries the epoch it was sent for and confirms only that epoch while it is still the rig's
+    //   current one: the lane `T 0` (the lane is first in, first out, so it follows every earlier plugin `T 1`), or a
+    //   fresh-connection `T 0` sent while no plugin `T 1` was pending on the rig.
+    // - While the operator's own transmission (footswitch, voice, CW, tune) runs on the rig, the plugin's `T 0` waits
+    //   (it would cut the operator; the operator owns the PTT) and goes out when that transmission ended.
+    // - A refused `T 0` is retried after 0.5, 1, 1.5 s, then every 10 s while the rig is connected, and on its next
+    //   connection; after the quick retries the warning offers „Uvolnit znovu".
+    // While a release of any rig is unconfirmed no plugin keys.
 
-    /// Keys (`true`) or releases the active rig's PTT for a plugin; `nil` = done, else why not. Keying mirrors the
-    /// voice keyer: a `T 1` that fails is followed by `T 0` at once on the same rig (and the rig counts as owed if
-    /// that fails too). No rig connected: refused.
+    /// The rig's current release epoch.
+    func pluginKeyEpoch(_ index: Int) -> Int {
+        pluginKeyEpochs.withLock { $0[index, default: 0] }
+    }
+
+    /// Keys (`true`) or releases the active rig's PTT for a plugin; `nil` = done, else why not. A `T 1` the rig's
+    /// `rigctld` refuses (`RPRT -n`) keyed nothing and is only reported; one whose outcome is unknown (a timeout, a
+    /// lost connection) is followed by `T 0` at once, and the rig counts as owed if that fails too. No rig connected:
+    /// refused.
     public func pluginPtt(_ on: Bool) async -> String? {
         guard on else {
             releasePluginPtt()
@@ -41,17 +54,21 @@ extension RigModel {
         if pluginPttRig == index {
             return nil
         }
-        let epochs: OSAllocatedUnfairLock<Int> = pluginKeyEpoch
-        let issued: Int = epochs.withLock { $0 }
+        let epochs: OSAllocatedUnfairLock<[Int: Int]> = pluginKeyEpochs
+        let issued: Int = pluginKeyEpoch(index)
         pluginKeysInFlight[index, default: 0] += 1
         let outcome: PluginPttOutcome = await withCheckedContinuation { continuation in
             lanes[index].run({ cat -> PluginPttOutcome in
                 guard cat.snapshot.connected, let rig = cat.rigOrNull() else { return .noRig }
                 do {
-                    // The last check right before the socket (with the connection held): a release requested since
-                    // the key was asked for drops it.
-                    guard try rig.keyPtt(unless: { epochs.withLock { $0 } != issued }) else { return .dropped }
+                    // The last check right before the socket (with the connection held): a release of this rig
+                    // requested since the key was asked for drops it.
+                    guard try rig.keyPtt(unless: { epochs.withLock { $0[index, default: 0] } != issued }) else {
+                        return .dropped
+                    }
                     return .keyed
+                } catch let refusal as CatRefusal {
+                    return .refused(refusal.message)
                 } catch {
                     let message: String = ErrorText.message(error)
                     return (try? rig.setPtt(false)) != nil ? .failed(message) : .stuck(message)
@@ -59,7 +76,7 @@ extension RigModel {
             }, then: { continuation.resume(returning: $0) })
         }
         pluginKeysInFlight[index, default: 1] -= 1
-        let stale: Bool = pluginKeyEpoch.withLock { $0 } != issued
+        let stale: Bool = pluginKeyEpoch(index) != issued
         switch outcome {
         case .keyed where stale:
             // Keyed although a release was requested meanwhile: release again at once.
@@ -73,10 +90,12 @@ extension RigModel {
             return "released meanwhile"
         case .noRig:
             return "no rig connected"
+        case .refused(let message):
+            return "the rig refused the PTT, nothing was keyed: " + message
         case .failed(let message):
             return message
         case .stuck(let message):
-            // `T 1` and its `T 0` both failed: the rig may transmit — a release is owed.
+            // The outcome of `T 1` is unknown and its `T 0` failed: the rig may transmit — a release is owed.
             pluginPttRig = index
             requestRelease(index)
             return message
@@ -84,11 +103,12 @@ extension RigModel {
     }
 
     /// Releases a plugin's PTT (and any plugin key on its way); `true` = something was keyed or keying.
+    /// `stoppingEverything` (Esc, Stop): the operator's own transmission stops too, so the release never waits for it.
     @discardableResult
-    public func releasePluginPtt() -> Bool {
+    public func releasePluginPtt(stoppingEverything: Bool = false) -> Bool {
         var any = false
         for index in lanes.indices where pluginPttRig == index || pluginKeysInFlight[index, default: 0] > 0 {
-            releasePluginPtt(onRig: index)
+            releasePluginPtt(onRig: index, waitForOperator: !stoppingEverything)
             any = true
         }
         return any
@@ -101,67 +121,101 @@ extension RigModel {
     }
 
     /// A release of rig `index` (Esc, Stop, the time limit, a revoke, the plugin's end, the quit, a disconnect).
-    func releasePluginPtt(onRig index: Int) {
+    func releasePluginPtt(onRig index: Int, waitForOperator: Bool = false) {
         pluginCatEpoch.withLock { $0 += 1 }
         guard pluginPttRig == index || pluginKeysInFlight[index, default: 0] > 0 || pluginPttOwed.contains(index) else {
             return
         }
-        requestRelease(index)
+        requestRelease(index, waitForOperator: waitForOperator)
     }
 
-    /// Release requested: a new epoch (keys still queued are dropped), owed until a confirming `T 0`, then `T 0` on
-    /// the lane (it confirms when it got through) and over a fresh connection (it confirms only when no plugin key
-    /// was pending when it was sent).
-    func requestRelease(_ index: Int) {
-        pluginKeyEpoch.withLock { $0 += 1 }
+    /// Release requested: a new epoch of this rig (its plugin keys still queued are dropped), owed until a `T 0` of
+    /// this epoch confirms, then `T 0` on the lane and over a fresh connection — or, while the operator transmits on
+    /// the rig, once that transmission ended.
+    func requestRelease(_ index: Int, waitForOperator: Bool = true) {
+        pluginKeyEpochs.withLock { $0[index, default: 0] += 1 }
         let wasKeyed: Bool = pluginPttRig == index
         if wasKeyed {
             pluginPttRig = nil
         }
         pluginPttOwed.insert(index)
         releaseAttempts[index] = 0
-        laneRelease(index)
-        releaseOverFreshConnection(index)
+        if waitForOperator && !transmitClosed && operatorTransmitting(index) {
+            pluginReleaseDeferred.insert(index)
+        } else {
+            pluginReleaseDeferred.remove(index)
+            sendRelease(index)
+        }
         if wasKeyed {
             onPluginPttReleased?()
         }
     }
 
-    /// `T 0` on the lane: it follows every plugin `T 1` queued before it, so success confirms. A failure keeps the
-    /// release owed and retries a few times (and again on the next connection).
-    private func laneRelease(_ index: Int) {
-        let epochs: OSAllocatedUnfairLock<Int> = pluginKeyEpoch
+    /// `T 0` on the lane and over a fresh connection, both for the rig's current epoch.
+    func sendRelease(_ index: Int) {
+        let epoch: Int = pluginKeyEpoch(index)
+        laneRelease(index, epoch: epoch)
+        releaseOverFreshConnection(index, epoch: epoch)
+    }
+
+    /// `T 0` on the lane: it follows every plugin `T 1` queued before it, so success confirms its epoch. A failure
+    /// keeps the release owed and retries.
+    private func laneRelease(_ index: Int, epoch: Int) {
         lanes[index].run({ cat -> Bool in
             guard let rig = cat.rigOrNull(), rig.isConnected() else { return false }
             return (try? rig.setPtt(false)) != nil
         }, then: { [weak self] released in
             guard let self, self.pluginPttOwed.contains(index) else { return }
-            _ = epochs
             if released {
-                self.confirmRelease(index)
-                return
-            }
-            let attempt: Int = self.releaseAttempts[index, default: 0] + 1
-            self.releaseAttempts[index] = attempt
-            guard attempt <= self.releaseRetries else { return }
-            Task { [weak self] in
-                try? await Task.sleep(nanoseconds: UInt64(attempt) * 500_000_000)
-                guard let self, self.pluginPttOwed.contains(index) else { return }
-                self.laneRelease(index)
+                self.confirmRelease(index, epoch: epoch)
+            } else {
+                self.releaseFailed(index)
             }
         })
     }
 
-    private func confirmRelease(_ index: Int) {
-        guard pluginPttRig != index else { return }
+    /// A refused or impossible lane `T 0`: retried after 0.5, 1, 1.5 s, then every `releaseSlowRetryMs` while the
+    /// rig is connected (and on its next connection); after the quick retries the warning offers a manual release.
+    private func releaseFailed(_ index: Int) {
+        let attempt: Int = releaseAttempts[index, default: 0] + 1
+        releaseAttempts[index] = attempt
+        if attempt > releaseRetries {
+            pluginPttCannotConfirm.insert(index)
+        }
+        guard !releaseRetryScheduled.contains(index) else { return }
+        let delayMs: Int = attempt <= releaseRetries ? attempt * 500 : releaseSlowRetryMs
+        releaseRetryScheduled.insert(index)
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delayMs) * 1_000_000)
+            guard let self else { return }
+            self.releaseRetryScheduled.remove(index)
+            guard self.pluginPttOwed.contains(index), !self.pluginReleaseDeferred.contains(index),
+                  self.connected(vfo: index) else { return }
+            self.sendRelease(index)
+        }
+    }
+
+    /// „Uvolnit znovu": every unconfirmed release goes out again at once.
+    public func retryPluginRelease() {
+        for index in pluginPttOwed.sorted() where !pluginReleaseDeferred.contains(index) {
+            releaseAttempts[index] = 0
+            pluginPttCannotConfirm.remove(index)
+            sendRelease(index)
+        }
+    }
+
+    /// A `T 0` sent for `epoch` got through: it confirms only that epoch while it is still the rig's current one.
+    private func confirmRelease(_ index: Int, epoch: Int) {
+        guard pluginPttRig != index, pluginKeyEpoch(index) == epoch else { return }
         pluginPttOwed.remove(index)
+        pluginPttCannotConfirm.remove(index)
+        pluginReleaseDeferred.remove(index)
         releaseAttempts[index] = nil
     }
 
     /// `T 0` over a fresh connection to the `rigctld` the rig was last connected to (the quit waits for it). It
-    /// confirms the release only when no plugin `T 1` was pending on the rig when it was sent.
-    func releaseOverFreshConnection(_ index: Int) {
-        pluginPttOwed.insert(index)
+    /// confirms its epoch only when no plugin `T 1` was pending on the rig when it was sent.
+    func releaseOverFreshConnection(_ index: Int, epoch: Int) {
         guard let endpoint = rigEndpoints[index] else { return }
         let release: @Sendable (String, Int) -> Bool = freshPttRelease
         let clean: Bool = pluginKeysInFlight[index, default: 0] == 0
@@ -172,7 +226,7 @@ extension RigModel {
             guard let self else { return }
             self.pendingReleases[id] = nil
             if sent && clean {
-                self.confirmRelease(index)
+                self.confirmRelease(index, epoch: epoch)
             }
         }
     }
@@ -182,21 +236,38 @@ extension RigModel {
         !pluginPttOwed.isEmpty
     }
 
-    /// A rig lost its connection while a plugin keyed it (or a release is owed): released over a fresh connection;
-    /// on its next connection an owed `T 0` goes out first on the lane. A connection's endpoint is remembered.
+    /// Every snapshot of rig `index`. On a connected → disconnected transition: the plugin CAT connection closes and
+    /// a plugin key (keyed or on its way) is released. On a disconnected → connected transition: an owed `T 0` goes
+    /// out first. A release waiting for the operator's transmission goes out once that ended. A connection's
+    /// endpoint is remembered.
     func pluginPttConnectionChanged(_ index: Int, connected: Bool) {
         if connected, let endpoint = lanes[index].cat.rigOrNull()?.endpoint {
             rigEndpoints[index] = endpoint
         }
-        if !connected {
+        let was: Bool = rigConnected[index] ?? false
+        rigConnected[index] = connected
+        if was && !connected {
             pluginCat?.close()
             if pluginPttRig == index || pluginKeysInFlight[index, default: 0] > 0 {
-                requestRelease(index)
+                requestRelease(index, waitForOperator: false)
             }
-        } else if pluginPttOwed.contains(index) {
+        } else if !was && connected && pluginPttOwed.contains(index) && !pluginReleaseDeferred.contains(index) {
             releaseAttempts[index] = 0
-            laneRelease(index)
+            sendRelease(index)
         }
+        operatorTransmissionMayHaveEnded(index)
+    }
+
+    /// A plugin release that waited for the operator's own transmission on rig `index` goes out once it ended.
+    func operatorTransmissionMayHaveEnded(_ index: Int) {
+        guard pluginReleaseDeferred.contains(index), transmitClosed || !operatorTransmitting(index) else { return }
+        pluginReleaseDeferred.remove(index)
+        sendRelease(index)
+    }
+
+    /// Whether the operator's own transmission (footswitch, voice, CW, tune) runs on rig `index`.
+    func operatorTransmitting(_ index: Int) -> Bool {
+        footswitchPttRig == index || operatorKeying(index)
     }
 
     /// A raw CAT command for the active rig (the caller checked it with `PluginCatPolicy`), over the plugins' own
@@ -309,6 +380,7 @@ extension RigModel {
 enum PluginPttOutcome: Sendable {
     case keyed
     case dropped
+    case refused(String)
     case noRig
     case failed(String)
     case stuck(String)
