@@ -16,8 +16,8 @@ public enum EntryFieldKey: Hashable, Sendable {
 }
 
 /// Field order of the entry window (Kotlin `tabOrder`, `moveFocus`, `focusExchange`, `K:EntryPanel.kt:686-721` and
-/// the call field's space handler `:1100-1118`): call, sent report, then the contest's received fields (or Rcv and
-/// Exch outside a contest). Tab walks every field, the space bar skips the reports.
+/// the call field's space handler `:1100-1118`): call, sent report, then the contest's received fields (or Rcv
+/// outside a contest). Tab walks every field, the space bar skips the reports.
 public struct EntryFocusOrder: Equatable, Sendable {
 
     public struct Entry: Equatable, Sendable {
@@ -28,7 +28,7 @@ public struct EntryFocusOrder: Equatable, Sendable {
 
     public let entries: [Entry]
     /// Where the space bar in the call field jumps (Kotlin `focusExchange`): the first contest field that is not a
-    /// report, else the first contest field; `Exch` outside a contest; `nil` = a contest without received fields.
+    /// report, else the first contest field; `Rcv` outside a contest; `nil` = a contest without received fields.
     public let exchangeTarget: EntryFieldKey?
 
     public init(contestActive: Bool, fields: [ContestDefinition.ExchangeField]) {
@@ -42,9 +42,9 @@ public struct EntryFocusOrder: Equatable, Sendable {
             let target: ContestDefinition.ExchangeField? = fields.first { !Self.isReport($0) } ?? fields.first
             exchangeTarget = target.map { .contest($0.id) }
         } else {
+            // Free logging has no exchange: the received report is the last field and the space bar's target.
             entries.append(Entry(key: .rstRcvd, isReport: true))
-            entries.append(Entry(key: .exchange, isReport: false))
-            exchangeTarget = .exchange
+            exchangeTarget = .rstRcvd
         }
         self.entries = entries
     }

@@ -14,16 +14,17 @@ import Testing
     private static let cqWw: [ContestDefinition.ExchangeField] = [field("rst", .RST), field("zone", .CQ_ZONE)]
 
     @Test func freeLoggingOrder() {
+        // Free logging has no exchange field: call, Snt, Rcv; the space bar jumps to Rcv.
         let order = EntryFocusOrder(contestActive: false, fields: Self.cqWw)
-        #expect(order.entries.map(\.key) == [.call, .rstSent, .rstRcvd, .exchange])
-        #expect(order.exchangeTarget == .exchange)
+        #expect(order.entries.map(\.key) == [.call, .rstSent, .rstRcvd])
+        #expect(order.exchangeTarget == .rstRcvd)
         // Tab walks every field and wraps; Shift+Tab goes back.
         #expect(order.next(from: .call, direction: 1, skipReports: false) == .rstSent)
-        #expect(order.next(from: .exchange, direction: 1, skipReports: false) == .call)
-        #expect(order.next(from: .call, direction: -1, skipReports: false) == .exchange)
-        // Space skips the reports: Snt → Exch, Exch → call.
-        #expect(order.next(from: .rstSent, direction: 1, skipReports: true) == .exchange)
-        #expect(order.next(from: .exchange, direction: 1, skipReports: true) == .call)
+        #expect(order.next(from: .rstRcvd, direction: 1, skipReports: false) == .call)
+        #expect(order.next(from: .call, direction: -1, skipReports: false) == .rstRcvd)
+        // Space skips the reports: from Snt or Rcv back to the call.
+        #expect(order.next(from: .rstSent, direction: 1, skipReports: true) == .call)
+        #expect(order.next(from: .rstRcvd, direction: 1, skipReports: true) == .call)
     }
 
     @Test func contestOrderAndExchangeTarget() {

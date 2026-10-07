@@ -70,8 +70,8 @@ private struct EntryColumn: View {
 
 // MARK: - fields
 
-/// The row of fields (`EP:1090-1160`): „Čas UTC" in post-contest entry, the call, Snt, SentNr, then Rcv/Exch or the
-/// contest's received fields.
+/// The row of fields (`EP:1090-1160`): „Čas UTC" in post-contest entry, the call, Snt, then SentNr and the contest's
+/// received fields, or only Rcv in free logging.
 private struct EntryFieldsRow: View {
     let app: AppModel
     let entry: EntryModel
@@ -85,16 +85,14 @@ private struct EntryFieldsRow: View {
             WeightedField(label: app.language.tr("Volačka"), weight: 2.2, content: callField)
             WeightedField(label: "Snt", weight: 0.8, content: field(.rstSent, text: entry.form.rstSent,
                                                                    label: "Snt") { entry.editRstSent($0) })
-            WeightedField(label: "SentNr", weight: 0.8,
-                          content: Readout(text: String(format: "%03ld", app.logbook.nextSerial)))
             if app.contest.isActive {
+                WeightedField(label: "SentNr", weight: 0.8,
+                              content: Readout(text: String(format: "%03ld", app.logbook.nextSerial)))
                 ContestFieldsView(entry: entry, focus: focus)
             } else {
+                // Free logging: reports only — no serial number and no exchange field.
                 WeightedField(label: "Rcv", weight: 0.8, content: field(.rstRcvd, text: entry.form.rstRcvd,
                                                                        label: "Rcv") { entry.editRstRcvd($0) })
-                WeightedField(label: "Exch", weight: 1.2,
-                              content: field(.exchange, text: entry.form.exch, transform: .uppercase,
-                                             label: "Exch") { entry.editExchange($0) })
             }
         }
     }
