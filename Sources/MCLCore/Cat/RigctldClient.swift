@@ -198,6 +198,24 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         try expectRprtOk("nastavení rychlosti CW")
     }
 
+    /// The extended response form (`+` before the command): reply lines up to `RPRT <code>`; both directions go
+    /// to the CAT log as every command does. At most 64 lines are read.
+    public func sendRaw(_ command: String) throws -> RigRawReply {
+        lock.lock()
+        defer { lock.unlock() }
+        try send("+" + command)
+        var lines: [String] = []
+        while lines.count < 64 {
+            let line: String = try readLine()
+            if Self.startsWith(line, "RPRT") {
+                let code: Int = Int(JavaText.trim(String(line.dropFirst(4)))) ?? -1
+                return RigRawReply(lines: lines, code: code)
+            }
+            lines.append(line)
+        }
+        throw CatException("rigctld: odpověď na surový příkaz je příliš dlouhá")
+    }
+
     /// Java `!closed && socket.isConnected() && !socket.isClosed()` — closing by the peer is not seen (R8).
     public func isConnected() -> Bool {
         !closedFlag.withLock { $0 } && !socket.isClosed

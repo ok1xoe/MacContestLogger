@@ -264,6 +264,42 @@ extension AppModel {
             entry.runCommand(command)
             return nil
         }
+        actions.rawCat = { [weak model] command, then in
+            guard let model else {
+                then(.failure(CatRawError(message: "no rig")))
+                return
+            }
+            model.rig.sendRawCat(command, then: then)
+        }
+        actions.sendCw = { [weak model] text in
+            guard let model, let entry = model.activeEntry else { return noEntry }
+            guard entry.form.mode == .cw else { return "not in CW" }
+            model.keyer.sendCwText(text, call: entry.form.call)
+            return nil
+        }
+        actions.functionKey = { [weak model] index, opposite in
+            guard let entry = model?.activeEntry else { return noEntry }
+            entry.sendKeys([index], opposite: opposite, refocus: false)
+            return nil
+        }
+        actions.voice = { [weak model] index in
+            guard let entry = model?.activeEntry else { return noEntry }
+            guard entry.form.mode == .ssb || entry.form.mode == .am || entry.form.mode == .fm else {
+                return "not in a phone mode"
+            }
+            entry.sendKeys([index], refocus: false)
+            return nil
+        }
+        actions.stop = { [weak model] in
+            model?.activeEntry?.stopSending() ?? false
+        }
+        actions.ptt = { [weak model] on in
+            guard let model else { return "no rig" }
+            return model.rig.pluginPtt(on)
+        }
+        actions.isSending = { [weak model] in
+            model?.keyer.isSending ?? false
+        }
         return actions
     }
 

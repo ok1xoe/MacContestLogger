@@ -58,6 +58,8 @@ public final class RigModel {
     @ObservationIgnored var autoSplitActive = false
     /// The rig that got the footswitch PTT on (the release goes to the same rig even after a VFO switch).
     @ObservationIgnored var footswitchPttRig: Int?
+    /// The rig a plugin's `tx.ptt` keyed (`nil` = none).
+    public internal(set) var pluginPttRig: Int?
     /// Set when the quit starts releasing the transmitter: a footswitch press is refused from then on (a release
     /// edge still releases), so nothing keys a rig after the transmit-release milestone.
     @ObservationIgnored var transmitClosed = false
@@ -283,6 +285,7 @@ public final class RigModel {
     func releaseBeforeUserDisconnect(onRig index: Int) {
         keyerRelease(index)
         releaseFootswitchPtt(onRig: index)
+        releasePluginPtt(onRig: index)
     }
 
     // MARK: - the entry windows
@@ -320,6 +323,7 @@ public final class RigModel {
     /// `rigctld` or poller survives the quit.
     func shutdown() async {
         releaseFootswitchPtt()
+        releasePluginPtt()
         let message: String = language.tr("ukončeno")
         for lane in lanes {
             lane.run { cat in

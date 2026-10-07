@@ -10,13 +10,13 @@ public struct PluginManifest: Equatable, Sendable {
     /// The protocol this version speaks.
     public static let protocolVersion: Int64 = 1
     /// The permissions this version knows. `read` and `ui` are always granted; the others act on the app and need
-    /// the operator's grant (`grantedPermissions`). Later versions add `cat`, `transmit` and `web`.
+    /// the operator's grant (`PluginSettings.grants`).
     public static let supportedPermissions: [String] = ["read", "ui", "entry", "rig", "spots", "spots.send",
-                                                        "app.command"]
+                                                        "app.command", "cat", "transmit"]
+    /// Permissions the consent sheet leaves unchecked (the operator must tick them on purpose).
+    public static let offByDefault: Set<String> = ["spots.send", "cat", "transmit"]
     /// The permissions granted without asking.
     public static let implicitPermissions: Set<String> = ["read", "ui"]
-    /// Permissions the consent sheet leaves unchecked (the operator must tick them on purpose).
-    public static let offByDefault: Set<String> = ["spots.send"]
     /// At most this many windows per plugin.
     public static let maxWindows = 8
     /// At most this many key actions per plugin.
@@ -34,6 +34,13 @@ public struct PluginManifest: Equatable, Sendable {
         /// The default size (`size: [w, h]`), `nil` = 480×360.
         public let width: Int?
         public let height: Int?
+        /// A web window's page (`kind: "web"`, `page`: an HTML file inside the plugin directory); `nil` = a
+        /// declarative window.
+        public var page: String? = nil
+
+        public var isWeb: Bool {
+            page != nil
+        }
     }
 
     /// The directory name: the plugin's id (window ids `plugin:<id>/<window>`).
@@ -47,6 +54,10 @@ public struct PluginManifest: Equatable, Sendable {
     public let windows: [Window]
     /// The key actions (a plugin may have actions and no window).
     public let actions: [Action]
+    /// Hosts a web window may load from (https only); empty = nothing remote.
+    public var webHosts: [String] = []
+    /// `false` (`"process": false`): no executable runs; only web windows talk to the app.
+    public var hasProcess: Bool = true
     /// The executable relative to the plugin directory (`run`, default `run`).
     public let run: String
 
@@ -93,8 +104,21 @@ public struct PluginManifest: Equatable, Sendable {
         guard isSafeRelativePath(run) else {
             throw ContestMessage("plugin.json: neplatná cesta ke spustitelnému souboru %s", .string(run))
         }
-        return PluginManifest(id: directoryName, name: name, version: root["version"]?.stringValue,
-                              permissions: permissions, events: events, windows: windows, actions: actions, run: run)
+        var manifest = PluginManifest(id: directoryName, name: name, version: root["version"]?.stringValue,
+                                      permissions: permissions, events: events, windows: windows, actions: actions,
+                                      run: run)
+        manifest.webHosts = try strings(root["webHosts"], field: "webHosts")
+        if let host = manifest.webHosts.first(where: { !isHostName($0) }) {
+            throw ContestMessage("plugin.json: neplatný webový host %s", .string(host))
+        }
+        manifest.hasProcess = root["process"]?.boolValue ?? true
+        if !manifest.hasProcess && !manifest.actions.isEmpty {
+            throw ContestMessage("plugin.json: akce potřebují proces (process nesmí být false)")
+        }
+        if !manifest.hasProcess && !manifest.windows.contains(where: \.isWeb) {
+            throw ContestMessage("plugin.json: plugin bez procesu potřebuje webové okno")
+        }
+        return manifest
     }
 
     private static func strings(_ value: PluginJSON?, field: String) throws(ContestMessage) -> [String] {
@@ -156,7 +180,21 @@ public struct PluginManifest: Equatable, Sendable {
                 width = Int(min(max(w, 160), 4000))
                 height = Int(min(max(h, 120), 4000))
             }
-            windows.append(Window(id: id, title: title, width: width, height: height))
+            var window = Window(id: id, title: title, width: width, height: height)
+            switch item["kind"]?.stringValue ?? "declarative" {
+            case "declarative":
+                break
+            case "web":
+                guard let page = item["page"]?.stringValue, isSafeRelativePath(page),
+                      page.lowercased().hasSuffix(".html") || page.lowercased().hasSuffix(".htm") else {
+                    throw ContestMessage("plugin.json: webové okno %s potřebuje stránku .html v adresáři pluginu",
+                                         .string(id))
+                }
+                window.page = page
+            default:
+                throw ContestMessage("plugin.json: neznámý druh okna %s", .string(id))
+            }
+            windows.append(window)
         }
         return windows
     }
@@ -168,6 +206,12 @@ public struct PluginManifest: Equatable, Sendable {
             (scalar.isASCII && (CharacterSet.alphanumerics.contains(scalar))) || scalar == "-" || scalar == "_"
                 || scalar == "."
         }
+    }
+
+    /// A host name for `webHosts`: letters, digits, `-` and `.`, no scheme, port or path.
+    static func isHostName(_ host: String) -> Bool {
+        !host.isEmpty && host.count <= 253 && !host.hasPrefix(".") && !host.hasSuffix(".")
+            && host.unicodeScalars.allSatisfy { ($0.isASCII && CharacterSet.alphanumerics.contains($0)) || $0 == "-" || $0 == "." }
     }
 
     /// A relative path that stays inside the plugin directory.

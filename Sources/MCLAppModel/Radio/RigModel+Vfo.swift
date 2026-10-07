@@ -310,6 +310,7 @@ extension RigModel {
     func closeTransmit() {
         transmitClosed = true
         releaseFootswitchPtt()
+        releasePluginPtt()
     }
 
     /// `setPtt(false)` on the rig the footswitch keyed (nothing when none is keyed): before the footswitch closes

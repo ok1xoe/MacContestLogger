@@ -65,6 +65,26 @@ public struct PluginHostActions {
     /// Runs a call-field text command; `nil` = run, else why not.
     public var command: (String) -> String? = { _ in "no entry window" }
 
+    // cat
+    /// A raw CAT command on the active rig (already checked by `PluginCatPolicy`).
+    public var rawCat: (String, @escaping @MainActor @Sendable (Result<RigRawReply, CatRawError>) -> Void) -> Void = {
+        _, then in then(.failure(CatRawError(message: "no rig")))
+    }
+
+    // transmit — the same paths as the F-keys, Esc and the footswitch PTT
+    /// CW text through the keyer (CW mode only; the macros of the F-key messages apply).
+    public var sendCw: (String) -> String? = { _ in "no keyer" }
+    /// F-key `index` (0…11) of the active entry window, as pressing it (`opposite` = the other message set).
+    public var functionKey: (Int, Bool) -> String? = { _, _ in "no entry window" }
+    /// The voice message of F-key `index` (phone modes only).
+    public var voice: (Int) -> String? = { _ in "no entry window" }
+    /// Esc: stops every transmission (also a plugin's PTT); `true` = something was stopped.
+    public var stop: () -> Bool = { false }
+    /// The PTT of the active rig.
+    public var ptt: (Bool) -> String? = { _ in "no rig" }
+    /// Whether the keyer is sending now (the transmit indicator).
+    public var isSending: () -> Bool = { false }
+
     public init() {}
 }
 
@@ -91,6 +111,8 @@ extension PluginRpc {
         "spots.add": "spots", "spots.remove": "spots", "spots.mark": "spots", "spots.blacklist": "spots",
         "spots.send": "spots.send",
         "app.command": "app.command",
+        "tx.sendCw": "transmit", "tx.fkey": "transmit", "tx.voice": "transmit", "tx.stop": "transmit",
+        "tx.ptt": "transmit",
     ]
 
     static func act(method: String, params: [String: PluginJSON],
@@ -206,6 +228,26 @@ extension PluginRpc {
                 return invalid("spots.send needs a callsign, freqHz inside a band and a comment of at most 60 plain characters")
             }
             return done(actions.sendSpot(call.uppercased(), hz, text("comment") ?? ""))
+        case "tx.sendCw":
+            guard let message = text("text"), !message.isEmpty, isPlainText(message, limit: 200) else {
+                return invalid("tx.sendCw needs a text of at most 200 plain characters")
+            }
+            return done(actions.sendCw(message))
+        case "tx.fkey":
+            guard let index = params["key"]?.intValue, (1...12).contains(index) else {
+                return invalid("tx.fkey needs key 1…12")
+            }
+            return done(actions.functionKey(Int(index) - 1, params["opposite"]?.boolValue ?? false))
+        case "tx.voice":
+            guard let index = params["key"]?.intValue, (1...12).contains(index) else {
+                return invalid("tx.voice needs key 1…12")
+            }
+            return done(actions.voice(Int(index) - 1))
+        case "tx.stop":
+            return .success(.object(["stopped": .bool(actions.stop())]))
+        case "tx.ptt":
+            guard let on = params["on"]?.boolValue else { return invalid("tx.ptt needs on") }
+            return done(actions.ptt(on))
         default:
             guard let command = text("text"), !command.isEmpty, isPlainText(command, limit: 80) else {
                 return invalid("app.command needs a text of at most 80 plain characters")

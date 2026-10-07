@@ -19,6 +19,10 @@ public struct PluginSettings: Codable, Equatable, Sendable {
     public var passThrough: [String] = []
     /// Plugin window keys (`plugin:<plugin>/<window>`) docked into the main window.
     public var docked: [String] = []
+    /// A plugin's PTT is released after this many seconds however the plugin behaves (5–300).
+    public var pttTimeoutSeconds: Int = PluginSettings.defaultPttTimeoutSeconds
+
+    public static let defaultPttTimeoutSeconds = 30
 
     public init() {}
 
@@ -30,6 +34,9 @@ public struct PluginSettings: Codable, Equatable, Sendable {
         keys = try container.decodeIfPresent([String: String].self, forKey: .keys) ?? [:]
         passThrough = try container.decodeIfPresent([String].self, forKey: .passThrough) ?? []
         docked = try container.decodeIfPresent([String].self, forKey: .docked) ?? []
+        let timeout: Int = try container.decodeIfPresent(Int.self, forKey: .pttTimeoutSeconds)
+            ?? Self.defaultPttTimeoutSeconds
+        pttTimeoutSeconds = min(max(timeout, 5), 300)
     }
 
     /// The key of a plugin's grants: its directory and its manifest name.

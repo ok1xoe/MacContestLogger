@@ -132,6 +132,11 @@ extension EntryModel {
     /// something was stopped (the CQ repeat counts).
     @discardableResult
     public func stopSending() -> Bool {
+        // Esc releases a plugin's PTT too (the same key that stops every other transmission).
+        let pluginPtt: Bool = rig?.releasePluginPtt() ?? false
+        if pluginPtt {
+            return true
+        }
         let keyer: any KeyerPort = ports.keyer
         if keyer.isTuning {
             _ = keyer.stopSending()

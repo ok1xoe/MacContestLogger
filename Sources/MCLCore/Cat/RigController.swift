@@ -51,6 +51,10 @@ public protocol RigController: AnyObject, Sendable {
     /// Swaps VFO A and B (A↔B).
     func swapVfo() throws
 
+    /// A raw `rigctld` command (the extended response form) for plugins with the `cat` permission: the reply lines
+    /// and the `RPRT` code. Callers check the command with `PluginCatPolicy` first.
+    func sendRaw(_ command: String) throws -> RigRawReply
+
     /// Is the rig connection active?
     func isConnected() -> Bool
 
@@ -58,7 +62,22 @@ public protocol RigController: AnyObject, Sendable {
     func close()
 }
 
+/// The reply to a raw command: the lines before `RPRT` and its code (0 = OK).
+public struct RigRawReply: Equatable, Sendable {
+    public let lines: [String]
+    public let code: Int
+
+    public init(lines: [String], code: Int) {
+        self.lines = lines
+        self.code = code
+    }
+}
+
 extension RigController {
+
+    public func sendRaw(_ command: String) throws -> RigRawReply {
+        throw CatException("Rig surové příkazy nepodporuje")
+    }
 
     public func setSplit(_ on: Bool, txFreqHz: Int64) throws {
         throw CatException("Rig split nepodporuje")

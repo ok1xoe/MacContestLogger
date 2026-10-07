@@ -22,6 +22,10 @@ public final class PluginWindowsModel {
     public static let outputLinesPerRun = 500
     /// Requests of one plugin answered at the same time; more get the `busy` error at once.
     public static let maxRequestsInFlight = 4
+    /// Raw CAT commands of one plugin per second; more get `rate_limited`.
+    public static let catPerSecond = 10
+    /// How often the transmit indicator checks whether a plugin's transmission ended.
+    static let transmitCheckMs = 500
 
     /// The window plugins found by the last scan.
     public private(set) var catalog = PluginCatalog.Scan()
@@ -33,6 +37,10 @@ public final class PluginWindowsModel {
     public private(set) var settings = PluginSettings()
     /// The plugin whose first-use consent sheet is up (`nil` = none).
     public private(set) var consentRequest: String?
+    /// The plugin holding the PTT (`tx.ptt`), released after `settings.pttTimeoutSeconds` at the latest.
+    public private(set) var pttHolder: String?
+    /// The plugin whose transmission (a message, the PTT) is going on now: the entry window says so.
+    public private(set) var transmitting: String?
 
     @ObservationIgnored let router = PluginEventRouter()
     @ObservationIgnored public var context = PluginHostContext()
@@ -50,6 +58,9 @@ public final class PluginWindowsModel {
     @ObservationIgnored private var keyRestartRefused: Set<String> = []
     /// The settings as last read from or written to the file (a change by anyone else is detected at the next scan).
     @ObservationIgnored private var settingsOnDisk: PluginSettings?
+    @ObservationIgnored private var pttTimer: (any RescoreTimer)?
+    @ObservationIgnored private var transmitTimer: (any RescoreTimer)?
+    @ObservationIgnored private var catTimes: [String: [Date]] = [:]
     @ObservationIgnored private let launcher: PluginLauncher?
     @ObservationIgnored private let windows: WindowsModel
     @ObservationIgnored private let messages: MessagesModel
@@ -553,6 +564,11 @@ public final class PluginWindowsModel {
             session.phase = .disabled
             return
         }
+        guard package.manifest.hasProcess else {
+            // Only web windows: nothing to start, the pages talk to the app themselves.
+            session.phase = .running
+            return
+        }
         start(session, launcher: launcher)
     }
 
@@ -640,6 +656,10 @@ public final class PluginWindowsModel {
     /// Takes the connection off a session that stops: no more events or messages; the process is held in
     /// `retiring` until it ended (so the quit can still kill it).
     private func retire(_ session: PluginSession) -> (any PluginConnection)? {
+        // A plugin that stops never leaves the transmitter keyed.
+        if pttHolder == session.package.id {
+            releasePtt(reason: nil)
+        }
         router.remove(plugin: session.package.id)
         session.helloTimer?.cancel()
         session.helloTimer = nil
@@ -661,6 +681,9 @@ public final class PluginWindowsModel {
     /// Stops a plugin with its windows (no banner: its windows are gone).
     private func stop(_ plugin: String) {
         guard let session = sessions[plugin] else { return }
+        if pttHolder == plugin {
+            releasePtt(reason: nil)
+        }
         retire(session)?.terminate(graceMs: 1_000)
         session.phase = .stopped
     }
@@ -781,18 +804,34 @@ public final class PluginWindowsModel {
             send(session, PluginOutbound.error(id: id, code: "busy", message: "more than \(Self.maxRequestsInFlight) requests at once"))
             return
         }
+        if method == "cat.send" && settings.effectivePermissions(session.package.manifest).contains("cat")
+            && !admitCat(session.package.id) {
+            send(session, PluginOutbound.error(id: id, code: "rate_limited",
+                                               message: "more than \(Self.catPerSecond) CAT commands a second"))
+            return
+        }
         session.inFlight += 1
         let context: PluginHostContext = self.context
         let probe: (@Sendable (Bool) -> Void)? = readProbe
         let plugin: String = session.package.id
         Task { [weak self] in
-            // A plugin stopped meanwhile acts no more; a permission revoked meanwhile counts.
+            // A plugin stopped meanwhile acts no more (above all: it never keys the transmitter afterwards); a
+            // permission revoked meanwhile counts.
             guard let self, let running = self.current(plugin, generation) else { return }
             let permissions: [String] = self.settings.effectivePermissions(running.package.manifest)
             let result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
                                                 context: context, readProbe: probe)
-            guard let session = self.current(plugin, generation) else { return }
+            guard let session = self.current(plugin, generation) else {
+                // The run ended while a PTT request was answered: release what it may have keyed.
+                if method == "tx.ptt", case .success = result, self.pttHolder == nil {
+                    _ = context.actions.ptt(false)
+                }
+                return
+            }
             session.inFlight -= 1
+            if case .success = result, method.hasPrefix("tx.") {
+                self.transmitted(method: method, params: params, plugin: plugin, name: session.name)
+            }
             switch result {
             case .success(let value):
                 self.send(session, PluginOutbound.response(id: id, result: value))
@@ -800,6 +839,146 @@ public final class PluginWindowsModel {
                 self.send(session, PluginOutbound.error(id: id, code: failure.code, message: failure.message))
             }
         }
+    }
+
+    // MARK: - web windows
+
+    /// Web pages' requests answered at the same time per plugin.
+    @ObservationIgnored private var webInFlight: [String: Int] = [:]
+
+    /// A request of a web window's page (`window.mcl.request`): the same methods, permissions, limits and transmit
+    /// rules as a process's requests. Answers `{"result": …}` or `{"error": {"code", "message"}}`.
+    public func webAnswer(_ key: String, method: String, params: [String: PluginJSON]) async -> PluginJSON {
+        func error(_ code: String, _ message: String) -> PluginJSON {
+            .object(["error": .object(["code": .string(code), "message": .string(message)])])
+        }
+        guard let parsed = PluginCatalog.parseWindowKey(key), let package = catalog.package(parsed.plugin),
+              package.manifest.window(parsed.window)?.isWeb == true else {
+            return error("unavailable", "not a web window")
+        }
+        let plugin: String = package.id
+        guard sessions[plugin]?.phase == .running else {
+            return error("unavailable", "the plugin is not running (permissions undecided, refused or switched off)")
+        }
+        let inFlight: Int = webInFlight[plugin] ?? 0
+        guard inFlight < Self.maxRequestsInFlight else {
+            return error("busy", "more than \(Self.maxRequestsInFlight) requests at once")
+        }
+        let permissions: [String] = settings.effectivePermissions(package.manifest)
+        if method == "cat.send" && permissions.contains("cat") && !admitCat(plugin) {
+            return error("rate_limited", "more than \(Self.catPerSecond) CAT commands a second")
+        }
+        webInFlight[plugin] = inFlight + 1
+        defer { webInFlight[plugin] = max((webInFlight[plugin] ?? 1) - 1, 0) }
+        let result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
+                                            context: context, readProbe: readProbe)
+        switch result {
+        case .success(let value):
+            if method.hasPrefix("tx.") {
+                transmitted(method: method, params: params, plugin: plugin, name: package.manifest.name)
+            }
+            // Rendered answers (`raw`) are parsed back, so the caller gets plain values.
+            return .object(["result": (try? PluginJSON.parse(value.serialized())) ?? value])
+        case .failure(let failure):
+            return error(failure.code, failure.message)
+        }
+    }
+
+    /// A web window's page listens to its plugin's subscribed events; `deliver` gets each event line (any thread).
+    public func addWebListener(_ key: String, deliver: @escaping @Sendable (String) -> Void) -> Int? {
+        guard let parsed = PluginCatalog.parseWindowKey(key), let package = catalog.package(parsed.plugin) else {
+            return nil
+        }
+        return router.addSink(events: package.manifest.events, deliver: deliver)
+    }
+
+    public func removeWebListener(_ id: Int) {
+        router.removeSink(id)
+    }
+
+    /// The page and the directory of a web window (`nil` for any other window).
+    public func webPage(_ key: String) -> (page: URL, directory: URL, hosts: [String])? {
+        guard let parsed = PluginCatalog.parseWindowKey(key), let package = catalog.package(parsed.plugin),
+              let page = package.manifest.window(parsed.window)?.page else { return nil }
+        let directory = URL(fileURLWithPath: package.directory, isDirectory: true)
+        return (directory.appendingPathComponent(page), directory, package.manifest.webHosts)
+    }
+
+    // MARK: - transmit
+
+    /// At most `catPerSecond` raw CAT commands of a plugin in any second (the app's clock).
+    private func admitCat(_ plugin: String) -> Bool {
+        let current: Date = now()
+        var times: [Date] = (catTimes[plugin] ?? []).filter { current.timeIntervalSince($0) < 1 }
+        guard times.count < Self.catPerSecond else {
+            catTimes[plugin] = times
+            return false
+        }
+        times.append(current)
+        catTimes[plugin] = times
+        return true
+    }
+
+    /// A transmit request succeeded: the PTT holder and its time limit, the indicator.
+    private func transmitted(method: String, params: [String: PluginJSON], plugin: String, name: String) {
+        switch method {
+        case "tx.ptt" where params["on"]?.boolValue == true:
+            pttHolder = plugin
+            pttTimer?.cancel()
+            let seconds: Int = settings.pttTimeoutSeconds
+            pttTimer = clock.schedule(afterMilliseconds: seconds * 1000) { [weak self] in
+                guard let self, self.pttHolder == plugin else { return }
+                self.releasePtt(reason: "[" + name + "] " + self.language.tr(
+                    "PTT pluginu uvolněno po %s s", .int(seconds)))
+            }
+        case "tx.ptt", "tx.stop":
+            if pttHolder == plugin {
+                pttTimer?.cancel()
+                pttTimer = nil
+                pttHolder = nil
+            }
+            if method == "tx.stop" || pttHolder == nil {
+                transmitting = nil
+            }
+            return
+        default:
+            break
+        }
+        transmitting = name
+        scheduleTransmitCheck()
+    }
+
+    private func releasePtt(reason: String?) {
+        pttTimer?.cancel()
+        pttTimer = nil
+        pttHolder = nil
+        _ = context.actions.ptt(false)
+        if let reason {
+            messages.add(reason, at: now())
+        }
+        if !context.actions.isSending() {
+            transmitting = nil
+        }
+    }
+
+    /// The indicator stays while the keyer sends or the PTT is held.
+    private func scheduleTransmitCheck() {
+        transmitTimer?.cancel()
+        transmitTimer = clock.schedule(afterMilliseconds: Self.transmitCheckMs) { [weak self] in
+            guard let self else { return }
+            self.transmitTimer = nil
+            if self.pttHolder == nil && !self.context.actions.isSending() {
+                self.transmitting = nil
+            } else {
+                self.scheduleTransmitCheck()
+            }
+        }
+    }
+
+    /// The PTT time limit (Settings → Plugins), 5–300 s.
+    public func setPttTimeout(seconds: Int) {
+        settings.pttTimeoutSeconds = min(max(seconds, 5), 300)
+        saveSettings()
     }
 
     private func exited(_ code: Int32, plugin: String, generation: Int) {
