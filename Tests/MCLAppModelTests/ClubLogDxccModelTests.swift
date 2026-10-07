@@ -74,7 +74,8 @@ import Testing
     }
 
     static func usesClubLog(_ app: TestApp) -> Bool {
-        app.model.contest.runtime.dxccLookup is ClubLogCtyResolver
+        let lookup = app.model.contest.runtime.dxccLookup
+        return ((lookup as? DxccOverrideLookup)?.base ?? lookup) is ClubLogCtyResolver
     }
 
     @Test func startupDownloadsOnceAndSwitchesTheDxccSource() async throws {

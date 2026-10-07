@@ -72,6 +72,9 @@ public final class ContestModel {
         var since: Date? = nil
     }
 
+    /// The user's call → country list, asked before every other DXCC source (`DxccOverrideLookup`).
+    @ObservationIgnored public var dxccOverrides: DxccOverrideStore?
+
     /// The clock of a partial rescore („posledních N hodin"); the injected one in tests.
     @ObservationIgnored var now: @Sendable () -> Date = Date.init
 
@@ -114,13 +117,15 @@ public final class ContestModel {
     /// DXCC from `dxccDir`, Kotlin `~/dxcc-json`). With `clubLogDxcc` the cached Club Log `cty.xml` in
     /// `dataDir/clublog` is the DXCC source when a copy exists.
     public nonisolated static func loadEnvironment(contestDataDir: String?, dxccDir: URL?, dataDir: URL,
-                                                   clubLogDxcc: Bool = false) async -> ContestEnvironment {
+                                                   clubLogDxcc: Bool = false,
+                                                   overrides: DxccOverrideStore? = nil) async -> ContestEnvironment {
         let fallback: String = dataDir.appendingPathComponent("contest-data").path
         let dxcc: String? = dxccDir?.path
         let cache = ClubLogCtyCache(dataDir: dataDir)
         let loaded: ContestEnvironment? = try? await BlockingQueue.run {
-            ContestEnvironment.load(dataRoot: contestDataDir, dxccDir: dxcc, fallbackDataRoot: fallback,
-                                    clubLog: clubLogDxcc ? cache.load() : nil)
+            overrides?.load()
+            return ContestEnvironment.load(dataRoot: contestDataDir, dxccDir: dxcc, fallbackDataRoot: fallback,
+                                           clubLog: clubLogDxcc ? cache.load() : nil, overrides: overrides)
         }
         return loaded ?? ContestEnvironment.load(dataRoot: nil, dxccDir: nil, fallbackDataRoot: "/nonexistent")
     }
@@ -766,7 +771,8 @@ public final class ContestModel {
         if let source = environmentSource {
             environment = await Self.loadEnvironment(contestDataDir: config.config.contestDataDir,
                                                      dxccDir: source.dxccDir, dataDir: source.dataDir,
-                                                     clubLogDxcc: config.config.clubLog.ctyEnabled)
+                                                     clubLogDxcc: config.config.clubLog.ctyEnabled,
+                                                     overrides: dxccOverrides)
         }
         runtime = Self.makeRuntime(environment, config: config)
         activeSetup = nil

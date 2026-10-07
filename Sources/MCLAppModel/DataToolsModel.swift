@@ -33,7 +33,7 @@ public final class DataToolsModel {
 
     @ObservationIgnored let contest: ContestModel
     @ObservationIgnored private let logbook: LogbookModel
-    @ObservationIgnored private let callData: CallDataModel
+    @ObservationIgnored let callData: CallDataModel
     @ObservationIgnored let config: ConfigModel
     @ObservationIgnored let status: StatusModel
     @ObservationIgnored let language: LanguageModel

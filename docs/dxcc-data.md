@@ -9,12 +9,30 @@ and the spot analysis.
 
 | Source | Where | Used when |
 |--------|-------|-----------|
+| Your own assignments | `<data folder>/dxcc-overrides.json` (see below) | always, for the calls in it |
 | Club Log `cty.xml` | `<data folder>/clublog/` (downloaded by the app) | the switch below is on **and** a copy has been downloaded |
 | `cty.dat` (AD1C) | `~/dxcc-json/cty.dat` | otherwise, when the file exists |
 | `dxcc.json` | `~/dxcc-json/dxcc.json` | otherwise |
 
 The data folder is `~/Library/Application Support/MacContestLogger` (or the folder in `MCL_DATA_DIR`).
 Without any of them the contest engine is not available (see [Getting started](zaciname.md)).
+
+## Assign a call to a country
+
+Equivalent of N1MM **Add call to country**. **"Nástroje → Přiřadit volačku k zemi…"** (Tools → Assign call to
+country...) opens a window with the callsign (the one typed in the entry window), a searchable list of the
+countries of the loaded country data (name, prefix or DXCC number) and **Přiřadit** (Assign). The list **Vlastní
+přiřazení** (Own assignments) below shows every assignment with **Odebrat** (Remove).
+
+- The assignments are stored in `<data folder>/dxcc-overrides.json` and are asked **before** Club Log's `cty.xml`
+  and the `~/dxcc-json` data, so an assigned call gets that country, name, continent and zones everywhere (log,
+  multipliers, spots, map, exports).
+- A call matches **exactly** (upper case); `/P`, `/M` and `/QRP` after it do not change the match. Another prefix or
+  suffix (`DL/OK1XYZ`, `OK1XYZ/MM`) is looked up normally.
+- A change affects the **next lookup** at once. QSOs already in the log keep the country they were logged with until
+  **Nástroje → Přepočítat DXCC v deníku…** (the window offers it as a button), and the score of an open contest
+  follows when it is rescored.
+- An assignment naming a DXCC number the country data does not have is ignored.
 
 ## Club Log `cty.xml`
 

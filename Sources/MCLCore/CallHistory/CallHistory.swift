@@ -312,3 +312,34 @@ public struct CallHistory: Sendable {
         return String(scalars)
     }
 }
+
+// MARK: - Export and clearing
+
+extension CallHistory {
+
+    /// The same columns without any callsign: what „Vymazat call history" leaves in the file.
+    public func emptied() -> CallHistory {
+        CallHistory(columns: columns, byCall: JavaLinkedMap())
+    }
+
+    /// The history as CSV (RFC 4180: a field with a comma, quote or line break is quoted, `"` doubled), UTF-8, one
+    /// header line with the N1MM column names, callsigns sorted like the N1MM file. Unlike the N1MM file (whose
+    /// values have commas replaced), nothing is altered.
+    public func csvText() -> String {
+        let names: [String] = columns.map { Self.n1mmNames[JavaStringKey($0)] ?? $0 }
+        var lines: [String] = [names.map(Self.csvField).joined(separator: ",")]
+        let calls: [String] = byCall.keys.compactMap { $0 }.sorted { JavaText.compare($0, $1) < 0 }
+        for call in calls {
+            let record: JavaLinkedMap<String> = byCall[call] ?? JavaLinkedMap()
+            lines.append(columns.map { column in
+                Self.csvField(record[column] ?? (column == "call" ? call : ""))
+            }.joined(separator: ","))
+        }
+        return lines.joined(separator: "\r\n") + "\r\n"
+    }
+
+    private static func csvField(_ value: String) -> String {
+        guard value.contains(where: { $0 == "," || $0 == "\"" || $0 == "\n" || $0 == "\r" }) else { return value }
+        return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+    }
+}

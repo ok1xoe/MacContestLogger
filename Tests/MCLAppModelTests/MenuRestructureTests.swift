@@ -56,12 +56,15 @@ import Testing
                                          "database.open", "file.copyContest", "file.import", "file.export",
                                          "settings.print"])
         #expect(try children("file.import") == ["settings.import", "settings.merge"])
-        #expect(try children("file.export") == ["settings.export", "settings.exportCabrillo", "settings.exportEdi",
-                                                "settings.exportOther"])
+        #expect(try children("file.export") == ["settings.export", "settings.exportAdifRange",
+                                                "settings.exportCabrillo", "settings.exportEdi",
+                                                "settings.exportOther", "callhistory.exportN1mm",
+                                                "callhistory.exportCsv"])
         #expect(try children("tools") == ["contest.rescore", "contest.rescoreHours", "database.refillDxcc",
-                                          "settings.downloadScp",
+                                          "tools.addCallToCountry", "settings.downloadScp",
                                           "contest.updateDefinitions", "database.updateClubLogDxcc",
-                                          "contest.updateCallHistory", "beacons.load", "contest.editor"])
+                                          "contest.updateCallHistory", "callhistory.clear", "beacons.load",
+                                          "contest.editor"])
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.report",

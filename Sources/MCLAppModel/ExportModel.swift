@@ -26,13 +26,28 @@ extension ImportExportModel {
 
     /// Kotlin `exportAdif(path)`: the active contest's QSOs (`logbook.findAll()`), the station in the header, the
     /// contest's Cabrillo name as `CONTEST_ID`; UTF-8.
-    public func exportAdif(to file: URL) async {
+    ///
+    /// With `range` (Export → ADIF by date) only the QSOs of those UTC days are written; none in it = no file and a
+    /// status line saying so.
+    public func exportAdif(to file: URL, range: AdifDateRange? = nil) async {
         let contestId: String? = contest.definition?.cabrillo?.contestName
         let station: Station = config.config.station.toStation()
         do {
-            let qsos: [Qso] = try await readLog()
+            var qsos: [Qso] = try await readLog()
+            if let range {
+                qsos = range.filter(qsos)
+                if qsos.isEmpty {
+                    status.show("Export ADIF: v zadaném období nejsou žádná QSO")
+                    return
+                }
+            }
+            let exported: [Qso] = qsos
             try await BlockingQueue.run {
-                try AdifWriter(contestId: contestId).writeToFile(qsos, station: station, to: file)
+                try AdifWriter(contestId: contestId).writeToFile(exported, station: station, to: file)
+            }
+            if range != nil {
+                status.show("Exportováno do %s (%s QSO)", .string(file.path), .int(exported.count))
+                return
             }
             status.show("Exportováno do %s", .string(file.path))
         } catch {

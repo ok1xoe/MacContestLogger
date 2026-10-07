@@ -11,6 +11,11 @@ public enum DefaultMenu {
         "file.openRecent": "Otevřít nedávné",
         "file.copyContest": "Zkopírovat závod do jiné databáze…",
         "contest.rescoreHours": "Přepočítat posledních N hodin…",
+        "settings.exportAdifRange": "ADIF podle data…",
+        "callhistory.exportN1mm": "Call history (N1MM)…",
+        "callhistory.exportCsv": "Call history (CSV)…",
+        "callhistory.clear": "Vymazat call history…",
+        "tools.addCallToCountry": "Přiřadit volačku k zemi…",
         "file.import": "Import",
         "file.export": "Export",
         "edit": "Úpravy",
@@ -128,8 +133,9 @@ public enum DefaultMenu {
             leaf("database.new"), leaf("database.open"), leaf("file.copyContest"), leaf("sep.file.2"),
             node("file.import", [leaf("settings.import"), leaf("settings.merge")]),
             node("file.export", [
-                leaf("settings.export"), leaf("settings.exportCabrillo"), leaf("settings.exportEdi"),
-                leaf("settings.exportOther"),
+                leaf("settings.export"), leaf("settings.exportAdifRange"), leaf("settings.exportCabrillo"),
+                leaf("settings.exportEdi"), leaf("settings.exportOther"), leaf("callhistory.exportN1mm"),
+                leaf("callhistory.exportCsv"),
             ]),
             leaf("sep.file.3"), leaf("settings.print"),
         ])
@@ -139,9 +145,10 @@ public enum DefaultMenu {
         ])
         let contest = node("contest", [leaf("contest.postcontest"), leaf("contest.record"), leaf("contest.none")])
         let tools = node("tools", [
-            leaf("contest.rescore"), leaf("contest.rescoreHours"), leaf("database.refillDxcc"), leaf("sep.tools.1"),
+            leaf("contest.rescore"), leaf("contest.rescoreHours"), leaf("database.refillDxcc"), leaf("tools.addCallToCountry"), leaf("sep.tools.1"),
             leaf("settings.downloadScp"), leaf("contest.updateDefinitions"), leaf("database.updateClubLogDxcc"),
-            leaf("contest.updateCallHistory"), leaf("beacons.load"), leaf("sep.tools.2"), leaf("contest.editor"),
+            leaf("contest.updateCallHistory"), leaf("callhistory.clear"), leaf("beacons.load"), leaf("sep.tools.2"),
+            leaf("contest.editor"),
         ])
         let settings = node("settings", [settingsOpen, leaf("settings.keys"), leaf("settings.profiles")])
         let help = node("help", [

@@ -58,13 +58,21 @@ public struct ContestEnvironment: Sendable {
     /// `clubLog` = the cached Club Log `cty.xml` (Settings → Score Reporting, on by default once a copy exists): when
     /// given, it is the DXCC source (`ClubLogCtyResolver`, names and ITU zones from the `dxccDir` data where it knows
     /// the entity); `nil` leaves the `dxccDir` source exactly as before.
+    ///
+    /// `overrides` = the user's call → country list: when given, it is asked before every other DXCC source.
     public static func load(dataRoot configured: String?, dxccDir: String?, fallbackDataRoot: String,
-                            clubLog: ClubLogCtyData? = nil) -> ContestEnvironment {
+                            clubLog: ClubLogCtyData? = nil, overrides: DxccOverrideStore? = nil) -> ContestEnvironment {
         var problems: [ContestMessage] = []
         let local: (any DxccLookup)? = dxccDir.flatMap { loadDxcc(URL(fileURLWithPath: $0)) }
-        let dxcc: (any DxccLookup)? = clubLog.map {
+        let source: (any DxccLookup)? = clubLog.map {
             ClubLogCtyResolver($0, localNames: ClubLogCtyResolver.localNames(from: local))
         } ?? local
+        let dxcc: (any DxccLookup)? = source.map { (base: any DxccLookup) -> any DxccLookup in
+            if let overrides {
+                return DxccOverrideLookup(base, store: overrides)
+            }
+            return base
+        }
         let root: URL = dataRoot(configured: configured, fallback: fallbackDataRoot)
         let multipliers: URL = root.appendingPathComponent("multipliers")
         var registry: MultiplierSetRegistry?
