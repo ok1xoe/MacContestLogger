@@ -87,6 +87,7 @@ struct MainWindowView: View {
                     }
                 }
                 .modifier(DialogPresenter(app: app))
+                .modifier(PluginConsentPresenter(app: app))
                 .modifier(WindowRequestPresenter(app: app))
                 .modifier(DataToolsDialogPresenter(app: app))
                 .modifier(EntryDialogPresenter(app: app))
@@ -116,6 +117,7 @@ struct MainWindowView: View {
                 .padding(.horizontal, 8)
                 .padding(.top, 4)
             EntryPanelView(app: app, panel: app.panel(vfo: 0), focus: focus, wheel: wheel)
+            PluginDockArea(app: app)
             Spacer(minLength: 0)
             if app.contest.isActive {
                 ScoreBarView(app: app)

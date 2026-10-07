@@ -52,7 +52,9 @@ struct KeysTab: View {
             .padding(.top, 6)
             footnote
         }
-        .onDisappear { keys.stopCapture() }
+        PluginKeysGroup(app: app)
+            .padding(.top, 12)
+            .onDisappear { keys.stopCapture() }
     }
 
     @ViewBuilder private func rowView(_ row: KeyCaptureRules.Row) -> some View {

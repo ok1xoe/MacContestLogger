@@ -200,6 +200,8 @@ struct SettingsTabView: View {
         case .wsjt, .audio, .station, .contest, .cluster, .dxCluster, .onlineCallbooks, .bandplan, .digiFreq,
              .map:
             secondHalf
+        case .plugins:
+            PluginsTab(app: app)
         }
     }
 

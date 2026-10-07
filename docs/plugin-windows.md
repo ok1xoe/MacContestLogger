@@ -58,13 +58,33 @@ plugins/
 | `protocol` | Required, `1`. Another number is refused with a message. |
 | `name` | Shown name (default: the directory name). |
 | `version` | Free text. |
-| `permissions` | What the plugin may do. Protocol 1 knows `read` (the requests) and `ui` (its windows). **Any other permission → the plugin is not started** and the messages window says it needs a permission this version does not support. |
+| `permissions` | What the plugin may do — see [Permissions](#permissions). A permission this version does not know (`cat`, `transmit`, …) → **the plugin is not started** and the messages window says it needs a permission this version does not support. |
 | `events` | The events the plugin receives (the directory names of [the event table](scripting.md#plugins)). Nothing else is sent. |
 | `run` | The executable, relative to the plugin directory (default `run`; no `..`). It may be a symbolic link, also to a program elsewhere — the plugin directory is yours, the app runs what you put there. |
-| `windows` | 1–8 windows: `id` (letters, digits, `-`, `_`, `.`), `title` (default: `name`), `size` `[width, height]` for the first opening (later the window keeps the size you give it). |
+| `windows` | 1–8 windows: `id` (letters, digits, `-`, `_`, `.`), `title` (default: `name`), `size` `[width, height]` for the first opening (later the window keeps the size you give it). May be left out when the plugin has `actions`. |
+| `actions` | Up to 32 key actions: `{"id","title"}`. The operator binds keys to them in Settings → Keys; the plugin gets a `key` message. A plugin with actions and no windows starts at the first key press and runs until the quit. |
 
 Problems in `plugin.json` (bad JSON, a missing field, an unknown event) appear in the messages window as
 `[<directory>] …`, each once.
+
+## Permissions
+
+| Permission | Grants | |
+|---|---|---|
+| `read` | the read requests (log, contest, rig state, spots) | always |
+| `ui` | `set` for the plugin's windows | always |
+| `entry` | `entry.*`: the active entry window's call and exchange, wipe, logging, the status line | operator's grant |
+| `rig` | `rig.*`: QSY, mode, split, RIT, VFO swap, the active radio — **never transmitting**, always through the entry window as the operator's own actions | operator's grant |
+| `spots` | `spots.add`, `spots.remove`, `spots.mark`, `spots.blacklist` (local only) | operator's grant |
+| `spots.send` | `spots.send`: a spot to the **public** DX cluster network (needs `spots` too) | operator's grant, off by default |
+| `app.command` | `app.command`: call-field text commands — never one that can transmit, reach a network, run scripts or destroy data | operator's grant |
+
+The first time a plugin that asks for a permission needing a grant starts, a sheet over the main window lists those
+permissions (all checked except `spots.send`): **Povolit vybrané** grants the checked ones, **Odmítnout vše** none —
+the plugin then starts with `read` and `ui` and gets the `permission` error for the rest. The decision is kept in
+`plugin-settings.json` in the data directory; Settings → **Pluginy** shows every plugin with its permissions and
+grants or revokes them at any time (a revoke applies to the next request). The `hello` message lists the permissions
+granted now.
 
 ## Lifecycle
 
@@ -156,12 +176,24 @@ the window's font stepper (top right, as in every window), and every element is 
 | `toggle` | `id`, `label`, `value` → `change` with the new `value` (shown at once) |
 | `progress` | `value`, `max`, `label` |
 | `tabs` | `id`, `tabs`: `[{"id","title","elements":[…]}]` → `select`; tabs nest at most 3 deep |
+| `canvas` | `width`, `height` (points, at most 4 000), `shapes`, `id` (a click sends `click` with `value` `{"x","y"}` in canvas coordinates), `label` (read by VoiceOver) |
+
+Canvas shapes (origin top left, y down; at most 5 000 per canvas, 2 000 points per path; `style` as above, `fill`,
+`lineWidth` 0.5–20): `{"shape":"line","x1","y1","x2","y2"}`, `{"shape":"rect","x","y","w","h"}`,
+`{"shape":"circle","cx","cy","r"}`, `{"shape":"path","points":[[x,y],…],"closed"}`,
+`{"shape":"text","x","y","text","size"}` (size 6–72). The drawing scales with the window's font stepper.
+
+**Docking:** the button left of the font stepper docks a plugin window into the main window, under the entry panel
+(the plugin keeps running); the panel has buttons back into a window of its own and to close it. Docked windows are
+kept in `plugin-settings.json` and come back at start.
 
 Limits: 2 000 rows per table or items per list (the rest is cut with a notice), 2 000 elements per content, the 1 MiB
 line limit for the whole `set`. An element type this version does not know is left out with a notice, the rest is
 shown.
 
-## Requests (read only)
+## Requests
+
+### Reading (`read`)
 
 | Method | Params | Result |
 |---|---|---|
@@ -173,9 +205,47 @@ shown.
 | `rig.state` | — | `{"radio","freqHz","band","mode","catConnected"}` of the active entry window, or `null` |
 | `spots.list` | `band` | `{"spots":[{"dxCall","freqHz","band","spotter","comment"}]}` newest first, at most 2 000 |
 
-`contest.multipliers` answers `not_implemented` in protocol 1. Error codes: `unknown_method`, `permission`,
-`invalid_params`, `unavailable` (no logbook open), `busy` (more than 4 requests at once), `not_implemented`, `failed`. The database is read off the app's main
-thread; a request never changes anything.
+| `contest.multipliers` | — | `{"contestId","multipliers":[{"id","label","worked","keys":[…],"needed":null}]}` — the worked multipliers per binding (a replay of the log, as the score); `needed` is not computed yet; `null` without a contest |
+
+The database is read off the app's main thread.
+
+### Acting
+
+Each needs its permission ([Permissions](#permissions)); the answer is `{"ok":true}` or the error `refused` with the
+reason (no active entry window, the call field holds a command, not connected, …).
+
+| Method | Params | Does |
+|---|---|---|
+| `entry.getCall` | — | `{"call","exchange":{id: value},"freqHz","mode","radio"}` of the active entry window |
+| `entry.setCall` | `call` | types the call (as typing does) |
+| `entry.setExchange` | `fields`: `{id: value}` | fills exchange fields; answers `unknown` with the ids the contest does not have |
+| `entry.wipe` | — | wipes the entry (as Esc) |
+| `entry.log` | — | logs the QSO as Enter without ESM — never transmits; refused when the call field holds a command |
+| `entry.status` | `text` | shows a text in the status line |
+| `rig.qsy` | `freqHz`, `mode` (optional) | QSY of the active entry window (its rig follows through CAT) |
+| `rig.setMode` | `mode` | mode of the active entry window |
+| `rig.split` | `txFreqHz`, or `off: true` | split as the `SPLIT` command |
+| `rig.rit` | `offsetHz` (±99 999) | RIT as the `RIT` command |
+| `rig.swap` | — | swaps the VFOs |
+| `rig.focusedRadio` | `radio` (0 or 1) | makes that radio / VFO the active one |
+| `spots.add` | `call`, `freqHz`, `comment` | a local spot of your station (band map, available multipliers) |
+| `spots.remove` | `call`, `blacklist` | removes every spot of the call (optionally onto the blacklist); `{"removed": bool}` |
+| `spots.mark` | `freqHz` | a `MARK` spot |
+| `spots.blacklist` | `call` | puts the call on the blacklist |
+| `spots.send` | `call`, `freqHz`, `comment` | sends a spot to the DX cluster (as Spot It with a comment) — public |
+| `app.command` | `text` | runs a call-field text command; refused: `RPT` (CQ repeat on), `ESM`, `SPOTME`, `SCRIPT`, `CLEARLOG`, `CLEARLOGNOW`, `EXIT`, `EXITNOW`, `RESET`, `BCLOG`, the network on/off commands, and any text that is not a command |
+
+Error codes: `unknown_method`, `permission`, `invalid_params`, `refused`, `unavailable` (no logbook open), `busy`
+(more than 4 requests at once), `failed`.
+
+### Keys
+
+```json
+{"type":"key","action":"last-call","phase":"press"}
+```
+Settings → Keys lists every plugin action: **Změnit** captures a key, **Žádná** removes it, and *Ponechat i původní
+funkci klávesy* lets the key keep its own entry-window function too (otherwise the plugin's key replaces it). A
+plugin key wins over the app's own shortcut on the same key. Keys act while an entry field has the focus.
 
 ## The Python helper
 
@@ -199,13 +269,12 @@ plugin.run()
 
 Handlers run one at a time in the order the app sent the messages; `request` blocks until the answer comes (the
 answers are read on a background thread; `_timeout=` sets the wait in seconds, 30 by default). `mcl.text`, `table`, `row`, `cell`, `column`, `list_`, `item`, `button`,
-`toggle`, `progress`, `tabs` and `tab` build the elements.
+`toggle`, `progress`, `tabs`, `tab` and `canvas` (with `line`, `rect`, `circle`, `path`, `label`) build the elements;
+`@plugin.on_key("action")` handles a key action. The example
+[`band-activity`](plugins/examples/band-activity/) uses `entry`, `rig`, a canvas and a key action.
 
 ## Roadmap
 
-- **Stage 2:** `entry` (fill the call and exchange), `rig` (tune, change band and mode), `spots` (add a spot) and
-  `app.command` (run a callsign-field text command); scripts bound to keys; a `canvas` element; docking a plugin
-  window into the main window.
 - **Stage 3:** `cat` and `transmit` — raw rig commands and keying — behind an explicit grant of each permission by the
   operator, and a web-view window.
 
