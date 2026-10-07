@@ -332,17 +332,20 @@ import Testing
         rig.model.rig.retryPluginRelease()
         await eventually("released by hand") { !rig.model.rig.pluginPttUnconfirmed }
         await rig.model.rig.settle()
-        // The outcome unknown: the connection drops on `T 1`. The client reopens it at once (the rig stays connected,
-        // the poller goes on) and `T 0` goes out on the fresh one; refused there, the release is owed.
+        // The outcome unknown: the connection drops on `T 1` (no reply). The client reopens it at once (the rig stays
+        // connected, the poller goes on); the release is owed and, as not even the key answered, only „Uvolnit znovu"
+        // confirms it.
         let connections: Int = rig.rig.connectionCount
         rig.rig.drop(on: "T 1")
-        rig.rig.reject("T 0")
         _ = await rig.model.rig.pluginPtt(true)
         await rig.model.rig.settle()
         #expect(rig.model.rig.pluginPttUnconfirmed)
         #expect(rig.model.rig.pluginPttRig == nil)
         #expect(rig.rig.connectionCount > connections)
-        rig.rig.unreject("T 0")
+        await eventually("its connection was read") { rig.model.rig.keyDrains[0, default: 0] == 0 }
+        await rig.model.rig.settle()
+        #expect(rig.model.rig.pluginPttUnconfirmed)
+        #expect(rig.model.rig.pluginPttCannotConfirm.contains(0))
         rig.model.rig.retryPluginRelease()
         await eventually("released") { !rig.model.rig.pluginPttUnconfirmed }
         #expect(rig.model.rig.connected(vfo: 0))
@@ -1298,6 +1301,41 @@ import Testing
         model.beforeShutdownDisconnect = { atDisconnect.value = Self.pttCommands(rig) }
         await model.shutdown()
         #expect(atDisconnect.value.last == "T 0", "\(atDisconnect.value)")
+    }
+
+    /// An unanswered plugin `T 1` (the rig busy with another client) may still run after `T 0`s over other
+    /// connections: while its own connection is read, none of them confirms; how that connection ended decides.
+    @Test func anUnansweredKeyIsConfirmedOnlyBehindItself() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        func unanswered() async {
+            rig.plugins.allowTransmissions()
+            #expect(await model.pluginPtt(true) == nil)
+            model.keyDrains[0, default: 0] += 1
+            model.requestRelease(0, waitForOperator: false)
+            await model.settle()
+            #expect(model.pluginPttUnconfirmed, "a T 0 over another connection confirmed an unanswered key")
+        }
+        // Released in order behind the key.
+        await unanswered()
+        model.keyDrainEnded(0, .released)
+        #expect(!model.pluginPttUnconfirmed)
+        // The key ran, its `T 0` failed: a `T 0` sent from now on confirms.
+        await unanswered()
+        let before: Int = Self.pttCommands(rig).count
+        model.keyDrainEnded(0, .keyRan)
+        await eventually("released again") { !model.pluginPttUnconfirmed }
+        #expect(Self.pttCommands(rig).count > before)
+        // Not even the key answered: only the operator's „Uvolnit znovu" confirms.
+        await unanswered()
+        model.keyDrainEnded(0, .unknown)
+        model.sendRelease(0)
+        await model.settle()
+        #expect(model.pluginPttUnconfirmed)
+        #expect(model.pluginPttCannotConfirm.contains(0))
+        model.retryPluginRelease()
+        await eventually("released by hand") { !model.pluginPttUnconfirmed }
     }
 }
 

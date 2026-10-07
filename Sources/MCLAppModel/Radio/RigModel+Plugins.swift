@@ -67,6 +67,9 @@ extension RigModel {
                         return .dropped
                     }
                     return .keyed
+                } catch let unanswered as CatUnknownOutcome {
+                    // `T 0` already went right behind it on its connection; only that connection can tell.
+                    return .unanswered(unanswered.message, unanswered.drain)
                 } catch let refusal as CatRefusal {
                     // Never assumed unkeyed after `T 1` went out (hamlib reports some errors after the rig acted, and
                     // a late reply may stand in for it): `T 0` at once, and owed if that fails too.
@@ -95,6 +98,18 @@ extension RigModel {
         case .refused(let message):
             return "the rig refused the PTT (released at once): " + message
         case .failed(let message):
+            return message
+        case .unanswered(let message, let drain):
+            // Keyed for all we know: owed, and only the `T 0` sent behind it on its own connection (or a `T 0` sent
+            // after its reply came) can confirm the release.
+            pluginPttRig = index
+            keyDrains[index, default: 0] += 1
+            requestRelease(index)
+            drain.onDone { result in
+                Task { @MainActor [weak self] in
+                    self?.keyDrainEnded(index, result)
+                }
+            }
             return message
         case .stuck(let message):
             // The outcome of `T 1` is unknown and its `T 0` failed: the rig may transmit — a release is owed.
@@ -205,9 +220,27 @@ extension RigModel {
         }
     }
 
+    /// An unanswered plugin `T 1`'s connection told how it ended: its `T 0` released it in order (confirmed), or the
+    /// key ran and a `T 0` sent from now on confirms, or not even the key's reply came — then nothing confirms until
+    /// the operator checked the rig and chose „Uvolnit znovu".
+    func keyDrainEnded(_ index: Int, _ result: PttKeyDrain.Result) {
+        keyDrains[index, default: 1] -= 1
+        guard pluginPttOwed.contains(index), keyDrains[index, default: 0] == 0 else { return }
+        switch result {
+        case .released:
+            confirmRelease(index, epoch: pluginKeyEpoch(index))
+        case .keyRan:
+            sendRelease(index)
+        case .unknown:
+            keyDrainUnknown.insert(index)
+            pluginPttCannotConfirm.insert(index)
+        }
+    }
+
     /// „Uvolnit znovu": every unconfirmed release goes out again at once (one waiting for the operator, too).
     public func retryPluginRelease() {
         for index in pluginPttOwed.sorted() {
+            keyDrainUnknown.remove(index)
             pluginReleaseDeferred.remove(index)
             releaseAttempts[index] = 0
             pluginPttCannotConfirm.remove(index)
@@ -248,6 +281,8 @@ extension RigModel {
 
     /// A `T 0` sent for `epoch` got through: it confirms only that epoch while it is still the rig's current one.
     private func confirmRelease(_ index: Int, epoch: Int) {
+        // While an unanswered plugin `T 1` may still run on another connection, no `T 0` here confirms.
+        guard keyDrains[index, default: 0] == 0, !keyDrainUnknown.contains(index) else { return }
         guard pluginPttRig != index, pluginKeyEpoch(index) == epoch else { return }
         pluginPttOwed.remove(index)
         pluginPttCannotConfirm.remove(index)
@@ -427,6 +462,7 @@ enum PluginPttOutcome: Sendable {
     case keyed
     case dropped
     case refused(String)
+    case unanswered(String, PttKeyDrain)
     case noRig
     case failed(String)
     case stuck(String)

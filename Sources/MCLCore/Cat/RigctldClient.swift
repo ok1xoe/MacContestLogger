@@ -40,6 +40,8 @@ public final class RigctldClient: RigController, @unchecked Sendable {
     /// error): a reply may still be unread or on its way, so the connection may be out of step (under `lock`; plugin
     /// PTT commands reopen such a connection first).
     private var outOfStep = false
+    /// Connections reopened in place so far (tests; under `lock`).
+    private(set) var reopenCount = 0
     /// The rig answered the split query with an error — we stop asking (under `lock`).
     private var splitUnsupported = false
 
@@ -193,13 +195,19 @@ public final class RigctldClient: RigController, @unchecked Sendable {
     public func keyPtt(unless cancelled: () -> Bool) throws -> Bool {
         lock.lock()
         defer { lock.unlock() }
-        // Under the lock: nothing else is written to this connection between the check and `T 1`.
+        try requireInStep()
+        // Under the lock, right before the write (after a reopen): nothing else is written to this connection between
+        // the check and `T 1`.
         if cancelled() {
             return false
         }
-        try requireInStep()
         try send("T 1")
-        let line: String = try readInStep()
+        let line: String
+        do {
+            line = try readLine()
+        } catch {
+            throw settleUnansweredKey(after: error)
+        }
         if Self.startsWith(line, "RPRT 0") {
             return true
         }
@@ -242,25 +250,61 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         }
     }
 
-    /// A fresh connection to the same `rigctld` in place of one that may be out of step (under `lock`).
-    private func reopen() throws {
-        socket.close()
+    /// A fresh connection to the same `rigctld` in place of one that may be out of step (under `lock`). The new one is
+    /// connected before the old one closes (`rigctld` may close the rig when its last client goes); `keepOld` hands
+    /// the old one over instead of closing it.
+    @discardableResult
+    private func reopen(keepOld: Bool = false) throws -> LineSocket {
+        let old: LineSocket = socket
         let fresh: LineSocket
         do {
             let target: RigEndpoint = endpoint ?? RigEndpoint(host: "localhost", port: Self.defaultPort)
             fresh = try LineSocket.connect(host: target.host, port: target.port, connectTimeoutMs: timeoutMs,
                                            readTimeoutMs: timeoutMs)
         } catch {
-            close()
+            if !keepOld {
+                close()
+            }
             throw CatException("Spojení s rigctld bylo mimo krok a nepodařilo se ho obnovit", cause: error)
         }
         socketBox.withLock { $0 = fresh }
+        if !keepOld {
+            old.close()
+        }
         if closedFlag.withLock({ $0 }) {
             // Closed meanwhile from another thread: the fresh connection goes too.
             fresh.close()
             throw CatException("rigctld klient je zavřený")
         }
         outOfStep = false
+        reopenCount += 1
+        return old
+    }
+
+    /// `T 1` went out but its reply did not come (a timeout, a read error): `rigctld` may still run it later (the rig
+    /// may be busy with another client). `T 0` goes right behind it on the same connection — `rigctld` runs one
+    /// connection's commands in order, so that `T 0` always runs after this `T 1` — and that connection is kept and
+    /// read in the background until both replies came (`PttKeyDrain`); the client goes on over a fresh connection.
+    /// Only the drain can tell that the key was released in order.
+    private func settleUnansweredKey(after error: any Error) -> any Error {
+        let message: String = ErrorText.message(error)
+        let old: LineSocket = socket
+        let sent: Bool = (try? old.writeAscii("T 0\n")) != nil
+        if sent {
+            try? log.tx("T 0")
+        }
+        let drain = PttKeyDrain()
+        if (try? reopen(keepOld: true)) == nil {
+            // No fresh connection: this one is read here until the replies came (the client is unusable anyway).
+            outOfStep = true
+        }
+        let log: CatTrafficLog = self.log
+        let bound: Int = max(timeoutMs, 1) * PttKeyDrain.boundReads
+        Thread.detachNewThread {
+            drain.finish(PttKeyDrain.read(old, sentRelease: sent, maxWaitMs: bound, log: log))
+            old.close()
+        }
+        return CatUnknownOutcome(message: "rigctld neodpověděl na zaklíčování (PTT): " + message, drain: drain)
     }
 
     public func sendMorse(_ text: String) throws {

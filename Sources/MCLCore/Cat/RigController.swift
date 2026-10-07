@@ -202,3 +202,91 @@ public struct CatRefusal: Error, CustomStringConvertible, Sendable {
         message
     }
 }
+
+/// `T 1` went out and its reply never came: whether and when the rig keys is unknown. `drain` tells how the `T 0`
+/// sent right behind it on the same connection ended.
+public struct CatUnknownOutcome: Error, CustomStringConvertible, Sendable {
+    public let message: String
+    public let drain: PttKeyDrain
+
+    public var description: String {
+        message
+    }
+}
+
+/// The connection of an unanswered `T 1`, read in the background until the replies of that `T 1` and of the `T 0`
+/// sent right behind it came (or a bound passed).
+public final class PttKeyDrain: @unchecked Sendable {
+    /// How a drain ended.
+    public enum Result: Sendable, Equatable {
+        /// The `T 0` behind the key was accepted: released in order.
+        case released
+        /// The key's reply came (it ran), but its `T 0` was refused or never answered: a later `T 0` runs after it.
+        case keyRan
+        /// Not even the key's reply came: it may still run at any time.
+        case unknown
+    }
+
+    /// Reads of one timeout each before a drain gives up.
+    static let boundReads = 10
+
+    private let lock = NSLock()
+    private var result: Result?
+    private var waiting: [@Sendable (Result) -> Void] = []
+
+    public init() {}
+
+    /// `body` once the drain ended (at once when it has).
+    public func onDone(_ body: @escaping @Sendable (Result) -> Void) {
+        let done: Result? = lock.withLock {
+            if result == nil {
+                waiting.append(body)
+            }
+            return result
+        }
+        if let done {
+            body(done)
+        }
+    }
+
+    func finish(_ value: Result) {
+        let callbacks: [@Sendable (Result) -> Void] = lock.withLock {
+            guard result == nil else { return [] }
+            result = value
+            defer { waiting = [] }
+            return waiting
+        }
+        for callback in callbacks {
+            callback(value)
+        }
+    }
+
+    static func read(_ socket: LineSocket, sentRelease: Bool, maxWaitMs: Int, log: CatTrafficLog) -> Result {
+        let deadline: Date = Date().addingTimeInterval(Double(maxWaitMs) / 1_000)
+        var replies: [String] = []
+        while replies.count < 2 && Date() < deadline {
+            let read: String?
+            do {
+                read = try socket.readLine()
+            } catch {
+                if error.kind == .readTimeout {
+                    continue // still waiting for the replies
+                }
+                break // reset, closed, another I/O error: no more replies on this connection
+            }
+            guard let line = read else {
+                break // end of stream
+            }
+            let trimmed: String = JavaText.trim(line)
+            if trimmed.isEmpty {
+                continue
+            }
+            try? log.rx(trimmed)
+            replies.append(trimmed)
+        }
+        if replies.count == 2 && sentRelease && replies[1].utf16.starts(with: "RPRT 0".utf16) {
+            return .released
+        }
+        return replies.isEmpty ? .unknown : .keyRan
+    }
+}

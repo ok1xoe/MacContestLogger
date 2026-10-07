@@ -86,6 +86,10 @@ public final class RigModel {
     let pluginKeyEpochs = OSAllocatedUnfairLock(initialState: [Int: Int]())
     /// Rigs whose release waits for the operator's own transmission on them to end (its `T 0` would cut it).
     @ObservationIgnored var pluginReleaseDeferred: Set<Int> = []
+    /// Unanswered plugin `T 1`s per rig whose connection is still read (`PttKeyDrain`): no other `T 0` confirms meanwhile.
+    @ObservationIgnored var keyDrains: [Int: Int] = [:]
+    /// Rigs whose unanswered plugin `T 1` never answered at all: confirmed only by the operator's „Uvolnit znovu".
+    @ObservationIgnored var keyDrainUnknown: Set<Int> = []
     /// Rigs whose release could not be confirmed after the quick retries: the warning offers „Uvolnit znovu".
     public internal(set) var pluginPttCannotConfirm: Set<Int> = []
     /// Whether each rig was connected at its last snapshot (only transitions act).

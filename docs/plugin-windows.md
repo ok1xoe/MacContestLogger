@@ -271,7 +271,13 @@ plugin gets `refused`; if that `T 0` fails too, the release is owed. A plugin `T
 rig connection that may be out of step — one on which something failed after a command was written and before its
 whole reply was read (a timeout, a write or read error, a CAT log error), so that an unread or late reply could be
 taken for its own. Such a connection is reopened first, transparently (the rig stays connected and polling goes on);
-a plugin PTT command whose own reply fails reopens it at once, too. Without a connected rig the PTT is refused. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the
+a plugin PTT command whose own reply fails reopens it at once, too (the new connection is made before the old one
+closes). A plugin `T 1` that went out but got no reply may still run later — `rigctld` may be busy with another client
+— even after a `T 0` sent over another connection. So `T 0` goes right behind it on the same connection (`rigctld`
+runs one connection's commands in order), that connection is kept and read in the background, and while it is, no
+other `T 0` confirms the release. If the `T 0` behind the key is accepted, the release is confirmed. If the key
+answered but that `T 0` did not, a `T 0` sent from then on confirms. If not even the key answered, nothing confirms
+until the operator checks the rig and chooses **Uvolnit znovu**. Without a connected rig the PTT is refused. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the
 moment the rig was keyed. While one plugin holds the PTT no other plugin can key it, and keying again does not extend
 the limit. After a forced release no plugin may key for 10 s (after a plugin's own release, for 2 s). A release never
 touches the operator's own rig connection: `T 0` goes out on it (behind the commands already queued there) and at the
