@@ -132,6 +132,10 @@ struct MainWindowView: View {
         for id in ids where WindowsModel.implemented.contains(id) {
             openWindow(id: WindowsModel.sceneId(for: id))
         }
+        // The plugin windows reopen too; each starts its plugin once the plugins directory was read.
+        for id in ids where PluginCatalog.parseWindowKey(id) != nil {
+            openWindow(id: PluginWindowView.sceneId, value: id)
+        }
     }
 }
 

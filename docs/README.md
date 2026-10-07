@@ -52,6 +52,7 @@ version looks slightly different, but the controls and their meaning are the sam
 - [DXCC data and Club Log](dxcc-data.md)
 - [Contest definition editor](definition-editor.md)
 - [Scripts and plugins](scripting.md)
+- [Plugin windows](plugin-windows.md)
 
 ## Tools
 

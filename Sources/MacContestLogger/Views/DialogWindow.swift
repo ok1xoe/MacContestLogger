@@ -1,5 +1,6 @@
 import AppKit
 import MCLAppModel
+import MCLCore
 import SwiftUI
 
 /// The frame of a dialog window of the slice (Kotlin `Window` + `WindowTopBar`): the font stepper on top, the title
@@ -82,6 +83,9 @@ struct DialogPresenter: ViewModifier {
             .onChange(of: app.windows.openIds) { old, new in
                 for id in new where !old.contains(id) && WindowsModel.implemented.contains(id) {
                     openWindow(id: WindowsModel.sceneId(for: id))
+                }
+                for id in new where !old.contains(id) && PluginCatalog.parseWindowKey(id) != nil {
+                    openWindow(id: PluginWindowView.sceneId, value: id)
                 }
                 // The DX Cluster shortcut toggles its window: an id the model dropped closes the spot window (a
                 // window the user closed has already gone).

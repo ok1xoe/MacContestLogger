@@ -21,7 +21,14 @@ extension AppModel {
             config: model.config, status: model.status, language: model.language, contest: model.contest,
             logbook: model.logbook, messages: model.messages, network: environment.network, clock: clock,
             now: environment.now, appVersion: environment.appVersion))
+        let pluginWindows = PluginWindowsModel(
+            launcher: environment.network.plugins.launchWindowPlugin, dataDir: environment.dataDir,
+            windows: model.windows, messages: model.messages, language: model.language, clock: clock,
+            now: environment.now, appVersion: environment.appVersion)
+        plugins.windowEvents = pluginWindows.router
+        pluginWindows.context = pluginContext(model)
         model.plugins = plugins
+        model.pluginWindows = pluginWindows
         model.integrations = integrations
         model.onlineServices = online
 
@@ -98,6 +105,32 @@ extension AppModel {
         model.settings.services = services
     }
 
+    /// What the window plugins' requests read: the active contest, the logbook, the active entry window, the spots.
+    private static func pluginContext(_ model: AppModel) -> PluginHostContext {
+        var context = PluginHostContext()
+        context.contest = { [weak contest = model.contest] in
+            (contest?.activeId, contest?.activeName)
+        }
+        context.handle = { [weak database = model.database] in
+            database?.handle
+        }
+        context.freshSession = { [weak contest = model.contest] in
+            contest?.runtime.freshSession()
+        }
+        context.bandOrder = { [weak contest = model.contest] in
+            contest?.runtime.bandOrder ?? []
+        }
+        context.rig = { [weak model] in
+            guard let model, let entry = model.activeEntry else { return nil }
+            return PluginRigState(radio: entry.vfo, freqHz: entry.form.freqHz, mode: entry.form.mode.rawValue,
+                                  catConnected: model.rig.catConnected)
+        }
+        context.spots = { [weak feed = model.spotFeed] in
+            feed?.snapshot() ?? []
+        }
+        return context
+    }
+
     /// An injected port (tests) runs first, then the live one.
     private static func chained(_ injected: @escaping @MainActor () -> Void,
                                 _ live: @escaping @MainActor () -> Void) -> @MainActor () -> Void {
@@ -119,11 +152,14 @@ extension AppModel {
             await integrations?.shutdown()
         }
         let drain: @MainActor () async -> Void = shutdownServices.dxClusterDrain
-        shutdownServices.dxClusterDrain = { [weak plugins] in
+        let pluginWindows: PluginWindowsModel = self.pluginWindows
+        shutdownServices.dxClusterDrain = { [weak plugins, weak pluginWindows] in
             await drain()
+            await pluginWindows?.shutdown()
             await plugins?.drain()
         }
         online.start()
+        pluginWindows.refreshCatalog()
         integrations.startBroadcastIfEnabled()
         integrations.startWsjtxIfEnabled()
         integrations.startN1mmIfEnabled()
