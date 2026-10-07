@@ -45,4 +45,13 @@ public enum ClubLogQueuePolicy {
                     .tr("Club Log nedostupný — zkusím znovu (ve frontě %s)", .int(queued + 1)))
         }
     }
+
+    /// The `clublog.log` note for an outcome (`queued` as in `handle`).
+    public static func logNote(_ outcome: ClubLogClient.Outcome, queued: Int) -> String {
+        switch outcome {
+        case .OK: return "sent (queued \(queued))"
+        case .REJECTED: return "dropped (rejected)"
+        case .RETRY: return "retry in \(retryDelayMs / 1000) s (queued \(queued + 1))"
+        }
+    }
 }

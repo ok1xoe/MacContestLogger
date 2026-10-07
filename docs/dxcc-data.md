@@ -33,6 +33,8 @@ DXCC source:
   possible.
 - Club Log's traffic rules are kept: at most one download of `cty.xml` per day, every lookup is local,
   nothing is ever sent to Club Log per QSO.
+- Each download is recorded in `clublog.log` in the data folder (the request with `api=***`, the HTTP
+  status, the size and the result); the API key is never written there.
 - The folder `clublog/` holds the raw file (`cty.xml`), its parsed compact form (`cty.json`, loaded at
   start-up) and the time of the last download and attempt (`cty-state.json`).
 - A failed download (offline, HTTP error, refused key, damaged file) keeps the last copy; with no copy the

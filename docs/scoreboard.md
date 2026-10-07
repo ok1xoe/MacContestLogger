@@ -41,5 +41,11 @@ Stream):
   sent after a minute; a rejection (bad login / data) is shown in the status
   below the settings.
 
+Everything sent to Club Log is recorded in `clublog.log` in the data folder (next to
+`cat.log`; created by the first upload): the request, the form fields, the ADIF record,
+the HTTP status with the first line of the answer, and what happened to the record
+(`sent`, `retry in 60 s`, `dropped (rejected)`). The application password and the API
+key are written as `***`, the e-mail address as `t***@example.com`.
+
 The queue is in memory — QSOs not sent by the time the application quits must be
 uploaded to Club Log manually (ADIF export).

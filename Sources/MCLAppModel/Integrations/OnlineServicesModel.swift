@@ -128,12 +128,14 @@ public final class OnlineServicesModel {
         case .failed(let message):
             // Kotlin lets the exception end the sender loop; here the record waits and is tried again.
             clubLogStatus = .verbatim(message)
+            ClubLogTrafficLog.shared.note("failed: \(message); retry in \(ClubLogQueuePolicy.retryDelayMs / 1000) s")
             retryClubLog(record)
             afterClubLogOutcome?()
             return
         }
         let handled = ClubLogQueuePolicy.handle(outcome, queued: clubLogQueue.count)
         clubLogStatus = handled.status
+        ClubLogTrafficLog.shared.note(ClubLogQueuePolicy.logNote(outcome, queued: clubLogQueue.count))
         switch handled.action {
         case .done, .drop:
             sendNextClubLog()

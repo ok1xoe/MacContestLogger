@@ -67,10 +67,14 @@ extension DataToolsModel {
             status.show("Stahuji DXCC z Club Logu…")
         }
         let response: (status: Int, data: Data)
+        let trafficLog = ClubLogTrafficLog.shared
+        trafficLog.ctyRequest(url: url)
         do {
             response = try await fetcher.fetch(url)
+            trafficLog.ctyResponse(status: response.status, bytes: response.data.count)
         } catch {
             let text: String = ClubLogCtyCache.transportText(error, apiKey: apiKey)
+            trafficLog.failure(text, secrets: [apiKey])
             report(Self.failed(Self.text(.transport(text))), message: true)
             return
         }
@@ -88,8 +92,11 @@ extension DataToolsModel {
         }
         switch accepted {
         case .failure(let failure):
+            trafficLog.note("cty.xml not updated: \(failure)")
             report(Self.failed(Self.text(failure)), message: true)
         case .success(let summary):
+            trafficLog.note("cty.xml updated: \(summary.entities) entities, \(summary.exceptions) exceptions, "
+                            + "\(summary.prefixes) prefixes")
             if config.config.clubLog.ctyEnabled {
                 await contest.reloadContestData()
             }
