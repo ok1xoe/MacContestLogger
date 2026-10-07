@@ -1,0 +1,10 @@
+{
+  "protocol": 1,
+  "name": "Band activity",
+  "version": "1.0",
+  "permissions": ["read", "ui", "entry", "rig"],
+  "events": ["qso-logged", "qso-edited", "qso-deleted", "contest-opened", "contest-closed"],
+  "run": "run.py",
+  "windows": [{ "id": "main", "title": "Band activity", "size": [460, 420] }],
+  "actions": [{ "id": "last-call", "title": "Last call into the entry" }]
+}

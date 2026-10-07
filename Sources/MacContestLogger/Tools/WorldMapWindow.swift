@@ -42,7 +42,7 @@ private struct WorldMapContent: View {
             } else {
                 Text(verbatim: model.title)
                     .windowFont(13, weight: .bold)
-                    .foregroundStyle(Color(domain: DomainColors.primary))
+                    .foregroundStyle(.mclPrimary)
                     .accessibilityIdentifier("worldmap.title")
                 WorldMapCanvas(scene: scene(model),
                                onSize: { size in

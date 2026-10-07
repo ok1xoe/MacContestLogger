@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Web score</title>
+<style>
+  :root { color-scheme: light dark; font: 13px -apple-system, system-ui, sans-serif; }
+  body { margin: 8px; }
+  h1 { font-size: 15px; margin: 0 0 6px; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { padding: 2px 6px; text-align: right; }
+  td:first-child, th:first-child { text-align: left; }
+  .muted { opacity: 0.6; }
+</style>
+</head>
+<body>
+<h1 id="title">Web score</h1>
+<p id="rig" class="muted"></p>
+<table id="bands" aria-label="QSOs and points by band"><thead><tr><th>Band</th><th>QSOs</th><th>Points</th><th>Mults</th></tr></thead><tbody></tbody></table>
+<p id="total"></p>
+<script src="app.js"></script>
+</body>
+</html>

@@ -131,13 +131,13 @@ import Testing
         // 2 Settings labels of the SCP and N+1 switches (section 73) and
         // 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and
         // 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and
-        // 16 keys of the Club Log DXCC update and
-        // 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and
+        // 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and
+        // 80 keys of the window plugins and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and
         // 3 keys of File → Open recent and
         // 20 keys of copying a contest to another database and rescoring the last N hours.
-        #expect(map.count == 1_169)
+        #expect(map.count == 1_267)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_169)
+        #expect(german.count == 1_267)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

@@ -255,7 +255,10 @@ ALL_WINDOWS = [
     "dxCluster", "bandmap", "availMult", "blacklist", "netstatus", "chat", "partner", "wsjtxdecodes", "hamqthLog",
     "rate", "statistics", "score", "dupesheet", "skeds", "qtc", "bandnotes", "movemults", "propagation",
     "worldmap-dxcc",
-] + ["mult:" + kind for kind in MULT_KINDS]
+] + ["mult:" + kind for kind in MULT_KINDS] + [
+    # A plugin window: inert, so its plugin never starts (and this one is not installed); the id must survive the quit.
+    "plugin:sample/main",
+]
 WINDOWS_SETTLE = 4.0  # the scenes of the saved ids open right after the main window is ready
 
 

@@ -58,6 +58,62 @@ public final class RigModel {
     @ObservationIgnored var autoSplitActive = false
     /// The rig that got the footswitch PTT on (the release goes to the same rig even after a VFO switch).
     @ObservationIgnored var footswitchPttRig: Int?
+    /// The rig a plugin's `tx.ptt` keyed (`nil` = none).
+    public internal(set) var pluginPttRig: Int?
+    /// Rigs that lost their connection while a plugin's PTT was on: `T 0` goes out first when they connect again.
+    /// Rigs whose plugin PTT release is not confirmed yet (no `T 0` got through): plugins key nothing meanwhile and
+    /// the main window warns until one does.
+    public internal(set) var pluginPttOwed: Set<Int> = []
+    /// The `rigctld` each rig was last connected to (a release or a plugin's own CAT connection goes there).
+    @ObservationIgnored var rigEndpoints: [Int: RigEndpoint] = [:]
+    /// Releases over a fresh connection still running (the quit waits for them).
+    @ObservationIgnored var pendingReleases: [Int: Task<Void, Never>] = [:]
+    @ObservationIgnored var nextRelease = 0
+    /// A test seam: called right before the quit disconnects the rigs.
+    @ObservationIgnored var beforeShutdownDisconnect: (@MainActor () -> Void)?
+    /// Plugins' raw CAT goes over a connection of its own, never the operator's lane.
+    @ObservationIgnored var pluginCat: PluginCatChannel?
+    /// Told whenever a plugin's PTT was released (Esc, a disconnect, the quit, the plugin model itself).
+    @ObservationIgnored public var onPluginPttReleased: (@MainActor () -> Void)?
+    /// Told when the operator stops transmissions (Esc), before anything is released.
+    @ObservationIgnored public var onOperatorStop: (@MainActor () -> Void)?
+    /// Raised by every release and operator stop: plugin CAT commands queued before it are dropped, so a safety
+    /// `T 0` never waits behind them.
+    let pluginCatEpoch = OSAllocatedUnfairLock(initialState: 0)
+    /// The plugin-PTT release epoch of each rig: raised by every release requested for it. A plugin `T 1` carries
+    /// its rig's epoch and is dropped right before it is written when a release came since; a `T 0` confirms only
+    /// the epoch it was sent for.
+    let pluginKeyEpochs = OSAllocatedUnfairLock(initialState: [Int: Int]())
+    /// Rigs whose release waits for the operator's own transmission on them to end (its `T 0` would cut it).
+    @ObservationIgnored var pluginReleaseDeferred: Set<Int> = []
+    /// Unanswered plugin `T 1`s per rig whose connection is still read (`PttKeyDrain`): no other `T 0` confirms meanwhile.
+    @ObservationIgnored var keyDrains: [Int: Int] = [:]
+    /// Rigs whose unanswered plugin `T 1` never answered at all: confirmed only by the operator's „Uvolnit znovu".
+    @ObservationIgnored var keyDrainUnknown: Set<Int> = []
+    /// Rigs whose release could not be confirmed after the quick retries: the warning offers „Uvolnit znovu".
+    public internal(set) var pluginPttCannotConfirm: Set<Int> = []
+    /// Whether each rig was connected at its last snapshot (only transitions act).
+    @ObservationIgnored var rigConnected: [Int: Bool] = [:]
+    /// Rigs with a release retry scheduled.
+    @ObservationIgnored var releaseRetryScheduled: Set<Int> = []
+    /// The slow retry of a refused plugin release, while the rig stays connected.
+    @ObservationIgnored var releaseSlowRetryMs = 10_000
+    /// The longest a plugin release waits for the operator's own transmission (the plugin PTT time limit; wired by
+    /// the app model).
+    @ObservationIgnored var pluginReleaseDeferralLimitMs: @MainActor () -> Int = { 30_000 }
+    /// Whether the operator's voice, CW or tune keys rig `index` (wired by the app model).
+    @ObservationIgnored var operatorKeying: @MainActor (Int) -> Bool = { _ in false }
+    /// Plugin `T 1`s queued or on their way, per rig: a fresh-connection `T 0` sent while one is pending may be
+    /// overtaken by it and never confirms a release.
+    @ObservationIgnored var pluginKeysInFlight: [Int: Int] = [:]
+    /// Lane `T 0` retries of an unconfirmed release, per rig.
+    @ObservationIgnored var releaseAttempts: [Int: Int] = [:]
+    /// How many quick retries a failed lane `T 0` gets (after 0.5, 1, 1.5 s …) before the slow ones.
+    @ObservationIgnored var releaseRetries = 3
+    /// Rigs with a plugin's raw CAT command on their lane right now (a release closes that connection first).
+    /// The last resort of a plugin PTT release: `T 0` over a fresh connection to the rig's `rigctld` (host, port);
+    /// `true` = sent. Never connects under `MCL_INERT_HARDWARE`.
+    @ObservationIgnored var freshPttRelease: @Sendable (String, Int) -> Bool = { _, _ in false }
     /// Set when the quit starts releasing the transmitter: a footswitch press is refused from then on (a release
     /// edge still releases), so nothing keys a rig after the transmit-release milestone.
     @ObservationIgnored var transmitClosed = false
@@ -81,6 +137,15 @@ public final class RigModel {
     }
 
     init(_ dependencies: Dependencies) {
+        if !dependencies.hardware.isInert {
+            pluginCat = PluginCatChannel(log: dependencies.catLog)
+            freshPttRelease = { host, port in
+                guard let client = try? RigctldClient(host: host, port: port, timeoutMs: 1_000,
+                                                      log: dependencies.catLog) else { return false }
+                defer { client.close() }
+                return (try? client.setPtt(false)) != nil
+            }
+        }
         config = dependencies.config
         status = dependencies.status
         language = dependencies.language
@@ -170,6 +235,7 @@ public final class RigModel {
         } else {
             cat2 = snapshot
         }
+        pluginPttConnectionChanged(index, connected: snapshot.connected)
         // Kotlin `LaunchedEffect(state.cat.state, …)`: only a different state of the active rig is followed.
         if index == vfo.activeCatIndex && previous != snapshot.state {
             notifyEntries { $0.followRig() }
@@ -283,6 +349,7 @@ public final class RigModel {
     func releaseBeforeUserDisconnect(onRig index: Int) {
         keyerRelease(index)
         releaseFootswitchPtt(onRig: index)
+        releasePluginPtt(onRig: index)
     }
 
     // MARK: - the entry windows
@@ -313,6 +380,14 @@ public final class RigModel {
         for lane in lanes {
             await lane.settle()
         }
+        await settlePluginReleases()
+    }
+
+    /// Waits for the releases over a fresh connection still running.
+    func settlePluginReleases() async {
+        for task in pendingReleases.values {
+            await task.value
+        }
     }
 
     /// Quit: a footswitch PTT still held is released first, then **both** rigs disconnect with
@@ -320,6 +395,12 @@ public final class RigModel {
     /// `rigctld` or poller survives the quit.
     func shutdown() async {
         releaseFootswitchPtt()
+        releasePluginPtt(stoppingEverything: true)
+        // A plugin release over a fresh connection gets through before the rigs (and a launched rigctld) go; each
+        // such connection gives up after 1 s.
+        await settlePluginReleases()
+        pluginCatIdle()
+        beforeShutdownDisconnect?()
         let message: String = language.tr("ukončeno")
         for lane in lanes {
             lane.run { cat in

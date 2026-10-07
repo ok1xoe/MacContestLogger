@@ -160,6 +160,7 @@ Settings `Cmd+,` and Quit.
 | Závod (Contest) | Late entry, Record contest, None (free logging) |
 | Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Download master.scp, Update definitions, Update DXCC from Club Log, Update call history, Load beacon file, Definition editor |
 | Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles |
+| Okno (Window) | the application's windows, Multiplikátory (Multipliers) and, after a separator, **Vlastní** (Custom) with the windows of window plugins ([Plugin windows](plugin-windows.md)) |
 | Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Report a bug (GitHub issues), Open data folder (honours `MCL_DATA_DIR`) |
 
 The keys in the Edit and Help menus are only shown: the entry window's own key handling (Settings → Keys)

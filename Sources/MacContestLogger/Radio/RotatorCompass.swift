@@ -23,7 +23,7 @@ struct RotatorCompass: View {
             }
             if let azimuth {
                 context.stroke(Self.ray(azimuth, centre: centre, radius: radius),
-                               with: .color(Color(domain: DomainColors.primary)), lineWidth: 4)
+                               with: .color(AccentToken.color(.primary, in: context.environment)), lineWidth: 4)
             }
         }
         .frame(width: 180, height: 180)

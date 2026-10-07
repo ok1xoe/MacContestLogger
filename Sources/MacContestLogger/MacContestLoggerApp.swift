@@ -121,6 +121,15 @@ struct MacContestLoggerApp: App {
 
         infoToolScenes
 
+        // The windows of the window plugins (`plugin:<plugin>/<window>`): one group keyed by the window key, opened
+        // from Window → Custom and from `config.openWindows` through `WindowsModel`; no File → New entry.
+        WindowGroup(id: PluginWindowView.sceneId, for: String.self) { $key in
+            PluginWindowView(host: host, key: key ?? "")
+                .modifier(AppearanceApplier(host: host))
+        }
+        .defaultSize(width: 480, height: 360)
+        .commandsRemoved()
+
         // Kotlin's second entry window (SO2V/SO2R): opened and dismissed by the main window as
         // `twoEntryWindows` changes, not in `openWindows`, not in the Window menu.
         Window(Text(verbatim: host.model.map(EntryVfoBWindowView.title) ?? "Zadávací okno — VFO B"),

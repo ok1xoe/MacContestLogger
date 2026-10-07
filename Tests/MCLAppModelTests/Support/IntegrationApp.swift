@@ -110,10 +110,14 @@ struct IntegrationApp {
 
     static func ports(online: ScriptedOnline, probe: ScriptedClockProbe, counts: UdpFactoryCounts,
                       isInert: Bool = false) -> NetworkPorts {
-        let plugins = PluginsPorts { root, timeoutMs in
+        let plugins = PluginsPorts(makeRunner: { root, timeoutMs in
             precondition(root.contains("mcl-app-model-"), "plugins run from the test's temporary directory only")
             return PluginRunner(root: root, timeoutMs: timeoutMs)
-        }
+        }, launchWindowPlugin: { package, environment, handlers in
+            precondition(package.directory.contains("mcl-app-model-"),
+                         "window plugins run from the test's temporary directory only")
+            return PluginsPorts.liveLauncher(package, environment, handlers)
+        })
         return NetworkPorts(makeSession: NetworkPorts.inert.makeSession, http: InertHttpGetter(), urlOpener: .inert,
                             udp: loopbackUdpPorts(counts), online: online.ports, clock: probe.probe,
                             plugins: plugins, isInert: isInert)
