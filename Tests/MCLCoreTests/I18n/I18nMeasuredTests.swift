@@ -15,7 +15,7 @@ import Testing
 
     /// The shipped `lang_en.json` / `lang_de.json` intentionally differ from Java v1.1.1: 61 keys were appended for
     /// Kotlin literals the Swift UI translates, the 20 `menu.json` labels Java leaves out
-    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter. The Java measurement stays as it was; these are its cells for the shipped files
+    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and 26 keys of the window plugins. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
         "81929": "91862", "afc6becd4f499483": "2743d0e6aaba0e8a",
