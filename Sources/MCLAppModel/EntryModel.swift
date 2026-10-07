@@ -236,7 +236,7 @@ public final class EntryModel {
     func setFrequencyText(_ text: String) {
         form.freqKHz = text
         updatePreview()
-        operating.tuned(form.freqHz, mode: form.mode)
+        reportTuned(form.freqHz)
     }
 
     /// A mode change (Kotlin `mode = …` then `LaunchedEffect(mode, …)` → `applyContestRst`, `onTunedForRunMode`).
@@ -246,7 +246,7 @@ public final class EntryModel {
             form.applyContestRst(mode, rstFieldIds: EntryForm.rstFieldIds(fields))
         }
         updatePreview()
-        operating.tuned(form.freqHz, mode: form.mode)
+        reportTuned(form.freqHz)
     }
 
     /// Kotlin `qsy(toKHz, toMode)` from the band × mode grid; the rig half goes to the rig port.
@@ -266,7 +266,7 @@ public final class EntryModel {
             ports.rig.setMode(mode, freqHz: hz)
         }
         fieldFrequencyChanged()
-        operating.tuned(hz, mode: form.mode)
+        reportTuned(hz)
         focusRequest += 1
     }
 
@@ -323,7 +323,7 @@ public final class EntryModel {
             }
             form.applyContestRst(form.mode, rstFieldIds: EntryForm.rstFieldIds(fields))
             updatePreview()
-            operating.tuned(form.freqHz, mode: form.mode)
+            reportTuned(form.freqHz)
         }
         focusRequest += 1
     }
@@ -571,6 +571,9 @@ public final class EntryModel {
             guard effects.contains(.contestLog), contest.activeId == work.sessionId else { continue }
             let logged = contest.log(call: work.call, band: work.band, mode: work.mode.rawValue,
                                      exchange: work.exchange, ownQth: copy.qth, at: work.at ?? now())
+            if let logged, logbook.outwardGate(prepared) {
+                logbook.onLiveScored?(prepared, logged)
+            }
             if let logged, !logged.counted {
                 if KotlinStrings.isBlank(work.band) {
                     status.show("%s bez pásma — do skóre se nepočítá", .string(work.call))
@@ -604,6 +607,18 @@ public final class EntryModel {
             focusRequest += 1
         } else {
             status.showVerbatim(work.call + ": " + message)
+        }
+    }
+}
+
+extension EntryModel {
+
+    /// The entry window's frequency or mode changed: Run/S&P follows, and the active window's radio is reported
+    /// (the plugins' band, mode and frequency events).
+    func reportTuned(_ freqHz: Int64) {
+        operating.tuned(freqHz, mode: form.mode)
+        if isActivePanel {
+            operating.onOperating?(vfo, freqHz, form.mode)
         }
     }
 }

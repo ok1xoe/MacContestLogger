@@ -18,6 +18,19 @@ public struct PluginRunner: Sendable {
         case qsoLogged = "QSO_LOGGED"
         case contestOpened = "CONTEST_OPENED"
         case spotReceived = "SPOT_RECEIVED"
+        case qsoEdited = "QSO_EDITED"
+        case qsoDeleted = "QSO_DELETED"
+        case contestClosed = "CONTEST_CLOSED"
+        case appStarted = "APP_STARTED"
+        case appQuitting = "APP_QUITTING"
+        case bandChanged = "BAND_CHANGED"
+        case modeChanged = "MODE_CHANGED"
+        case frequencyChanged = "FREQUENCY_CHANGED"
+        case selfSpotted = "SELF_SPOTTED"
+        case newMultiplier = "NEW_MULTIPLIER"
+        case scoreChanged = "SCORE_CHANGED"
+        case scoreReported = "SCORE_REPORTED"
+        case clublogUpload = "CLUBLOG_UPLOAD"
     }
 
     /// Result of one plugin (Java record `Result`).

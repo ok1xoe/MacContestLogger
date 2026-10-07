@@ -96,6 +96,9 @@ public final class LogbookModel {
     @ObservationIgnored var onQsoEdited: (@MainActor (_ old: Qso, _ new: Qso) -> Void)?
     /// A committed delete: the N1MM broadcast reports every deleted QSO.
     @ObservationIgnored var onQsoDeleted: (@MainActor (Qso) -> Void)?
+    /// A QSO logged here was scored into the live contest session (the plugins' `NEW_MULTIPLIER`). Never an import;
+    /// gated by `outwardGate` like `onLiveQso`.
+    @ObservationIgnored var onLiveScored: (@MainActor (Qso, ContestSession.LogResult) -> Void)?
     /// The pileup simulator is running (Kotlin `simulator != null`): `QsoLogPipeline.Context.simulatorActive`.
     @ObservationIgnored var simulatorActive: @MainActor () -> Bool = { false }
     /// The `.simulator` effect: the stored QSO is compared with the station that was worked.

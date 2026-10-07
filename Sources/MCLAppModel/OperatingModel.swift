@@ -32,6 +32,9 @@ public final class OperatingModel {
     /// Kotlin `tunedFreqHz`: the frequency the entry window is on.
     public private(set) var tunedFreqHz: Int64 = 0
 
+    /// The active entry window's radio index, frequency and mode after a change (the plugins' band, mode and
+    /// frequency events).
+    @ObservationIgnored var onOperating: (@MainActor (_ radio: Int, _ freqHz: Int64, _ mode: Mode) -> Void)?
     @ObservationIgnored private let tracker = RunModeTracker()
     /// The keys of the last tuning effect (Kotlin `LaunchedEffect(state.tunedFreqHz, mode)`, `EP:187`).
     @ObservationIgnored private var lastTuned: (freqHz: Int64, mode: Mode)?
