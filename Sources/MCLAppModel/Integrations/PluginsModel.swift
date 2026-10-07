@@ -23,6 +23,8 @@ public final class PluginsModel {
     @ObservationIgnored private let messages: MessagesModel
     @ObservationIgnored private let language: LanguageModel
     @ObservationIgnored private let now: @Sendable () -> Date
+    @ObservationIgnored private let clock: any RescoreClock
+    @ObservationIgnored private let appVersion: String?
     @ObservationIgnored private let runner: (any PluginRunning)?
     @ObservationIgnored private let lane = PluginLane(name: "plugins")
     @ObservationIgnored private let pendingSpots = OSAllocatedUnfairLock(initialState: 0)
@@ -34,11 +36,33 @@ public final class PluginsModel {
     /// Plugin runs finished (tests wait for it instead of polling the messages).
     public private(set) var completedRuns: Int = 0
 
+    /// The settle time of a `FREQUENCY_CHANGED` (the frequency must stay put this long).
+    nonisolated static let frequencySettleMs = 1_000
+    /// The quiet time before a `SCORE_CHANGED` goes out (the latest score of the burst).
+    nonisolated static let scoreSettleMs = 3_000
+
+    /// The 0/1 radio's band, mode and frequency, as the active entry window reports them.
+    @ObservationIgnored private var radios: [Int: RadioState] = [:]
+    @ObservationIgnored private var scoreTimer: (any RescoreTimer)?
+    @ObservationIgnored private var pendingScore: (contestId: String?, score: ScoreState)?
+    @ObservationIgnored private var lastScoreJson: String?
+
+    private struct RadioState {
+        var band: Band?
+        var mode: Mode?
+        var reportedHz: Int64 = 0
+        var pendingHz: Int64?
+        var timer: (any RescoreTimer)?
+    }
+
     init(ports: PluginsPorts, dataDir: URL, messages: MessagesModel, language: LanguageModel,
-         now: @escaping @Sendable () -> Date) {
+         now: @escaping @Sendable () -> Date, clock: any RescoreClock = MainQueueRescoreClock(),
+         appVersion: String? = nil) {
         self.messages = messages
         self.language = language
         self.now = now
+        self.clock = clock
+        self.appVersion = appVersion
         runner = ports.makeRunner(dataDir.appendingPathComponent("plugins").path, Self.timeoutMs)
     }
 
@@ -55,6 +79,128 @@ public final class PluginsModel {
     /// `CONTEST_OPENED` with the JSON the activation built.
     public func contestOpened(json: String) {
         fire(.contestOpened, json: json)
+    }
+
+    // MARK: - further events
+
+    /// `QSO_EDITED` (an operator's edit in this station).
+    public func qsoEdited(old: Qso, new: Qso) {
+        fire(.qsoEdited, json: PluginEventJson.qsoEdited(old: old, new: new))
+    }
+
+    /// `QSO_DELETED` (an operator's delete in this station).
+    public func qsoDeleted(_ qso: Qso) {
+        fire(.qsoDeleted, json: PluginEventJson.qsoDeleted(qso))
+    }
+
+    /// `CONTEST_CLOSED`: the operator left a contest (another one opened, or Contest → None).
+    public func contestClosed(contestId: String, name: String?) {
+        fire(.contestClosed, json: PluginEventJson.contestClosed(contestId: contestId, name: name))
+    }
+
+    /// `APP_STARTED`, once the start-up is complete.
+    public func appStarted(contestId: String?, name: String?) {
+        fire(.appStarted, json: PluginEventJson.app(version: appVersion, contestId: contestId, name: name))
+    }
+
+    /// `APP_QUITTING`, the first step of the quit. The quit deadline starts now, so no plugin — this one included —
+    /// holds the quit beyond it; the run is a lane job and never blocks the main actor.
+    public func appQuitting(contestId: String?, name: String?) {
+        startQuitDeadline()
+        fire(.appQuitting, json: PluginEventJson.app(version: appVersion, contestId: contestId, name: name))
+    }
+
+    /// `SELF_SPOTTED` (the "you were spotted" / RBN message).
+    public func selfSpotted(_ spot: SelfSpot) {
+        fire(.selfSpotted, json: PluginEventJson.selfSpotted(spot))
+    }
+
+    /// `NEW_MULTIPLIER` for a QSO logged here that made multipliers new.
+    public func newMultiplier(contestId: String?, qso: Qso, result: ContestSession.LogResult) {
+        guard result.counted, !result.dupe else { return }
+        let fresh: [(set: String?, key: String?)] = result.multipliers.filter { $0.isNew && $0.countsAsMultiplier }
+            .map { (set: $0.setId, key: $0.key) }
+        guard !fresh.isEmpty else { return }
+        fire(.newMultiplier, json: PluginEventJson.newMultiplier(
+            contestId: contestId, call: qso.call, band: qso.band?.adif ?? "", mode: qso.mode?.rawValue ?? "",
+            multipliers: fresh))
+    }
+
+    /// `SCORE_REPORTED`: the scoreboard post's result.
+    public func scoreReported(host: String?, status: Int, accepted: Bool, message: String) {
+        fire(.scoreReported, json: PluginEventJson.scoreReported(host: host, status: status, accepted: accepted,
+                                                                message: message))
+    }
+
+    /// `CLUBLOG_UPLOAD`: the outcome of one upload attempt.
+    public func clubLogUpload(outcome: String, call: String, status: String) {
+        fire(.clublogUpload, json: PluginEventJson.clublogUpload(outcome: outcome, call: call, status: status))
+    }
+
+    /// `SCORE_CHANGED`, coalesced: the score of the active contest changed. The latest score of a burst (a rescore,
+    /// a run of QSOs) goes out once, `scoreSettleMs` after the last change; an identical payload is not repeated.
+    public func scoreChanged(contestId: String?, score: ScoreState?) {
+        guard runner != nil, let score, contestId != nil else { return }
+        pendingScore = (contestId, score)
+        guard scoreTimer == nil else { return }
+        scoreTimer = clock.schedule(afterMilliseconds: Self.scoreSettleMs) { [weak self] in
+            guard let self else { return }
+            self.scoreTimer = nil
+            guard let pending = self.pendingScore else { return }
+            self.pendingScore = nil
+            let json: String = PluginEventJson.scoreChanged(contestId: pending.contestId, score: pending.score)
+            guard json != self.lastScoreJson else { return }
+            self.lastScoreJson = json
+            self.fire(.scoreChanged, json: json)
+        }
+    }
+
+    /// What the active entry window of radio `radio` is tuned to. `BAND_CHANGED` and `MODE_CHANGED` fire at once on a
+    /// change; `FREQUENCY_CHANGED` only after the frequency stayed put for `frequencySettleMs` (so each firing is
+    /// at least that far from the previous one). The first value seen, a value of 0 and a band-less frequency (a
+    /// half-typed one) only set the baseline.
+    public func operatingChanged(radio: Int, freqHz: Int64, mode: Mode) {
+        guard runner != nil else { return }
+        var state: RadioState = radios[radio] ?? RadioState()
+        defer { radios[radio] = state }
+        if let old = state.mode, old != mode {
+            fire(.modeChanged, json: PluginEventJson.modeChanged(radio: radio, old: old.rawValue, new: mode.rawValue))
+        }
+        state.mode = mode
+        guard freqHz > 0 else { return }
+        if let band = Band.from(frequencyHz: Int(clamping: freqHz)) {
+            if let old = state.band, old != band {
+                fire(.bandChanged, json: PluginEventJson.bandChanged(radio: radio, old: old.adif, new: band.adif))
+            }
+            state.band = band
+        }
+        guard state.reportedHz > 0 else {
+            state.reportedHz = freqHz
+            return
+        }
+        if freqHz == state.reportedHz {
+            state.timer?.cancel()
+            state.timer = nil
+            state.pendingHz = nil
+            return
+        }
+        guard state.pendingHz != freqHz else { return }
+        state.pendingHz = freqHz
+        state.timer?.cancel()
+        state.timer = clock.schedule(afterMilliseconds: Self.frequencySettleMs) { [weak self] in
+            self?.frequencySettled(radio: radio)
+        }
+    }
+
+    private func frequencySettled(radio: Int) {
+        guard var state = radios[radio], let new = state.pendingHz else { return }
+        let old: Int64 = state.reportedHz
+        state.pendingHz = nil
+        state.timer = nil
+        state.reportedHz = new
+        radios[radio] = state
+        guard new != old else { return }
+        fire(.frequencyChanged, json: PluginEventJson.frequencyChanged(radio: radio, oldHz: old, newHz: new))
     }
 
     /// Runs the plugins of `event` on the lane; the results are shown on the main actor. The directory listing that
@@ -127,7 +273,9 @@ public final class PluginsModel {
     /// The quit's last step: queued runs are skipped, the one in flight finishes (its 10 s limit) — after the
     /// database was closed.
     func drain() async {
-        startQuitDeadline()
+        if quitDeadline.withLock({ $0 }) == nil {
+            startQuitDeadline()
+        }
         await lane.close()
     }
 

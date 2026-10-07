@@ -566,6 +566,7 @@ public final class AppModel {
         await radio.recording.startIfConfigured()
         await menu.load()
         autoBackup.start()
+        model.plugins.appStarted(contestId: contest.activeId, name: contest.activeName)
         return model
     }
 
@@ -1015,6 +1016,8 @@ public final class AppModel {
     /// pending window geometry is written and the config writes are awaited.
     public func shutdown() async {
         isShuttingDown = true
+        // The plugins hear of the quit first (APP_QUITTING); its run is a lane job, and the quit deadline starts here.
+        plugins?.appQuitting(contestId: contest.activeId, name: contest.activeName)
         // The transmit release comes before everything else (a second signal waits for it, then may exit at once).
         await shutdownServices.releaseTransmit()
         // The watchers and the window models stop (no tick or observer outlives the quit); they only cancel timers

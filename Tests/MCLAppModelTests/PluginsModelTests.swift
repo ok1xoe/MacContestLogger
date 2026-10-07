@@ -61,9 +61,10 @@ final class ListingRunner: PluginRunning, @unchecked Sendable {
             reader.start()
             await eventually("reader returned") { readerDone.value }
             await app.plugins.settle()
-            #expect(runner.listedOnMain.count == 2)
+            // The start-up's APP_STARTED, the QSO event and the spot: three listings, all on the lane.
+            #expect(runner.listedOnMain.count == 3)
             #expect(!runner.listedOnMain.contains(true))
-            #expect(runner.fireCount == (hasPlugins ? 2 : 0))
+            #expect(runner.fireCount == (hasPlugins ? 3 : 0))
         }
     }
 

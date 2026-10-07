@@ -61,7 +61,7 @@ extension EntryModel {
                 rig.updateTuned(form.freqHz)
             }
         }
-        operating.tuned(rig.tuning.tunedFreqHz, mode: form.mode)
+        reportTuned(rig.tuning.tunedFreqHz)
     }
 
     /// Kotlin `LaunchedEffect(freqKHz) { if (active) state.updateTunedFreq(parseFreqHz(freqKHz)) }`: the field sets

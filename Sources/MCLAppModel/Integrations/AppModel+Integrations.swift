@@ -10,7 +10,8 @@ extension AppModel {
     static func wireIntegrations(_ model: AppModel, environment: Environment) {
         let clock: any RescoreClock = environment.integrationClock ?? MainQueueRescoreClock()
         let plugins = PluginsModel(ports: environment.network.plugins, dataDir: environment.dataDir,
-                                   messages: model.messages, language: model.language, now: environment.now)
+                                   messages: model.messages, language: model.language, now: environment.now,
+                                   clock: clock, appVersion: environment.appVersion)
         let integrations = IntegrationsModel(IntegrationsModel.Dependencies(
             config: model.config, status: model.status, language: model.language, contest: model.contest,
             logbook: model.logbook, operating: model.operating, rig: model.rig, network: environment.network,
@@ -29,14 +30,40 @@ extension AppModel {
             plugins?.qsoLogged(qso)
             integrations?.qsoLogged(qso)
         }
-        model.logbook.onQsoEdited = { [weak integrations] old, new in
-            integrations?.qsoEdited(old: old, new: new)
+        model.logbook.onLiveScored = { [weak plugins, weak contest = model.contest] qso, result in
+            plugins?.newMultiplier(contestId: contest?.activeId, qso: qso, result: result)
         }
-        model.logbook.onQsoDeleted = { [weak integrations] qso in
+        model.logbook.onQsoEdited = { [weak integrations, weak plugins] old, new in
+            integrations?.qsoEdited(old: old, new: new)
+            plugins?.qsoEdited(old: old, new: new)
+        }
+        model.logbook.onQsoDeleted = { [weak integrations, weak plugins] qso in
             integrations?.qsoDeleted(qso)
+            plugins?.qsoDeleted(qso)
         }
         model.contest.onFirePlugin = { [weak plugins] event, json in
             plugins?.fire(event, json: json)
+        }
+        model.contest.onContestClosed = { [weak plugins] id, name in
+            plugins?.contestClosed(contestId: id, name: name)
+        }
+        // The pileup simulator's QSOs change the score and the entry: no plugin hears of that.
+        model.contest.onScoreChanged = { [weak plugins, weak logbook = model.logbook] id, score in
+            guard logbook?.simulatorActive() != true else { return }
+            plugins?.scoreChanged(contestId: id, score: score)
+        }
+        model.operating.onOperating = { [weak plugins, weak logbook = model.logbook] radio, freqHz, mode in
+            guard logbook?.simulatorActive() != true else { return }
+            plugins?.operatingChanged(radio: radio, freqHz: freqHz, mode: mode)
+        }
+        model.dxCluster.onSelfSpotted = { [weak plugins] spot in
+            plugins?.selfSpotted(spot)
+        }
+        online.onClubLogUpload = { [weak plugins] outcome, call, status in
+            plugins?.clubLogUpload(outcome: outcome, call: call, status: status)
+        }
+        online.onScoreReported = { [weak plugins] host, status, accepted, message in
+            plugins?.scoreReported(host: host, status: status, accepted: accepted, message: message)
         }
         model.dxCluster.pluginSpot = plugins.spotHandler
         for panel in [model.panel(vfo: 0), model.vfoB] {

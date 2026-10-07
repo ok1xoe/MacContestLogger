@@ -36,6 +36,10 @@ public final class ContestModel {
     @ObservationIgnored public var onActivated: (@MainActor () -> Void)?
     /// The activation's plugin event `CONTEST_OPENED` (an opening activation only): the event and its JSON.
     @ObservationIgnored public var onFirePlugin: (@MainActor (PluginRunner.Event, String) -> Void)?
+    /// The score of the active contest changed (the plugins' `SCORE_CHANGED`, coalesced by the receiver).
+    @ObservationIgnored public var onScoreChanged: (@MainActor (_ contestId: String?, _ score: ScoreState) -> Void)?
+    /// The operator left a contest — another one opened or Contest → None (the plugins' `CONTEST_CLOSED`).
+    @ObservationIgnored public var onContestClosed: (@MainActor (_ contestId: String, _ name: String?) -> Void)?
     /// The activation's last step `.startClusterIfIdle`: the cluster starts when no session runs.
     @ObservationIgnored public var onStartClusterIfIdle: (@MainActor () -> Void)?
     /// Kotlin `availBands = …; availModes = …` of an opening activation (`AS:3605-3610`): the available
@@ -167,7 +171,11 @@ public final class ContestModel {
         activeId = runtime.activeId
         activeName = runtime.activeName
         definition = runtime.definition
+        let scoreChanged: Bool = score != runtime.score
         score = runtime.score
+        if scoreChanged, runtime.isActive, let current = runtime.score {
+            onScoreChanged?(runtime.activeId, current)
+        }
         scoreError = runtime.scoreError
         lastPreview = runtime.lastPreview
         let columns: [LogTableColumns.Column] = LogTableColumns.visible(
@@ -217,6 +225,9 @@ public final class ContestModel {
     /// logbook leaves the contest too, so new QSOs are stored without a contest and the log shows the free-logging
     /// QSOs. One item of the activation chain; the entry accepts no input until the log is re-read.
     public func deactivate() {
+        if let closedId = runtime.activeId {
+            onContestClosed?(closedId, runtime.activeName)
+        }
         runtime.deactivate()
         activeSetup = nil
         qtcs = []
@@ -394,6 +405,12 @@ public final class ContestModel {
             case .setSessionExtras(let tour, let bonusStations):
                 runtime.setSessionExtras(tour: tour, bonusStations: bonusStations)
             case .activateDefinition:
+                let previous: (id: String?, name: String?) = (runtime.activeId, runtime.activeName)
+                defer {
+                    if kind == .open, let left = previous.id, left != contestId, runtime.activeId == contestId {
+                        onContestClosed?(left, previous.name)
+                    }
+                }
                 if let error = runtime.activate(contestId: contestId, definition: plan.definition) {
                     sync()
                     status.show(ContestActivation.failure(error))
