@@ -459,6 +459,8 @@ import Testing
     @Test func aStopJumpsQueuedPluginCat() async throws {
         let rig = try await Self.make(permissions: ["read", "ui", "transmit", "cat"], granted: ["transmit", "cat"])
         defer { rig.rig.stop() }
+        // The held reply must not time out on a slow runner before the stop.
+        rig.model.rig.pluginCat?.setReplyTimeout(ms: 120_000)
         _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
         rig.rig.holdAnswer(to: "+f")
         async let first: PluginJSON = Self.ask(rig, "cat.send", ["command": .string("f")])
@@ -896,6 +898,8 @@ import Testing
             rig.rig.stop()
         }
         let channel = try #require(rig.model.rig.pluginCat)
+        // Held replies must not time out on a slow runner.
+        channel.setReplyTimeout(ms: 120_000)
         _ = await Self.ask(rig, "cat.send", ["command": .string("f")])
         #expect(channel.isOpen)
         rig.plugins.setGrants("web", [])

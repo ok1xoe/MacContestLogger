@@ -225,6 +225,12 @@ final class PluginCatChannel: @unchecked Sendable {
     private let log: CatTrafficLog
     private var client: RigctldClient?
     private let pending = OSAllocatedUnfairLock(initialState: 0)
+    /// How long a plugin command waits for its reply (a test seam: slow CI runners hold replies on purpose).
+    private let replyTimeoutMs = OSAllocatedUnfairLock(initialState: 1_000)
+
+    func setReplyTimeout(ms: Int) {
+        replyTimeoutMs.withLock { $0 = ms }
+    }
 
     init(log: CatTrafficLog) {
         self.log = log
@@ -278,7 +284,7 @@ final class PluginCatChannel: @unchecked Sendable {
             client = nil
         }
         do {
-            let rig: RigctldClient = try client ?? RigctldClient(host: endpoint.host, port: endpoint.port, timeoutMs: 1000, log: log)
+            let rig: RigctldClient = try client ?? RigctldClient(host: endpoint.host, port: endpoint.port, timeoutMs: replyTimeoutMs.withLock { $0 }, log: log)
             client = rig
             return .success(try rig.sendRaw(command))
         } catch {
