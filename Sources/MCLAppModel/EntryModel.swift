@@ -191,15 +191,12 @@ public final class EntryModel {
         contest.isActive && contest.isComplete(call: form.call, exchange: form.contestExchange)
     }
 
-    /// Kotlin `freeDupe || contestDupe`.
+    /// The contest's dupe. Free logging (no active contest) has none: a repeated call is not flagged.
     public var isDupe: Bool {
-        if KotlinStrings.isBlank(form.call) {
+        if KotlinStrings.isBlank(form.call) || !contest.isActive {
             return false
         }
-        if contest.isActive {
-            return contest.lastPreview?.dupe == true
-        }
-        return logbook.isDupe(call: form.call, band: band)
+        return contest.lastPreview?.dupe == true
     }
 
     /// Kotlin `modeLocked`: a single-mode contest fixes the mode.
