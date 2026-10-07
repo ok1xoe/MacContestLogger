@@ -166,6 +166,7 @@ extension ConfigurerDraft {
         dx.minSkimmers = ConfigurerRows.toIntOrNull(minSkimmers) ?? 1
         dx.autoSplit = autoSplit
         dx.showBandPlan = showBandPlan
+        dx.spotFilter = spotFilter
         let stamp: String = now.toString()
         BlacklistService.sync(&dx.callBlacklist, blacklistedCalls, nowUtc: stamp)
         BlacklistService.sync(&dx.spotterBlacklist, blacklistedSpotters, nowUtc: stamp)

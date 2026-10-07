@@ -724,6 +724,15 @@ public final class AppModel {
         callbook.analyzer = { [weak analysis] in
             analysis?.current()
         }
+        feed.spotFilter = { [weak config] in
+            config?.config.dxCluster.spotFilter ?? .default
+        }
+        feed.filterAnalyzer = { [weak analysis] in
+            analysis?.current()
+        }
+        dxCluster.onSpotFilterChanged = { [weak feed] in
+            feed?.filterChanged()
+        }
         return Spots(dxCluster: dxCluster, feed: feed, blacklist: blacklist, callbook: callbook, analysis: analysis)
     }
 
@@ -738,8 +747,8 @@ public final class AppModel {
                                       status: StatusModel, language: LanguageModel, contest: ContestModel,
                                       operating: OperatingModel, dialogs: DialogsModel) -> SpotTools {
         let navigation = SpotNavigation(SpotNavigation.Dependencies(
-            dxCluster: spots.dxCluster, analysis: spots.analysis, blacklist: spots.blacklist, rig: radio.rig,
-            status: status, config: config, language: language, dialogs: dialogs, now: environment.now))
+            dxCluster: spots.dxCluster, feed: spots.feed, analysis: spots.analysis, blacklist: spots.blacklist,
+            rig: radio.rig, status: status, config: config, language: language, dialogs: dialogs, now: environment.now))
         let bandmap = BandmapModel(BandmapModel.Dependencies(
             feed: spots.feed, analysis: spots.analysis, contest: contest, config: config, operating: operating,
             blacklist: spots.blacklist, callbook: spots.callbook, rig: radio.rig))
@@ -826,6 +835,7 @@ public final class AppModel {
         services.minSkimmers = chain(base.minSkimmers) { [weak dxCluster, weak config] in
             guard let config else { return }
             dxCluster?.spots.setMinSkimmers(config.config.dxCluster.minSkimmers)
+            dxCluster?.onSpotFilterChanged?()
         }
         services.blacklist = chain(base.blacklist) { [weak blacklist = spots.blacklist] in
             blacklist?.apply()

@@ -1125,5 +1125,21 @@
  "poškozená data (gzip)": "beschädigte Daten (gzip)",
  "nelze uložit: %s": "Speichern nicht möglich: %s",
  "cty.xml: chybí element <clublog>": "cty.xml: das Element <clublog> fehlt",
- "cty.xml: žádné entity nebo prefixy": "cty.xml: keine Gebiete oder Präfixe"
+ "cty.xml: žádné entity nebo prefixy": "cty.xml: keine Gebiete oder Präfixe",
+ "Jen pásma a módy aktivního závodu": "Nur Bänder und Betriebsarten des aktiven Contests",
+ "Zobrazovat nepracovatelné spoty": "Nicht arbeitbare Spots anzeigen",
+ "Nepracovatelný spot = pásmo nebo mód, který aktivní závod nepovoluje. Dupe se skrývají jen ručně.": "Ein nicht arbeitbarer Spot liegt auf einem Band oder in einer Betriebsart, die der aktive Contest nicht erlaubt. Dupes bleiben immer.",
+ "Filtr se použije v okně DX Cluster (řádky spotů), v bandmapě, v Dostupných a při skoku na spot. Vlastní spoty se nikdy neskrývají.": "Der Filter gilt im DX-Cluster-Fenster (Spot-Zeilen), in der Bandmap, bei den verfügbaren Mults und beim Sprung zum Spot. Eigene Spots werden nie ausgeblendet.",
+ "Obnovit výchozí": "Standard wiederherstellen",
+ "Módy": "Betriebsarten",
+ "Přepnout skupinu pásem %s": "Bandgruppe %s umschalten",
+ "Všechny módy": "Alle Betriebsarten",
+ "Spot s neurčitelným módem se zobrazí, pokud není vypnutý žádný mód. Digi zahrnuje RTTY, FT8, PSK…": "Ein Spot mit unbestimmbarer Betriebsart wird angezeigt, außer wenn alle Betriebsarten aus sind. Digi umfasst RTTY, FT8, PSK…",
+ "Fonie": "Fonie",
+ "Jen spoty od spotterů z": "Nur Spots von Spottern aus",
+ "Vlastní země": "Eigenes Land",
+ "Nic nezaškrtnuto = bez filtru. Skimmer spoty se řídí polohou skimmeru.": "Nichts angehakt = kein Filter. Skimmer-Spots folgen dem Standort des Skimmers.",
+ "Filtr spotů": "Spot-Filter",
+ "zapnuto": "ein",
+ "Časový limit spotu = Buffer spotů (min); QSY smaže spot podle Prahu self-spotu (Hz).": "Spot-Zeitlimit = Spot-Puffer (min); ein QSY entfernt den Spot gemäß Self-Spot-Schwelle (Hz)."
 }
