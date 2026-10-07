@@ -268,8 +268,10 @@ that stops, crashes or loses its `transmit` grant never leaves the PTT keyed or 
 `T 1` is never assumed to have keyed nothing once it went out: whether `rigctld` refused it (`RPRT -n`; hamlib reports
 some errors after the rig acted) or its outcome is unknown (a timeout, a lost connection), `T 0` follows at once and the
 plugin gets `refused`; if that `T 0` fails too, the release is owed. A plugin `T 1` or release `T 0` never goes over a
-rig connection on which an earlier reply timed out (that late reply could be read as its own): such a connection is
-closed instead, and a plugin PTT command that times out closes it too. Without a connected rig the PTT is refused. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the
+rig connection that may be out of step — one on which something failed after a command was written and before its
+whole reply was read (a timeout, a write or read error, a CAT log error), so that an unread or late reply could be
+taken for its own. Such a connection is reopened first, transparently (the rig stays connected and polling goes on);
+a plugin PTT command whose own reply fails reopens it at once, too. Without a connected rig the PTT is refused. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the
 moment the rig was keyed. While one plugin holds the PTT no other plugin can key it, and keying again does not extend
 the limit. After a forced release no plugin may key for 10 s (after a plugin's own release, for 2 s). A release never
 touches the operator's own rig connection: `T 0` goes out on it (behind the commands already queued there) and at the

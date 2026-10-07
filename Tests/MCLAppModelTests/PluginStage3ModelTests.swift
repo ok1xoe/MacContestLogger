@@ -331,18 +331,21 @@ import Testing
         rig.rig.unreject("T")
         rig.model.rig.retryPluginRelease()
         await eventually("released by hand") { !rig.model.rig.pluginPttUnconfirmed }
-        // The outcome unknown: the connection drops on `T 1`; its `T 0` fails too — owed, and only a `T 0` that gets
-        // through (here: the next connection's) clears it.
+        await rig.model.rig.settle()
+        // The outcome unknown: the connection drops on `T 1`. The client reopens it at once (the rig stays connected,
+        // the poller goes on) and `T 0` goes out on the fresh one; refused there, the release is owed.
+        let connections: Int = rig.rig.connectionCount
         rig.rig.drop(on: "T 1")
+        rig.rig.reject("T 0")
         _ = await rig.model.rig.pluginPtt(true)
         await rig.model.rig.settle()
         #expect(rig.model.rig.pluginPttUnconfirmed)
         #expect(rig.model.rig.pluginPttRig == nil)
-        await eventually("lost") { !rig.model.rig.connected(vfo: 0) }
-        rig.model.rig.toggle(vfo: 0)
-        await eventually("released on the next connection") {
-            rig.model.rig.connected(vfo: 0) && !rig.model.rig.pluginPttUnconfirmed
-        }
+        #expect(rig.rig.connectionCount > connections)
+        rig.rig.unreject("T 0")
+        rig.model.rig.retryPluginRelease()
+        await eventually("released") { !rig.model.rig.pluginPttUnconfirmed }
+        #expect(rig.model.rig.connected(vfo: 0))
         #expect(Self.pttCommands(rig).last == "T 0")
     }
 
@@ -1277,6 +1280,24 @@ import Testing
         #expect(model.pluginReleaseDeferred.isEmpty)
         #expect(Self.pttCommands(rig).last == "T 0")
         #expect(!model.pluginPttUnconfirmed)
+    }
+
+    /// The rig model's own shutdown (defense in depth beside the quit's transmit release) never leaves a release
+    /// waiting for the operator: it goes out before the rigs disconnect.
+    @Test func theRigShutdownReleasesAWaitingRelease() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        model.operatorKeying = { _ in true }
+        model.pluginReleaseDeferralLimitMs = { 3_600_000 }
+        #expect(await model.pluginPtt(true) == nil)
+        #expect(model.releasePluginPtt())
+        await model.settle()
+        #expect(model.pluginReleaseDeferred.contains(0))
+        let atDisconnect = Box<[String]>([])
+        model.beforeShutdownDisconnect = { atDisconnect.value = Self.pttCommands(rig) }
+        await model.shutdown()
+        #expect(atDisconnect.value.last == "T 0", "\(atDisconnect.value)")
     }
 }
 
