@@ -48,6 +48,15 @@ struct PluginWindowContent: View {
                         model.restart(plugin)
                     }
                 }
+                if session?.phase == .awaitingConsent, let plugin = parsed?.plugin {
+                    // Only the operator opens the consent sheet (it never pops up by itself mid-QSO).
+                    Button {
+                        model.requestConsent(plugin)
+                    } label: {
+                        Text(verbatim: app.language.tr("Rozhodnout o oprávněních…")).windowFont(12)
+                    }
+                    .accessibilityIdentifier("pluginWindow.consent")
+                }
             }
             if let parsed, let content = session?.contents[parsed.window] {
                 ScrollView([.vertical]) {
@@ -345,6 +354,15 @@ private struct PluginCanvasView: View {
     let actions: PluginActions
     @Environment(\.windowFontSize) private var windowSize
 
+    /// What VoiceOver says for a canvas without its own label: its texts, else "drawing".
+    private var fallbackLabel: String {
+        let texts: [String] = canvas.shapes.compactMap { shape in
+            if case .text(let text, _, _, _) = shape { return text }
+            return nil
+        }
+        return texts.isEmpty ? "canvas" : texts.prefix(20).joined(separator: ", ")
+    }
+
     var body: some View {
         let scale: Double = Double(windowSize) / Double(WindowFont.defaultSize)
         let shapes: [PluginUIShape] = canvas.shapes
@@ -362,7 +380,7 @@ private struct PluginCanvasView: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: canvas.label ?? ""))
+        .accessibilityLabel(Text(verbatim: canvas.label ?? fallbackLabel))
         .accessibilityAddTraits(canvas.id == nil ? [.isImage] : [.isImage, .isButton])
     }
 }
@@ -412,6 +430,7 @@ struct PluginDockArea: View {
         let model: PluginWindowsModel = app.pluginWindows
         let keys: [String] = model.dockedKeys
         if !keys.isEmpty {
+            ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(keys, id: \.self) { key in
                     VStack(alignment: .leading, spacing: 4) {
@@ -436,6 +455,9 @@ struct PluginDockArea: View {
                     .accessibilityLabel(Text(verbatim: model.title(key)))
                 }
             }
+            }
+            // The main window sizes to its content: the dock gets a definite height, scrolling beyond it.
+            .frame(height: min(420, CGFloat(keys.count) * 240))
             .padding(.horizontal, 8)
             .accessibilityIdentifier("pluginDock")
         }

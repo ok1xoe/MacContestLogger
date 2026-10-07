@@ -34,19 +34,45 @@ import Testing
             #"{"protocol":1,"permissions":["read","ui","entry","spots","spots.send"],"windows":[{"id":"main"}]}"#)
         var settings = PluginSettings()
         #expect(settings.needsConsent(manifest))
+        #expect(settings.undecided(manifest) == ["entry", "spots", "spots.send"])
         #expect(settings.effectivePermissions(manifest) == ["read", "ui"])
-        // `spots.send` without `spots` is not kept.
-        settings.setGranted("demo", ["entry", "spots.send", "ui"])
-        #expect(settings.grants["demo"] == ["entry"])
+        // `spots.send` without `spots` is not kept; a permission the manifest does not ask for never is.
+        settings.decide(manifest, granted: ["entry", "spots.send", "ui", "transmit"], decided: settings.undecided(manifest))
+        #expect(settings.grants[PluginSettings.identity(manifest)] == ["entry"])
         #expect(!settings.needsConsent(manifest))
         #expect(settings.effectivePermissions(manifest) == ["read", "ui", "entry"])
-        settings.setGranted("demo", ["spots", "spots.send"])
+        settings.decide(manifest, granted: ["spots", "spots.send"], decided: manifest.permissionsNeedingGrant)
         #expect(settings.effectivePermissions(manifest) == ["read", "ui", "spots", "spots.send"])
-        settings.setGranted("demo", [])
-        #expect(settings.grants["demo"] == nil)
-        #expect(settings.decided == ["demo"])
+        settings.decide(manifest, granted: [], decided: manifest.permissionsNeedingGrant)
+        #expect(settings.grants[PluginSettings.identity(manifest)] == nil)
         // A plugin asking only for read and ui never needs consent.
         #expect(!PluginSettings().needsConsent(try Self.manifest(#"{"protocol":1,"windows":[{"id":"m"}]}"#)))
+        #expect(PluginManifest.offByDefault.contains("spots.send"))
+    }
+
+    /// A manifest that asks for more later is asked again — only for the new permissions; the decided ones stay.
+    @Test func aGrowingManifestIsAskedAgainForTheNewOnes() throws {
+        let first = try Self.manifest(#"{"protocol":1,"name":"Helper","permissions":["entry"],"windows":[{"id":"m"}]}"#)
+        var settings = PluginSettings()
+        settings.decide(first, granted: ["entry"], decided: ["entry"])
+        let grown = try Self.manifest(
+            #"{"protocol":1,"name":"Helper","permissions":["entry","rig"],"windows":[{"id":"m"}]}"#)
+        #expect(settings.needsConsent(grown))
+        #expect(settings.undecided(grown) == ["rig"])
+        #expect(settings.effectivePermissions(grown) == ["entry"])
+        settings.decide(grown, granted: [], decided: ["rig"])
+        #expect(!settings.needsConsent(grown))
+        #expect(settings.effectivePermissions(grown) == ["entry"])
+    }
+
+    /// Another plugin put into the same directory (another manifest name) inherits nothing.
+    @Test func grantsBelongToTheDirectoryAndTheName() throws {
+        let original = try Self.manifest(#"{"protocol":1,"name":"Helper","permissions":["entry"],"windows":[{"id":"m"}]}"#)
+        var settings = PluginSettings()
+        settings.decide(original, granted: ["entry"], decided: ["entry"])
+        let other = try Self.manifest(#"{"protocol":1,"name":"Other","permissions":["entry"],"windows":[{"id":"m"}]}"#)
+        #expect(settings.effectivePermissions(other) == [])
+        #expect(settings.needsConsent(other))
     }
 
     @Test func settingsRoundTripThroughTheFile() throws {
@@ -55,7 +81,8 @@ import Testing
         let url = URL(fileURLWithPath: dir)
         #expect(PluginSettings.load(dataDir: url) == PluginSettings())
         var settings = PluginSettings()
-        settings.setGranted("a", ["rig"])
+        settings.decide(try Self.manifest(#"{"protocol":1,"permissions":["rig"],"actions":[{"id":"cq"}]}"#),
+                        granted: ["rig"], decided: ["rig"])
         settings.keys["a/cq"] = "Ctrl+Alt+P"
         settings.passThrough = ["a/cq"]
         settings.docked = ["plugin:a/main"]
@@ -110,17 +137,77 @@ import Testing
         #expect(content.warnings.count == 1)
     }
 
-    @Test func commandsThatTransmitOrDestroyAreRefused() throws {
+    /// Every command of `CallFieldCommand` with the decision the policy must make. `decided(_:)` is an exhaustive
+    /// switch: a new command does not compile until it is added here (and to the policy).
+    static func expectAllowed(_ command: CallFieldCommand) -> Bool {
+        switch command {
+        case .qsy, .otherVfo, .split, .splitOff, .rit, .swapVfo, .changeMode, .version, .esmOff, .rescore:
+            return true
+        case .toggle(let setting, let on):
+            switch setting {
+            case .cqRepeat: return !on
+            case .workDupes: return true
+            case .autoReload, .postContest: return false
+            }
+        case .appAction(let action):
+            switch action {
+            case .debugCat, .reopen: return true
+            case .broadcastLog, .exit, .exitNow, .wipeLogNow, .closeContest, .newContest, .openContest, .copyLog,
+                 .reload, .resetInterfaces, .loadBeacons, .logout:
+                return false
+            }
+        case .runScript, .login, .wipeLog, .exportAdif, .exportCabrillo, .importLog, .esmOn, .autoRunSp, .setTour,
+             .tourOff, .bonusStations, .roverQth, .countyLine, .countyLineOff, .spotMe, .cutNumbers, .openSettingsTab,
+             .openSetup, .networkOn, .networkOff, .invalid:
+            return false
+        }
+    }
+
+    static let everyCommand: [CallFieldCommand] = [
+        .qsy(freqHz: 14_025_000), .otherVfo(freqHz: 14_030_000), .split(txFreqHz: 14_030_000), .splitOff,
+        .runScript(name: "x"), .rit(offsetHz: 100), .swapVfo, .changeMode(mode: .cw), .login(operator: "OK1XYZ"),
+        .wipeLog, .version, .exportAdif, .exportCabrillo, .importLog, .esmOn, .esmOff, .autoRunSp(enabled: true),
+        .setTour(params: "x"), .tourOff, .bonusStations(calls: "x"), .roverQth(county: "x"), .countyLine(counties: "x"),
+        .countyLineOff, .spotMe(comment: ""), .cutNumbers(style: nil), .openSettingsTab(tabKey: "keys"), .rescore,
+        .openSetup, .networkOn, .networkOff, .invalid(message: "x"),
+    ] + CallFieldCommand.Action.allCases.map { .appAction(action: $0) }
+        + CallFieldCommand.Setting.allCases.flatMap { [.toggle(setting: $0, on: true), .toggle(setting: $0, on: false)] }
+
+    @Test func theCommandPolicyDecidesEveryCommand() {
+        for command in Self.everyCommand {
+            #expect((PluginCommandPolicy.refusal(command) == nil) == Self.expectAllowed(command), "\(command)")
+        }
+        // Every case is in the list (the switch above is exhaustive; this checks the samples cover it).
+        #expect(Self.everyCommand.count == 31 + CallFieldCommand.Action.allCases.count
+                    + 2 * CallFieldCommand.Setting.allCases.count)
+    }
+
+    @Test func commandsThatTransmitOrDestroyAreRefusedFromText() throws {
         func refusal(_ text: String) throws -> String? {
             let command: CallFieldCommand = try #require(try CallFieldCommands.parse(text, currentFreqHz: 14_025_000))
             return PluginCommandPolicy.refusal(command)
         }
-        for refused in ["RPT", "ESM", "SPOTME", "SCRIPT run", "CLEARLOG", "CLEARLOGNOW", "EXIT", "EXITNOW", "RESET"] {
+        for refused in ["RPT", "ESM", "SPOTME", "SCRIPT run", "CLEARLOG", "CLEARLOGNOW", "EXIT", "EXITNOW", "RESET",
+                        "POSTCONTEST", "OPOFF"] {
             #expect(try refusal(refused) != nil, "\(refused) must be refused")
         }
-        for allowed in ["14030", "CW", "NOESM", "NORPT", "SPLIT", "NOSPLIT", "RIT 100", "POSTCONTEST", "REOPEN"] {
+        for allowed in ["14030", "CW", "NOESM", "NORPT", "SPLIT", "NOSPLIT", "RIT 100", "REOPEN"] {
             #expect(try refusal(allowed) == nil, "\(allowed) must be allowed")
         }
+    }
+
+    @Test func canvasShapesCountAcrossTheContent() throws {
+        let shapes: String = (0..<PluginUICanvas.maxShapes).map { _ in #"{"shape":"rect","x":0,"y":0,"w":1,"h":1}"# }
+            .joined(separator: ",")
+        let canvas: String = #"{"type":"canvas","shapes":["# + shapes + "]}"
+        let content = try PluginUIContent.parse(try PluginJSON.parse(
+            "{\"elements\":[" + Array(repeating: canvas, count: 3).joined(separator: ",") + "]}"))
+        let drawn: Int = content.elements.reduce(0) { total, element in
+            if case .canvas(let canvas) = element { return total + canvas.shapes.count }
+            return total
+        }
+        #expect(drawn == PluginUIContent.maxShapesTotal)
+        #expect(content.warnings.count == 1)
     }
 
     @Test func theKeyMessage() throws {

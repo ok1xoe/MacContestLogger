@@ -1175,5 +1175,13 @@
  "plugin.json: akce (actions) musí být seznam nejvýš %s položek": "plugin.json: actions must be a list of at most %s items",
  "plugin.json: akce bez platného nebo jedinečného id": "plugin.json: an action without a valid or unique id",
  "Čtení a okna má každý plugin. Ostatní oprávnění platí hned po změně; plugin bez nich dostane chybu. Klávesy pro akce pluginů nastavíš v záložce Klávesy.": "Every plugin may read and show windows. The other permissions apply as soon as they change; without them a plugin gets an error. Keys for plugin actions are set in the Keys tab.",
- "Čtení deníku, závodu, rádia a spotů": "Reading the log, contest, rig and spots"
+ "Čtení deníku, závodu, rádia a spotů": "Reading the log, contest, rig and spots",
+ "Tuto klávesu nelze pluginu přiřadit": "This key cannot be given to a plugin",
+ "Klávesu už má akce %s": "The key is already taken by the action %s",
+ "plugin-settings.json byl změněn mimo aplikaci — platí nastavení aplikace": "plugin-settings.json was changed outside the app — the app's settings apply",
+ "Klávesa %s pro akci pluginu %s se nepoužije": "The key %s for the plugin action %s is not used",
+ "Plugin opakovaně padá — klávesa ho už nespustí, použij Restart": "The plugin keeps crashing — keys no longer start it, use Restart",
+ "Plugin čeká na povolení oprávnění — rozhodni v jeho okně nebo v Nastavení → Pluginy": "The plugin waits for its permissions — decide in its window or in Settings → Plugins",
+ "Rozhodnout o oprávněních…": "Decide on permissions…",
+ "kolize s %s": "conflicts with %s"
 }

@@ -19,6 +19,8 @@ public struct PluginHostContext {
     public var spots: () -> [DxSpot] = { [] }
     /// The acting requests (`entry`, `rig`, `spots`, `app.command`).
     public var actions = PluginHostActions()
+    /// The app's own shortcut on a key, by its label (`nil` = none).
+    public var shortcutLabel: (KeyCombo) -> String? = { _ in nil }
 
     public init() {}
 }

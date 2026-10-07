@@ -1175,5 +1175,13 @@
  "plugin.json: akce (actions) musí být seznam nejvýš %s položek": "plugin.json: actions muss eine Liste mit höchstens %s Einträgen sein",
  "plugin.json: akce bez platného nebo jedinečného id": "plugin.json: eine Aktion ohne gültige oder eindeutige ID",
  "Čtení a okna má každý plugin. Ostatní oprávnění platí hned po změně; plugin bez nich dostane chybu. Klávesy pro akce pluginů nastavíš v záložce Klávesy.": "Jedes Plugin darf lesen und Fenster zeigen. Die übrigen Berechtigungen gelten sofort; ohne sie erhält ein Plugin einen Fehler. Tasten für Plugin-Aktionen werden im Reiter Tasten festgelegt.",
- "Čtení deníku, závodu, rádia a spotů": "Lesen von Log, Contest, Funkgerät und Spots"
+ "Čtení deníku, závodu, rádia a spotů": "Lesen von Log, Contest, Funkgerät und Spots",
+ "Tuto klávesu nelze pluginu přiřadit": "Diese Taste kann keinem Plugin zugewiesen werden",
+ "Klávesu už má akce %s": "Die Taste gehört bereits der Aktion %s",
+ "plugin-settings.json byl změněn mimo aplikaci — platí nastavení aplikace": "plugin-settings.json wurde außerhalb der App geändert — es gelten die Einstellungen der App",
+ "Klávesa %s pro akci pluginu %s se nepoužije": "Die Taste %s für die Plugin-Aktion %s wird nicht verwendet",
+ "Plugin opakovaně padá — klávesa ho už nespustí, použij Restart": "Das Plugin stürzt wiederholt ab — Tasten starten es nicht mehr, Neustart verwenden",
+ "Plugin čeká na povolení oprávnění — rozhodni v jeho okně nebo v Nastavení → Pluginy": "Das Plugin wartet auf seine Berechtigungen — im Plugin-Fenster oder unter Einstellungen → Plugins entscheiden",
+ "Rozhodnout o oprávněních…": "Über Berechtigungen entscheiden…",
+ "kolize s %s": "Konflikt mit %s"
 }

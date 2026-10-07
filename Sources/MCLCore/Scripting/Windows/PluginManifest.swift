@@ -15,6 +15,8 @@ public struct PluginManifest: Equatable, Sendable {
                                                         "app.command"]
     /// The permissions granted without asking.
     public static let implicitPermissions: Set<String> = ["read", "ui"]
+    /// Permissions the consent sheet leaves unchecked (the operator must tick them on purpose).
+    public static let offByDefault: Set<String> = ["spots.send"]
     /// At most this many windows per plugin.
     public static let maxWindows = 8
     /// At most this many key actions per plugin.

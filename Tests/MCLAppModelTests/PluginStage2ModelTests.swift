@@ -42,17 +42,23 @@ import Testing
         await model.rescan()
         model.open(Self.key)
         #expect(model.session("demo")?.phase == .awaitingConsent)
-        #expect(model.consentRequest == "demo")
+        // The sheet never opens by itself (it would take the keyboard mid-QSO); the operator opens it.
+        #expect(model.consentRequest == nil)
+        #expect(T.texts(app).contains(
+            "[demo] Plugin čeká na povolení oprávnění — rozhodni v jeho okně nebo v Nastavení → Pluginy"))
         #expect(model.banner(Self.key) == "Plugin čeká na povolení oprávnění")
         #expect(!FileManager.default.fileExists(atPath: dir.appendingPathComponent("hello.json").path))
+        model.requestConsent("demo")
+        #expect(model.consentRequest == "demo")
+        #expect(model.consentPermissions("demo") == ["entry", "rig"])
 
-        model.answerConsent("demo", granted: ["entry"])
+        model.answerConsent("demo", granted: ["entry"], shown: ["entry", "rig"])
         #expect(model.consentRequest == nil)
         await eventually("running") { T.shownText(model.session("demo")) == "up" }
         let hello: PluginJSON? = T.lines(dir.appendingPathComponent("hello.json")).first.flatMap(T.json)
         #expect(hello?["permissions"] == .array([.string("read"), .string("ui"), .string("entry")]))
         await model.settleSettings()
-        #expect(PluginSettings.load(dataDir: app.app.dataDir).grants["demo"] == ["entry"])
+        #expect(PluginSettings.load(dataDir: app.app.dataDir).grants["demo|demo"] == ["entry"])
         // The next start does not ask again.
         model.windowClosed(Self.key)
         model.open(Self.key)
@@ -75,7 +81,7 @@ import Testing
             """)
         let model: PluginWindowsModel = app.model.pluginWindows
         await model.rescan()
-        model.answerConsent("demo", granted: [])
+        model.answerConsent("demo", granted: [], shown: ["entry"])
         model.open(Self.key)
         await eventually("up") { T.shownText(model.session("demo")) == "up" }
         let log: URL = dir.appendingPathComponent("in.log")
@@ -107,7 +113,7 @@ import Testing
         try await app.app.startCqWwCw()
         let entry: EntryModel = app.model.entry
         entry.setFrequency("14025")
-        #expect(try await Self.act(app, "entry.setCall", ["call": .string("OK1ABC")]).get() != .null)
+        #expect(try await Self.act(app, "entry.setCall", ["call": .string("ok1abc")]).get() != .null)
         #expect(entry.form.call == "OK1ABC")
         let set = try await Self.act(app, "entry.setExchange", ["fields": .object(["zone": .string("15"),
                                                                                    "nope": .string("x")])]).get()
@@ -225,7 +231,7 @@ import Testing
         #expect(model.menuWindows.isEmpty)
         let combo: KeyCombo = try #require(KeyCombo.parse("Ctrl+Alt+P"))
         #expect(model.handleKey(combo, pressed: true) == nil)
-        model.bindKey(plugin: "demo", action: "cq", key: "ctrl+alt+p")
+        #expect(model.bindKey(plugin: "demo", action: "cq", key: "ctrl+alt+p") == nil)
         #expect(model.settings.keys["demo/cq"] == "Ctrl+Alt+P")
         // The press starts the (window-less) plugin and sends the key; the release only answers.
         #expect(model.handleKey(combo, pressed: true) == false)
@@ -311,5 +317,187 @@ import Testing
         #expect(click["value"]?["x"]?.doubleValue == 12.3)
         #expect(click["value"]?["y"]?.doubleValue == 56.8)
         await model.shutdown()
+    }
+
+    // MARK: - review fixes
+
+    /// A spot request with a line end (an attempt to inject cluster commands) is refused before anything is sent.
+    @Test func spotTextsWithControlCharactersAreRefused() async throws {
+        var actions = PluginHostActions()
+        let sent = Box<[String]>([])
+        actions.sendSpot = { call, _, comment in
+            sent.value.append(call + " " + comment)
+            return nil
+        }
+        actions.addSpot = { spot in sent.value.append(spot.dxCall) }
+        var context = PluginHostContext()
+        context.actions = actions
+        let permissions = ["spots", "spots.send"]
+        for params: [String: PluginJSON] in [
+            ["call": .string("DL1AA"), "freqHz": .int(14_025_000), "comment": .string("hi\r\nSET/NAME X")],
+            ["call": .string("DL1AA\r\nBYE"), "freqHz": .int(14_025_000)],
+            ["call": .string("DL1 AA"), "freqHz": .int(14_025_000)],
+            ["call": .string("DL1AA"), "freqHz": .int(123)],
+        ] {
+            let result = await PluginRpc.answer(method: "spots.send", params: params, permissions: permissions,
+                                                context: context)
+            guard case .failure(let failure) = result else {
+                Issue.record("accepted \(params)")
+                continue
+            }
+            #expect(failure.code == "invalid_params")
+        }
+        let added = await PluginRpc.answer(method: "spots.add", params: ["call": .string("A\u{1B}[2J"),
+                                                                         "freqHz": .int(14_025_000)],
+                                           permissions: ["spots"], context: context)
+        #expect((try? added.get()) == nil)
+        #expect(sent.value.isEmpty)
+        let ok = await PluginRpc.answer(method: "spots.send", params: ["call": .string("dl1aa"),
+                                                                       "freqHz": .int(14_025_000),
+                                                                       "comment": .string("TNX")],
+                                        permissions: permissions, context: context)
+        #expect((try? ok.get()) != nil)
+        #expect(sent.value == ["DL1AA TNX"])
+    }
+
+    /// A plugin never types a command into the call field (the operator's next Enter would run it).
+    @Test func setCallRefusesCommands() async throws {
+        let app = try await IntegrationApp.make()
+        let entry: EntryModel = app.model.entry
+        entry.setFrequency("14025")
+        for text in ["ESM", "SPOTME", "CLEARLOG", "RPT", "CW", "SPLIT"] {
+            let result = await Self.act(app, "entry.setCall", ["call": .string(text)])
+            #expect(result == .failure(PluginRpc.Failure(code: "refused", message: "the text is a command")), "\(text)")
+        }
+        for text in ["SCRIPT x", "OK1 ABC", "OK1ABC\r", "-1", "14030"] {
+            let result = await Self.act(app, "entry.setCall", ["call": .string(text)])
+            guard case .failure(let failure) = result else {
+                Issue.record("accepted \(text)")
+                continue
+            }
+            #expect(failure.code == "invalid_params", "\(text)")
+        }
+        #expect(entry.form.call == "")
+        _ = try await Self.act(app, "entry.setCall", ["call": .string("ok1abc/p")]).get()
+        #expect(entry.form.call == "OK1ABC/P")
+        #expect(await Self.act(app, "entry.setExchange", ["fields": .object(["zone": .string("15\r\nX")])])
+            == .failure(PluginRpc.Failure(
+                code: "invalid_params",
+                message: "exchange values must be texts of at most 32 characters without control characters")))
+    }
+
+    /// The consent sheet asks each plugin only for its own undecided permissions; answering one plugin does not open
+    /// the next, and a grant never includes what the manifest does not ask for.
+    @Test func consentIsPerPluginAndLimitedToTheManifest() async throws {
+        let app = try await IntegrationApp.make()
+        try T.plugin(app, name: "one", permissions: ["read", "ui", "entry"], body: Self.logging)
+        try T.plugin(app, name: "two", permissions: ["read", "ui", "rig", "spots", "spots.send"], body: Self.logging)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.open("plugin:one/main")
+        model.open("plugin:two/main")
+        model.requestConsent("one")
+        #expect(model.consentPermissions("one") == ["entry"])
+        model.answerConsent("one", granted: ["entry", "rig", "transmit"], shown: ["entry"])
+        #expect(model.consentRequest == nil)
+        #expect(model.effectivePermissions("one") == ["read", "ui", "entry"])
+        #expect(model.session("two")?.phase == .awaitingConsent)
+        #expect(model.consentPermissions("two") == ["rig", "spots", "spots.send"])
+        model.setGrants("two", ["spots.send"])
+        #expect(model.effectivePermissions("two") == ["read", "ui"])
+        await model.shutdown()
+    }
+
+    /// A manifest that grows asks again, only for the new permission; the plugin waits until then.
+    @Test func aGrowingManifestWaitsForTheNewConsent() async throws {
+        let app = try await IntegrationApp.make()
+        try T.plugin(app, permissions: ["read", "ui", "entry"], body: Self.logging)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.answerConsent("demo", granted: ["entry"], shown: ["entry"])
+        try T.plugin(app, permissions: ["read", "ui", "entry", "rig"], body: Self.logging)
+        await model.rescan()
+        model.open(Self.key)
+        #expect(model.session("demo")?.phase == .awaitingConsent)
+        #expect(model.consentPermissions("demo") == ["rig"])
+        #expect(model.effectivePermissions("demo") == ["read", "ui", "entry"])
+    }
+
+    /// Esc, Enter, Tab, space and plain F1–F12 are never a plugin's; a file asking for them (or a key twice) is
+    /// cleaned at load with a message, and a stale docked window is dropped.
+    @Test func reservedKeysAreNeverBound() async throws {
+        // The file is there before the app starts (its first read applies it).
+        let app = try await IntegrationApp.make(configure: { _, dataDir in
+            var file = PluginSettings()
+            file.keys = ["demo/a": "Escape", "demo/b": "F1"]
+            file.docked = ["plugin:gone/main"]
+            try file.save(dataDir: dataDir)
+        })
+        try Self.rawPlugin(app, manifest: #""permissions":["read"],"actions":[{"id":"a"},{"id":"b"}]"#,
+                           body: "IFS= read -r hello\necho '{\"type\":\"ready\"}'\n" + T.echoLoop)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        #expect(model.settings.keys.isEmpty)
+        #expect(model.dockedKeys.isEmpty)
+        #expect(T.texts(app).contains("Klávesa Escape pro akci pluginu demo/a se nepoužije"))
+        for key in ["Escape", "Ctrl+Escape", "Enter", "Tab", "Space", "F1", "F12", "Q"] {
+            #expect(model.bindKey(plugin: "demo", action: "a", key: key) == "Tuto klávesu nelze pluginu přiřadit", "\(key)")
+        }
+        #expect(model.bindKey(plugin: "demo", action: "a", key: "Ctrl+F1") == nil)
+        #expect(model.bindKey(plugin: "demo", action: "b", key: "ctrl+f1") == "Klávesu už má akce demo/a")
+        // Esc reaches no plugin even if a binding claimed it.
+        #expect(model.handleKey(try #require(KeyCombo.parse("Escape")), pressed: true) == nil)
+        await model.shutdown()
+    }
+
+    /// A plugin that crashes at once is restarted by keys at most three times a minute.
+    @Test func keysDoNotRestartACrashLoopForever() async throws {
+        let app = try await IntegrationApp.make()
+        let dir: URL = try Self.rawPlugin(app, manifest: #""permissions":["read"],"actions":[{"id":"a"}]"#,
+                                          body: "echo run >> runs\nexit 1")
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        #expect(model.bindKey(plugin: "demo", action: "a", key: "Ctrl+Alt+K") == nil)
+        let combo: KeyCombo = try #require(KeyCombo.parse("Ctrl+Alt+K"))
+        for round in 1...6 {
+            _ = model.handleKey(combo, pressed: true)
+            await eventually("ended \(round)") {
+                if case .exited? = model.session("demo")?.phase { return true }
+                return false
+            }
+        }
+        #expect(T.lines(dir.appendingPathComponent("runs")).count == 1 + PluginWindowsModel.maxKeyRestartsPerMinute)
+        #expect(T.texts(app).contains("[demo] Plugin opakovaně padá — klávesa ho už nespustí, použij Restart"))
+    }
+
+    /// plugin-settings.json changed by someone else while the app runs (a plugin could write it): the app's own
+    /// decisions are written back and the operator is told.
+    @Test func anOutsideChangeOfTheSettingsFileIsUndone() async throws {
+        let app = try await IntegrationApp.make()
+        try T.plugin(app, permissions: ["read", "ui", "transmit", "entry"], body: Self.logging)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.answerConsent("demo", granted: [], shown: ["entry"])
+        await model.settleSettings()
+        var forged = PluginSettings.load(dataDir: app.app.dataDir)
+        forged.grants["demo|demo"] = ["entry"]
+        try forged.save(dataDir: app.app.dataDir)
+        await model.rescan()
+        await model.settleSettings()
+        #expect(T.texts(app).contains("plugin-settings.json byl změněn mimo aplikaci — platí nastavení aplikace"))
+        #expect(PluginSettings.load(dataDir: app.app.dataDir).grants["demo|demo"] == nil)
+        #expect(model.effectivePermissions("demo") == ["read", "ui"])
+    }
+
+    @Test func rigRequestsStayInsideTheBands() async throws {
+        let app = try await IntegrationApp.make()
+        for hz: Int64 in [1, 50_000, 2_000_000_000_000] {
+            #expect(await Self.act(app, "rig.qsy", ["freqHz": .int(hz)])
+                == .failure(PluginRpc.Failure(code: "invalid_params", message: "rig.qsy needs freqHz inside an amateur band")))
+        }
+        let focus: Int = app.model.entry.focusRequest
+        _ = try await Self.act(app, "rig.qsy", ["freqHz": .int(14_030_000)]).get()
+        _ = try await Self.act(app, "entry.wipe").get()
+        #expect(app.model.entry.focusRequest == focus, "a plugin never moves the focus")
     }
 }

@@ -30,7 +30,8 @@ public struct PluginHostActions {
 
     // entry
     public var entryState: () -> EntryState? = { nil }
-    public var setCall: (String) -> Void = { _ in }
+    /// Types a call; `nil` = done, else why not (a text that is a command is refused).
+    public var setCall: (String) -> String? = { _ in "no entry window" }
     /// Sets exchange fields by id; returns the ids the contest does not have.
     public var setExchange: ([String: String]) -> [String] = { values in Array(values.keys) }
     public var wipe: () -> Void = {}
@@ -69,6 +70,18 @@ public struct PluginHostActions {
 
 extension PluginRpc {
 
+    /// A callsign as plugins may type or spot it: letters, digits and `/`, 3–20 characters.
+    nonisolated static func isCallsign(_ text: String) -> Bool {
+        (1...20).contains(text.count) && text.unicodeScalars.allSatisfy { scalar in
+            (scalar.isASCII && CharacterSet.alphanumerics.contains(scalar)) || scalar == "/"
+        } && text.unicodeScalars.contains { CharacterSet.letters.contains($0) }
+    }
+
+    /// A free text without control characters (no line ends, no escapes), at most `limit` characters.
+    nonisolated static func isPlainText(_ text: String, limit: Int) -> Bool {
+        text.count <= limit && !text.unicodeScalars.contains { $0.value < 0x20 || $0.value == 0x7F }
+    }
+
     /// The acting methods and the permission each needs.
     static let actionMethods: [String: String] = [
         "entry.getCall": "entry", "entry.setCall": "entry", "entry.setExchange": "entry", "entry.wipe": "entry",
@@ -104,14 +117,18 @@ extension PluginRpc {
             ]))
         case "entry.setCall":
             guard let call = text("call") else { return invalid("entry.setCall needs call") }
-            actions.setCall(String(call.prefix(64)))
-            return done(nil)
+            guard call.isEmpty || isCallsign(call) else {
+                return invalid("entry.setCall takes a callsign (letters, digits, /)")
+            }
+            return done(actions.setCall(call.uppercased()))
         case "entry.setExchange":
             guard let fields = params["fields"]?.objectValue else { return invalid("entry.setExchange needs fields") }
             var values: [String: String] = [:]
             for (key, value) in fields {
-                guard let string = value.stringValue else { return invalid("exchange values must be texts") }
-                values[key] = String(string.prefix(64))
+                guard let string = value.stringValue, isPlainText(string, limit: 32) else {
+                    return invalid("exchange values must be texts of at most 32 characters without control characters")
+                }
+                values[key] = string
             }
             let unknown: [String] = actions.setExchange(values)
             return .success(.object(["ok": .bool(true), "unknown": .array(unknown.sorted().map { .string($0) })]))
@@ -121,11 +138,15 @@ extension PluginRpc {
         case "entry.log":
             return done(actions.log())
         case "entry.status":
-            guard let message = text("text") else { return invalid("entry.status needs text") }
-            actions.status(String(message.prefix(200)))
+            guard let message = text("text"), isPlainText(message, limit: 200) else {
+                return invalid("entry.status needs a text of at most 200 characters without control characters")
+            }
+            actions.status(message)
             return done(nil)
         case "rig.qsy":
-            guard let hz = params["freqHz"]?.intValue, hz > 0 else { return invalid("rig.qsy needs freqHz > 0") }
+            guard let hz = params["freqHz"]?.intValue, hz > 0, Band.from(frequencyHz: Int(clamping: hz)) != nil else {
+                return invalid("rig.qsy needs freqHz inside an amateur band")
+            }
             var mode: Mode?
             if let name = text("mode") {
                 guard let parsed = Mode(rawValue: name.uppercased()) else { return invalid("unknown mode \(name)") }
@@ -141,8 +162,8 @@ extension PluginRpc {
             if params["off"]?.boolValue == true {
                 return done(actions.split(nil))
             }
-            guard let hz = params["txFreqHz"]?.intValue, hz > 0 else {
-                return invalid("rig.split needs txFreqHz > 0 or off: true")
+            guard let hz = params["txFreqHz"]?.intValue, hz > 0, Band.from(frequencyHz: Int(clamping: hz)) != nil else {
+                return invalid("rig.split needs txFreqHz inside an amateur band, or off: true")
             }
             return done(actions.split(hz))
         case "rig.rit":
@@ -158,16 +179,16 @@ extension PluginRpc {
             }
             return done(actions.focusRadio(Int(radio)))
         case "spots.add":
-            guard let call = text("call"), !call.isEmpty, let hz = params["freqHz"]?.intValue, hz > 0 else {
-                return invalid("spots.add needs call and freqHz")
+            guard let call = text("call"), isCallsign(call), let hz = params["freqHz"]?.intValue, hz > 0,
+                  isPlainText(text("comment") ?? "", limit: 60) else {
+                return invalid("spots.add needs a callsign, freqHz and a comment of at most 60 plain characters")
             }
-            let spot = DxSpot(spotter: actions.stationCall(), freqHz: Int(clamping: hz),
-                              dxCall: String(call.uppercased().prefix(20)),
-                              comment: String((text("comment") ?? "").prefix(60)), selfSpotted: true)
+            let spot = DxSpot(spotter: actions.stationCall(), freqHz: Int(clamping: hz), dxCall: call.uppercased(),
+                              comment: text("comment") ?? "", selfSpotted: true)
             actions.addSpot(spot)
             return done(nil)
         case "spots.remove":
-            guard let call = text("call"), !call.isEmpty else { return invalid("spots.remove needs call") }
+            guard let call = text("call"), isCallsign(call) else { return invalid("spots.remove needs a callsign") }
             let found: Bool = actions.removeSpot(call.uppercased(), params["blacklist"]?.boolValue ?? false)
             return .success(.object(["removed": .bool(found)]))
         case "spots.mark":
@@ -175,16 +196,20 @@ extension PluginRpc {
             actions.mark(hz)
             return done(nil)
         case "spots.blacklist":
-            guard let call = text("call"), !call.isEmpty else { return invalid("spots.blacklist needs call") }
+            guard let call = text("call"), isCallsign(call) else { return invalid("spots.blacklist needs a callsign") }
             actions.blacklist(call.uppercased())
             return done(nil)
         case "spots.send":
-            guard let call = text("call"), !call.isEmpty, let hz = params["freqHz"]?.intValue, hz > 0 else {
-                return invalid("spots.send needs call and freqHz")
+            // Never a line end or another control character: the text goes to the cluster as one command line.
+            guard let call = text("call"), isCallsign(call), let hz = params["freqHz"]?.intValue,
+                  Band.from(frequencyHz: Int(clamping: hz)) != nil, isPlainText(text("comment") ?? "", limit: 60) else {
+                return invalid("spots.send needs a callsign, freqHz inside a band and a comment of at most 60 plain characters")
             }
-            return done(actions.sendSpot(call.uppercased(), hz, String((text("comment") ?? "").prefix(60))))
+            return done(actions.sendSpot(call.uppercased(), hz, text("comment") ?? ""))
         default:
-            guard let command = text("text"), !command.isEmpty else { return invalid("app.command needs text") }
+            guard let command = text("text"), !command.isEmpty, isPlainText(command, limit: 80) else {
+                return invalid("app.command needs a text of at most 80 plain characters")
+            }
             return done(actions.command(command))
         }
     }

@@ -250,7 +250,8 @@ public final class EntryModel {
     }
 
     /// Kotlin `qsy(toKHz, toMode)` from the band × mode grid; the rig half goes to the rig port.
-    public func qsy(toKHz kHz: Double, mode: Mode) {
+    /// `focus: false` (a plugin's QSY): the call field does not take the focus.
+    public func qsy(toKHz kHz: Double, mode: Mode, focus: Bool = true) {
         form.freqKHz = FrequencyText.formatKHz(kHz)
         if !modeLocked {
             form.mode = mode
@@ -267,7 +268,9 @@ public final class EntryModel {
         }
         fieldFrequencyChanged()
         reportTuned(hz)
-        focusRequest += 1
+        if focus {
+            focusRequest += 1
+        }
     }
 
     public func editRstSent(_ text: String) {
@@ -331,13 +334,15 @@ public final class EntryModel {
     // MARK: - wipe and submit
 
     /// Kotlin `wipe()`: the fields, the ESM progress; the unwipe memory and the paper time stay.
-    public func wipe() {
+    public func wipe(focus: Bool = true) {
         form = form.wiped(contestActive: contest.isActive, rstFieldIds: EntryForm.rstFieldIds(fields))
         esmProgress = .empty
         wasDupe = isDupe
         selfSpot.typed()
         trackCallForSelfSpot()
-        focusRequest += 1
+        if focus {
+            focusRequest += 1
+        }
     }
 
     /// Kotlin `logQso(ctrlEnter, force, comment)` (Enter, Ctrl+Alt+Enter, ESM, `{LOG}`). A command in the call field

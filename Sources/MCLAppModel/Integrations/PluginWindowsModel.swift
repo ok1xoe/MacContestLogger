@@ -45,6 +45,11 @@ public final class PluginWindowsModel {
     @ObservationIgnored private let dataDir: URL
     @ObservationIgnored private var settingsLoaded = false
     @ObservationIgnored private var saveChain: Task<Void, Never>?
+    @ObservationIgnored private var consentNoticeShown: Set<String> = []
+    @ObservationIgnored private var keyRestarts: [String: [Date]] = [:]
+    @ObservationIgnored private var keyRestartRefused: Set<String> = []
+    /// The settings as last read from or written to the file (a change by anyone else is detected at the next scan).
+    @ObservationIgnored private var settingsOnDisk: PluginSettings?
     @ObservationIgnored private let launcher: PluginLauncher?
     @ObservationIgnored private let windows: WindowsModel
     @ObservationIgnored private let messages: MessagesModel
@@ -97,15 +102,23 @@ public final class PluginWindowsModel {
         let generation: Int = scanGeneration
         let scan: PluginCatalog.Scan = (try? await BlockingQueue.run { PluginCatalog.scan(root: root) })
             ?? PluginCatalog.Scan()
+        let dir: URL = dataDir
+        let onDisk: PluginSettings = (try? await BlockingQueue.run { PluginSettings.load(dataDir: dir) })
+            ?? PluginSettings()
         if !settingsLoaded {
-            let dir: URL = dataDir
-            let loaded: PluginSettings = (try? await BlockingQueue.run { PluginSettings.load(dataDir: dir) })
-                ?? PluginSettings()
-            if !settingsLoaded {
-                settingsLoaded = true
-                settings = loaded
-                shown.formUnion(loaded.docked)
+            settingsLoaded = true
+            settings = validated(onDisk, scan: scan)
+            settingsOnDisk = onDisk
+            if settings != onDisk {
+                saveSettings()
             }
+            shown.formUnion(settings.docked)
+        } else if let known = settingsOnDisk, onDisk != known, saveChain == nil {
+            // Changed by someone else while the app runs (a plugin could write it): the app's decisions win and
+            // are written back; the operator is told.
+            messages.add(language.tr("plugin-settings.json byl změněn mimo aplikaci — platí nastavení aplikace"),
+                         at: now())
+            saveSettings()
         }
         // A later scan started meanwhile: its result is the current one.
         guard generation == scanGeneration else { return }
@@ -206,33 +219,88 @@ public final class PluginWindowsModel {
         return settings.effectivePermissions(package.manifest)
     }
 
-    /// The consent sheet's answer (also Settings → Plugins): `granted` of the permissions needing a grant. The
-    /// plugin starts if one of its windows waits for it.
-    public func answerConsent(_ plugin: String, granted: [String]) {
-        setGrants(plugin, granted)
+    /// Opens the consent sheet for `plugin` (the operator's click on the banner or in Settings → Plugins; never
+    /// by itself, so the sheet never takes the keyboard in the middle of a QSO).
+    public func requestConsent(_ plugin: String) {
+        guard let package = catalog.package(plugin), settings.needsConsent(package.manifest) else { return }
+        consentRequest = plugin
+    }
+
+    /// The permissions the consent sheet asks about for `plugin` (the undecided ones).
+    public func consentPermissions(_ plugin: String) -> [String] {
+        guard let package = catalog.package(plugin) else { return [] }
+        return settings.undecided(package.manifest)
+    }
+
+    /// The consent sheet's answer: `granted` of the permissions it showed (`shown`); the rest of them is decided
+    /// as not granted. The plugin starts if it waits for it.
+    public func answerConsent(_ plugin: String, granted: [String], shown: [String]? = nil) {
+        guard let package = catalog.package(plugin) else { return }
+        let asked: [String] = shown ?? settings.undecided(package.manifest)
+        settings.decide(package.manifest, granted: granted, decided: asked)
+        saveSettings()
         if consentRequest == plugin {
-            consentRequest = sessions.values.first { $0.phase == .awaitingConsent && $0.package.id != plugin }?
-                .package.id
+            consentRequest = nil
         }
+        if let session = sessions[plugin], session.phase == .awaitingConsent, !settings.needsConsent(package.manifest) {
+            session.phase = .stopped
+            ensureRunning(plugin)
+        }
+    }
+
+    /// Sets the granted permissions (Settings → Plugins; every requested one counts as decided); a revoke applies
+    /// to every request answered from now on, also one already queued.
+    public func setGrants(_ plugin: String, _ granted: [String]) {
+        guard let package = catalog.package(plugin) else { return }
+        settings.decide(package.manifest, granted: granted, decided: package.manifest.permissionsNeedingGrant)
+        saveSettings()
         if let session = sessions[plugin], session.phase == .awaitingConsent {
             session.phase = .stopped
             ensureRunning(plugin)
         }
     }
 
-    /// Sets the granted permissions (Settings → Plugins); a revoke applies to the next request at once.
-    public func setGrants(_ plugin: String, _ granted: [String]) {
-        settings.setGranted(plugin, granted)
-        saveSettings()
-    }
-
     // MARK: - keys
 
-    /// Binds a key text (`KeyCombo` form) to a plugin action; `nil` removes the binding.
-    public func bindKey(plugin: String, action: String, key: String?) {
+    /// A key a plugin action may take: an allowed shortcut (`KeyCombo.isAllowedShortcut`) that is not Esc, Enter,
+    /// Tab, the space bar or a plain F1–F12 (the transmit and stop keys always stay the app's).
+    public static func isBindable(_ combo: KeyCombo) -> Bool {
+        guard combo.isAllowedShortcut else { return false }
+        let reserved: Set<Int32> = [AwtKeyCodes.vkEscape, AwtKeyCodes.vkEnter, AwtKeyCodes.vkTab, AwtKeyCodes.vkSpace]
+        if reserved.contains(combo.keyCode) {
+            return false
+        }
+        let plainFKey: Bool = combo.keyCode >= AwtKeyCodes.vkF1 && combo.keyCode <= AwtKeyCodes.vkF12
+            && !(combo.ctrl || combo.alt || combo.meta)
+        return !plainFKey
+    }
+
+    /// Binds a key text (`KeyCombo` form) to a plugin action; `nil` removes the binding. `nil` = done, else why not
+    /// (a key that may not be bound, or one another plugin action has).
+    @discardableResult
+    public func bindKey(plugin: String, action: String, key: String?) -> String? {
         let id: String = PluginSettings.actionKey(plugin: plugin, action: action)
-        settings.keys[id] = key.flatMap { KeyCombo.parse($0)?.format() }
+        guard let key else {
+            settings.keys[id] = nil
+            saveSettings()
+            return nil
+        }
+        guard let combo = KeyCombo.parse(key), Self.isBindable(combo) else {
+            return language.tr("Tuto klávesu nelze pluginu přiřadit")
+        }
+        if let other = settings.keys.first(where: { $0.key != id && KeyCombo.parse($0.value) == combo }) {
+            return language.tr("Klávesu už má akce %s", .string(other.key))
+        }
+        settings.keys[id] = combo.format()
         saveSettings()
+        return nil
+    }
+
+    /// The app's own shortcut on the key of a plugin action (shown as a conflict; the plugin's key wins).
+    public func keyConflict(plugin: String, action: String) -> String? {
+        let id: String = PluginSettings.actionKey(plugin: plugin, action: action)
+        guard let text = settings.keys[id], let combo = KeyCombo.parse(text) else { return nil }
+        return context.shortcutLabel(combo)
     }
 
     /// Whether the bound key keeps its own entry-window function too.
@@ -245,8 +313,9 @@ public final class PluginWindowsModel {
         saveSettings()
     }
 
-    /// The plugin action bound to `combo`, if any.
+    /// The plugin action bound to `combo`, if any (a key that may not be bound never matches).
     public func keyAction(for combo: KeyCombo) -> (plugin: String, action: String, passThrough: Bool)? {
+        guard Self.isBindable(combo) else { return nil }
         for (id, text) in settings.keys.sorted(by: { $0.key < $1.key }) where KeyCombo.parse(text) == combo {
             guard let slash = id.firstIndex(of: "/") else { continue }
             let plugin = String(id[..<slash])
@@ -258,21 +327,37 @@ public final class PluginWindowsModel {
     }
 
     /// The entry windows' hook (`EntryModel.pluginKeyHook`): `nil` when no plugin action is bound to `combo`; on the
-    /// press the action runs.
+    /// press the action runs. Esc never reaches a plugin (it always stops the transmission).
     public func handleKey(_ combo: KeyCombo, pressed: Bool) -> Bool? {
-        guard let bound = keyAction(for: combo) else { return nil }
+        guard combo.keyCode != AwtKeyCodes.vkEscape, let bound = keyAction(for: combo) else { return nil }
         if pressed {
             pressKey(plugin: bound.plugin, action: bound.action)
         }
         return bound.passThrough
     }
 
+    /// Automatic restarts by keys within a minute before a crashing plugin stays stopped (Restart starts it again).
+    public static let maxKeyRestartsPerMinute = 3
+
     /// A bound key was pressed: the plugin is started if needed (also one without windows; it then runs until the
-    /// quit) and gets `{"type":"key","action":…}`.
+    /// quit) and gets `{"type":"key","action":…}`. A plugin that keeps crashing is restarted by keys at most
+    /// `maxKeyRestartsPerMinute` times a minute.
     public func pressKey(plugin: String, action: String) {
         guard catalog.package(plugin)?.manifest.action(action) != nil else { return }
         if sessions[plugin]?.connection == nil {
             if let session = sessions[plugin], session.canRestart {
+                let current: Date = now()
+                let recent: [Date] = (keyRestarts[plugin] ?? []).filter { current.timeIntervalSince($0) < 60 }
+                guard recent.count < Self.maxKeyRestartsPerMinute else {
+                    keyRestarts[plugin] = recent
+                    if !keyRestartRefused.contains(plugin) {
+                        keyRestartRefused.insert(plugin)
+                        messages.add("[" + session.name + "] " + language.tr(
+                            "Plugin opakovaně padá — klávesa ho už nespustí, použij Restart"), at: now())
+                    }
+                    return
+                }
+                keyRestarts[plugin] = recent + [current]
                 session.phase = .stopped
             }
             ensureRunning(plugin)
@@ -320,12 +405,44 @@ public final class PluginWindowsModel {
 
     private func saveSettings() {
         let snapshot: PluginSettings = settings
+        settingsOnDisk = snapshot
         let dir: URL = dataDir
         let previous: Task<Void, Never>? = saveChain
-        saveChain = Task {
+        let task = Task { [weak self] in
             await previous?.value
             _ = try? await BlockingQueue.run { try snapshot.save(dataDir: dir) }
+            self?.saveFinished()
         }
+        saveChain = task
+    }
+
+    private func saveFinished() {
+        // The chain is idle again once its last write finished (a scan compares the file only then).
+        Task { [weak self] in
+            await self?.saveChain?.value
+            self?.saveChain = nil
+        }
+    }
+
+    /// Drops what the file may hold but the app never accepts: keys that may not be bound or are bound twice, and
+    /// docked windows of plugins or windows that no longer exist. Each dropped key is reported.
+    private func validated(_ loaded: PluginSettings, scan: PluginCatalog.Scan) -> PluginSettings {
+        var settings: PluginSettings = loaded
+        var seen: Set<KeyCombo> = []
+        for (id, text) in loaded.keys.sorted(by: { $0.key < $1.key }) {
+            guard let combo = KeyCombo.parse(text), Self.isBindable(combo), seen.insert(combo).inserted else {
+                settings.keys[id] = nil
+                messages.add(language.tr("Klávesa %s pro akci pluginu %s se nepoužije", .string(text), .string(id)),
+                             at: now())
+                continue
+            }
+            settings.keys[id] = combo.format()
+        }
+        settings.docked = loaded.docked.filter { key in
+            guard let parsed = PluginCatalog.parseWindowKey(key) else { return false }
+            return scan.package(parsed.plugin)?.manifest.window(parsed.window) != nil
+        }
+        return settings
     }
 
     /// Waits for the settings writes queued so far (tests).
@@ -364,6 +481,8 @@ public final class PluginWindowsModel {
     /// Restart after a crash or a hang.
     public func restart(_ plugin: String) {
         guard let session = sessions[plugin], session.canRestart else { return }
+        keyRestarts[plugin] = nil
+        keyRestartRefused.remove(plugin)
         session.phase = .stopped
         ensureRunning(plugin)
     }
@@ -423,8 +542,10 @@ public final class PluginWindowsModel {
         }
         if launcher != nil && settings.needsConsent(package.manifest) {
             session.phase = .awaitingConsent
-            if consentRequest == nil {
-                consentRequest = plugin
+            if !consentNoticeShown.contains(plugin) {
+                consentNoticeShown.insert(plugin)
+                messages.add("[" + session.name + "] " + language.tr(
+                    "Plugin čeká na povolení oprávnění — rozhodni v jeho okně nebo v Nastavení → Pluginy"), at: now())
             }
             return
         }
@@ -456,19 +577,9 @@ public final class PluginWindowsModel {
             "PYTHONUNBUFFERED": "1",
         ]
         let connection: any PluginConnection = launcher(session.package, environment, handlers)
-        do throws(ProcessRunnerError) {
-            try connection.start()
-        } catch {
-            session.phase = .failed(error.message)
-            messages.add("[" + session.name + "] " + language.tr("Plugin nelze spustit: %s", .string(error.message)),
-                         at: now())
-            return
-        }
         session.connection = connection
         session.inbox = inbox
         session.phase = .starting
-        router.add(plugin: plugin, generation: generation, events: session.package.manifest.events,
-                   connection: connection)
         let contest = context.contest()
         let rig: PluginRigState? = context.rig()
         let hello = PluginOutbound.Hello(
@@ -480,6 +591,49 @@ public final class PluginWindowsModel {
         session.helloTimer = clock.schedule(afterMilliseconds: Self.helloTimeoutMs) { [weak self, weak session] in
             guard let self, let session, session.generation == generation, session.phase == .starting else { return }
             self.markHung(session)
+        }
+        // The spawn (fork and exec) runs off the main actor; what is sent meanwhile waits in the session.
+        Task { [weak self] in
+            let failure: String?
+            do {
+                failure = try await BlockingQueue.run { () -> String? in
+                    do throws(ProcessRunnerError) {
+                        try connection.start()
+                        return nil
+                    } catch {
+                        return error.message
+                    }
+                }
+            } catch {
+                failure = "the start was cancelled"
+            }
+            self?.spawned(plugin: plugin, generation: generation, connection: connection, failure: failure)
+        }
+    }
+
+    private func spawned(plugin: String, generation: Int, connection: any PluginConnection, failure: String?) {
+        guard let session = sessions[plugin], session.generation == generation, !session.stopping,
+              session.connection === connection else {
+            // Stopped while it was being started: it must not stay running.
+            if failure == nil {
+                connection.kill()
+            }
+            return
+        }
+        if let failure {
+            _ = retire(session)
+            session.phase = .failed(failure)
+            messages.add("[" + session.name + "] " + language.tr("Plugin nelze spustit: %s", .string(failure)),
+                         at: now())
+            return
+        }
+        session.spawned = true
+        router.add(plugin: plugin, generation: generation, events: session.package.manifest.events,
+                   connection: connection)
+        let pending: [String] = session.pendingLines
+        session.pendingLines = []
+        for line in pending {
+            send(session, line)
         }
     }
 
@@ -526,6 +680,12 @@ public final class PluginWindowsModel {
     /// Sends a line; a full input is a hang, a closed one (the plugin closed its stdin) only ends the sending.
     private func send(_ session: PluginSession, _ line: String) {
         guard let connection = session.connection else { return }
+        guard session.spawned else {
+            if session.pendingLines.count < 64 {
+                session.pendingLines.append(line)
+            }
+            return
+        }
         switch connection.send(line) {
         case .sent:
             break
@@ -622,14 +782,16 @@ public final class PluginWindowsModel {
             return
         }
         session.inFlight += 1
-        let permissions: [String] = settings.effectivePermissions(session.package.manifest)
         let context: PluginHostContext = self.context
         let probe: (@Sendable (Bool) -> Void)? = readProbe
         let plugin: String = session.package.id
         Task { [weak self] in
+            // A plugin stopped meanwhile acts no more; a permission revoked meanwhile counts.
+            guard let self, let running = self.current(plugin, generation) else { return }
+            let permissions: [String] = self.settings.effectivePermissions(running.package.manifest)
             let result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
                                                 context: context, readProbe: probe)
-            guard let self, let session = self.current(plugin, generation) else { return }
+            guard let session = self.current(plugin, generation) else { return }
             session.inFlight -= 1
             switch result {
             case .success(let value):

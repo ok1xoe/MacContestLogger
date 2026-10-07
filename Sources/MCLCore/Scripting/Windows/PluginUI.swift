@@ -12,6 +12,8 @@ public struct PluginUIContent: Equatable, Sendable {
     public static let maxElements = 2_000
     /// Tabs inside tabs at most this deep.
     public static let maxDepth = 3
+    /// At most this many canvas shapes in the whole content (all canvases).
+    public static let maxShapesTotal = 10_000
 
     public var elements: [PluginUIElement]
     /// What was left out or cut (shown in the messages window once per kind).
@@ -35,6 +37,7 @@ public struct PluginUIContent: Equatable, Sendable {
     private struct Parser {
         var warnings: [String] = []
         var count = 0
+        var shapeCount = 0
 
         mutating func warn(_ text: String) {
             if !warnings.contains(text) {
@@ -118,6 +121,11 @@ public struct PluginUIContent: Equatable, Sendable {
                     warn("a canvas has more than \(PluginUICanvas.maxShapes) shapes: the rest is not drawn")
                     break
                 }
+                guard shapeCount < PluginUIContent.maxShapesTotal else {
+                    warn("more than \(PluginUIContent.maxShapesTotal) canvas shapes in all: the rest is not drawn")
+                    break
+                }
+                shapeCount += 1
                 if let parsed = self.shape(shape) {
                     shapes.append(parsed)
                 }

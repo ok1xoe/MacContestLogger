@@ -158,7 +158,9 @@ import Testing
         try PluginsModelTests.plugin(app, event: "app-quitting", name: "slow.sh",
                                      body: "sleep 30\ntouch '\(marker.path)'")
         try await app.app.startCqWwCw()
-        app.plugins.quitBoundMs = 2_000
+        // The deadline leaves the recorder ample time on a loaded runner (a 2 s bound cut it off under a full
+        // parallel run); the slow plugin's 30 s are still far beyond it.
+        app.plugins.quitBoundMs = 8_000
         let started = Date()
         await app.model.shutdown()
         let elapsed: TimeInterval = Date().timeIntervalSince(started)
@@ -167,7 +169,7 @@ import Testing
         #expect(payload["version"] as? String == "9.9.9-test")
         #expect((payload["contestId"] as? String)?.isEmpty == false)
         #expect(!FileManager.default.fileExists(atPath: marker.path), "the slow plugin was cut off")
-        #expect(elapsed < 25, "the quit waited far beyond the 2 s deadline plus the normal quit work")
+        #expect(elapsed < 25, "the quit waited far beyond the 8 s deadline plus the normal quit work")
     }
 
     // MARK: - band, mode, frequency

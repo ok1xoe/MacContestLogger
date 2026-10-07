@@ -134,6 +134,10 @@ extension AppModel {
             feed?.snapshot() ?? []
         }
         context.actions = pluginActions(model)
+        context.shortcutLabel = { [weak config = model.config] combo in
+            guard let config else { return nil }
+            return KeyBindings(config.config.keyBindings).resolve(combo)?.label
+        }
         return context
     }
 
@@ -151,7 +155,12 @@ extension AppModel {
                                                 mode: entry.form.mode.rawValue, radio: entry.vfo)
         }
         actions.setCall = { [weak model] call in
-            model?.activeEntry?.callChanged(call)
+            guard let entry = model?.activeEntry else { return noEntry }
+            // A text Enter would run as a command (SCRIPT, ESM, SPOTME, a QSY…) is never typed by a plugin.
+            guard !EntryCommandPlan.isCommand(call, currentFreqHz: entry.form.freqHz, otherVfoHz: entry.otherVfoHz)
+            else { return "the text is a command" }
+            entry.callChanged(call)
+            return nil
         }
         actions.setExchange = { [weak model] values in
             guard let entry = model?.activeEntry else { return Array(values.keys) }
@@ -167,7 +176,7 @@ extension AppModel {
             return unknown
         }
         actions.wipe = { [weak model] in
-            model?.activeEntry?.wipe()
+            model?.activeEntry?.wipe(focus: false)
         }
         actions.log = { [weak model] in
             guard let entry = model?.activeEntry else { return noEntry }
@@ -183,7 +192,7 @@ extension AppModel {
         }
         actions.qsy = { [weak model] hz, mode in
             guard let entry = model?.activeEntry else { return noEntry }
-            entry.qsy(toKHz: Double(hz) / 1000, mode: mode ?? entry.form.mode)
+            entry.qsy(toKHz: Double(hz) / 1000, mode: mode ?? entry.form.mode, focus: false)
             return nil
         }
         actions.setMode = { [weak model] mode in

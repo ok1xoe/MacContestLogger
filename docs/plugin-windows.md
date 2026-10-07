@@ -79,12 +79,20 @@ Problems in `plugin.json` (bad JSON, a missing field, an unknown event) appear i
 | `spots.send` | `spots.send`: a spot to the **public** DX cluster network (needs `spots` too) | operator's grant, off by default |
 | `app.command` | `app.command`: call-field text commands — never one that can transmit, reach a network, run scripts or destroy data | operator's grant |
 
-The first time a plugin that asks for a permission needing a grant starts, a sheet over the main window lists those
-permissions (all checked except `spots.send`): **Povolit vybrané** grants the checked ones, **Odmítnout vše** none —
-the plugin then starts with `read` and `ui` and gets the `permission` error for the rest. The decision is kept in
-`plugin-settings.json` in the data directory; Settings → **Pluginy** shows every plugin with its permissions and
-grants or revokes them at any time (a revoke applies to the next request). The `hello` message lists the permissions
-granted now.
+A plugin that asks for a permission needing a grant waits until the operator decides: its window shows a banner with
+**Rozhodnout o oprávněních…** (and the messages window says so once). The sheet opens only on that click or from
+Settings → **Pluginy** — never by itself, so it never takes the keyboard in the middle of a QSO. It lists the
+undecided permissions (checked, except `spots.send`, `cat` and `transmit`): **Povolit vybrané** grants the checked
+ones, **Odmítnout vše** none — the plugin then starts with `read` and `ui` and gets the `permission` error for the
+rest. Settings → Pluginy grants or revokes at any time; a revoke applies to every request answered from then on, also
+one already queued. The `hello` message lists the permissions granted now.
+
+- Decisions are kept per permission in `plugin-settings.json` in the data directory, keyed by the plugin's directory
+  **and** its manifest `name`: another plugin put into the same directory inherits nothing, and a plugin whose
+  manifest asks for a new permission waits again — the sheet asks only for the new one.
+- The consent is the operator's protection against a plugin acting beyond what they expect, not a security boundary:
+  a plugin is a program running as you and could edit `plugin-settings.json` itself. The app notices a change of
+  that file while it runs, says so in the messages window and writes its own decisions back.
 
 ## Lifecycle
 
@@ -217,12 +225,12 @@ reason (no active entry window, the call field holds a command, not connected, �
 | Method | Params | Does |
 |---|---|---|
 | `entry.getCall` | — | `{"call","exchange":{id: value},"freqHz","mode","radio"}` of the active entry window |
-| `entry.setCall` | `call` | types the call (as typing does) |
+| `entry.setCall` | `call` | types the call (as typing does): letters, digits and `/` only; a text Enter would run as a command (`ESM`, `CW`, a frequency…) is refused |
 | `entry.setExchange` | `fields`: `{id: value}` | fills exchange fields; answers `unknown` with the ids the contest does not have |
 | `entry.wipe` | — | wipes the entry (as Esc) |
 | `entry.log` | — | logs the QSO as Enter without ESM — never transmits; refused when the call field holds a command |
 | `entry.status` | `text` | shows a text in the status line |
-| `rig.qsy` | `freqHz`, `mode` (optional) | QSY of the active entry window (its rig follows through CAT) |
+| `rig.qsy` | `freqHz` (inside an amateur band), `mode` (optional) | QSY of the active entry window (its rig follows through CAT); the focus stays where it is |
 | `rig.setMode` | `mode` | mode of the active entry window |
 | `rig.split` | `txFreqHz`, or `off: true` | split as the `SPLIT` command |
 | `rig.rit` | `offsetHz` (±99 999) | RIT as the `RIT` command |
@@ -232,8 +240,8 @@ reason (no active entry window, the call field holds a command, not connected, �
 | `spots.remove` | `call`, `blacklist` | removes every spot of the call (optionally onto the blacklist); `{"removed": bool}` |
 | `spots.mark` | `freqHz` | a `MARK` spot |
 | `spots.blacklist` | `call` | puts the call on the blacklist |
-| `spots.send` | `call`, `freqHz`, `comment` | sends a spot to the DX cluster (as Spot It with a comment) — public |
-| `app.command` | `text` | runs a call-field text command; refused: `RPT` (CQ repeat on), `ESM`, `SPOTME`, `SCRIPT`, `CLEARLOG`, `CLEARLOGNOW`, `EXIT`, `EXITNOW`, `RESET`, `BCLOG`, the network on/off commands, and any text that is not a command |
+| `spots.send` | `call`, `freqHz`, `comment` | sends a spot to the DX cluster (as Spot It with a comment) — public. The call must be a callsign, the comment plain text (no control characters, at most 60) |
+| `app.command` | `text` | runs a call-field text command. Allowed only: a QSY or frequency, the other VFO, `SPLIT`/`NOSPLIT`, `RIT`, `SWAP`, a mode, `NOESM`, `NORPT`, `WORKDUPE`/`NOWORKDUPE`, `VERSION`, `RESCORE`, `REOPEN`, `DEBUGCAT`; everything else (anything that can transmit, reach a network, run scripts, change the configuration, the operator, the contest or the log, or open a dialog) is refused |
 
 Error codes: `unknown_method`, `permission`, `invalid_params`, `refused`, `unavailable` (no logbook open), `busy`
 (more than 4 requests at once), `failed`.
@@ -244,8 +252,11 @@ Error codes: `unknown_method`, `permission`, `invalid_params`, `refused`, `unava
 {"type":"key","action":"last-call","phase":"press"}
 ```
 Settings → Keys lists every plugin action: **Změnit** captures a key, **Žádná** removes it, and *Ponechat i původní
-funkci klávesy* lets the key keep its own entry-window function too (otherwise the plugin's key replaces it). A
-plugin key wins over the app's own shortcut on the same key. Keys act while an entry field has the focus.
+funkci klávesy* lets the key keep its own entry-window function too (otherwise the plugin's key replaces it; the
+list shows a conflict with the app's own shortcut). Esc, Enter, Tab, the space bar and plain F1–F12 are never a
+plugin's — the stop and transmit keys always stay the app's; a key is never bound to two plugin actions. Keys act
+while an entry field has the focus. A plugin that keeps crashing is restarted by its keys at most 3 times a minute;
+after that only Restart starts it.
 
 ## The Python helper
 

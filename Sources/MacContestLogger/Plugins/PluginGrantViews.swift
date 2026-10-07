@@ -58,7 +58,7 @@ private struct PluginGrantRow: View {
         let model: PluginWindowsModel = app.pluginWindows
         let language: LanguageModel = app.language
         let manifest: PluginManifest = package.manifest
-        let granted: Set<String> = Set(model.settings.grants[package.id] ?? [])
+        let granted: Set<String> = Set(model.settings.grants[PluginSettings.identity(manifest)] ?? [])
         VStack(alignment: .leading, spacing: 4) {
             SettingsText(manifest.name + (manifest.version.map { " " + $0 } ?? "") + " (" + package.id + ")",
                          weight: .semibold)
@@ -77,6 +77,11 @@ private struct PluginGrantRow: View {
             if manifest.permissions.contains("spots.send") {
                 SettingsCaption(language.tr(
                     "Odeslaný spot uvidí celá síť DX clusteru. Povol jen pluginu, kterému věříš."))
+            }
+            if model.settings.needsConsent(manifest) {
+                SettingsButton(language.tr("Rozhodnout o oprávněních…")) {
+                    model.requestConsent(package.id)
+                }
             }
             if !manifest.unsupportedPermissions.isEmpty {
                 SettingsText(language.tr("Plugin vyžaduje oprávnění, které tato verze neumí: %s",
@@ -101,7 +106,9 @@ struct PluginConsentPresenter: ViewModifier {
         let model: PluginWindowsModel = app.pluginWindows
         content.sheet(isPresented: Binding(get: { model.consentRequest != nil }, set: { _ in })) {
             if let plugin = model.consentRequest, let package = model.catalog.package(plugin) {
-                PluginConsentSheet(app: app, package: package)
+                // A fresh sheet state for every plugin: no checkbox of one plugin carries over to the next.
+                PluginConsentSheet(app: app, package: package, permissions: model.consentPermissions(plugin))
+                    .id(plugin)
             }
         }
     }
@@ -110,25 +117,29 @@ struct PluginConsentPresenter: ViewModifier {
 private struct PluginConsentSheet: View {
     let app: AppModel
     let package: PluginPackage
+    /// The undecided permissions the sheet asks about.
+    let permissions: [String]
     @StateObject private var fontSize = ViewState<Int>(WindowFont.defaultSize)
     @StateObject private var chosen = ViewState<Set<String>?>(nil)
 
     var body: some View {
         let language: LanguageModel = app.language
         let manifest: PluginManifest = package.manifest
-        let selection: Set<String> = chosen.value ?? Set(manifest.permissionsNeedingGrant.filter { $0 != "spots.send" })
+        let selection: Set<String> = chosen.value
+            ?? Set(permissions.filter { !PluginManifest.offByDefault.contains($0) })
         VStack(alignment: .leading, spacing: 10) {
             WindowTopBar(size: $fontSize.value, language: language)
             Text(verbatim: language.tr("Plugin %s žádá o oprávnění", .string(manifest.name)))
                 .windowFont(15, weight: .bold)
-            ForEach(manifest.permissionsNeedingGrant, id: \.self) { permission in
+            ForEach(permissions, id: \.self) { permission in
                 SettingsCheckbox(label: PluginPermissionText.label(permission, language: language),
                                  isOn: Binding(get: { selection.contains(permission) }, set: { on in
                                      var next: Set<String> = selection
                                      if on { next.insert(permission) } else { next.remove(permission) }
                                      chosen.value = next
                                  }),
-                                 enabled: permission != "spots.send" || selection.contains("spots"))
+                                 enabled: permission != "spots.send" || selection.contains("spots")
+                                     || app.pluginWindows.effectivePermissions(package.id).contains("spots"))
             }
             if manifest.permissions.contains("spots.send") {
                 SettingsCaption(language.tr(
@@ -138,10 +149,10 @@ private struct PluginConsentSheet: View {
             HStack {
                 Spacer(minLength: 0)
                 SettingsButton(language.tr("Odmítnout vše")) {
-                    app.pluginWindows.answerConsent(package.id, granted: [])
+                    app.pluginWindows.answerConsent(package.id, granted: [], shown: permissions)
                 }
                 SettingsButton(language.tr("Povolit vybrané")) {
-                    app.pluginWindows.answerConsent(package.id, granted: Array(selection))
+                    app.pluginWindows.answerConsent(package.id, granted: Array(selection), shown: permissions)
                 }
             }
         }
@@ -168,6 +179,7 @@ struct PluginKeysGroup: View {
     let app: AppModel
     @EnvironmentObject private var keys: KeyCaptureMonitor
     @StateObject private var capturing = ViewState<String?>(nil)
+    @StateObject private var hint = ViewState<String>("")
 
     var body: some View {
         let model: PluginWindowsModel = app.pluginWindows
@@ -187,7 +199,10 @@ struct PluginKeysGroup: View {
                                     .windowFont(13)
                                     .foregroundStyle(.tint)
                             } else {
-                                SettingsText(model.settings.keys[id] ?? "—")
+                                let conflict: String? = model.keyConflict(plugin: row.plugin.id, action: row.action.id)
+                                SettingsText((model.settings.keys[id] ?? "—")
+                                             + (conflict.map { " — " + language.tr("kolize s %s", .string($0)) } ?? ""),
+                                             isError: conflict != nil)
                             }
                             SettingsButton(language.tr("Změnit"), borderless: true) {
                                 capture(id, plugin: row.plugin.id, action: row.action.id)
@@ -204,6 +219,9 @@ struct PluginKeysGroup: View {
                         }
                     }
                 }
+                if !hint.value.isEmpty {
+                    SettingsText(hint.value, size: 12, isError: true)
+                }
             }
         }
     }
@@ -217,7 +235,7 @@ struct PluginKeysGroup: View {
             case .ignored, .rejected:
                 break
             case .accepted(let text):
-                app.pluginWindows.bindKey(plugin: plugin, action: action, key: text)
+                hint.value = app.pluginWindows.bindKey(plugin: plugin, action: action, key: text) ?? ""
                 finish()
             }
         }
