@@ -158,7 +158,9 @@ import Testing
         try PluginsModelTests.plugin(app, event: "app-quitting", name: "slow.sh",
                                      body: "sleep 30\ntouch '\(marker.path)'")
         try await app.app.startCqWwCw()
-        app.plugins.quitBoundMs = 2_000
+        // The deadline leaves the recorder ample time on a loaded runner (2 s cut it off in a full parallel run);
+        // the slow plugin's 30 s are still far beyond it.
+        app.plugins.quitBoundMs = 8_000
         await app.model.shutdown()
         #expect(Self.count(out, "app-quitting") == 1)
         let payload = try #require(Self.payloads(out, "app-quitting").first)
