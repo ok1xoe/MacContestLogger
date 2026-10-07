@@ -44,7 +44,8 @@ final class PluginEventRouter: Sendable {
         let receivers: [Target] = targets.withLock { list in list.filter { $0.events.contains(name) } }
         guard !receivers.isEmpty else { return }
         let line: String = PluginOutbound.event(name, json: json)
-        for target in receivers where !target.connection.send(line) && target.connection.isRunning {
+        // A closed input (the plugin closed it, or it ended) just stops the events; a full one is a hang.
+        for target in receivers where target.connection.send(line) == .full {
             let report = onBackpressure.withLock { $0 }
             let plugin: String = target.plugin
             let generation: Int = target.generation

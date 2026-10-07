@@ -401,7 +401,7 @@ import Testing
         var iterator = stream.makeAsyncIterator()
         #expect(await iterator.next() == .message(.ready))
         #expect(process.isRunning)
-        #expect(process.send("{\"type\":\"event\"}"))
+        #expect(process.send("{\"type\":\"event\"}") == .sent)
         // Stdout and stderr are separate pipes: their lines may come in either order.
         var rest: [Seen] = []
         var sentEnd = false
@@ -423,7 +423,7 @@ import Testing
         #expect(rest.contains(.error("malformed JSON")))
         #expect(rest.last == .exited(4))
         #expect(!process.isRunning)
-        #expect(!process.send("late"))
+        #expect(process.send("late") == .closed)
     }
 
     /// `terminate` ends a plugin that ignores `SIGTERM` and its input's end with `SIGKILL` after the grace.
@@ -448,11 +448,97 @@ import Testing
         #expect(last == .exited(128 + SIGKILL))
     }
 
+    /// Waits for the end of `stream` (the `exited` event), telling `ready` when the plugin's `ready` came, or gives
+    /// up after a generous safety bound (a hang must fail, not stall the run; this is not a speed check).
+    static func exitCode(_ stream: AsyncStream<Seen>, ready: AsyncStream<Void>.Continuation) async -> Int32? {
+        await withTaskGroup(of: Int32?.self) { group in
+            group.addTask {
+                var code: Int32?
+                for await seen in stream {
+                    if seen == .message(.ready) { ready.yield() }
+                    if case .exited(let value) = seen { code = value }
+                }
+                return code
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 120_000_000_000)
+                return nil
+            }
+            let first: Int32? = await group.next() ?? nil
+            group.cancelAll()
+            return first
+        }
+    }
+
+    /// The stop's `SIGKILL` fallback fires although nobody holds the process object any more.
+    @Test func theKillFallbackFiresWithoutAnyHolder() async throws {
+        let dir: String = try #require(ScriptingFixture.makeDirectory())
+        defer { ScriptingFixture.remove(dir) }
+        let made: (PluginProcess, AsyncStream<Seen>) = Self.process(dir, """
+            trap '' TERM
+            echo '{"type":"ready"}'
+            exec sleep 600
+            """)
+        var process: PluginProcess? = made.0
+        try process?.start()
+        let (readyStream, readyContinuation) = AsyncStream<Void>.makeStream()
+        async let code: Int32? = Self.exitCode(made.1, ready: readyContinuation)
+        for await _ in readyStream { break }
+        process?.terminate(graceMs: 50)
+        process = nil
+        #expect(await code == 128 + SIGKILL)
+    }
+
+    /// A plugin that never reads: the sender is never blocked, the unread input stays bounded and `send` says
+    /// `full`.
+    @Test func aPluginThatDoesNotReadNeverBlocksTheSender() async throws {
+        let dir: String = try #require(ScriptingFixture.makeDirectory())
+        defer { ScriptingFixture.remove(dir) }
+        let (process, stream) = Self.process(dir, """
+            echo '{"type":"ready"}'
+            exec sleep 600
+            """)
+        try process.start()
+        var iterator = stream.makeAsyncIterator()
+        #expect(await iterator.next() == .message(.ready))
+        let line = String(repeating: "x", count: 65_535)
+        var results: [PluginSendResult] = []
+        for _ in 0..<(2 * PluginProcess.maxPendingInputBytes / 65_536) {
+            results.append(process.send(line))
+        }
+        #expect(results.contains(.full))
+        #expect(!results.contains(.closed))
+        #expect(process.pendingInputBytes <= PluginProcess.maxPendingInputBytes)
+        process.kill()
+        await process.waitForExit()
+    }
+
+    /// A plugin that closes its own input: the write fails with a broken pipe and `send` says `closed`, not `full`.
+    @Test func aPluginThatClosesItsInputIsClosedNotFull() async throws {
+        let dir: String = try #require(ScriptingFixture.makeDirectory())
+        defer { ScriptingFixture.remove(dir) }
+        let (process, stream) = Self.process(dir, """
+            exec 0<&-
+            echo '{"type":"ready"}'
+            exec sleep 600
+            """)
+        try process.start()
+        var iterator = stream.makeAsyncIterator()
+        #expect(await iterator.next() == .message(.ready))
+        #expect(process.send("{\"type\":\"event\"}") == .sent)
+        await process.settleInput()
+        #expect(process.inputBroken)
+        #expect(process.send("again") == .closed)
+        #expect(process.isRunning)
+        process.kill()
+        await process.waitForExit()
+    }
+
     @Test func aMissingExecutableDoesNotStart() throws {
         let process = PluginProcess(executable: "/nonexistent/run", directory: "/", environment: [:],
                                     handlers: PluginProcess.Handlers(message: { _ in }, protocolError: { _ in },
                                                                      stderr: { _ in }, exited: { _ in }))
         #expect(throws: ProcessRunnerError.self) { try process.start() }
-        #expect(!process.send("x"))
+        #expect(process.send("x") == .closed)
     }
 }

@@ -37,7 +37,10 @@ public final class PluginSession {
     @ObservationIgnored var generation: Int = 0
     @ObservationIgnored var helloTimer: (any RescoreTimer)?
     @ObservationIgnored var stopping = false
-    @ObservationIgnored var outputBudget: Int = 0
+    @ObservationIgnored var inbox: PluginInbox?
+    /// Requests being answered.
+    @ObservationIgnored var inFlight = 0
+    @ObservationIgnored var inputClosedReported = false
     @ObservationIgnored var reportedErrors: Set<String> = []
     @ObservationIgnored private var pending: [String: PluginUIContent] = [:]
     @ObservationIgnored private var throttleTimer: (any RescoreTimer)?
@@ -96,7 +99,8 @@ public final class PluginSession {
         helloTimer?.cancel()
         helloTimer = nil
         reportedErrors = []
-        outputBudget = PluginWindowsModel.outputLinesPerRun
+        inFlight = 0
+        inputClosedReported = false
         stopping = false
     }
 

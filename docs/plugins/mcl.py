@@ -111,8 +111,10 @@ class Plugin:
         """A line in the app's messages window."""
         self.send({"type": "log", "text": str(text)})
 
-    def request(self, method, timeout=30, **params):
-        """Asks the app (read only in protocol 1) and returns the result; raises PluginError on an error answer."""
+    def request(self, method, _timeout=30, **params):
+        """Asks the app (read only in protocol 1) and returns the result; raises PluginError on an error answer.
+
+        `_timeout` (seconds) has a leading underscore so that it never clashes with a request parameter."""
         with self._id_lock:
             request_id = self._next_id
             self._next_id += 1
@@ -120,7 +122,7 @@ class Plugin:
             self._waiting[request_id] = slot
         self.send({"type": "request", "id": request_id, "method": method, "params": params})
         try:
-            answer = slot.get(timeout=timeout)
+            answer = slot.get(timeout=_timeout)
         except queue.Empty:
             raise PluginError("timeout", f"no answer to {method}") from None
         finally:

@@ -60,7 +60,7 @@ plugins/
 | `version` | Free text. |
 | `permissions` | What the plugin may do. Protocol 1 knows `read` (the requests) and `ui` (its windows). **Any other permission → the plugin is not started** and the messages window says it needs a permission this version does not support. |
 | `events` | The events the plugin receives (the directory names of [the event table](scripting.md#plugins)). Nothing else is sent. |
-| `run` | The executable, relative to the plugin directory (default `run`; no `..`). |
+| `run` | The executable, relative to the plugin directory (default `run`; no `..`). It may be a symbolic link, also to a program elsewhere — the plugin directory is yours, the app runs what you put there. |
 | `windows` | 1–8 windows: `id` (letters, digits, `-`, `_`, `.`), `title` (default: `name`), `size` `[width, height]` for the first opening (later the window keeps the size you give it). |
 
 Problems in `plugin.json` (bad JSON, a missing field, an unknown event) appear in the messages window as
@@ -82,6 +82,11 @@ Problems in `plugin.json` (bad JSON, a missing field, an unknown event) appear i
 - **Crash:** the window keeps its last content under a banner *Plugin skončil (kód N)* with **Restart**.
 - **Hung:** no answer to `hello` in 10 s, or the plugin does not read its input (more than 1 MiB waits unread): it is
   stopped, the banner says so, **Restart** starts it again.
+- **Closed input:** a plugin may close its own stdin; the app then stops sending it events and window interactions
+  (it is not treated as hung) and keeps showing what it sets.
+- **Fast output:** the app reads at its own pace. `set` messages of one window are coalesced (the latest wins);
+  other messages queue, and while 32 wait the app stops reading, so a plugin that writes faster than the app
+  handles blocks on its own output.
 - **Off:** with `MCL_INERT_HARDWARE` or `MCL_INERT_NETWORK` set, no plugin starts (the window says so).
 
 ## Messages
@@ -127,9 +132,12 @@ with the same throttling (`frequency-changed` after 1 s, `score-changed` coalesc
 {"type":"request","id":7,"method":"log.count","params":{"band":"20m"}}
 {"type":"log","text":"something worth seeing"}
 ```
-- `set` replaces the whole content of one of the plugin's windows. A window renders at most **5 times a second**:
-  a burst of `set`s shows the latest one.
+- `set` replaces the whole content of one of the plugin's windows and needs the `ui` permission (without it the
+  message is ignored and reported). A window renders at most **5 times a second**: a burst of `set`s shows the latest
+  one.
 - `request` — `id` is a number or a text, echoed in the response; requests may overlap, answers may come in any order.
+  At most **4** requests of a plugin are answered at a time; a further one gets the `busy` error at once (send it
+  again after an answer came).
 - `log` puts `[<name>] text` into the messages window (cut at 500 characters). **Stderr** lines go there too. At most
   500 such lines per run are shown, then one notice.
 
@@ -166,7 +174,7 @@ shown.
 | `spots.list` | `band` | `{"spots":[{"dxCall","freqHz","band","spotter","comment"}]}` newest first, at most 2 000 |
 
 `contest.multipliers` answers `not_implemented` in protocol 1. Error codes: `unknown_method`, `permission`,
-`invalid_params`, `unavailable` (no logbook open), `not_implemented`, `failed`. The database is read off the app's main
+`invalid_params`, `unavailable` (no logbook open), `busy` (more than 4 requests at once), `not_implemented`, `failed`. The database is read off the app's main
 thread; a request never changes anything.
 
 ## The Python helper
@@ -190,7 +198,7 @@ plugin.run()
 ```
 
 Handlers run one at a time in the order the app sent the messages; `request` blocks until the answer comes (the
-answers are read on a background thread). `mcl.text`, `table`, `row`, `cell`, `column`, `list_`, `item`, `button`,
+answers are read on a background thread; `_timeout=` sets the wait in seconds, 30 by default). `mcl.text`, `table`, `row`, `cell`, `column`, `list_`, `item`, `button`,
 `toggle`, `progress`, `tabs` and `tab` build the elements.
 
 ## Roadmap

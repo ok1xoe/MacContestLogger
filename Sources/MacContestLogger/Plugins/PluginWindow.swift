@@ -154,7 +154,8 @@ private struct PluginElementView: View {
                     Text(verbatim: label).windowFont(12).foregroundStyle(.secondary)
                 }
                 ProgressView(value: value, total: max > 0 ? max : 1)
-                    .accessibilityLabel(Text(verbatim: label ?? ""))
+                    .accessibilityLabel(Text(verbatim: label ?? PluginProgressText.value(value, max: max)))
+                    .accessibilityValue(Text(verbatim: PluginProgressText.value(value, max: max)))
             }
         case .tabs(let id, let tabs):
             PluginTabsView(id: id, tabs: tabs, actions: actions)
@@ -172,6 +173,16 @@ private struct PluginStyledText: View {
         Text(verbatim: text)
             .windowFont(base, weight: style == .title ? .bold : .regular)
             .foregroundStyle(PluginStyleColor.color(style))
+    }
+}
+
+/// The spoken value of a progress element (also its label when the plugin gave none): `3 / 10`.
+enum PluginProgressText {
+    static func value(_ value: Double, max: Double) -> String {
+        func number(_ x: Double) -> String {
+            x.rounded() == x && abs(x) < 1e15 ? String(Int64(x)) : String(format: "%.1f", x)
+        }
+        return number(value) + " / " + number(max)
     }
 }
 

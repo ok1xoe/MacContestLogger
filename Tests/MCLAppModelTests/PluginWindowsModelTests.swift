@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 @testable import MCLAppModel
 @testable import MCLCore
@@ -493,5 +494,230 @@ import Testing
         #expect(sent[2]["action"] == .string("select"))
         #expect(sent[2]["value"] == .string("a"))
         await model.shutdown()
+    }
+
+    // MARK: - review fixes
+
+    static func pid(_ dir: URL) -> Int32? {
+        lines(dir.appendingPathComponent("pid")).first.flatMap { Int32($0) }
+    }
+
+    static func alive(_ pid: Int32) -> Bool {
+        kill(pid, 0) == 0
+    }
+
+    /// Closing the window of a plugin that ignores `SIGTERM` still ends it: the model holds the stopped process
+    /// until it exits, and the kill fallback fires.
+    @Test func closingTheWindowEndsAStubbornPlugin() async throws {
+        let app = try await IntegrationApp.make()
+        let dir: URL = try Self.plugin(app, body: """
+            trap '' TERM
+            echo $$ > pid
+            IFS= read -r hello
+            \(Self.setText("up"))
+            exec sleep 600
+            """)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.open(Self.key)
+        await eventually("up") { Self.shownText(model.session("demo")) == "up" }
+        let pid: Int32 = try #require(Self.pid(dir))
+        model.windowClosed(Self.key)
+        #expect(model.retiring.count == 1)
+        await eventually("killed and reaped") { model.retiring.isEmpty && !Self.alive(pid) }
+        #expect(model.session("demo")?.phase == .stopped)
+    }
+
+    /// A late exit of an earlier run never touches a later run, even when the session was replaced because the
+    /// manifest changed (one generation counter for every run).
+    @Test func aLateExitOfAnEarlierRunLeavesTheNewRunAlone() async throws {
+        let app = try await IntegrationApp.make()
+        let body: String = "trap '' TERM\nIFS= read -r hello\n" + Self.setText("up") + "\nexec sleep 600"
+        try Self.plugin(app, body: body)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.open(Self.key)
+        await eventually("first run") { Self.shownText(model.session("demo")) == "up" }
+        // A changed manifest (another permission set), then close and reopen: a new session object.
+        try Self.plugin(app, permissions: ["ui", "read"], body: "IFS= read -r hello\n" + Self.setText("second")
+                        + "\n" + Self.echoLoop)
+        await model.rescan()
+        model.windowClosed(Self.key)
+        model.open(Self.key)
+        await eventually("second run") { Self.shownText(model.session("demo")) == "second" }
+        await eventually("the first run ended") { model.retiring.isEmpty }
+        await drainMainQueue()
+        #expect(model.session("demo")?.phase == .running)
+        await model.shutdown()
+    }
+
+    /// A plugin flooding `set` and `log`: the latest content wins, the messages stay within the run's budget, and
+    /// the hops to the main actor stay far below the number of lines.
+    @Test func aFloodingPluginIsCoalescedAndBounded() async throws {
+        let app = try await IntegrationApp.make()
+        try Self.plugin(app, body: """
+            IFS= read -r hello
+            i=0
+            while [ $i -lt 3000 ]; do
+              echo '{"type":"set","window":"main","content":{"elements":[{"type":"text","text":"busy"}]}}'
+              echo '{"type":"log","text":"line"}'
+              i=$((i + 1))
+            done
+            \(Self.setText("last"))
+            \(Self.echoLoop)
+            """)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.open(Self.key)
+        let inbox: PluginInbox = try #require(model.session("demo")?.inbox)
+        await eventually("answered") { model.session("demo")?.phase == .running }
+        // The render throttle runs on the manual clock: let it render whatever is pending until the last content
+        // (the hello timeout is past once the plugin answered).
+        await eventually("last content") {
+            app.integrationClock.advance(by: PluginWindowsModel.renderIntervalMs)
+            return Self.shownText(model.session("demo")) == "last"
+        }
+        let lines: Int = Self.texts(app).filter { $0 == "[demo] line" }.count
+        // (the messages window keeps only its latest lines, so the count is bounded rather than exact here)
+        #expect(lines > 0 && lines <= PluginWindowsModel.outputLinesPerRun)
+        #expect(Self.texts(app).contains("[demo] další výstup pluginu se nezobrazuje"))
+        #expect(inbox.hopCount < 6_000)
+        await model.shutdown()
+    }
+
+    /// The inbox, driven from the main thread without letting the main queue run: one hop for any number of
+    /// messages, the latest `set` per window, the output budget applied before the hop.
+    @Test func theInboxCoalescesIntoOneHop() async {
+        let delivered = Box<[PluginInbox.Batch]>([])
+        let inbox = PluginInbox(outputBudget: 3) { batch in delivered.value.append(batch) }
+        for index in 0..<1_000 {
+            inbox.receive(.set(window: "main", content: PluginUIContent(elements: [.text(String(index), style: .normal)])))
+        }
+        inbox.receive(.set(window: "side", content: PluginUIContent()))
+        for _ in 0..<10 {
+            inbox.receive(.log("x"))
+            inbox.stderr("e")
+        }
+        inbox.protocolError("bad")
+        inbox.protocolError("bad")
+        #expect(inbox.hopCount == 1)
+        await drainMainQueue()
+        #expect(delivered.value.count == 1)
+        let batch: PluginInbox.Batch = delivered.value[0]
+        #expect(batch.sets.map(\.window) == ["main", "side"])
+        #expect(batch.sets.first?.content.elements == [.text("999", style: .normal)])
+        #expect(batch.items == [.output("x"), .output("e"), .output("x"), .outputSuppressed, .protocolError("bad")])
+    }
+
+    /// Past `maxQueued` messages the reader blocks until the main actor took them (the plugin's output pauses).
+    @Test func theInboxPausesTheReaderWhenFull() async {
+        let delivered = Box<Int>(0)
+        let inbox = PluginInbox(outputBudget: 10) { batch in delivered.value += batch.items.count }
+        let sent = OSAllocatedUnfairLock(initialState: 0)
+        let reader = Thread {
+            for index in 0..<(PluginInbox.maxQueued + 10) {
+                inbox.receive(.request(id: .int(Int64(index)), method: "log.count", params: [:]))
+                sent.withLock { $0 += 1 }
+            }
+        }
+        reader.start()
+        // The main actor is held here (no await): no hop can run, so the reader must stop at the limit.
+        while sent.withLock({ $0 }) < PluginInbox.maxQueued {
+            sched_yield()
+        }
+        for _ in 0..<10_000 {
+            sched_yield()
+        }
+        #expect(sent.withLock { $0 } == PluginInbox.maxQueued)
+        #expect(delivered.value == 0)
+        await eventually("all delivered") { delivered.value == PluginInbox.maxQueued + 10 }
+        #expect(sent.withLock { $0 } == PluginInbox.maxQueued + 10)
+        inbox.close()
+    }
+
+    /// At most `maxRequestsInFlight` requests are answered at a time; the rest get `busy` at once.
+    @Test func requestsBeyondTheCapAreBusy() async throws {
+        let app = try await IntegrationApp.make()
+        let dir: URL = try Self.plugin(app, body: """
+            IFS= read -r hello
+            for i in 1 2 3 4 5 6; do echo "{\\"type\\":\\"request\\",\\"id\\":$i,\\"method\\":\\"log.count\\"}"; done
+            \(Self.echoLoop)
+            """)
+        // Hold the logbook queue so the first requests stay in flight.
+        let release = DispatchSemaphore(value: 0)
+        let holding = OSAllocatedUnfairLock(initialState: false)
+        let handle: LogbookHandle = app.model.database.handle
+        let blocker = Task.detached {
+            try? await handle.run { _ in
+                holding.withLock { $0 = true }
+                release.wait()
+            }
+        }
+        await eventually("queue held") { holding.withLock { $0 } }
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.open(Self.key)
+        let log: URL = dir.appendingPathComponent("in.log")
+        await eventually("two busy answers") { Self.lines(log).count == 2 }
+        let busy: [PluginJSON] = Self.lines(log).compactMap(Self.json)
+        #expect(busy.allSatisfy { $0["error"]?["code"] == .string("busy") })
+        #expect(Set(busy.compactMap { $0["id"]?.intValue }) == [5, 6])
+        release.signal()
+        await blocker.value
+        await eventually("all six answered") { Self.lines(log).count == 6 }
+        #expect(Self.lines(log).compactMap(Self.json).filter { $0["result"]?["count"] != nil }.count == 4)
+        await model.shutdown()
+    }
+
+    /// A plugin that closes its own input is not hung: the app stops sending, the window keeps working.
+    @Test func aPluginClosingItsInputIsNotHung() async throws {
+        let app = try await IntegrationApp.make()
+        try Self.plugin(app, events: ["qso-logged"], body: """
+            IFS= read -r hello
+            exec 0<&-
+            \(Self.setText("no input"))
+            exec sleep 600
+            """)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.open(Self.key)
+        await eventually("up") { Self.shownText(model.session("demo")) == "no input" }
+        for _ in 0..<5 {
+            app.plugins.fire(.qsoLogged, json: "{}")
+            model.click(Self.key, target: "x")
+        }
+        let connection = try #require(model.session("demo")?.connection as? PluginProcess)
+        await connection.settleInput()
+        model.click(Self.key, target: "x")
+        await drainMainQueue()
+        #expect(model.session("demo")?.phase == .running)
+        await model.shutdown()
+    }
+
+    /// `set` needs the `ui` permission.
+    @Test func setWithoutTheUiPermissionIsIgnored() async throws {
+        let app = try await IntegrationApp.make()
+        try Self.plugin(app, permissions: ["read"], body: """
+            IFS= read -r hello
+            \(Self.setText("forbidden"))
+            echo '{"type":"log","text":"after"}'
+            \(Self.echoLoop)
+            """)
+        let model: PluginWindowsModel = app.model.pluginWindows
+        await model.rescan()
+        model.open(Self.key)
+        await eventually("log seen") { Self.texts(app).contains("[demo] after") }
+        await eventually("reported") { Self.texts(app).contains("[demo] chyba protokolu: set needs the ui permission") }
+        #expect(model.session("demo")?.contents["main"] == nil)
+        await model.shutdown()
+    }
+}
+
+/// A mutable value for closures of one test.
+final class Box<Value>: @unchecked Sendable {
+    var value: Value
+
+    init(_ value: Value) {
+        self.value = value
     }
 }

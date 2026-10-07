@@ -20,8 +20,8 @@ public final class PluginWindowsModel {
     public static let renderIntervalMs = 200
     /// Lines of stderr and `log` shown per run (then one notice).
     public static let outputLinesPerRun = 500
-    /// The longest `log` text shown.
-    static let maxLogText = 500
+    /// Requests of one plugin answered at the same time; more get the `busy` error at once.
+    public static let maxRequestsInFlight = 4
 
     /// The window plugins found by the last scan.
     public private(set) var catalog = PluginCatalog.Scan()
@@ -51,6 +51,11 @@ public final class PluginWindowsModel {
     @ObservationIgnored private var scanTask: Task<Void, Never>?
     @ObservationIgnored private var scanGeneration = 0
     @ObservationIgnored private var quitting = false
+    /// One counter for every run of every plugin: a late message of an earlier run never matches a later one,
+    /// even when the session object was replaced.
+    @ObservationIgnored private var lastGeneration = 0
+    /// Stopped processes not yet ended (by run), held until their exit and killed at the quit.
+    @ObservationIgnored private(set) var retiring: [Int: any PluginConnection] = [:]
 
     init(launcher: PluginLauncher?, dataDir: URL, windows: WindowsModel, messages: MessagesModel,
          language: LanguageModel, clock: any RescoreClock, now: @escaping @Sendable () -> Date, appVersion: String?) {
@@ -89,16 +94,15 @@ public final class PluginWindowsModel {
         catalog = scan
         scanned = true
         var texts: [String] = []
-        for problem in scan.problems {
-            let text: String = "[" + problem.plugin + "] " + language.text(problem.message)
-            if reportedProblems.insert(text).inserted {
-                texts.append(text)
-            }
+        // Keyed by the plugin and the untranslated message, so a language switch does not repeat them.
+        for problem in scan.problems
+        where reportedProblems.insert(problem.plugin + "\u{0}" + String(describing: problem.message)).inserted {
+            texts.append("[" + problem.plugin + "] " + language.text(problem.message))
         }
         for package in scan.packages where !package.manifest.unsupportedPermissions.isEmpty {
-            let text: String = refusalText(package)
-            if reportedProblems.insert(text).inserted {
-                texts.append(text)
+            let key: String = package.id + "\u{0}refused\u{0}" + package.manifest.unsupportedPermissions.joined(separator: ",")
+            if reportedProblems.insert(key).inserted {
+                texts.append(refusalText(package))
             }
         }
         if !texts.isEmpty {
@@ -263,19 +267,17 @@ public final class PluginWindowsModel {
 
     private func start(_ session: PluginSession, launcher: PluginLauncher) {
         session.resetForRun()
-        session.generation += 1
+        lastGeneration += 1
+        session.generation = lastGeneration
         let generation: Int = session.generation
         let plugin: String = session.package.id
+        let inbox = PluginInbox(outputBudget: Self.outputLinesPerRun) { [weak self] batch in
+            self?.received(batch, plugin: plugin, generation: generation)
+        }
         let handlers = PluginProcess.Handlers(
-            message: { [weak self] message in
-                MainHop.post { self?.received(message, plugin: plugin, generation: generation) }
-            },
-            protocolError: { [weak self] text in
-                MainHop.post { self?.protocolError(text, plugin: plugin, generation: generation) }
-            },
-            stderr: { [weak self] line in
-                MainHop.post { self?.output(line, plugin: plugin, generation: generation) }
-            },
+            message: { message in inbox.receive(message) },
+            protocolError: { text in inbox.protocolError(text) },
+            stderr: { line in inbox.stderr(line) },
             exited: { [weak self] code in
                 MainHop.post { self?.exited(code, plugin: plugin, generation: generation) }
             })
@@ -293,6 +295,7 @@ public final class PluginWindowsModel {
             return
         }
         session.connection = connection
+        session.inbox = inbox
         session.phase = .starting
         router.add(plugin: plugin, generation: generation, events: session.package.manifest.events,
                    connection: connection)
@@ -309,27 +312,36 @@ public final class PluginWindowsModel {
         }
     }
 
+    /// Takes the connection off a session that stops: no more events or messages; the process is held in
+    /// `retiring` until it ended (so the quit can still kill it).
+    private func retire(_ session: PluginSession) -> (any PluginConnection)? {
+        router.remove(plugin: session.package.id)
+        session.helloTimer?.cancel()
+        session.helloTimer = nil
+        session.inbox?.close()
+        session.inbox = nil
+        session.inFlight = 0
+        guard let connection = session.connection else { return nil }
+        session.stopping = true
+        session.connection = nil
+        let generation: Int = session.generation
+        retiring[generation] = connection
+        Task { [weak self] in
+            await connection.waitForExit()
+            self?.retiring[generation] = nil
+        }
+        return connection
+    }
+
     /// Stops a plugin with its windows (no banner: its windows are gone).
     private func stop(_ plugin: String) {
         guard let session = sessions[plugin] else { return }
-        router.remove(plugin: plugin)
-        session.helloTimer?.cancel()
-        session.helloTimer = nil
-        if let connection = session.connection, connection.isRunning {
-            session.stopping = true
-            connection.terminate(graceMs: 1_000)
-        }
-        session.connection = nil
+        retire(session)?.terminate(graceMs: 1_000)
         session.phase = .stopped
     }
 
     private func markHung(_ session: PluginSession) {
-        router.remove(plugin: session.package.id)
-        session.helloTimer?.cancel()
-        session.helloTimer = nil
-        session.stopping = true
-        session.connection?.kill()
-        session.connection = nil
+        retire(session)?.kill()
         session.phase = .hung
         messages.add("[" + session.name + "] " + language.tr("Plugin neodpovídá — byl zastaven"), at: now())
     }
@@ -340,10 +352,19 @@ public final class PluginWindowsModel {
         markHung(session)
     }
 
+    /// Sends a line; a full input is a hang, a closed one (the plugin closed its stdin) only ends the sending.
     private func send(_ session: PluginSession, _ line: String) {
         guard let connection = session.connection else { return }
-        if !connection.send(line) && connection.isRunning {
+        switch connection.send(line) {
+        case .sent:
+            break
+        case .full:
             markHung(session)
+        case .closed:
+            if !session.inputClosedReported && connection.isRunning {
+                session.inputClosedReported = true
+                router.remove(plugin: session.package.id)
+            }
         }
     }
 
@@ -353,37 +374,83 @@ public final class PluginWindowsModel {
         return session
     }
 
-    private func received(_ message: PluginInbound, plugin: String, generation: Int) {
+    private func received(_ batch: PluginInbox.Batch, plugin: String, generation: Int) {
         guard let session = current(plugin, generation) else { return }
         if session.phase == .starting {
             session.phase = .running
             session.helloTimer?.cancel()
             session.helloTimer = nil
         }
-        switch message {
-        case .ready:
-            break
-        case .set(let window, let content):
-            guard session.package.manifest.window(window) != nil else {
-                protocolError("set for an unknown window \(window)", plugin: plugin, generation: generation)
-                return
+        var texts: [String] = []
+        for item in batch.items {
+            switch item {
+            case .message(let message):
+                handle(message, session: session, generation: generation, texts: &texts)
+            case .output(let line):
+                texts.append("[" + session.name + "] " + line)
+            case .outputSuppressed:
+                texts.append("[" + session.name + "] " + language.tr("další výstup pluginu se nezobrazuje"))
+            case .protocolError(let text):
+                texts.append(protocolText(session, text))
             }
-            for warning in content.warnings {
-                protocolError(warning, plugin: plugin, generation: generation)
+            // A request answered `busy`, a hang: the run may have ended inside the loop.
+            guard current(plugin, generation) != nil else { break }
+        }
+        if current(plugin, generation) != nil {
+            for (window, content) in batch.sets {
+                apply(window: window, content: content, session: session, texts: &texts)
             }
-            session.receive(window: window, content: content, clock: clock)
-        case .request(let id, let method, let params):
-            answer(session, id: id, method: method, params: params, generation: generation)
-        case .log(let text):
-            let cut: String = text.count > Self.maxLogText ? String(text.prefix(Self.maxLogText)) + "…" : text
-            output(cut, plugin: plugin, generation: generation)
-        case .unknown(let type):
-            protocolError("unknown message type \(type)", plugin: plugin, generation: generation)
+        }
+        if !texts.isEmpty {
+            messages.add(texts, at: now())
         }
     }
 
+    private func handle(_ message: PluginInbound, session: PluginSession, generation: Int, texts: inout [String]) {
+        switch message {
+        case .ready, .set, .log:
+            // `set` and `log` come through the inbox's own channels.
+            break
+        case .request(let id, let method, let params):
+            answer(session, id: id, method: method, params: params, generation: generation)
+        case .unknown(let type):
+            reportOnce(session, "unknown message type \(type)", texts: &texts)
+        }
+    }
+
+    private func apply(window: String, content: PluginUIContent, session: PluginSession, texts: inout [String]) {
+        guard session.package.manifest.permissions.contains("ui") else {
+            reportOnce(session, "set needs the ui permission", texts: &texts)
+            return
+        }
+        guard session.package.manifest.window(window) != nil else {
+            reportOnce(session, "set for an unknown window \(window)", texts: &texts)
+            return
+        }
+        for warning in content.warnings {
+            reportOnce(session, warning, texts: &texts)
+        }
+        session.receive(window: window, content: content, clock: clock)
+    }
+
+    private func reportOnce(_ session: PluginSession, _ text: String, texts: inout [String]) {
+        guard session.reportedErrors.insert(text).inserted else { return }
+        texts.append(protocolText(session, text))
+    }
+
+    private func protocolText(_ session: PluginSession, _ text: String) -> String {
+        "[" + session.name + "] " + language.tr("chyba protokolu: %s", .string(text))
+    }
+
+    /// Answers a request off the main actor where it reads the database; at most `maxRequestsInFlight` at a time —
+    /// more get `busy` at once (a looping plugin must not starve the logbook queue that logging uses).
     private func answer(_ session: PluginSession, id: PluginJSON, method: String, params: [String: PluginJSON],
                         generation: Int) {
+        guard session.inFlight < Self.maxRequestsInFlight else {
+            send(session, PluginOutbound.error(id: id, code: "busy", message: "more than \(Self.maxRequestsInFlight) requests at once"))
+            return
+        }
+        session.inFlight += 1
         let permissions: [String] = session.package.manifest.permissions
         let context: PluginHostContext = self.context
         let probe: (@Sendable (Bool) -> Void)? = readProbe
@@ -392,6 +459,7 @@ public final class PluginWindowsModel {
             let result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
                                                 context: context, readProbe: probe)
             guard let self, let session = self.current(plugin, generation) else { return }
+            session.inFlight -= 1
             switch result {
             case .success(let value):
                 self.send(session, PluginOutbound.response(id: id, result: value))
@@ -401,31 +469,11 @@ public final class PluginWindowsModel {
         }
     }
 
-    /// A line of stderr or a `log` message: into the messages window while the run's budget lasts.
-    private func output(_ line: String, plugin: String, generation: Int) {
-        guard let session = sessions[plugin], session.generation == generation else { return }
-        guard session.outputBudget > 0 else { return }
-        session.outputBudget -= 1
-        var texts: [String] = ["[" + session.name + "] " + line]
-        if session.outputBudget == 0 {
-            texts.append("[" + session.name + "] " + language.tr("další výstup pluginu se nezobrazuje"))
-        }
-        messages.add(texts, at: now())
-    }
-
-    private func protocolError(_ text: String, plugin: String, generation: Int) {
-        guard let session = sessions[plugin], session.generation == generation else { return }
-        guard session.reportedErrors.insert(text).inserted else { return }
-        messages.add("[" + session.name + "] " + language.tr("chyba protokolu: %s", .string(text)), at: now())
-    }
-
     private func exited(_ code: Int32, plugin: String, generation: Int) {
         guard let session = sessions[plugin], session.generation == generation else { return }
-        router.remove(plugin: plugin)
-        session.helloTimer?.cancel()
-        session.helloTimer = nil
-        session.connection = nil
-        if session.stopping {
+        let stopping: Bool = session.stopping
+        _ = retire(session)
+        if stopping {
             return
         }
         session.phase = .exited(code)
@@ -453,12 +501,10 @@ public final class PluginWindowsModel {
     /// the exits is bounded by that grace plus a little, so the quit is never held longer.
     func shutdown() async {
         quitting = true
-        let running: [any PluginConnection] = sessions.values.compactMap { session in
-            router.remove(plugin: session.package.id)
-            session.helloTimer?.cancel()
-            session.stopping = true
-            return session.connection
+        for session in sessions.values {
+            _ = retire(session)
         }
+        let running: [any PluginConnection] = Array(retiring.values)
         guard !running.isEmpty else { return }
         let grace: Int = quitGraceMs
         for connection in running {

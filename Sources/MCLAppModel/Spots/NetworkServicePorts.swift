@@ -139,8 +139,8 @@ extension PluginRunner: PluginRunning {}
 /// A running window plugin as the app talks to it (`PluginProcess`).
 public protocol PluginConnection: AnyObject, Sendable {
     func start() throws(ProcessRunnerError)
-    /// Queues one line; `false` = not sent (ended, or the plugin does not read its input).
-    func send(_ line: String) -> Bool
+    /// Queues one line (never blocks).
+    func send(_ line: String) -> PluginSendResult
     /// Closes the plugin's input after the queued lines.
     func closeInput()
     func terminate(graceMs: Int)
