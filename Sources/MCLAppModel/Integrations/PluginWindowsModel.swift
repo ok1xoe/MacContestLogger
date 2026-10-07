@@ -237,7 +237,11 @@ public final class PluginWindowsModel {
 
     private func ensureRunning(_ plugin: String) {
         guard !quitting, scanned, let package = catalog.package(plugin) else { return }
-        let session: PluginSession = sessions[plugin] ?? PluginSession(package: package)
+        var session: PluginSession = sessions[plugin] ?? PluginSession(package: package)
+        if session.package != package && session.connection == nil {
+            // The manifest changed since the last run: the next run uses the new one.
+            session = PluginSession(package: package)
+        }
         sessions[plugin] = session
         switch session.phase {
         case .starting, .running, .exited, .hung, .failed:
