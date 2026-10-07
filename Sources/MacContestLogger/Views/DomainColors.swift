@@ -1,5 +1,7 @@
 import AppKit
+import MCLAppModel
 import MCLCore
+import os
 import SwiftUI
 
 /// Domain colour tokens with a light and a dark variant: the meaning of a colour (dupe, multiplier,
@@ -24,15 +26,33 @@ enum DomainColors {
     static let dupe: NSColor = dynamic("mcl.dupe", light: rgb(0xC62828), dark: rgb(0xFF6B6B))
     /// Multiplier: amber (Kotlin `colorScheme.tertiary`).
     static let multiplier: NSColor = dynamic("mcl.multiplier", light: rgb(0x9A6200), dark: rgb(0xFFC046))
-    /// Strip background of the frequency bar and the score bar (Kotlin `primaryContainer`).
-    static let strip: NSColor = dynamic("mcl.strip", light: rgb(0xD7ECEA), dark: rgb(0x1F3B39))
+    /// The accent the AppKit colours below resolve against (set by `AppearanceApplier`; SwiftUI reads the
+    /// environment instead, see `AccentToken`).
+    private static let currentAccent = OSAllocatedUnfairLock<AppearanceModel.Accent>(initialState: .teal)
+
+    static var accent: AppearanceModel.Accent {
+        get { currentAccent.withLock { $0 } }
+        set { currentAccent.withLock { $0 = newValue } }
+    }
+
+    /// A colour of the accent palette that re-resolves on every draw against the current accent.
+    private static func accentColor(_ name: String, _ pick: @escaping @Sendable (AccentPalette) -> AccentPalette.Pair)
+        -> NSColor {
+        NSColor(name: NSColor.Name(name)) { appearance in
+            let dark: Bool = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            return rgb(pick(AccentPalette.palette(for: accent)).value(dark: dark))
+        }
+    }
+
+    /// Strip background of the frequency bar, the info bar and the score bar (Kotlin `primaryContainer`).
+    static let strip: NSColor = accentColor("mcl.strip") { $0.strip }
     /// Text on the strip (Kotlin `onPrimaryContainer`).
-    static let onStrip: NSColor = dynamic("mcl.onStrip", light: rgb(0x0B2E2B), dark: rgb(0xCDEBE7))
+    static let onStrip: NSColor = accentColor("mcl.onStrip") { $0.onStrip }
 
     /// Callsigns to act on (Kotlin `colorScheme.primary`: SCP suggestions, the reverse lookup, the next ESM key).
-    static let primary: NSColor = dynamic("mcl.primary", light: rgb(0x00696B), dark: rgb(0x4CD9DB))
+    static let primary: NSColor = accentColor("mcl.primary") { $0.primary }
     /// N+1 calls not in the log (Kotlin `colorScheme.secondary`).
-    static let secondary: NSColor = dynamic("mcl.secondary", light: rgb(0x4A6363), dark: rgb(0xB0CCCC))
+    static let secondary: NSColor = accentColor("mcl.secondary") { $0.secondary }
     /// Spotted suggestions and the info strip items (Kotlin `colorScheme.tertiary`, the multiplier amber).
     static var tertiary: NSColor { multiplier }
     /// Kotlin `tertiaryContainer` / `onTertiaryContainer`: a worked band, a highlighted F-key.
@@ -68,4 +88,57 @@ extension Color {
     init(domain color: NSColor) {
         self.init(nsColor: color)
     }
+}
+
+// MARK: - SwiftUI: tokens that follow the accent live
+
+private struct AccentKey: EnvironmentKey {
+    static let defaultValue: AppearanceModel.Accent = .teal
+}
+
+extension EnvironmentValues {
+    /// The chosen accent, set on every scene by `AppearanceApplier`.
+    var mclAccent: AppearanceModel.Accent {
+        get { self[AccentKey.self] }
+        set { self[AccentKey.self] = newValue }
+    }
+}
+
+/// A colour of the accent palette as a shape style: resolved from the environment (accent and light/dark), so a
+/// change of the accent in Settings repaints the bars at once instead of keeping the colour from the first draw.
+struct AccentToken: ShapeStyle {
+    enum Kind: Sendable {
+        case primary, secondary, strip, onStrip
+    }
+
+    let kind: Kind
+
+    func resolve(in environment: EnvironmentValues) -> Color {
+        Self.color(kind, accent: environment.mclAccent, dark: environment.colorScheme == .dark)
+    }
+
+    /// The colour for a drawing context (a `Canvas`) that has no view environment of its own.
+    static func color(_ kind: Kind, in environment: EnvironmentValues) -> Color {
+        color(kind, accent: environment.mclAccent, dark: environment.colorScheme == .dark)
+    }
+
+    static func color(_ kind: Kind, accent: AppearanceModel.Accent, dark: Bool) -> Color {
+        let palette: AccentPalette = AccentPalette.palette(for: accent)
+        let pair: AccentPalette.Pair
+        switch kind {
+        case .primary: pair = palette.primary
+        case .secondary: pair = palette.secondary
+        case .strip: pair = palette.strip
+        case .onStrip: pair = palette.onStrip
+        }
+        let hex: Int = pair.value(dark: dark)
+        return Color(.sRGB, red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255,
+                     blue: Double(hex & 0xFF) / 255, opacity: 1)
+    }
+}
+
+extension ShapeStyle where Self == AccentToken {
+    static var mclPrimary: AccentToken { AccentToken(kind: .primary) }
+    static var mclStrip: AccentToken { AccentToken(kind: .strip) }
+    static var mclOnStrip: AccentToken { AccentToken(kind: .onStrip) }
 }

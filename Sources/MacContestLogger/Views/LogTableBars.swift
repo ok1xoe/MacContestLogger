@@ -95,7 +95,7 @@ struct LogSelectionBar: View {
         .windowFont(12)
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
-        .background(Color(domain: DomainColors.strip))
+        .background(.mclStrip)
     }
 }
 
