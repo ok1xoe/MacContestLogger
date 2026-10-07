@@ -29,6 +29,10 @@ public final class PluginWindowsModel {
     public private(set) var scanned = false
     /// The sessions of the plugins started at least once (by plugin id).
     public private(set) var sessions: [String: PluginSession] = [:]
+    /// The operator's grants, key bindings and docked windows (`plugin-settings.json`).
+    public private(set) var settings = PluginSettings()
+    /// The plugin whose first-use consent sheet is up (`nil` = none).
+    public private(set) var consentRequest: String?
 
     @ObservationIgnored let router = PluginEventRouter()
     @ObservationIgnored public var context = PluginHostContext()
@@ -38,6 +42,9 @@ public final class PluginWindowsModel {
     @ObservationIgnored var readProbe: (@Sendable (Bool) -> Void)?
 
     @ObservationIgnored private let root: String
+    @ObservationIgnored private let dataDir: URL
+    @ObservationIgnored private var settingsLoaded = false
+    @ObservationIgnored private var saveChain: Task<Void, Never>?
     @ObservationIgnored private let launcher: PluginLauncher?
     @ObservationIgnored private let windows: WindowsModel
     @ObservationIgnored private let messages: MessagesModel
@@ -61,6 +68,7 @@ public final class PluginWindowsModel {
          language: LanguageModel, clock: any RescoreClock, now: @escaping @Sendable () -> Date, appVersion: String?) {
         self.launcher = launcher
         self.root = dataDir.appendingPathComponent("plugins").path
+        self.dataDir = dataDir
         self.windows = windows
         self.messages = messages
         self.language = language
@@ -89,6 +97,16 @@ public final class PluginWindowsModel {
         let generation: Int = scanGeneration
         let scan: PluginCatalog.Scan = (try? await BlockingQueue.run { PluginCatalog.scan(root: root) })
             ?? PluginCatalog.Scan()
+        if !settingsLoaded {
+            let dir: URL = dataDir
+            let loaded: PluginSettings = (try? await BlockingQueue.run { PluginSettings.load(dataDir: dir) })
+                ?? PluginSettings()
+            if !settingsLoaded {
+                settingsLoaded = true
+                settings = loaded
+                shown.formUnion(loaded.docked)
+            }
+        }
         // A later scan started meanwhile: its result is the current one.
         guard generation == scanGeneration else { return }
         catalog = scan
@@ -109,7 +127,7 @@ public final class PluginWindowsModel {
             messages.add(texts, at: now())
         }
         for key in shown.sorted() {
-            if let parsed = PluginCatalog.parseWindowKey(key) {
+            if let parsed = PluginCatalog.parseWindowKey(key), sessions[parsed.plugin]?.phase != .awaitingConsent {
                 ensureRunning(parsed.plugin)
             }
         }
@@ -170,12 +188,149 @@ public final class PluginWindowsModel {
     /// The user closed a plugin window: its id leaves `openWindows`; the last window of a plugin stops it.
     public func windowClosed(_ key: String) {
         windows.setOpen(key, false)
+        // A docked window's own window closes when it docks: the plugin keeps running for the panel.
+        guard !settings.docked.contains(key) else { return }
         shown.remove(key)
         guard let parsed = PluginCatalog.parseWindowKey(key) else { return }
         let stillShown: Bool = shown.contains { PluginCatalog.parseWindowKey($0)?.plugin == parsed.plugin }
         if !stillShown {
             stop(parsed.plugin)
         }
+    }
+
+    // MARK: - grants
+
+    /// The permissions `plugin` may use now (the implicit ones and the granted ones it asked for).
+    public func effectivePermissions(_ plugin: String) -> [String] {
+        guard let package = catalog.package(plugin) else { return [] }
+        return settings.effectivePermissions(package.manifest)
+    }
+
+    /// The consent sheet's answer (also Settings → Plugins): `granted` of the permissions needing a grant. The
+    /// plugin starts if one of its windows waits for it.
+    public func answerConsent(_ plugin: String, granted: [String]) {
+        setGrants(plugin, granted)
+        if consentRequest == plugin {
+            consentRequest = sessions.values.first { $0.phase == .awaitingConsent && $0.package.id != plugin }?
+                .package.id
+        }
+        if let session = sessions[plugin], session.phase == .awaitingConsent {
+            session.phase = .stopped
+            ensureRunning(plugin)
+        }
+    }
+
+    /// Sets the granted permissions (Settings → Plugins); a revoke applies to the next request at once.
+    public func setGrants(_ plugin: String, _ granted: [String]) {
+        settings.setGranted(plugin, granted)
+        saveSettings()
+    }
+
+    // MARK: - keys
+
+    /// Binds a key text (`KeyCombo` form) to a plugin action; `nil` removes the binding.
+    public func bindKey(plugin: String, action: String, key: String?) {
+        let id: String = PluginSettings.actionKey(plugin: plugin, action: action)
+        settings.keys[id] = key.flatMap { KeyCombo.parse($0)?.format() }
+        saveSettings()
+    }
+
+    /// Whether the bound key keeps its own entry-window function too.
+    public func setPassThrough(plugin: String, action: String, _ on: Bool) {
+        let id: String = PluginSettings.actionKey(plugin: plugin, action: action)
+        settings.passThrough.removeAll { $0 == id }
+        if on {
+            settings.passThrough.append(id)
+        }
+        saveSettings()
+    }
+
+    /// The plugin action bound to `combo`, if any.
+    public func keyAction(for combo: KeyCombo) -> (plugin: String, action: String, passThrough: Bool)? {
+        for (id, text) in settings.keys.sorted(by: { $0.key < $1.key }) where KeyCombo.parse(text) == combo {
+            guard let slash = id.firstIndex(of: "/") else { continue }
+            let plugin = String(id[..<slash])
+            let action = String(id[id.index(after: slash)...])
+            guard catalog.package(plugin)?.manifest.action(action) != nil else { continue }
+            return (plugin, action, settings.passThrough.contains(id))
+        }
+        return nil
+    }
+
+    /// The entry windows' hook (`EntryModel.pluginKeyHook`): `nil` when no plugin action is bound to `combo`; on the
+    /// press the action runs.
+    public func handleKey(_ combo: KeyCombo, pressed: Bool) -> Bool? {
+        guard let bound = keyAction(for: combo) else { return nil }
+        if pressed {
+            pressKey(plugin: bound.plugin, action: bound.action)
+        }
+        return bound.passThrough
+    }
+
+    /// A bound key was pressed: the plugin is started if needed (also one without windows; it then runs until the
+    /// quit) and gets `{"type":"key","action":…}`.
+    public func pressKey(plugin: String, action: String) {
+        guard catalog.package(plugin)?.manifest.action(action) != nil else { return }
+        if sessions[plugin]?.connection == nil {
+            if let session = sessions[plugin], session.canRestart {
+                session.phase = .stopped
+            }
+            ensureRunning(plugin)
+        }
+        guard let session = sessions[plugin], session.connection != nil else { return }
+        send(session, PluginOutbound.key(action: action))
+    }
+
+    // MARK: - docking
+
+    public func isDocked(_ key: String) -> Bool {
+        settings.docked.contains(key)
+    }
+
+    /// The docked windows, in docking order.
+    public var dockedKeys: [String] {
+        settings.docked
+    }
+
+    /// Docks a window into the main window: its own window closes, the plugin keeps running.
+    public func dock(_ key: String) {
+        guard PluginCatalog.parseWindowKey(key) != nil, !settings.docked.contains(key) else { return }
+        settings.docked.append(key)
+        saveSettings()
+        shown.insert(key)
+        windows.setOpen(key, false)
+    }
+
+    /// Back into a window of its own.
+    public func undock(_ key: String) {
+        guard settings.docked.contains(key) else { return }
+        settings.docked.removeAll { $0 == key }
+        saveSettings()
+        windows.setOpen(key, true)
+        windowAppeared(key)
+    }
+
+    /// The docked panel's close: as closing its window.
+    public func closeDocked(_ key: String) {
+        guard settings.docked.contains(key) else { return }
+        settings.docked.removeAll { $0 == key }
+        saveSettings()
+        windowClosed(key)
+    }
+
+    private func saveSettings() {
+        let snapshot: PluginSettings = settings
+        let dir: URL = dataDir
+        let previous: Task<Void, Never>? = saveChain
+        saveChain = Task {
+            await previous?.value
+            _ = try? await BlockingQueue.run { try snapshot.save(dataDir: dir) }
+        }
+    }
+
+    /// Waits for the settings writes queued so far (tests).
+    func settleSettings() async {
+        await saveChain?.value
     }
 
     /// The banner of a window (`nil` = none): why the plugin is not running.
@@ -199,6 +354,8 @@ public final class PluginWindowsModel {
                                .string(permissions.joined(separator: ", ")))
         case .disabled:
             return language.tr("Pluginy jsou v tomto režimu vypnuté")
+        case .awaitingConsent:
+            return language.tr("Plugin čeká na povolení oprávnění")
         case .stopped, .starting, .running:
             return nil
         }
@@ -225,6 +382,12 @@ public final class PluginWindowsModel {
         sendUi(key, action: "change", target: target, row: nil, rowId: nil, value: .bool(value))
     }
 
+    /// A click on a canvas: `value` is the point `{x, y}` in canvas coordinates.
+    public func canvasClick(_ key: String, target: String, x: Double, y: Double) {
+        sendUi(key, action: "click", target: target, row: nil, rowId: nil,
+               value: .object(["x": .double((x * 10).rounded() / 10), "y": .double((y * 10).rounded() / 10)]))
+    }
+
     /// A tab was chosen (`select`, `value` = the tab id).
     public func selectTab(_ key: String, target: String, tab: String) {
         sendUi(key, action: "select", target: target, row: nil, rowId: nil, value: .string(tab))
@@ -248,7 +411,7 @@ public final class PluginWindowsModel {
         }
         sessions[plugin] = session
         switch session.phase {
-        case .starting, .running, .exited, .hung, .failed:
+        case .starting, .running, .exited, .hung, .failed, .awaitingConsent:
             return
         case .stopped, .refused, .disabled:
             break
@@ -256,6 +419,13 @@ public final class PluginWindowsModel {
         let refused: [String] = package.manifest.unsupportedPermissions
         guard refused.isEmpty else {
             session.phase = .refused(refused)
+            return
+        }
+        if launcher != nil && settings.needsConsent(package.manifest) {
+            session.phase = .awaitingConsent
+            if consentRequest == nil {
+                consentRequest = plugin
+            }
             return
         }
         guard let launcher else {
@@ -304,7 +474,8 @@ public final class PluginWindowsModel {
         let hello = PluginOutbound.Hello(
             appVersion: appVersion, contestId: contest.id, contestName: contest.name,
             band: rig.flatMap { Band.from(frequencyHz: Int(clamping: $0.freqHz))?.adif }, mode: rig?.mode,
-            windows: session.package.manifest.windows.map(\.id), permissions: session.package.manifest.permissions)
+            windows: session.package.manifest.windows.map(\.id),
+            permissions: settings.effectivePermissions(session.package.manifest))
         send(session, PluginOutbound.hello(hello))
         session.helloTimer = clock.schedule(afterMilliseconds: Self.helloTimeoutMs) { [weak self, weak session] in
             guard let self, let session, session.generation == generation, session.phase == .starting else { return }
@@ -451,7 +622,7 @@ public final class PluginWindowsModel {
             return
         }
         session.inFlight += 1
-        let permissions: [String] = session.package.manifest.permissions
+        let permissions: [String] = settings.effectivePermissions(session.package.manifest)
         let context: PluginHostContext = self.context
         let probe: (@Sendable (Bool) -> Void)? = readProbe
         let plugin: String = session.package.id

@@ -178,6 +178,11 @@ public enum PluginOutbound {
         return PluginJSON.object(fields).serialized()
     }
 
+    /// A key bound to one of the plugin's actions was pressed (Settings → Keys).
+    public static func key(action: String) -> String {
+        PluginJSON.object(["type": .string("key"), "action": .string(action), "phase": .string("press")]).serialized()
+    }
+
     public static func response(id: PluginJSON, result: PluginJSON) -> String {
         PluginJSON.object(["type": .string("response"), "id": id, "result": result]).serialized()
     }

@@ -23,6 +23,8 @@ public final class PluginSession {
         case refused([String])
         /// Window plugins are switched off (`MCL_INERT_*`).
         case disabled
+        /// Asks for permissions the operator has not decided on yet: the consent sheet is up.
+        case awaitingConsent
     }
 
     public let package: PluginPackage

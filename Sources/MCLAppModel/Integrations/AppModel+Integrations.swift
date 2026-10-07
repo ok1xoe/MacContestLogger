@@ -27,6 +27,11 @@ extension AppModel {
             now: environment.now, appVersion: environment.appVersion)
         plugins.windowEvents = pluginWindows.router
         pluginWindows.context = pluginContext(model)
+        for panel in [model.panel(vfo: 0), model.vfoB] {
+            panel.entry.pluginKeyHook = { [weak pluginWindows] combo, pressed in
+                pluginWindows?.handleKey(combo, pressed: pressed)
+            }
+        }
         model.plugins = plugins
         model.pluginWindows = pluginWindows
         model.integrations = integrations
@@ -128,7 +133,129 @@ extension AppModel {
         context.spots = { [weak feed = model.spotFeed] in
             feed?.snapshot() ?? []
         }
+        context.actions = pluginActions(model)
         return context
+    }
+
+    /// The acting requests of window plugins, through the same calls as the operator's own actions.
+    private static func pluginActions(_ model: AppModel) -> PluginHostActions {
+        var actions = PluginHostActions()
+        let noEntry = "no active entry window"
+        actions.entryState = { [weak model] in
+            guard let entry = model?.activeEntry else { return nil }
+            let exchange: [(String, String)] = entry.form.contestExchange.entries.compactMap { item in
+                guard let key = item.key else { return nil }
+                return (key, item.value ?? "")
+            }
+            return PluginHostActions.EntryState(call: entry.form.call, exchange: exchange, freqHz: entry.form.freqHz,
+                                                mode: entry.form.mode.rawValue, radio: entry.vfo)
+        }
+        actions.setCall = { [weak model] call in
+            model?.activeEntry?.callChanged(call)
+        }
+        actions.setExchange = { [weak model] values in
+            guard let entry = model?.activeEntry else { return Array(values.keys) }
+            let known: Set<String> = Set(entry.fields.compactMap(\.id))
+            var unknown: [String] = []
+            for (id, value) in values.sorted(by: { $0.key < $1.key }) {
+                if known.contains(id) {
+                    entry.editContestField(id, value)
+                } else {
+                    unknown.append(id)
+                }
+            }
+            return unknown
+        }
+        actions.wipe = { [weak model] in
+            model?.activeEntry?.wipe()
+        }
+        actions.log = { [weak model] in
+            guard let entry = model?.activeEntry else { return noEntry }
+            guard entry.acceptsInput else { return "the entry takes no input now" }
+            // A command in the call field would run instead of logging: plugins run commands only through
+            // `app.command` and its policy.
+            guard !entry.hasCommand else { return "the call field holds a command" }
+            entry.submit()
+            return nil
+        }
+        actions.status = { [weak model] text in
+            model?.status.showVerbatim(text)
+        }
+        actions.qsy = { [weak model] hz, mode in
+            guard let entry = model?.activeEntry else { return noEntry }
+            entry.qsy(toKHz: Double(hz) / 1000, mode: mode ?? entry.form.mode)
+            return nil
+        }
+        actions.setMode = { [weak model] mode in
+            guard let entry = model?.activeEntry else { return noEntry }
+            entry.setMode(mode)
+            return nil
+        }
+        actions.split = { [weak model] hz in
+            guard let entry = model?.activeEntry else { return noEntry }
+            entry.runCommand(hz.map { .split(txFreqHz: $0) } ?? .splitOff)
+            return nil
+        }
+        actions.rit = { [weak model] offset in
+            guard let entry = model?.activeEntry else { return noEntry }
+            entry.runCommand(.rit(offsetHz: offset))
+            return nil
+        }
+        actions.swapVfo = { [weak model] in
+            guard let entry = model?.activeEntry else { return noEntry }
+            entry.runCommand(.swapVfo)
+            return nil
+        }
+        actions.focusRadio = { [weak model] radio in
+            guard let model else { return noEntry }
+            model.rig.activateVfo(radio)
+            return nil
+        }
+        actions.addSpot = { [weak model] spot in
+            model?.dxCluster.spots.add(spot)
+        }
+        actions.removeSpot = { [weak model] call, blacklist in
+            guard let model else { return false }
+            let found: Bool = model.dxCluster.spots.snapshot().contains { $0.dxCall == call }
+            if found {
+                model.dxCluster.spots.remove(call)
+            }
+            if blacklist {
+                model.blacklist.blacklistCall(call)
+            }
+            return found
+        }
+        actions.mark = { [weak model] hz in
+            model?.spotNavigation.mark(freqHz: hz)
+        }
+        actions.blacklist = { [weak model] call in
+            model?.blacklist.blacklistCall(call)
+        }
+        actions.sendSpot = { [weak model] call, hz, comment in
+            guard let model else { return "not connected" }
+            return model.spotNavigation.spotToCluster(call: call, freqHz: hz, comment: comment)
+                ? nil : model.status.message
+        }
+        actions.stationCall = { [weak model] in
+            model?.config.config.station.call ?? ""
+        }
+        actions.command = { [weak model] text in
+            guard let entry = model?.activeEntry else { return noEntry }
+            let parsed: CallFieldCommand?
+            do throws(JavaArithmeticError) {
+                parsed = try CallFieldCommands.parse(text, currentFreqHz: entry.form.freqHz,
+                                                    otherVfoHz: entry.otherVfoHz)
+            } catch {
+                return "not a command"
+            }
+            guard let command = parsed else { return "not a command" }
+            if let refusal = PluginCommandPolicy.refusal(command) {
+                return refusal
+            }
+            entry.runCommand(command)
+            return nil
+        }
+        return actions
     }
 
     /// An injected port (tests) runs first, then the live one.

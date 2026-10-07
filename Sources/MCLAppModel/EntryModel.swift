@@ -125,6 +125,9 @@ public final class EntryModel {
     @ObservationIgnored var selfSpotEffectPending = false
     /// The spot actions (Spot It, Store, Mark, the navigation, the self-spot store); wired by the app.
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
+    /// Keys bound to plugin actions: called with every key of the entry fields (combination, `true` on the press);
+    /// `nil` = not bound, else whether the key keeps its own function too.
+    @ObservationIgnored public var pluginKeyHook: ((KeyCombo, Bool) -> Bool?)?
     /// The UDP integrations (BCLOG); wired by the app.
     @ObservationIgnored weak var integrations: IntegrationsModel?
     /// The multi-op messages (Ctrl+Alt+P, Ctrl+Alt+K) and the network log (NETON, NETOFF); wired by the app.
