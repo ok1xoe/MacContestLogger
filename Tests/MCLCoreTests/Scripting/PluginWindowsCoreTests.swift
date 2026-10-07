@@ -390,22 +390,24 @@ import Testing
         #expect(await iterator.next() == .message(.ready))
         #expect(process.isRunning)
         #expect(process.send("{\"type\":\"event\"}"))
-        let logged: Seen? = await iterator.next()
-        // The environment variable reached the plugin, and it runs in its own directory.
-        guard case .message(.log(let text))? = logged else {
-            Issue.record("no log line: \(String(describing: logged))")
-            return
-        }
-        #expect(text.hasPrefix("42 /") && text.hasSuffix("/" + (dir as NSString).lastPathComponent))
+        // Stdout and stderr are separate pipes: their lines may come in either order.
         var rest: [Seen] = []
         var sentEnd = false
         while let seen = await iterator.next() {
             rest.append(seen)
-            if !sentEnd && rest.contains(.stderr("oops")) && rest.contains(.error("malformed JSON")) {
+            let logged: Bool = rest.contains { if case .message(.log) = $0 { return true } else { return false } }
+            if !sentEnd && logged && rest.contains(.stderr("oops")) && rest.contains(.error("malformed JSON")) {
                 sentEnd = true
                 process.closeInput()
             }
         }
+        // The environment variable reached the plugin, and it runs in its own directory.
+        let text: String? = rest.compactMap { seen -> String? in
+            if case .message(.log(let text)) = seen { return text }
+            return nil
+        }.first
+        #expect(text?.hasPrefix("42 /") == true)
+        #expect(text?.hasSuffix("/" + (dir as NSString).lastPathComponent) == true)
         #expect(rest.contains(.error("malformed JSON")))
         #expect(rest.last == .exited(4))
         #expect(!process.isRunning)

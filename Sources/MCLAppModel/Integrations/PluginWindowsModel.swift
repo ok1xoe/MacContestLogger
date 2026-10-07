@@ -49,6 +49,7 @@ public final class PluginWindowsModel {
     @ObservationIgnored private var shown: Set<String> = []
     @ObservationIgnored private var reportedProblems: Set<String> = []
     @ObservationIgnored private var scanTask: Task<Void, Never>?
+    @ObservationIgnored private var scanGeneration = 0
     @ObservationIgnored private var quitting = false
 
     init(launcher: PluginLauncher?, dataDir: URL, windows: WindowsModel, messages: MessagesModel,
@@ -79,8 +80,12 @@ public final class PluginWindowsModel {
     /// already shown start once their plugin is known.
     public func rescan() async {
         let root: String = self.root
+        scanGeneration += 1
+        let generation: Int = scanGeneration
         let scan: PluginCatalog.Scan = (try? await BlockingQueue.run { PluginCatalog.scan(root: root) })
             ?? PluginCatalog.Scan()
+        // A later scan started meanwhile: its result is the current one.
+        guard generation == scanGeneration else { return }
         catalog = scan
         scanned = true
         var texts: [String] = []
