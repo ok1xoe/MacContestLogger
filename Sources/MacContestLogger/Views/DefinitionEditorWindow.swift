@@ -253,7 +253,7 @@ private struct DefinitionCheckLines: View {
         if let check {
             if check.issues.isEmpty {
                 Text(verbatim: language.tr("✔ Definice je v pořádku"))
-                    .foregroundStyle(Color(domain: DomainColors.primary))
+                    .foregroundStyle(.mclPrimary)
             } else {
                 ForEach(Array(check.issues.enumerated()), id: \.offset) { item in
                     issue(item.element)

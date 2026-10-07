@@ -65,11 +65,41 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     /// Application-side blacklist — entries with the time added and a note.
     public var callBlacklist: [BlacklistEntry] = []
     public var spotterBlacklist: [BlacklistEntry] = []
+    /// Bands/Modes spot filter (Swift-only keys; v1.1.1 ignores them). Stored as the switched-off items so a
+    /// configuration without the keys means "everything on, Contest off" and new bands default to visible.
+    public var spotFilterHiddenBands: [String] = []
+    public var spotFilterHiddenModes: [String] = []
+    public var spotFilterContest: Bool = false
+    /// "Filters" part: spotter continents / own country that pass (none = no filter), hide non-workable spots.
+    public var spotFilterSpotterContinents: [String] = []
+    public var spotFilterSpotterOwnCountry: Bool = false
+    public var spotFilterHideNonWorkable: Bool = false
+
+    /// The filter as a value (see `SpotFilter`); setting it rewrites the three keys.
+    public var spotFilter: SpotFilter {
+        get {
+            SpotFilter(hiddenBands: Set(spotFilterHiddenBands.compactMap { Band.from(adif: $0) }),
+                               hiddenModes: Set(spotFilterHiddenModes), contestOnly: spotFilterContest,
+                          spotterContinents: Set(spotFilterSpotterContinents),
+                          spotterOwnCountry: spotFilterSpotterOwnCountry,
+                          hideNonWorkable: spotFilterHideNonWorkable)
+        }
+        set {
+            spotFilterHiddenBands = Band.allCases.filter { newValue.hiddenBands.contains($0) }.map(\.adif)
+            spotFilterHiddenModes = SpotFilter.modes.filter { newValue.hiddenModes.contains($0) }
+            spotFilterContest = newValue.contestOnly
+            spotFilterSpotterContinents = SpotFilter.continents.filter { newValue.spotterContinents.contains($0) }
+            spotFilterSpotterOwnCountry = newValue.spotterOwnCountry
+            spotFilterHideNonWorkable = newValue.hideNonWorkable
+        }
+    }
 
     enum CodingKeys: String, CodingKey {
         case favorites, commands, lastFavorite, spotBufferMinutes, autoSplit, showBandPlan
         case minSkimmers, wheelStepHz, wheelStepShiftHz, selfSpotThresholdHz
         case blacklistedCalls, blacklistedSpotters, callBlacklist, spotterBlacklist
+        case spotFilterHiddenBands, spotFilterHiddenModes, spotFilterContest
+        case spotFilterSpotterContinents, spotFilterSpotterOwnCountry, spotFilterHideNonWorkable
     }
 
     public init() {}
@@ -94,6 +124,12 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         blacklistedSpotters = c.value(.blacklistedSpotters, default: d.blacklistedSpotters)
         callBlacklist = c.value(.callBlacklist, default: d.callBlacklist)
         spotterBlacklist = c.value(.spotterBlacklist, default: d.spotterBlacklist)
+        spotFilterHiddenBands = c.value(.spotFilterHiddenBands, default: d.spotFilterHiddenBands)
+        spotFilterHiddenModes = c.value(.spotFilterHiddenModes, default: d.spotFilterHiddenModes)
+        spotFilterContest = c.value(.spotFilterContest, default: d.spotFilterContest)
+        spotFilterSpotterContinents = c.value(.spotFilterSpotterContinents, default: d.spotFilterSpotterContinents)
+        spotFilterSpotterOwnCountry = c.value(.spotFilterSpotterOwnCountry, default: d.spotFilterSpotterOwnCountry)
+        spotFilterHideNonWorkable = c.value(.spotFilterHideNonWorkable, default: d.spotFilterHideNonWorkable)
     }
 
     /// Default set of `commandCount` commands (common DXSpider commands).
