@@ -124,3 +124,54 @@ operation with a strip right of the frequency axis, with a vertical label inside
   Zobrazit bandplán"** (Hide / Show band plan), or **"Nastavení → Bandplán →
   Podbarvit úseky v bandmapě"** (Settings → Band plan → Shade segments in the
   bandmap). The choice is saved in the configuration.
+
+## Spot filter (bands, modes, spotter origin, workable)
+
+Modelled on N1MM+'s Telnet window (the *Bands/Modes* and *Filters* tabs). Open it with the **Filtr spotů** button in
+the DX Cluster window (a dot after the label means a filter is active) or in *Settings → DX Cluster*. Changes in the
+window apply and are saved at once; in Settings they apply with Save. The state lives in the `dxCluster` section of
+`config.json` (`spotFilter*` keys; a configuration without them means "everything on").
+
+**Bands.** One checkbox per band MCL knows, in four groups: HF (160 m to 10 m, including 60 m), VHF (6 m, 2 m),
+UHF (70 cm, 23 cm) and Mw (13 cm, 9 cm, 6 cm, 3 cm). The group buttons switch the whole group: all on turns it off,
+otherwise all on.
+
+**Modes.** CW, Fonie (phone) and Digi (RTTY, FT8, PSK and the like). The mode of a spot is the one the band map already
+uses: a mode named in the comment, else a digi calibration frequency, else the band plan. A spot whose mode cannot
+be determined stays visible unless all three modes are off. *Všechny módy* switches every mode on.
+
+**Contest.** With *Jen pásma a módy aktivního závodu* checked and a contest active, a spot must also be on a band of
+the contest definition (when it lists bands) and in a mode the definition allows. Without a contest it does nothing.
+
+**Spotter origin** (N1MM "Filter by Prefix"). *Jen spoty od spotterů z* EU, NA, SA, AS, AF, OC and *Vlastní země*: only
+spots whose spotter sits there pass (the spotter's DXCC from its call, `-#` / `-2` suffixes stripped; a skimmer's own
+location counts). Nothing checked means no filter; a spotter that cannot be resolved is hidden while a filter is on.
+
+**Zobrazovat nepracovatelné spoty** (N1MM "Show non-workable spots", on by default). When off and a contest is active,
+spots on a band or in a mode the contest does not allow are hidden. The contest definitions express no other
+"cannot be worked" rule, so this is the same test as the *Contest* option; dupes are not non-workable and stay
+(coloured as dupes).
+
+**Obnovit výchozí** puts everything back: all bands and modes on, no origin filter, Contest off, non-workable shown.
+
+### Spot flow
+
+```
+cluster node(s) / RBN / shared by a master station
+        |  raw spot (all connections; blacklists and the skimmer minimum apply here, in the buffer)
+        v
+  spot buffer  --->  plugin spot-received events, network sharing   (never filtered)
+        |
+        |  spot filter (bands, modes, contest, origin, workable) applied when the spots are read
+        +--> DX Cluster window: `DX de` / `SH/DX` lines  (command replies and other text always shown)
+        +--> band map
+        +--> Available Mults (then its own band / mode filter on top)
+        +--> spot jumps (Ctrl/Alt + Up/Down)
+```
+
+The buffer is never changed by the filter, so unhiding a band brings its spots back immediately. Own spots (Mark,
+Store, self-spots) are never hidden. Every station applies its own filter to the spots it receives; a spot shared by
+a master station arrives unfiltered. The world map, the multiplier grids and the callbook prefetch read the whole
+buffer. The spot timeout is the existing *Buffer spotů (min)* setting and a QSY that moves away from a spotted
+frequency uses the existing self-spot threshold; neither has new settings. The Available window's per-radio (SO2R)
+selection is not part of this filter.

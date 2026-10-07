@@ -34,6 +34,11 @@ struct DxClusterTab: View {
             SettingsCaption(language.tr(
                 "Příkazová tlačítka se nastavují přímo v okně DX Cluster (pravé tlačítko myši nad tlačítkem)."))
             Divider()
+            Text(verbatim: language.tr("Filtr spotů")).windowFont(13, weight: .semibold)
+            SpotFilterEditor(language: language, filter: $draft.spotFilter, idPrefix: "settings.spotfilter")
+            SettingsCaption(language.tr(
+                "Časový limit spotu = Buffer spotů (min); QSY smaže spot podle Prahu self-spotu (Hz)."))
+            Divider()
             BlacklistEditor(language: language, title: language.tr("Blacklist volaček"),
                             items: $draft.blacklistedCalls)
             BlacklistEditor(language: language, title: language.tr("Blacklist spotterů"),
