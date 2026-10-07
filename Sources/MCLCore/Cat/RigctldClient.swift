@@ -23,6 +23,8 @@ public final class RigctldClient: RigController, @unchecked Sendable {
     public static let defaultPort = 4532
 
     private let socket: LineSocket
+    /// The host and port connected to.
+    public let endpoint: RigEndpoint?
     private let modes: HamlibModeProvider
     private let log: CatTrafficLog
     /// Java `synchronized` (reentrant — a CAT log listener may call back into the client).
@@ -47,6 +49,7 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         }
         self.modes = modes
         self.log = log
+        endpoint = RigEndpoint(host: host ?? "localhost", port: port)
     }
 
     /// Connects to the local `rigctld` on the default port (Java `connectLocal()`).

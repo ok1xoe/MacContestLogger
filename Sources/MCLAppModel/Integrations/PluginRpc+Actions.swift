@@ -82,6 +82,8 @@ public struct PluginHostActions {
     public var stop: () -> Bool = { false }
     /// Whether a plugin's PTT is recorded on the rig (also after a failed release: the rig may still transmit).
     public var pttHeld: () -> Bool = { false }
+    /// A plugin PTT release is not confirmed yet: plugins key nothing.
+    public var pttUnconfirmed: () -> Bool = { false }
     /// Releases the plugins' PTT at once; `true` = it was held.
     public var releasePtt: () -> Bool = { false }
     /// The PTT of the active rig (keying waits for the rig's answer).

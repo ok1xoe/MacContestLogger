@@ -475,6 +475,24 @@ struct PluginTransmitIndicator: View {
     let app: AppModel
 
     var body: some View {
+        if app.rig.pluginPttUnconfirmed {
+            let text: String = app.language.tr("PTT pluginu se nepodařilo uvolnit — zkontroluj vysílač!")
+            HStack(spacing: 6) {
+                Image(systemName: "exclamationmark.octagon")
+                    .accessibilityHidden(true)
+                Text(verbatim: text)
+                    .windowFont(13, weight: .bold)
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(Color(domain: DomainColors.dupe))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 6).stroke(Color(domain: DomainColors.dupe), lineWidth: 2))
+            .padding(.horizontal, 8)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text(verbatim: text))
+            .accessibilityIdentifier("pluginPttUnconfirmed")
+        }
         if app.pluginWindows.transmissionsBlocked && app.pluginWindows.transmitting == nil {
             let text: String = app.language.tr("Vysílání pluginů zastaveno")
             HStack(spacing: 6) {

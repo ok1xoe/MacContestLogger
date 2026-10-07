@@ -68,6 +68,10 @@ public final class TransverterRig: RigController {
         try inner.setOtherVfoFrequencyHz(Self.toRig(freqHz, transverters()))
     }
 
+    public var endpoint: RigEndpoint? {
+        inner.endpoint
+    }
+
     public func sendRaw(_ command: String) throws -> RigRawReply {
         try inner.sendRaw(command)
     }

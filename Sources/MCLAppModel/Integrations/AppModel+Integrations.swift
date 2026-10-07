@@ -312,6 +312,9 @@ extension AppModel {
         actions.pttHeld = { [weak model] in
             model?.rig.pluginPttRig != nil
         }
+        actions.pttUnconfirmed = { [weak model] in
+            model?.rig.pluginPttUnconfirmed ?? true
+        }
         actions.releasePtt = { [weak model] in
             model?.rig.releasePluginPtt() ?? false
         }

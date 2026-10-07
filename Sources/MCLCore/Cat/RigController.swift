@@ -55,6 +55,9 @@ public protocol RigController: AnyObject, Sendable {
     /// and the `RPRT` code. Callers check the command with `PluginCatPolicy` first.
     func sendRaw(_ command: String) throws -> RigRawReply
 
+    /// Where this controller is connected (`rigctld`'s host and port), `nil` when not a `rigctld` client.
+    var endpoint: RigEndpoint? { get }
+
     /// Is the rig connection active?
     func isConnected() -> Bool
 
@@ -73,7 +76,22 @@ public struct RigRawReply: Equatable, Sendable {
     }
 }
 
+/// The `rigctld` a rig controller talks to.
+public struct RigEndpoint: Equatable, Sendable {
+    public let host: String
+    public let port: Int
+
+    public init(host: String, port: Int) {
+        self.host = host
+        self.port = port
+    }
+}
+
 extension RigController {
+
+    public var endpoint: RigEndpoint? {
+        nil
+    }
 
     public func sendRaw(_ command: String) throws -> RigRawReply {
         throw CatException("Rig surové příkazy nepodporuje")

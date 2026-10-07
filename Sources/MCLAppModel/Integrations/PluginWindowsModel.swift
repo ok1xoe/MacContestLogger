@@ -1061,6 +1061,9 @@ public final class PluginWindowsModel {
         if transmissionsBlocked {
             return refuse("the operator stopped plugin transmissions; they are allowed again in the main window")
         }
+        if context.actions.pttUnconfirmed() {
+            return refuse("an earlier PTT release is not confirmed yet")
+        }
         if method == "tx.ptt" {
             if pttHolder == plugin {
                 return .some(nil)

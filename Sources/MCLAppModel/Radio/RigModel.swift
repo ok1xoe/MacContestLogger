@@ -61,7 +61,18 @@ public final class RigModel {
     /// The rig a plugin's `tx.ptt` keyed (`nil` = none).
     public internal(set) var pluginPttRig: Int?
     /// Rigs that lost their connection while a plugin's PTT was on: `T 0` goes out first when they connect again.
-    @ObservationIgnored var pluginPttOwed: Set<Int> = []
+    /// Rigs whose plugin PTT release is not confirmed yet (no `T 0` got through): plugins key nothing meanwhile and
+    /// the main window warns until one does.
+    public internal(set) var pluginPttOwed: Set<Int> = []
+    /// The `rigctld` each rig was last connected to (a release or a plugin's own CAT connection goes there).
+    @ObservationIgnored var rigEndpoints: [Int: RigEndpoint] = [:]
+    /// Releases over a fresh connection still running (the quit waits for them).
+    @ObservationIgnored var pendingReleases: [Int: Task<Void, Never>] = [:]
+    @ObservationIgnored var nextRelease = 0
+    /// A test seam: called right before the quit disconnects the rigs.
+    @ObservationIgnored var beforeShutdownDisconnect: (@MainActor () -> Void)?
+    /// Plugins' raw CAT goes over a connection of its own, never the operator's lane.
+    @ObservationIgnored var pluginCat: PluginCatChannel?
     /// Told whenever a plugin's PTT was released (Esc, a disconnect, the quit, the plugin model itself).
     @ObservationIgnored public var onPluginPttReleased: (@MainActor () -> Void)?
     /// Told when the operator stops transmissions (Esc), before anything is released.
@@ -70,7 +81,6 @@ public final class RigModel {
     /// `T 0` never waits behind them.
     let pluginCatEpoch = OSAllocatedUnfairLock(initialState: 0)
     /// Rigs with a plugin's raw CAT command on their lane right now (a release closes that connection first).
-    let pluginCatInFlight = OSAllocatedUnfairLock<Set<Int>>(initialState: [])
     /// The last resort of a plugin PTT release: `T 0` over a fresh connection to the rig's `rigctld` (host, port);
     /// `true` = sent. Never connects under `MCL_INERT_HARDWARE`.
     @ObservationIgnored var freshPttRelease: @Sendable (String, Int) -> Bool = { _, _ in false }
@@ -98,6 +108,7 @@ public final class RigModel {
 
     init(_ dependencies: Dependencies) {
         if !dependencies.hardware.isInert {
+            pluginCat = PluginCatChannel(log: dependencies.catLog)
             freshPttRelease = { host, port in
                 guard let client = try? RigctldClient(host: host, port: port, timeoutMs: 1_000,
                                                       log: dependencies.catLog) else { return false }
@@ -339,6 +350,14 @@ public final class RigModel {
         for lane in lanes {
             await lane.settle()
         }
+        await settlePluginReleases()
+    }
+
+    /// Waits for the releases over a fresh connection still running.
+    func settlePluginReleases() async {
+        for task in pendingReleases.values {
+            await task.value
+        }
     }
 
     /// Quit: a footswitch PTT still held is released first, then **both** rigs disconnect with
@@ -347,6 +366,10 @@ public final class RigModel {
     func shutdown() async {
         releaseFootswitchPtt()
         releasePluginPtt()
+        // A plugin release over a fresh connection gets through before the rigs (and a launched rigctld) go; each
+        // such connection gives up after 1 s.
+        await settlePluginReleases()
+        beforeShutdownDisconnect?()
         let message: String = language.tr("ukončeno")
         for lane in lanes {
             lane.run { cat in

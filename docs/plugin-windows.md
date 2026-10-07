@@ -255,7 +255,7 @@ Error codes: `unknown_method`, `permission`, `invalid_params`, `refused`, `unava
 
 | Method | Params | Does |
 |---|---|---|
-| `cat.send` | `command` | sends one `rigctld` command to the active rig in the extended form; `{"lines":[…],"code":n}` (`code` 0 = OK). An exact grammar — the command and the number and form of its arguments: reading `f m v s i x j z t y`, `l <level>`, `\get_freq|mode|vfo|split_vfo|split_freq|split_mode|rit|xit|ptt|ant`, `\get_level <level>`; setting `F <Hz>`/`I <Hz>` (inside an amateur band; refused with a transverter configured), `M`/`X <mode> <passband>`, `V <vfo>`, `S <0/1> <vfo>`, `J`/`Z <Hz ±99999>`, `L <AF/RF/SQL/NR 0–1, KEYSPD 10–60, CWPITCH 300–1000>` (never `RFPOWER`), `Y <antenna> <option>` (not while transmitting). Everything else is refused: keying, raw bytes, tuner, power, the daemon's own commands, dumps, `;` `|` `\` separators, extra or missing words, leading, trailing or doubled spaces, control characters. At most **10 a second** per plugin and 15 for all plugins (`rate_limited`). A reply over 16 KiB, or any read error or timeout, closes the rig connection (a reply is never left half-read). Plugin CAT commands still queued when the operator stops a transmission or a plugin PTT is released are dropped, so the safety `T 0` goes out at once. Each command and its reply appear in the CAT log window. |
+| `cat.send` | `command` | sends one `rigctld` command to the active rig in the extended form; `{"lines":[…],"code":n}` (`code` 0 = OK). An exact grammar — the command and the number and form of its arguments: reading `f m v s i x j z t y`, `l <level>`, `\get_freq|mode|vfo|split_vfo|split_freq|split_mode|rit|xit|ptt|ant`, `\get_level <level>`; setting `F <Hz>`/`I <Hz>` (inside an amateur band; refused with a transverter configured), `M`/`X <mode> <passband>`, `V <vfo>`, `S <0/1> <vfo>`, `J`/`Z <Hz ±99999>`, `L <AF/RF/SQL/NR 0–1, KEYSPD 10–60, CWPITCH 300–1000>` (never `RFPOWER`), `Y <antenna> <option>` (not while transmitting). Everything else is refused: keying, raw bytes, tuner, power, the daemon's own commands, dumps, `;` `|` `\` separators, extra or missing words, leading, trailing or doubled spaces, control characters. At most **10 a second** per plugin and 15 for all plugins (`rate_limited`). Plugin commands go over a `rigctld` connection of their own, never the operator's: a stalled plugin command can never delay the app's commands or a release. A reply over 16 KiB, or any read error or timeout, closes that plugin connection (a reply is never left half-read). Plugin CAT commands still queued when the operator stops a transmission or a plugin PTT is released are dropped. Each command and its reply appear in the CAT log window. |
 | `tx.sendCw` | `text` (macros of the F-key messages allowed) | sends CW through the app's keyer (CW mode only) |
 | `tx.fkey` | `key` 1–12, `opposite` | presses that F-key in the active entry window (CW, voice or digital by the mode, ESM rules) |
 | `tx.voice` | `key` 1–12 | the voice message of that F-key (phone modes only) |
@@ -268,10 +268,10 @@ that stops, crashes or loses its `transmit` grant never leaves the PTT keyed or 
 `T 1` is followed by `T 0` at once and reported (`refused`); without a connected rig the PTT is refused. A plugin's PTT
 is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the moment the rig was keyed:
 while one plugin holds the PTT no other plugin can key it, keying again does not extend the limit, and after a
-forced release no plugin may key for 10 s (after a plugin's own release, for 2 s). A release is guaranteed: a plugin
-CAT command still running on that rig is cut off, `T 0` goes out on the rig's connection or, if that fails, over a
-fresh connection to its `rigctld`; if that fails too, the rig gets `T 0` first when it connects again and the
-status line warns the operator. Only the plugin holding the PTT releases it (another plugin's `off`
+forced release no plugin may key for 10 s (after a plugin's own release, for 2 s). A release never touches the
+operator's own rig connection: `T 0` goes out on it (behind at most one of the app's own commands) and at the same
+time over a fresh connection to the `rigctld` the rig is connected to. Until one of them got through, the main window
+shows a red warning, no plugin can key, and the rig gets `T 0` first when it connects again; the quit waits for it. Only the plugin holding the PTT releases it (another plugin's `off`
 changes nothing, the operator's own transmissions are never cut by a plugin). While a plugin transmits, the main
 window shows **Plugin X vysílá** with a stop button.
 
