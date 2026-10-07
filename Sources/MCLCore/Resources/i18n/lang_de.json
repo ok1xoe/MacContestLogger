@@ -1144,5 +1144,8 @@
  "Klávesové zkratky": "Tastenkürzel",
  "Textové příkazy": "Textbefehle",
  "Nahlásit chybu…": "Fehler melden…",
- "Otevřít datovou složku": "Datenordner öffnen"
+ "Otevřít datovou složku": "Datenordner öffnen",
+ "Otevřít nedávné": "Zuletzt geöffnet",
+ "Žádné nedávné závody": "Keine zuletzt geöffneten Wettbewerbe",
+ "Vymazat seznam": "Liste löschen"
 }

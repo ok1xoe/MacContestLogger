@@ -155,7 +155,7 @@ Settings `Cmd+,` and Quit.
 
 | Menu | Items |
 |---|---|
-| Soubor (File) | New contest, Open contest, New / Open database, Import (QSOs, Merge log), Export (ADIF, Cabrillo, EDI, CSV / text / summary), Print log |
+| Soubor (File) | New contest, Open contest, Open recent (the last 9 contests of the open database), New / Open database, Import (QSOs, Merge log), Export (ADIF, Cabrillo, EDI, CSV / text / summary), Print log |
 | Úpravy (Edit) | the entry window's actions with your current keys shown next to them (wipe, restore, +1 to the number, note, find, delete last QSO), then Undo, Redo, Cut, Copy, Paste and Select All for the text fields |
 | Závod (Contest) | Late entry, Record contest, None (free logging) |
 | Nástroje (Tools) | Rescore, Recalculate DXCC in the log, Download master.scp, Update definitions, Update DXCC from Club Log, Update call history, Load beacon file, Definition editor |

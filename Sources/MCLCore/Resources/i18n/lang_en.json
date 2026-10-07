@@ -1144,5 +1144,8 @@
  "Klávesové zkratky": "Keyboard shortcuts",
  "Textové příkazy": "Text commands",
  "Nahlásit chybu…": "Report a bug…",
- "Otevřít datovou složku": "Open data folder"
+ "Otevřít datovou složku": "Open data folder",
+ "Otevřít nedávné": "Open recent",
+ "Žádné nedávné závody": "No recent contests",
+ "Vymazat seznam": "Clear list"
 }

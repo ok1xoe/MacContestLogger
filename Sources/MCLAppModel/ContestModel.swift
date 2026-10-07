@@ -231,6 +231,7 @@ public final class ContestModel {
         runtime.deactivate()
         activeSetup = nil
         qtcs = []
+        recent = []
         sync()
         beginActivation()
         let previous: Task<Bool, Never>? = activationChain
@@ -315,9 +316,61 @@ public final class ContestModel {
         }
     }
 
+    // MARK: - recent contests
+
+    /// A contest of the File → Open recent list.
+    public struct RecentContest: Equatable, Sendable {
+        public let contestId: String
+        public let title: String
+    }
+
+    /// The last contests opened in this database, newest first, at most `RecentContests.limit`; the File menu shows
+    /// them. Read from the database's `meta` again after every opening and database switch.
+    public private(set) var recent: [RecentContest] = []
+
+    /// Reads the list again; contests no longer in the database drop out of it (and out of the stored list).
+    public func refreshRecent() async {
+        let read: [RecentContest]? = try? await database.handle.run { access in
+            let stored: [String] = RecentContests.decode(try access.repository.metaGet(RecentContests.metaKey))
+            let summaries: [ContestStore.ContestSummary] = try access.contests.listSummaries()
+            let byId: [String: ContestStore.ContestSummary] = Dictionary(
+                summaries.map { ($0.contestId, $0) }, uniquingKeysWith: { first, _ in first })
+            let kept: [String] = RecentContests.prune(stored, keeping: Set(byId.keys))
+            if kept != stored {
+                try access.repository.metaSet(RecentContests.metaKey, RecentContests.encode(kept))
+            }
+            return kept.compactMap { id in
+                byId[id].map { RecentContest(contestId: id, title: RecentContests.title($0)) }
+            }
+        }
+        recent = read ?? []
+    }
+
+    /// „Vymazat seznam": the list of this database is emptied.
+    public func clearRecent() async {
+        await perform {
+            try await self.database.handle.run { access in
+                try access.repository.metaSet(RecentContests.metaKey, RecentContests.encode([]))
+            }
+        }
+        recent = []
+    }
+
+    /// Opens a contest of the list the way the Open contest dialog does; the task ends when the activation has.
+    @discardableResult
+    public func openRecent(contestId: String) -> Task<Void, Never> {
+        let task = Task { _ = await self.open(contestId: contestId) }
+        recentOpenTask = task
+        return task
+    }
+
+    /// The latest opening started from the list (tests wait for it).
+    @ObservationIgnored var recentOpenTask: Task<Void, Never>?
+
     /// Kotlin `offerStartupDialog()`: AUTORELOAD opens the last contest at once, otherwise the dialog is offered when
     /// the database holds a contest.
     public func offerStartupDialog() async {
+        await refreshRecent()
         if config.config.autoReloadLastContest, await continueLastContest() {
             status.show("Otevřen poslední závod (AUTORELOAD)")
             return
@@ -424,6 +477,10 @@ public final class ContestModel {
                 await perform {
                     try await self.database.handle.run { access in
                         try access.repository.metaSet("last_contest_id", contestId)
+                        let recent: [String] = RecentContests.decode(
+                            try access.repository.metaGet(RecentContests.metaKey))
+                        try access.repository.metaSet(RecentContests.metaKey,
+                                                      RecentContests.encode(RecentContests.push(recent, contestId)))
                     }
                 }
             case .reloadQtcs:
@@ -447,6 +504,7 @@ public final class ContestModel {
                 onStartClusterIfIdle?()
             }
         }
+        await refreshRecent()
         onActivated?()
         return true
     }

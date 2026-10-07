@@ -233,16 +233,22 @@ import Testing
     @Test func shapeIgnoresTitlesAndStates() async throws {
         let app = try await TestApp.make()
         let menu: MenuModel = app.model.menu
-        let before = MenuShape(menu.entries())
+        // Open recent lists the contests of the database, so its submenu changes with the first contest.
+        func shape() -> MenuShape {
+            MenuShape(menu.entries().filter { $0.id != "file" })
+        }
+        let before = shape()
+        let beforeAll = MenuShape(menu.entries())
         await app.model.language.switchTo("en")
         try await app.startCqWwCw()
-        #expect(MenuShape(menu.entries()) == before)
+        #expect(shape() == before)
+        #expect(MenuShape(menu.entries()) != beforeAll)
         var tree: [MenuNode] = menu.tree
         tree[0].children.removeLast()
         let shorter: [MenuEntry] = tree.map { node in
             MenuEntry(node: node, ancestors: [], title: node.id, enabled: true, toolTip: nil, isItem: false,
                       children: [])
         }
-        #expect(MenuShape(shorter) != before)
+        #expect(MenuShape(shorter) != beforeAll)
     }
 }

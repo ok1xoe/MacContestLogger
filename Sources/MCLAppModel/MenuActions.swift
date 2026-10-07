@@ -61,6 +61,14 @@ public enum MenuActions {
         if id == "beacons.load" {
             return .openBeacons
         }
+        if id.hasPrefix(MenuModel.recentOpenPrefix) {
+            app.contest.openRecent(contestId: String(id.dropFirst(MenuModel.recentOpenPrefix.count)))
+            return nil
+        }
+        if id == "recent.clear" {
+            Task { await app.contest.clearRecent() }
+            return nil
+        }
         if id == "help.dataFolder" {
             return .openDataFolder(app.dataDir)
         }
