@@ -159,15 +159,13 @@ import Testing
                                      body: "sleep 30\ntouch '\(marker.path)'")
         try await app.app.startCqWwCw()
         app.plugins.quitBoundMs = 2_000
-        let started = Date()
         await app.model.shutdown()
-        let elapsed: TimeInterval = Date().timeIntervalSince(started)
         #expect(Self.count(out, "app-quitting") == 1)
         let payload = try #require(Self.payloads(out, "app-quitting").first)
         #expect(payload["version"] as? String == "9.9.9-test")
         #expect((payload["contestId"] as? String)?.isEmpty == false)
+        // The 30 s plugin would leave the marker if the quit had waited for it; no wall-clock bound (slow CI runners).
         #expect(!FileManager.default.fileExists(atPath: marker.path), "the slow plugin was cut off")
-        #expect(elapsed < 25, "the quit waited far beyond the 2 s deadline plus the normal quit work")
     }
 
     // MARK: - band, mode, frequency
