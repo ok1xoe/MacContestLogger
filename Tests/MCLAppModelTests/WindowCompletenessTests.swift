@@ -120,6 +120,8 @@ import Testing
         let direct: Set<String> = Set(views).subtracting(["MultGridWindowView"])
         #expect(direct.isSubset(of: Set(registered)), "scenes \(registered.sorted()) for views \(direct.sorted())")
         #expect(app.contains("MultGridWindowView.id(kind)"))
+        // The plugin windows (`plugin:<plugin>/<window>`) are one window group keyed by the window key.
+        #expect(app.contains("WindowGroup(id: PluginWindowView.sceneId, for: String.self)"))
         let kinds: [String] = try captures("multWindow\\(\"(\\w+)\"\\)", in: app)
         #expect(kinds.sorted() == MultGridLayout.kinds.sorted(), "multiplier scenes: \(kinds)")
     }

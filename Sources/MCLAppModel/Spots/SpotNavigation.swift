@@ -15,6 +15,7 @@ import Observation
 public final class SpotNavigation {
 
     private let dxCluster: DxClusterModel
+    private let feed: SpotFeed
     private let analysis: SpotAnalysisModel
     private let blacklist: BlacklistModel
     private let rig: RigModel
@@ -29,6 +30,7 @@ public final class SpotNavigation {
 
     struct Dependencies {
         let dxCluster: DxClusterModel
+        let feed: SpotFeed
         let analysis: SpotAnalysisModel
         let blacklist: BlacklistModel
         let rig: RigModel
@@ -41,6 +43,7 @@ public final class SpotNavigation {
 
     init(_ dependencies: Dependencies) {
         dxCluster = dependencies.dxCluster
+        feed = dependencies.feed
         analysis = dependencies.analysis
         blacklist = dependencies.blacklist
         rig = dependencies.rig
@@ -64,7 +67,7 @@ public final class SpotNavigation {
     public func jump(direction: Int, onlyMult: Bool = false, onlySelf: Bool = false) {
         let analyzer: SpotAnalyzer = analysis.current()
         let tuned = Int(truncatingIfNeeded: rig.tuning.tunedFreqHz)
-        let found: DxSpot? = SpotNavigator.next(buffer.snapshot(), freqHz: tuned, direction: direction) { spot in
+        let found: DxSpot? = SpotNavigator.next(feed.filteredSnapshot(), freqHz: tuned, direction: direction) { spot in
             let state: SpotStatus = analyzer.spotStatus(spot)
             return SpotActions.navigable(selfSpotted: spot.selfSpotted, dupe: state.dupe, newMult: state.newMult,
                                          onlyMult: onlyMult, onlySelf: onlySelf)

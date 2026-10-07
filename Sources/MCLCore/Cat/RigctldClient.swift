@@ -22,13 +22,26 @@ public final class RigctldClient: RigController, @unchecked Sendable {
 
     public static let defaultPort = 4532
 
-    private let socket: LineSocket
+    /// The connection; a plugin PTT command reopens it when it is out of step (`reopen`).
+    private let socketBox: OSAllocatedUnfairLock<LineSocket>
+    private var socket: LineSocket {
+        socketBox.withLock { $0 }
+    }
+    private let timeoutMs: Int
+    /// The host and port connected to.
+    public let endpoint: RigEndpoint?
     private let modes: HamlibModeProvider
     private let log: CatTrafficLog
     /// Java `synchronized` (reentrant — a CAT log listener may call back into the client).
     private let lock = NSRecursiveLock()
     /// Java `volatile boolean closed` (outside `lock`, so `close` does not wait for a blocked read).
     private let closedFlag = OSAllocatedUnfairLock(initialState: false)
+    /// Something failed after a command was written and before its whole reply was read (a write, read or CAT log
+    /// error): a reply may still be unread or on its way, so the connection may be out of step (under `lock`; plugin
+    /// PTT commands reopen such a connection first).
+    private var outOfStep = false
+    /// Connections reopened in place so far (tests; under `lock`).
+    private(set) var reopenCount = 0
     /// The rig answered the split query with an error — we stop asking (under `lock`).
     private var splitUnsupported = false
 
@@ -40,13 +53,17 @@ public final class RigctldClient: RigController, @unchecked Sendable {
     public init(host: String?, port: Int, timeoutMs: Int = 2000,
                 modes: @escaping HamlibModeProvider = { HamlibModeMapping.default },
                 log: CatTrafficLog = .shared) throws {
+        let opened: LineSocket
         do {
-            socket = try LineSocket.connect(host: host, port: port, connectTimeoutMs: timeoutMs, readTimeoutMs: timeoutMs)
+            opened = try LineSocket.connect(host: host, port: port, connectTimeoutMs: timeoutMs, readTimeoutMs: timeoutMs)
         } catch let error as JavaSocketError {
             throw CatException("Nelze se připojit k rigctld na " + (host ?? "null") + ":" + String(port), cause: error)
         }
+        socketBox = OSAllocatedUnfairLock(uncheckedState: opened)
+        self.timeoutMs = timeoutMs
         self.modes = modes
         self.log = log
+        endpoint = RigEndpoint(host: host ?? "localhost", port: port)
     }
 
     /// Connects to the local `rigctld` on the default port (Java `connectLocal()`).
@@ -175,6 +192,121 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         try expectRprtOk(on ? "zaklíčování (PTT)" : "odklíčování (PTT)")
     }
 
+    public func keyPtt(unless cancelled: () -> Bool) throws -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        try requireInStep()
+        // Under the lock, right before the write (after a reopen): nothing else is written to this connection between
+        // the check and `T 1`.
+        if cancelled() {
+            return false
+        }
+        try send("T 1")
+        let line: String
+        do {
+            line = try readLine()
+        } catch {
+            throw settleUnansweredKey(after: error)
+        }
+        if Self.startsWith(line, "RPRT 0") {
+            return true
+        }
+        if Self.startsWith(line, "RPRT -") {
+            // rigctld answered with an error — the rig may still have acted on it (hamlib reports some errors after
+            // the command reached the rig), so the caller releases anyway.
+            throw CatRefusal(message: "rigctld odmítl zaklíčování (PTT): " + line)
+        }
+        throw CatException("rigctld odmítl zaklíčování (PTT): " + line)
+    }
+
+    public func releasePtt() throws {
+        lock.lock()
+        defer { lock.unlock() }
+        try requireInStep()
+        try send("T 0")
+        let line: String = try readInStep()
+        if !Self.startsWith(line, "RPRT 0") {
+            throw CatException("rigctld odmítl odklíčování (PTT): " + line)
+        }
+    }
+
+    /// A plugin PTT command never goes over a connection that may be out of step (see `outOfStep`: an unread or late
+    /// reply would be read as this command's): the connection is reopened first, transparently for the poller (the
+    /// operator's own commands keep the measured behaviour). If it cannot be reopened, the client closes.
+    private func requireInStep() throws {
+        if outOfStep {
+            try reopen()
+        }
+    }
+
+    /// A plugin PTT reply: an error reopens the connection (its reply may still come and must never be read as the
+    /// reply to a later command).
+    private func readInStep() throws -> String {
+        do {
+            return try readLine()
+        } catch {
+            try? reopen()
+            throw error
+        }
+    }
+
+    /// A fresh connection to the same `rigctld` in place of one that may be out of step (under `lock`). The new one is
+    /// connected before the old one closes (`rigctld` may close the rig when its last client goes); `keepOld` hands
+    /// the old one over instead of closing it.
+    @discardableResult
+    private func reopen(keepOld: Bool = false) throws -> LineSocket {
+        let old: LineSocket = socket
+        let fresh: LineSocket
+        do {
+            let target: RigEndpoint = endpoint ?? RigEndpoint(host: "localhost", port: Self.defaultPort)
+            fresh = try LineSocket.connect(host: target.host, port: target.port, connectTimeoutMs: timeoutMs,
+                                           readTimeoutMs: timeoutMs)
+        } catch {
+            if !keepOld {
+                close()
+            }
+            throw CatException("Spojení s rigctld bylo mimo krok a nepodařilo se ho obnovit", cause: error)
+        }
+        socketBox.withLock { $0 = fresh }
+        if !keepOld {
+            old.close()
+        }
+        if closedFlag.withLock({ $0 }) {
+            // Closed meanwhile from another thread: the fresh connection goes too.
+            fresh.close()
+            throw CatException("rigctld klient je zavřený")
+        }
+        outOfStep = false
+        reopenCount += 1
+        return old
+    }
+
+    /// `T 1` went out but its reply did not come (a timeout, a read error): `rigctld` may still run it later (the rig
+    /// may be busy with another client). `T 0` goes right behind it on the same connection — `rigctld` runs one
+    /// connection's commands in order, so that `T 0` always runs after this `T 1` — and that connection is kept and
+    /// read in the background until both replies came (`PttKeyDrain`); the client goes on over a fresh connection.
+    /// Only the drain can tell that the key was released in order.
+    private func settleUnansweredKey(after error: any Error) -> any Error {
+        let message: String = ErrorText.message(error)
+        let old: LineSocket = socket
+        let sent: Bool = (try? old.writeAscii("T 0\n")) != nil
+        if sent {
+            try? log.tx("T 0")
+        }
+        let drain = PttKeyDrain()
+        if (try? reopen(keepOld: true)) == nil {
+            // No fresh connection: this one is read here until the replies came (the client is unusable anyway).
+            outOfStep = true
+        }
+        let log: CatTrafficLog = self.log
+        let bound: Int = max(timeoutMs, 1) * PttKeyDrain.boundReads
+        Thread.detachNewThread {
+            drain.finish(PttKeyDrain.read(old, sentRelease: sent, maxWaitMs: bound, log: log))
+            old.close()
+        }
+        return CatUnknownOutcome(message: "rigctld neodpověděl na zaklíčování (PTT): " + message, drain: drain)
+    }
+
     public func sendMorse(_ text: String) throws {
         lock.lock()
         defer { lock.unlock() }
@@ -196,6 +328,45 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         defer { lock.unlock() }
         try send("L KEYSPD " + String(wpm))
         try expectRprtOk("nastavení rychlosti CW")
+    }
+
+    /// The most a raw command's reply may hold (bytes) before the connection is given up.
+    public static let maxRawReplyBytes = 16 * 1024
+
+    /// The extended response form (`+` before the command): reply lines up to `RPRT <code>`; both directions go
+    /// to the CAT log as every command does. A reply longer than `maxRawReplyBytes` closes the connection (its rest
+    /// would otherwise be read as the answers to the next commands) and throws.
+    public func sendRaw(_ command: String) throws -> RigRawReply {
+        lock.lock()
+        defer { lock.unlock() }
+        var lines: [String] = []
+        var bytes = 0
+        // Any failure (a timeout above all) closes the connection: a reply read later would answer the next command.
+        do {
+            try send("+" + command)
+        } catch {
+            close()
+            throw error
+        }
+        while true {
+            let line: String
+            do {
+                line = try readLine()
+            } catch {
+                close()
+                throw error
+            }
+            if Self.startsWith(line, "RPRT") {
+                let code: Int = Int(JavaText.trim(String(line.dropFirst(4)))) ?? -1
+                return RigRawReply(lines: lines, code: code)
+            }
+            bytes += line.utf8.count + 1
+            guard bytes <= Self.maxRawReplyBytes else {
+                close()
+                throw CatException("rigctld: odpověď na surový příkaz je příliš dlouhá")
+            }
+            lines.append(line)
+        }
     }
 
     /// Java `!closed && socket.isConnected() && !socket.isClosed()` — closing by the peer is not seen (R8).
@@ -231,9 +402,16 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         do {
             try socket.writeAscii(command + "\n")
         } catch {
+            outOfStep = true
             throw CatException("Chyba zápisu příkazu '" + command + "' do rigctld", cause: error)
         }
-        try log.tx(command)
+        do {
+            try log.tx(command)
+        } catch {
+            // The command went out and its reply stays unread.
+            outOfStep = true
+            throw error
+        }
     }
 
     /// Response line after Java `trim()`, written to the CAT log as `← …`.
@@ -242,13 +420,21 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         do {
             line = try socket.readLine()
         } catch {
+            outOfStep = true
             throw CatException("Chyba čtení odpovědi z rigctld", cause: error)
         }
         guard let line else {
+            outOfStep = true
             throw CatException("rigctld ukončil spojení")
         }
         let trimmed = JavaText.trim(line)
-        try log.rx(trimmed)
+        do {
+            try log.rx(trimmed)
+        } catch {
+            // Further lines of a multi-line reply stay unread.
+            outOfStep = true
+            throw error
+        }
         return trimmed
     }
 

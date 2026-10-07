@@ -258,7 +258,8 @@ private struct NkButton: View {
                 .foregroundStyle(foreground)
                 .background(RoundedRectangle(cornerRadius: 3).fill(background))
                 .overlay(RoundedRectangle(cornerRadius: 3)
-                    .stroke(strong ? Color(domain: DomainColors.primary) : Color.secondary.opacity(enabled ? 0.5 : 0.25),
+                    .stroke(strong ? AnyShapeStyle(.mclPrimary)
+                                   : AnyShapeStyle(Color.secondary.opacity(enabled ? 0.5 : 0.25)),
                             lineWidth: strong ? 2 : 1))
                 .contentShape(Rectangle())
         }

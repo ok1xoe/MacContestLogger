@@ -136,18 +136,50 @@ public protocol PluginRunning: Sendable {
 
 extension PluginRunner: PluginRunning {}
 
-/// The plugin runner factory. Plugins run local executables, so they are inert under either switch
-/// (`MCL_INERT_NETWORK` and `MCL_INERT_HARDWARE`): `makeRunner` returns `nil`.
+/// A running window plugin as the app talks to it (`PluginProcess`).
+public protocol PluginConnection: AnyObject, Sendable {
+    func start() throws(ProcessRunnerError)
+    /// Queues one line (never blocks).
+    func send(_ line: String) -> PluginSendResult
+    /// Closes the plugin's input after the queued lines.
+    func closeInput()
+    func terminate(graceMs: Int)
+    func kill()
+    func waitForExit() async
+    var isRunning: Bool { get }
+}
+
+extension PluginProcess: PluginConnection {}
+
+/// Starts nothing yet: makes the connection of a window plugin with the environment variables added for it.
+public typealias PluginLauncher = @Sendable (_ package: PluginPackage, _ environment: [String: String],
+                                              _ handlers: PluginProcess.Handlers) -> any PluginConnection
+
+/// The plugin runner factory and the window-plugin launcher. Plugins run local executables, so they are inert under
+/// either switch (`MCL_INERT_NETWORK` and `MCL_INERT_HARDWARE`): `makeRunner` returns `nil` and there is no
+/// launcher.
 public struct PluginsPorts: Sendable {
     public var makeRunner: @Sendable (_ root: String, _ timeoutMs: Int64) -> (any PluginRunning)?
+    /// `nil` = window plugins are never started.
+    public var launchWindowPlugin: PluginLauncher?
 
-    public init(makeRunner: @escaping @Sendable (String, Int64) -> (any PluginRunning)?) {
+    public init(makeRunner: @escaping @Sendable (String, Int64) -> (any PluginRunning)?,
+                launchWindowPlugin: PluginLauncher? = nil) {
         self.makeRunner = makeRunner
+        self.launchWindowPlugin = launchWindowPlugin
     }
 
     public static let inert = PluginsPorts { _, _ in nil }
 
-    public static let live = PluginsPorts { root, timeoutMs in PluginRunner(root: root, timeoutMs: timeoutMs) }
+    public static let live = PluginsPorts(
+        makeRunner: { root, timeoutMs in PluginRunner(root: root, timeoutMs: timeoutMs) },
+        launchWindowPlugin: liveLauncher)
+
+    /// The real process of a window plugin.
+    public static let liveLauncher: PluginLauncher = { package, environment, handlers in
+        PluginProcess(executable: package.executable, directory: package.directory, environment: environment,
+                      handlers: handlers)
+    }
 }
 
 /// Kotlin `SntpClient.query(server, 123, 3000)`.

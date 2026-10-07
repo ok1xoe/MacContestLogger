@@ -68,8 +68,24 @@ public final class TransverterRig: RigController {
         try inner.setOtherVfoFrequencyHz(Self.toRig(freqHz, transverters()))
     }
 
+    public var endpoint: RigEndpoint? {
+        inner.endpoint
+    }
+
+    public func sendRaw(_ command: String) throws -> RigRawReply {
+        try inner.sendRaw(command)
+    }
+
     public func setPtt(_ on: Bool) throws {
         try inner.setPtt(on)
+    }
+
+    public func keyPtt(unless cancelled: () -> Bool) throws -> Bool {
+        try inner.keyPtt(unless: cancelled)
+    }
+
+    public func releasePtt() throws {
+        try inner.releasePtt()
     }
 
     public func sendMorse(_ text: String) throws {

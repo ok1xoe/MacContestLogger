@@ -36,7 +36,7 @@ private struct Headline: View {
         if model.contestActive && model.grid.available {
             Text(verbatim: model.headline)
                 .windowFont(13, weight: .bold)
-                .foregroundStyle(Color(domain: DomainColors.primary))
+                .foregroundStyle(.mclPrimary)
                 .lineLimit(1)
                 .accessibilityIdentifier("mult.headline")
         }

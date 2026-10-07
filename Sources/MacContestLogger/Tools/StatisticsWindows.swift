@@ -159,7 +159,7 @@ private struct HourChartView: View {
             Canvas { context, size in
                 guard !chart.values.isEmpty else { return }
                 let width: CGFloat = size.width / CGFloat(chart.values.count)
-                let color: Color = Color(domain: DomainColors.primary)
+                let color: Color = AccentToken.color(.primary, in: context.environment)
                 for (index, value) in chart.values.enumerated() {
                     let height: CGFloat = size.height * CGFloat(value) / CGFloat(chart.scale)
                     let rect = CGRect(x: CGFloat(index) * width + 1, y: size.height - height,

@@ -63,6 +63,34 @@ import Testing
         #expect(!client.isConnected)
     }
 
+    /// A command with a line end inside would be several commands: it is refused, nothing reaches the cluster.
+    @Test func aCommandWithALineEndIsRefused() async throws {
+        let server = try FakeLineServer(script: ["SH/DX\r": [.line("ok")]], fallback: [.line("?")])
+        defer { server.stop() }
+        let port: Int = server.port
+        let received = Received()
+        let client: DxClusterClient = try await onOwnThread {
+            try DxClusterClient(host: "localhost", port: port,
+                                onLine: { received.line($0) }, onError: { received.error($0) })
+        }
+        defer { client.close() }
+        for injected in ["DX 14025 OK1ABC\r\nSET/NAME X", "DX 14025 OK1ABC\nBYE", "A\rB"] {
+            let refused: Bool = await onOwnThread {
+                do {
+                    try client.send(injected)
+                    return false
+                } catch {
+                    return (error as? DxClusterException)?.message == "Příkaz pro DX cluster obsahuje konec řádku"
+                }
+            }
+            #expect(refused)
+        }
+        // The connection still works and nothing of the refused commands arrived.
+        try await onOwnThread { try client.send("SH/DX") }
+        try await received.wait { $0.allLines.contains("ok") }
+        #expect(server.commands(0) == ["SH/DX\r"])
+    }
+
     @Test func connectFailureThrows() async throws {
         // A port on which nobody listens (a fast error, not a timeout).
         let freePort: Int = FreeLoopbackPort.take()

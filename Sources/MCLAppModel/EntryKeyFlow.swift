@@ -69,6 +69,15 @@ public final class EntryKeyFlow {
             // JDK delivers no AWT event for an unknown dead key: the text system still gets the key.
             return false
         }
+        // A key bound to a plugin action (Settings → Keys): the plugin hears the press; unless the binding passes
+        // the key on, both phases end here.
+        if let hook = entry.pluginKeyHook {
+            let combo = KeyCombo(ctrl: stroke.isControlDown, alt: stroke.isAltDown, shift: stroke.isShiftDown,
+                                 meta: stroke.isMetaDown, keyCode: stroke.vk)
+            if let passThrough = hook(combo, stroke.phase == .pressed), !passThrough {
+                return true
+            }
+        }
         let decision: EntryKeyDecision = EntryKeyRouter.route(stroke, context: entry.keyContext(field: field))
         guard entry.acceptsInput else {
             return Self.consumes(decision)

@@ -117,7 +117,7 @@ public final class BandmapModel {
     /// The spots of the buffer now (read when the feed's revision changes).
     public func spots() -> [DxSpot] {
         _ = feed.revision
-        return feed.snapshot()
+        return feed.filteredSnapshot()
     }
 
     /// The spot labels in the window (`layoutSpots`).
@@ -192,7 +192,7 @@ public final class BandmapModel {
     public func click(x: Float, y: Float, height: Float, axisX: Float, rowH: Float) {
         guard let band else { return }
         let tap: BandmapTap = BandmapLayout.tap(x: x, y: y, viewport: viewport, height: height, axisX: axisX,
-                                                rowH: rowH, spots: feed.snapshot(), cqHz: cqHz)
+                                                rowH: rowH, spots: feed.filteredSnapshot(), cqHz: cqHz)
         switch tap {
         case .cqFrequency:
             // Kotlin `jumpToCqFrequency(band)`: `qsy(cq)` and Run.
@@ -303,7 +303,7 @@ public final class BandmapModel {
     public func menuSpot(x: Float, y: Float, height: Float, axisX: Float, rowH: Float) -> DxSpot? {
         guard band != nil else { return nil }
         return BandmapLayout.menuSpot(x: x, y: y, viewport: viewport, height: height, axisX: axisX, rowH: rowH,
-                                      spots: feed.snapshot())
+                                      spots: feed.filteredSnapshot())
     }
 
     /// `tr("Blacklist volačky %s")`.
