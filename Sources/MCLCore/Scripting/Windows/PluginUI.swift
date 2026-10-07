@@ -12,6 +12,8 @@ public struct PluginUIContent: Equatable, Sendable {
     public static let maxElements = 2_000
     /// Tabs inside tabs at most this deep.
     public static let maxDepth = 3
+    /// At most this many canvas shapes in the whole content (all canvases).
+    public static let maxShapesTotal = 10_000
 
     public var elements: [PluginUIElement]
     /// What was left out or cut (shown in the messages window once per kind).
@@ -35,6 +37,7 @@ public struct PluginUIContent: Equatable, Sendable {
     private struct Parser {
         var warnings: [String] = []
         var count = 0
+        var shapeCount = 0
 
         mutating func warn(_ text: String) {
             if !warnings.contains(text) {
@@ -100,10 +103,86 @@ public struct PluginUIContent: Equatable, Sendable {
                                             elements: elements(children, depth: depth + 1)))
                 }
                 return .tabs(id: item["id"]?.stringValue, tabs: tabs)
+            case "canvas":
+                return .canvas(canvas(item))
             default:
                 warn("unknown element type \"\(type)\" was left out")
                 return nil
             }
+        }
+
+        mutating func canvas(_ item: PluginJSON) -> PluginUICanvas {
+            let width: Double = clamp(item["width"]?.doubleValue ?? 300, 1, PluginUICanvas.maxSide)
+            let height: Double = clamp(item["height"]?.doubleValue ?? 200, 1, PluginUICanvas.maxSide)
+            var shapes: [PluginUIShape] = []
+            let source: [PluginJSON] = item["shapes"]?.arrayValue ?? []
+            for (index, shape) in source.enumerated() {
+                guard index < PluginUICanvas.maxShapes else {
+                    warn("a canvas has more than \(PluginUICanvas.maxShapes) shapes: the rest is not drawn")
+                    break
+                }
+                guard shapeCount < PluginUIContent.maxShapesTotal else {
+                    warn("more than \(PluginUIContent.maxShapesTotal) canvas shapes in all: the rest is not drawn")
+                    break
+                }
+                shapeCount += 1
+                if let parsed = self.shape(shape) {
+                    shapes.append(parsed)
+                }
+            }
+            return PluginUICanvas(id: item["id"]?.stringValue, width: width, height: height, shapes: shapes,
+                                  label: item["label"]?.stringValue)
+        }
+
+        private func clamp(_ value: Double, _ low: Double, _ high: Double) -> Double {
+            guard value.isFinite else { return low }
+            return Swift.min(Swift.max(value, low), high)
+        }
+
+        private func number(_ value: PluginJSON?) -> Double? {
+            guard let number = value?.doubleValue, number.isFinite else { return nil }
+            return clamp(number, -PluginUICanvas.maxSide, 2 * PluginUICanvas.maxSide)
+        }
+
+        mutating func shape(_ item: PluginJSON) -> PluginUIShape? {
+            let style: PluginUIStyle = self.style(item["style"])
+            let fill: Bool = item["fill"]?.boolValue ?? false
+            let lineWidth: Double = clamp(item["lineWidth"]?.doubleValue ?? 1, 0.5, 20)
+            switch item["shape"]?.stringValue {
+            case "line":
+                guard let x1 = number(item["x1"]), let y1 = number(item["y1"]), let x2 = number(item["x2"]),
+                      let y2 = number(item["y2"]) else { break }
+                return .line(from: PluginUIPoint(x: x1, y: y1), to: PluginUIPoint(x: x2, y: y2), style: style,
+                             lineWidth: lineWidth)
+            case "rect":
+                guard let x = number(item["x"]), let y = number(item["y"]), let w = number(item["w"]),
+                      let h = number(item["h"]) else { break }
+                return .rect(x: x, y: y, width: w, height: h, style: style, fill: fill, lineWidth: lineWidth)
+            case "circle":
+                guard let x = number(item["cx"]), let y = number(item["cy"]), let r = number(item["r"]) else { break }
+                return .circle(center: PluginUIPoint(x: x, y: y), radius: abs(r), style: style, fill: fill,
+                               lineWidth: lineWidth)
+            case "path":
+                let points: [PluginUIPoint] = (item["points"]?.arrayValue ?? []).prefix(PluginUICanvas.maxPathPoints)
+                    .compactMap { point in
+                        guard let pair = point.arrayValue, pair.count == 2, let x = number(pair[0]),
+                              let y = number(pair[1]) else { return nil }
+                        return PluginUIPoint(x: x, y: y)
+                    }
+                guard points.count >= 2 else { break }
+                return .path(points: points, closed: item["closed"]?.boolValue ?? false, style: style, fill: fill,
+                             lineWidth: lineWidth)
+            case "text":
+                guard let x = number(item["x"]), let y = number(item["y"]), let text = item["text"]?.stringValue else {
+                    break
+                }
+                return .text(text, at: PluginUIPoint(x: x, y: y), style: style,
+                             size: clamp(item["size"]?.doubleValue ?? 12, 6, 72))
+            default:
+                break
+            }
+            warn("a canvas shape that cannot be read was left out")
+            return nil
         }
 
         mutating func style(_ value: PluginJSON?) -> PluginUIStyle {
@@ -281,6 +360,50 @@ public struct PluginUITab: Equatable, Sendable {
     }
 }
 
+public struct PluginUIPoint: Equatable, Sendable {
+    public let x: Double
+    public let y: Double
+
+    public init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
+}
+
+/// A shape of a canvas, in the canvas's own coordinates (origin top left, y down, points).
+public enum PluginUIShape: Equatable, Sendable {
+    case line(from: PluginUIPoint, to: PluginUIPoint, style: PluginUIStyle, lineWidth: Double)
+    case rect(x: Double, y: Double, width: Double, height: Double, style: PluginUIStyle, fill: Bool, lineWidth: Double)
+    case circle(center: PluginUIPoint, radius: Double, style: PluginUIStyle, fill: Bool, lineWidth: Double)
+    case path(points: [PluginUIPoint], closed: Bool, style: PluginUIStyle, fill: Bool, lineWidth: Double)
+    case text(String, at: PluginUIPoint, style: PluginUIStyle, size: Double)
+}
+
+/// A drawing area: shapes in its coordinates; with an `id` a click sends `click` with `value` `{x, y}`.
+public struct PluginUICanvas: Equatable, Sendable {
+    /// The largest side (points).
+    public static let maxSide: Double = 4_000
+    /// At most this many shapes per canvas.
+    public static let maxShapes = 5_000
+    /// At most this many points per path.
+    public static let maxPathPoints = 2_000
+
+    public let id: String?
+    public let width: Double
+    public let height: Double
+    public let shapes: [PluginUIShape]
+    /// What VoiceOver says for the drawing.
+    public let label: String?
+
+    public init(id: String?, width: Double, height: Double, shapes: [PluginUIShape], label: String?) {
+        self.id = id
+        self.width = width
+        self.height = height
+        self.shapes = shapes
+        self.label = label
+    }
+}
+
 /// One element of a plugin window.
 public indirect enum PluginUIElement: Equatable, Sendable {
     case text(String, style: PluginUIStyle)
@@ -290,4 +413,5 @@ public indirect enum PluginUIElement: Equatable, Sendable {
     case toggle(id: String, label: String, value: Bool)
     case progress(value: Double, max: Double, label: String?)
     case tabs(id: String?, tabs: [PluginUITab])
+    case canvas(PluginUICanvas)
 }

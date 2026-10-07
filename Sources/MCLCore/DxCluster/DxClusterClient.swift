@@ -98,8 +98,12 @@ public final class DxClusterClient: @unchecked Sendable {
         }
     }
 
-    /// Sends a line command (the cluster expects CRLF).
+    /// Sends a line command (the cluster expects CRLF). A line with a CR or LF inside is refused — it would be
+    /// several commands (never a caller's intention; a guard against injected text).
     public func send(_ line: String) throws(DxClusterException) {
+        guard !line.unicodeScalars.contains(where: { $0 == "\r" || $0 == "\n" }) else {
+            throw DxClusterException("Příkaz pro DX cluster obsahuje konec řádku")
+        }
         do {
             try socket.writeAscii(line + "\r\n")
         } catch {

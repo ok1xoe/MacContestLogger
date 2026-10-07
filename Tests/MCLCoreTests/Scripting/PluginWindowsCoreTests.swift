@@ -123,6 +123,10 @@ import Testing
         #expect(package.manifest.unsupportedPermissions.isEmpty)
         #expect(package.manifest.run == "run.py")
         #expect(access(package.executable, X_OK) == 0)
+        let acting: PluginPackage = try #require(scan.package("band-activity"))
+        #expect(acting.manifest.permissionsNeedingGrant == ["entry", "rig"])
+        #expect(acting.manifest.actions.map(\.id) == ["last-call"])
+        #expect(access(acting.executable, X_OK) == 0)
     }
 
     @Test func aMissingPluginsDirectoryIsEmpty() {
@@ -288,7 +292,7 @@ import Testing
     /// What this version does not understand is left out with a warning, the rest is shown.
     @Test func unknownPartsAreLeftOutWithWarnings() throws {
         let content = try Self.content("""
-            [{"type":"canvas"},{"text":"no type"},{"type":"button"},{"type":"text","text":"x","style":"rainbow"},
+            [{"type":"chart"},{"text":"no type"},{"type":"button"},{"type":"text","text":"x","style":"rainbow"},
              {"type":"text","text":"kept"}]
             """)
         #expect(content.elements == [.text("x", style: .normal), .text("kept", style: .normal)])

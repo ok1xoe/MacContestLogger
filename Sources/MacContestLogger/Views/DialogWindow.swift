@@ -92,6 +92,10 @@ struct DialogPresenter: ViewModifier {
                 for id in old where !new.contains(id) && WindowsModel.spotWindows.contains(id) {
                     dismissWindow(id: id)
                 }
+                // A plugin window that docked into the main window closes (the user's close has closed it already).
+                for id in old where !new.contains(id) && app.pluginWindows.isDocked(id) {
+                    dismissWindow(id: PluginWindowView.sceneId, value: id)
+                }
             }
     }
 }

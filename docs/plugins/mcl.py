@@ -34,7 +34,7 @@ PROTOCOL = 1
 
 __all__ = [
     "Plugin", "PluginError", "text", "table", "row", "cell", "column", "list_", "item", "button", "toggle",
-    "progress", "tabs", "tab",
+    "progress", "tabs", "tab", "canvas", "line", "rect", "circle", "path", "label",
 ]
 
 
@@ -59,6 +59,7 @@ class Plugin:
         self._start = []
         self._events = {}
         self._ui = []
+        self._keys = {}
         self.hello = None
 
     # -- registration -------------------------------------------------------------------------------------------
@@ -85,6 +86,14 @@ class Plugin:
         action = "double-click" if double else "click"
         def register(handler):
             self._ui.append((window, action, target, handler))
+            return handler
+        return register
+
+    def on_key(self, action):
+        """`handler(event)` when the key the operator bound to `action` (listed under `actions` in plugin.json) is
+        pressed."""
+        def register(handler):
+            self._keys.setdefault(action, []).append(handler)
             return handler
         return register
 
@@ -181,6 +190,9 @@ class Plugin:
         elif kind == "event":
             for handler in self._events.get(message.get("event"), []):
                 handler(message.get("data"))
+        elif kind == "key":
+            for handler in self._keys.get(message.get("action"), []):
+                handler(message)
         elif kind == "ui":
             for window, action, target, handler in self._ui:
                 if window is not None and window != message.get("window"):
@@ -264,4 +276,53 @@ def tabs(tab_list, id=None):
     fields = {"type": "tabs", "tabs": list(tab_list)}
     if id is not None:
         fields["id"] = id
+    return fields
+
+
+# -- canvas (coordinates in points, origin top left) ------------------------------------------------------------
+
+def canvas(shapes, width=300, height=200, id=None, label=None):
+    """A drawing area; with an `id` a click sends `click` with `value` = {"x": …, "y": …}. `label` is read by
+    VoiceOver."""
+    fields = {"type": "canvas", "width": width, "height": height, "shapes": list(shapes)}
+    if id is not None:
+        fields["id"] = id
+    if label is not None:
+        fields["label"] = label
+    return fields
+
+
+def _shape(kind, style, fill, line_width, **fields):
+    fields["shape"] = kind
+    if style:
+        fields["style"] = style
+    if fill:
+        fields["fill"] = True
+    if line_width is not None:
+        fields["lineWidth"] = line_width
+    return fields
+
+
+def line(x1, y1, x2, y2, style=None, line_width=None):
+    return _shape("line", style, False, line_width, x1=x1, y1=y1, x2=x2, y2=y2)
+
+
+def rect(x, y, w, h, style=None, fill=False, line_width=None):
+    return _shape("rect", style, fill, line_width, x=x, y=y, w=w, h=h)
+
+
+def circle(cx, cy, r, style=None, fill=False, line_width=None):
+    return _shape("circle", style, fill, line_width, cx=cx, cy=cy, r=r)
+
+
+def path(points, closed=False, style=None, fill=False, line_width=None):
+    return _shape("path", style, fill, line_width, points=[list(p) for p in points], closed=closed)
+
+
+def label(x, y, value, style=None, size=None):
+    fields = {"shape": "text", "x": x, "y": y, "text": str(value)}
+    if style:
+        fields["style"] = style
+    if size is not None:
+        fields["size"] = size
     return fields

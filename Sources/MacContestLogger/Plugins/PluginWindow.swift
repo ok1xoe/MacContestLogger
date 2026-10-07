@@ -20,11 +20,20 @@ struct PluginWindowView: View {
                         minSize: CGSize(width: 240, height: 160),
                         appeared: { $0.pluginWindows.windowAppeared(key) },
                         closedByUser: { $0.pluginWindows.windowClosed(key) },
+                        leading: { app in
+                            IconButton(symbol: "rectangle.bottomhalf.inset.filled",
+                                       label: app.language.tr("Ukotvit do hlavního okna")) {
+                                app.pluginWindows.dock(key)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("pluginWindow.dock")
+                        },
                         content: { app, _ in PluginWindowContent(app: app, key: key) })
     }
 }
 
-private struct PluginWindowContent: View {
+/// The content of a plugin window: the banner and the elements (also the inside of a docked panel).
+struct PluginWindowContent: View {
     let app: AppModel
     let key: String
 
@@ -38,6 +47,15 @@ private struct PluginWindowContent: View {
                     if let plugin = parsed?.plugin {
                         model.restart(plugin)
                     }
+                }
+                if session?.phase == .awaitingConsent, let plugin = parsed?.plugin {
+                    // Only the operator opens the consent sheet (it never pops up by itself mid-QSO).
+                    Button {
+                        model.requestConsent(plugin)
+                    } label: {
+                        Text(verbatim: app.language.tr("Rozhodnout o oprávněních…")).windowFont(12)
+                    }
+                    .accessibilityIdentifier("pluginWindow.consent")
                 }
             }
             if let parsed, let content = session?.contents[parsed.window] {
@@ -106,6 +124,10 @@ struct PluginActions {
     func selectTab(_ target: String, _ tab: String) {
         model.selectTab(key, target: target, tab: tab)
     }
+
+    func canvasClick(_ target: String, x: Double, y: Double) {
+        model.canvasClick(key, target: target, x: x, y: y)
+    }
 }
 
 /// A vertical stack of plugin elements (also the inside of a tab).
@@ -159,6 +181,8 @@ private struct PluginElementView: View {
             }
         case .tabs(let id, let tabs):
             PluginTabsView(id: id, tabs: tabs, actions: actions)
+        case .canvas(let canvas):
+            PluginCanvasView(canvas: canvas, actions: actions)
         }
     }
 }
@@ -319,6 +343,123 @@ private struct PluginTabsView: View {
             if let tab = tabs.first(where: { $0.id == current }) {
                 PluginElementsView(elements: tab.elements, actions: actions)
             }
+        }
+    }
+}
+
+/// A canvas element: the shapes in the canvas's coordinates, scaled with the window's font size (so the drawing
+/// grows with the text); a click on a canvas with an id sends its point in canvas coordinates.
+private struct PluginCanvasView: View {
+    let canvas: PluginUICanvas
+    let actions: PluginActions
+    @Environment(\.windowFontSize) private var windowSize
+
+    /// What VoiceOver says for a canvas without its own label: its texts, else "drawing".
+    private var fallbackLabel: String {
+        let texts: [String] = canvas.shapes.compactMap { shape in
+            if case .text(let text, _, _, _) = shape { return text }
+            return nil
+        }
+        return texts.isEmpty ? "canvas" : texts.prefix(20).joined(separator: ", ")
+    }
+
+    var body: some View {
+        let scale: Double = Double(windowSize) / Double(WindowFont.defaultSize)
+        let shapes: [PluginUIShape] = canvas.shapes
+        Canvas { context, _ in
+            context.scaleBy(x: scale, y: scale)
+            for shape in shapes {
+                PluginCanvasDrawing.draw(shape, in: &context)
+            }
+        }
+        .frame(width: canvas.width * scale, height: canvas.height * scale)
+        .contentShape(Rectangle())
+        .onTapGesture(coordinateSpace: .local) { location in
+            if let id = canvas.id {
+                actions.canvasClick(id, x: location.x / scale, y: location.y / scale)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: canvas.label ?? fallbackLabel))
+        .accessibilityAddTraits(canvas.id == nil ? [.isImage] : [.isImage, .isButton])
+    }
+}
+
+enum PluginCanvasDrawing {
+    static func draw(_ shape: PluginUIShape, in context: inout GraphicsContext) {
+        switch shape {
+        case .line(let from, let to, let style, let lineWidth):
+            var path = Path()
+            path.move(to: CGPoint(x: from.x, y: from.y))
+            path.addLine(to: CGPoint(x: to.x, y: to.y))
+            context.stroke(path, with: .color(PluginStyleColor.color(style)), lineWidth: lineWidth)
+        case .rect(let x, let y, let width, let height, let style, let fill, let lineWidth):
+            paint(Path(CGRect(x: x, y: y, width: width, height: height)), style: style, fill: fill,
+                  lineWidth: lineWidth, in: &context)
+        case .circle(let center, let radius, let style, let fill, let lineWidth):
+            let rect = CGRect(x: center.x - radius, y: center.y - radius, width: 2 * radius, height: 2 * radius)
+            paint(Path(ellipseIn: rect), style: style, fill: fill, lineWidth: lineWidth, in: &context)
+        case .path(let points, let closed, let style, let fill, let lineWidth):
+            var path = Path()
+            path.addLines(points.map { CGPoint(x: $0.x, y: $0.y) })
+            if closed {
+                path.closeSubpath()
+            }
+            paint(path, style: style, fill: fill, lineWidth: lineWidth, in: &context)
+        case .text(let text, let point, let style, let size):
+            context.draw(Text(verbatim: text).font(.system(size: size)).foregroundColor(PluginStyleColor.color(style)),
+                         at: CGPoint(x: point.x, y: point.y), anchor: .topLeading)
+        }
+    }
+
+    private static func paint(_ path: Path, style: PluginUIStyle, fill: Bool, lineWidth: Double,
+                              in context: inout GraphicsContext) {
+        if fill {
+            context.fill(path, with: .color(PluginStyleColor.color(style)))
+        } else {
+            context.stroke(path, with: .color(PluginStyleColor.color(style)), lineWidth: lineWidth)
+        }
+    }
+}
+
+/// The plugin windows docked into the main window, under the entry panel: each with its title, Undock and Close.
+struct PluginDockArea: View {
+    let app: AppModel
+
+    var body: some View {
+        let model: PluginWindowsModel = app.pluginWindows
+        let keys: [String] = model.dockedKeys
+        if !keys.isEmpty {
+            ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(keys, id: \.self) { key in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Text(verbatim: model.title(key))
+                                .windowFont(12, weight: .semibold)
+                            Spacer(minLength: 0)
+                            IconButton(symbol: "macwindow", label: app.language.tr("Do samostatného okna")) {
+                                model.undock(key)
+                            }
+                            IconButton(symbol: "xmark", label: app.language.tr("Zavřít panel pluginu")) {
+                                model.closeDocked(key)
+                            }
+                        }
+                        .buttonStyle(.borderless)
+                        PluginWindowContent(app: app, key: key)
+                            .frame(minHeight: 80, maxHeight: 260)
+                    }
+                    .padding(6)
+                    .background(RoundedRectangle(cornerRadius: 6).stroke(Color(nsColor: .separatorColor)))
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel(Text(verbatim: model.title(key)))
+                }
+            }
+            }
+            // The main window sizes to its content: the dock gets a definite height, scrolling beyond it.
+            .frame(height: min(420, CGFloat(keys.count) * 240))
+            .padding(.horizontal, 8)
+            .accessibilityIdentifier("pluginDock")
         }
     }
 }

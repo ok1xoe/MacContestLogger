@@ -23,6 +23,8 @@ public final class PluginSession {
         case refused([String])
         /// Window plugins are switched off (`MCL_INERT_*`).
         case disabled
+        /// Asks for permissions the operator has not decided on yet: the consent sheet is up.
+        case awaitingConsent
     }
 
     public let package: PluginPackage
@@ -38,6 +40,9 @@ public final class PluginSession {
     @ObservationIgnored var helloTimer: (any RescoreTimer)?
     @ObservationIgnored var stopping = false
     @ObservationIgnored var inbox: PluginInbox?
+    /// The process was started (the spawn runs off the main actor); lines sent before wait in `pendingLines`.
+    @ObservationIgnored var spawned = false
+    @ObservationIgnored var pendingLines: [String] = []
     /// Requests being answered.
     @ObservationIgnored var inFlight = 0
     @ObservationIgnored var inputClosedReported = false
@@ -101,6 +106,8 @@ public final class PluginSession {
         reportedErrors = []
         inFlight = 0
         inputClosedReported = false
+        spawned = false
+        pendingLines = []
         stopping = false
     }
 

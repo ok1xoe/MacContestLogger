@@ -251,7 +251,7 @@ private struct ProfileFixture: Codable, Equatable, Sendable {
         let settings = DefaultMenu.tree().menu[0]
         let open = settings.children[0]
         #expect(open.id == "settings.open")
-        #expect(open.children.count == 20)
+        #expect(open.children.count == 21)
         #expect(open.children.allSatisfy { $0.id.hasPrefix("tab.") })
     }
 

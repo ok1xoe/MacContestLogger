@@ -17,6 +17,10 @@ public struct PluginHostContext {
     public var rig: () -> PluginRigState? = { nil }
     /// The live spots.
     public var spots: () -> [DxSpot] = { [] }
+    /// The acting requests (`entry`, `rig`, `spots`, `app.command`).
+    public var actions = PluginHostActions()
+    /// The app's own shortcut on a key, by its label (`nil` = none).
+    public var shortcutLabel: (KeyCombo) -> String? = { _ in nil }
 
     public init() {}
 }
@@ -61,11 +65,14 @@ enum PluginRpc {
     static func answer(method: String, params: [String: PluginJSON], permissions: [String],
                        context: PluginHostContext,
                        readProbe: (@Sendable (Bool) -> Void)? = nil) async -> Result<PluginJSON, Failure> {
-        guard let permission = methods[method] else {
+        guard let permission = methods[method] ?? actionMethods[method] else {
             return .failure(Failure(code: "unknown_method", message: "unknown method \(method)"))
         }
         guard permissions.contains(permission) else {
             return .failure(Failure(code: "permission", message: "\(method) needs the \(permission) permission"))
+        }
+        if actionMethods[method] != nil {
+            return act(method: method, params: params, actions: context.actions)
         }
         switch method {
         case "log.query", "log.count":
@@ -79,8 +86,7 @@ enum PluginRpc {
         case "contest.score":
             return await score(context: context, readProbe: readProbe)
         case "contest.multipliers":
-            return .failure(Failure(code: "not_implemented",
-                                    message: "contest.multipliers is not available in protocol 1 yet"))
+            return await multipliers(context: context, readProbe: readProbe)
         case "rig.state":
             guard let rig = context.rig() else { return .success(.null) }
             let band: String? = Band.from(frequencyHz: Int(clamping: rig.freqHz))?.adif
@@ -170,6 +176,41 @@ enum PluginRpc {
         } catch {
             return .failure(Failure(code: "failed", message: "\(error)"))
         }
+    }
+
+    /// The worked multipliers of the active contest by binding (a replay of its log, as the score is computed).
+    private static func multipliers(context: PluginHostContext,
+                                    readProbe: (@Sendable (Bool) -> Void)?) async -> Result<PluginJSON, Failure> {
+        guard let id = context.contest().id, let fresh = context.freshSession() else {
+            return .success(.null)
+        }
+        guard let handle = context.handle() else {
+            return .failure(Failure(code: "unavailable", message: "no logbook is open"))
+        }
+        do {
+            let json: String = try await handle.run { access in
+                readProbe?(Thread.isMainThread)
+                let qsos: [Qso] = try access.repository.findAll(contestId: id)
+                let outcome = ContestReplay.replay(fresh, qsos)
+                return multipliersJson(contestId: id, session: outcome.session).serialized()
+            }
+            return .success(.raw(json))
+        } catch {
+            return .failure(Failure(code: "failed", message: "\(error)"))
+        }
+    }
+
+    nonisolated static func multipliersJson(contestId: String, session: ContestSession) -> PluginJSON {
+        var list: [PluginJSON] = []
+        for case let binding? in session.definition.multipliers ?? [] {
+            let keys: [String] = session.tracker.keysForBinding(binding.id).compactMap { $0 }
+            let label: String? = binding.label.flatMap { $0.isEmpty ? nil : $0 } ?? binding.id
+            list.append(.object([
+                "id": .optional(binding.id), "label": .optional(label), "worked": .int(Int64(keys.count)),
+                "keys": .array(keys.map { .string($0) }), "needed": .null,
+            ]))
+        }
+        return .object(["contestId": .string(contestId), "multipliers": .array(list)])
     }
 
     nonisolated static func scoreJson(contestId: String, breakdown: ScoreBreakdown, order: [String?]) -> PluginJSON {

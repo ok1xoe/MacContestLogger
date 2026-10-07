@@ -31,7 +31,8 @@
             },
             { "id": "tab.bandplan",        "label": "Bandplán",        "state": "enable" },
             { "id": "tab.digifreq",        "label": "Digi frekvence",  "state": "enable" },
-            { "id": "tab.map",             "label": "Mapa",            "state": "enable" }
+            { "id": "tab.map",             "label": "Mapa",            "state": "enable" },
+            { "id": "tab.plugins",         "label": "Pluginy",         "state": "enable" }
           ]
         },
         { "id": "settings.import", "label": "Import QSO (ADIF/Cabrillo)…", "state": "enable" },

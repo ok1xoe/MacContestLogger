@@ -76,6 +76,7 @@ public enum DefaultMenu {
         "tab.bandplan": "Bandplán",
         "tab.digifreq": "Digi frekvence",
         "tab.map": "Mapa",
+        "tab.plugins": "Pluginy",
     ]
 
     /// Default label for the given `id`, or `nil` when the definition does not know it.
@@ -99,7 +100,7 @@ public enum DefaultMenu {
             leaf("tab.antennas"), leaf("tab.score-reporting"), leaf("tab.broadcast"),
             leaf("tab.wsjt"), leaf("tab.audio"), leaf("tab.station"),
             leaf("tab.contest"), leaf("tab.cluster"), leaf("tab.dxcluster"), leaf("tab.online_logs"),
-            leaf("tab.bandplan"), leaf("tab.digifreq"), leaf("tab.map"),
+            leaf("tab.bandplan"), leaf("tab.digifreq"), leaf("tab.map"), leaf("tab.plugins"),
         ])
         let settings = node("settings", [
             settingsOpen, leaf("settings.import"), leaf("settings.export"),

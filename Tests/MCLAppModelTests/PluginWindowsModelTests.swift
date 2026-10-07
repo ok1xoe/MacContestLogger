@@ -402,8 +402,7 @@ import Testing
         let spots = try Self.value(await Self.answer("spots.list", ["band": .string("20m")], context: context))
         #expect(spots["spots"]?.arrayValue?.compactMap { $0["dxCall"]?.stringValue } == ["DL1AA"])
 
-        #expect(await Self.answer("contest.multipliers", context: context) == .failure(PluginRpc.Failure(
-            code: "not_implemented", message: "contest.multipliers is not available in protocol 1 yet")))
+        #expect(try Self.value(await Self.answer("contest.multipliers", context: context)) == .null)
         #expect(await Self.answer("cat.send", context: context) == .failure(PluginRpc.Failure(
             code: "unknown_method", message: "unknown method cat.send")))
         #expect(await Self.answer("log.count", permissions: ["ui"], context: context) == .failure(PluginRpc.Failure(

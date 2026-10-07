@@ -9,10 +9,24 @@ public struct PluginManifest: Equatable, Sendable {
 
     /// The protocol this version speaks.
     public static let protocolVersion: Int64 = 1
-    /// The permissions protocol 1 grants. Later versions add `entry`, `rig`, `spots`, `cat`, `transmit`, `network`.
-    public static let supportedPermissions: [String] = ["read", "ui"]
+    /// The permissions this version knows. `read` and `ui` are always granted; the others act on the app and need
+    /// the operator's grant (`grantedPermissions`). Later versions add `cat`, `transmit` and `web`.
+    public static let supportedPermissions: [String] = ["read", "ui", "entry", "rig", "spots", "spots.send",
+                                                        "app.command"]
+    /// The permissions granted without asking.
+    public static let implicitPermissions: Set<String> = ["read", "ui"]
+    /// Permissions the consent sheet leaves unchecked (the operator must tick them on purpose).
+    public static let offByDefault: Set<String> = ["spots.send"]
     /// At most this many windows per plugin.
     public static let maxWindows = 8
+    /// At most this many key actions per plugin.
+    public static let maxActions = 32
+
+    /// An action the operator can bind to a key (Settings → Keys); the plugin gets a `key` message.
+    public struct Action: Equatable, Sendable {
+        public let id: String
+        public let title: String
+    }
 
     public struct Window: Equatable, Sendable {
         public let id: String
@@ -31,6 +45,8 @@ public struct PluginManifest: Equatable, Sendable {
     /// The subscribed events in their directory form (`qso-logged`).
     public let events: [String]
     public let windows: [Window]
+    /// The key actions (a plugin may have actions and no window).
+    public let actions: [Action]
     /// The executable relative to the plugin directory (`run`, default `run`).
     public let run: String
 
@@ -41,6 +57,15 @@ public struct PluginManifest: Equatable, Sendable {
 
     public func window(_ id: String) -> Window? {
         windows.first { $0.id == id }
+    }
+
+    public func action(_ id: String) -> Action? {
+        actions.first { $0.id == id }
+    }
+
+    /// The requested permissions that need the operator's grant.
+    public var permissionsNeedingGrant: [String] {
+        permissions.filter { !Self.implicitPermissions.contains($0) && Self.supportedPermissions.contains($0) }
     }
 
     /// Parses and checks a manifest. The checks name the problem in a message for the messages window.
@@ -62,13 +87,14 @@ public struct PluginManifest: Equatable, Sendable {
         if let unknown = events.first(where: { !known.contains($0) }) {
             throw ContestMessage("plugin.json: neznámá událost %s", .string(unknown))
         }
-        let windows: [Window] = try parseWindows(root["windows"], name: name)
+        let actions: [Action] = try parseActions(root["actions"])
+        let windows: [Window] = try parseWindows(root["windows"], name: name, required: actions.isEmpty)
         let run: String = root["run"]?.stringValue ?? "run"
         guard isSafeRelativePath(run) else {
             throw ContestMessage("plugin.json: neplatná cesta ke spustitelnému souboru %s", .string(run))
         }
         return PluginManifest(id: directoryName, name: name, version: root["version"]?.stringValue,
-                              permissions: permissions, events: events, windows: windows, run: run)
+                              permissions: permissions, events: events, windows: windows, actions: actions, run: run)
     }
 
     private static func strings(_ value: PluginJSON?, field: String) throws(ContestMessage) -> [String] {
@@ -88,7 +114,27 @@ public struct PluginManifest: Equatable, Sendable {
         return out
     }
 
-    private static func parseWindows(_ value: PluginJSON?, name: String) throws(ContestMessage) -> [Window] {
+    private static func parseActions(_ value: PluginJSON?) throws(ContestMessage) -> [Action] {
+        guard let value, value != .null else { return [] }
+        guard let list = value.arrayValue, list.count <= maxActions else {
+            throw ContestMessage("plugin.json: akce (actions) musí být seznam nejvýš %s položek",
+                                 .string(String(maxActions)))
+        }
+        var actions: [Action] = []
+        for item in list {
+            guard let id = item["id"]?.stringValue, isValidId(id), !actions.contains(where: { $0.id == id }) else {
+                throw ContestMessage("plugin.json: akce bez platného nebo jedinečného id")
+            }
+            actions.append(Action(id: id, title: item["title"]?.stringValue.flatMap { $0.isEmpty ? nil : $0 } ?? id))
+        }
+        return actions
+    }
+
+    private static func parseWindows(_ value: PluginJSON?, name: String,
+                                     required: Bool) throws(ContestMessage) -> [Window] {
+        if !required && (value == nil || value == .null || value?.arrayValue?.isEmpty == true) {
+            return []
+        }
         guard let list = value?.arrayValue, !list.isEmpty else {
             throw ContestMessage("plugin.json: chybí okna (windows)")
         }
