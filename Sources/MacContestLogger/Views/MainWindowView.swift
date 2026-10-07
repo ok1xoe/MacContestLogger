@@ -193,10 +193,10 @@ struct ScoreBarView: View {
             Text(verbatim: app.language.tr("Skóre:") + " " + line.total)
                 .windowFont(16, weight: .bold, design: .monospaced)
         }
-        .foregroundStyle(Color(domain: DomainColors.onStrip))
+        .foregroundStyle(.mclOnStrip)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color(domain: DomainColors.strip))
+        .background(.mclStrip)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: app.language.tr("Skóre")))
         .accessibilityValue(Text(verbatim: AccessibilityText.scoreBarValue(

@@ -40,6 +40,8 @@ public final class DxClusterModel {
     @ObservationIgnored let translator: TranslatorBox
     @ObservationIgnored let sink = ClusterSink()
     /// The station was spotted (the plugins' `SELF_SPOTTED`); runs on the main actor with the message.
+    /// The Bands/Modes filter changed (wired to `SpotFeed.filterChanged`).
+    @ObservationIgnored public var onSpotFilterChanged: (@MainActor () -> Void)?
     @ObservationIgnored public var onSelfSpotted: (@MainActor (SelfSpot) -> Void)?
     @ObservationIgnored let hooks = SpotHooks()
     @ObservationIgnored private(set) var mainLane: ClusterLane!
@@ -189,6 +191,21 @@ public final class DxClusterModel {
         commands[index] = ClusterTexts.editedMacro(label: label, command: command)
         config.config.dxCluster.commands = commands
         config.save(failureKey: ClusterTexts.macroSaveFailedKey)
+    }
+
+    // MARK: - Bands/Modes spot filter
+
+    /// The Bands/Modes spot filter from the configuration.
+    public var spotFilter: SpotFilter {
+        config.config.dxCluster.spotFilter
+    }
+
+    /// Applies and saves a new Bands/Modes filter; the band map, Available Mults and spot navigation follow at once.
+    public func setSpotFilter(_ filter: SpotFilter) {
+        guard filter != config.config.dxCluster.spotFilter else { return }
+        config.config.dxCluster.spotFilter = filter
+        config.save(failureKey: ClusterTexts.macroSaveFailedKey)
+        onSpotFilterChanged?()
     }
 
     // MARK: - Settings (the ports of `SettingsServices`)

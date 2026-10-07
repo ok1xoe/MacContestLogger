@@ -23,8 +23,8 @@ struct TrxButton: View {
         } label: {
             Image(systemName: "antenna.radiowaves.left.and.right")
                 .font(.system(size: WindowFont.size(13, windowSize: size)))
-                .foregroundStyle(connected ? Color(domain: DomainColors.catConnected)
-                                 : Color(domain: DomainColors.onStrip).opacity(0.45))
+                .foregroundStyle(connected ? AnyShapeStyle(Color(domain: DomainColors.catConnected))
+                                 : AnyShapeStyle(.mclOnStrip.opacity(0.45)))
                 .frame(width: WindowFont.size(16, windowSize: size), height: WindowFont.size(16, windowSize: size))
                 .contentShape(Rectangle())
         }
