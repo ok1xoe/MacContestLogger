@@ -128,7 +128,7 @@ import Testing
         let app = try await TestApp.make()
         let menu: MenuModel = app.model.menu
         let czech: [MenuEntry] = menu.entries()
-        #expect(czech.map(\.title) == ["Nastavení", "Závod", "Databáze", "Okno"])
+        #expect(czech.map(\.title) == ["Soubor", "Úpravy", "Závod", "Nástroje", "Nastavení", "Okno", "Nápověda"])
         let refill: MenuEntry = try #require(Self.entry("window.simulator", in: czech))
         #expect(refill.toolTip == nil)
         #expect(refill.enabled)
@@ -136,7 +136,7 @@ import Testing
 
         await app.model.language.switchTo("en")
         let english: [MenuEntry] = menu.entries()
-        #expect(english.map(\.title) == ["Settings", "Contest", "Database", "Window"])
+        #expect(english.map(\.title) == ["File", "Edit", "Contest", "Tools", "Settings", "Window", "Help"])
         let translated: MenuEntry = try #require(Self.entry("window.simulator", in: english))
         #expect(translated.toolTip == nil)
         #expect(translated.title != refill.title)

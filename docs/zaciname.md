@@ -22,8 +22,8 @@ After startup the application asks how to continue:
 - **Nový závod…** (New contest...) — you pick a definition and enter your callsign and station details.
 - **Otevřít existující…** (Open existing...) — switches to another contest in the same database.
 
-A database is a single SQLite file per contest; with **Databáze → Nová databáze…**
-(Database → New database...) you can create several (for example one per weekend).
+A database is a single SQLite file per contest; with **Soubor → Nová databáze…**
+(File → New database...) you can create several (for example one per weekend).
 
 Before you start logging, go through **Nastavení** (Settings, `Cmd+,`): callsign and
 station details, the directory with contest definitions, CAT, keyer and F-key
@@ -83,7 +83,7 @@ points or multipliers, the country is filled in as usual.
 
 ## After the contest
 
-**Databáze → Export** (Database → Export): Cabrillo for the organizers, ADIF for
+**Soubor → Export** (File → Export): Cabrillo for the organizers, ADIF for
 your own log or LoTW, CSV and a summary for yourself. Details in
 [Import and export](import-export.md).
 

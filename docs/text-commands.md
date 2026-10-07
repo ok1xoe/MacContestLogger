@@ -55,7 +55,7 @@ In a single-mode contest the mode is given by the definition, so the command is 
 | `EXPORT` | | export the log to ADIF (like the menu) |
 | `IMPORT` | | import QSOs from ADIF/Cabrillo (like the menu) |
 | `WRITELOG` | `MAKELOG` | export the log to Cabrillo (like the menu) |
-| `RESCORE` | | recalculates the contest score from scratch (like Závod → Přepočítat skóre / Contest → Recalculate score) |
+| `RESCORE` | | recalculates the contest score from scratch (like Nástroje → Přepočítat skóre / Tools → Recalculate score) |
 | `ESM` | `ESMON` | turns on ESM (Enter sends messages), see [esm.md](esm.md) |
 | `NOESM` | `ESMOFF` | turns it off |
 | `AUTORSP` | `AUTORSPON` | turns on automatic Run/S&P switching based on the CQ frequency, see [run-sp.md](run-sp.md) |

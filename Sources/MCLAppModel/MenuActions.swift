@@ -39,6 +39,8 @@ public enum MenuActions {
         /// Kotlin `chooseBeaconsPath()` (`tr("Soubor majáků (Beacons.txt)")`) → `SpotNavigation.loadBeacons` (the
         /// BEACONS command, `App.kt:266`).
         case openBeacons
+        /// The data directory in the Finder (`help.dataFolder`; honours `MCL_DATA_DIR`).
+        case openDataFolder(URL)
     }
 
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to
@@ -48,10 +50,27 @@ public enum MenuActions {
         "settings.merge", "database.refillDxcc",
     ]
 
+    /// The Help items and the documentation page each opens (`nil` = the docs index, `.issues` = the bug tracker).
+    private static let helpPages: [String: CallbookModel.DocsPage] = [
+        "help.docs": .index, "help.shortcuts": .page("keyboard-shortcuts.md"),
+        "help.commands": .page("text-commands.md"), "help.report": .issues,
+    ]
+
     /// Runs the action of a menu item; `nil` = done (or not an action handled here).
     public static func perform(_ id: String, app: AppModel) -> Request? {
         if id == "beacons.load" {
             return .openBeacons
+        }
+        if id == "help.dataFolder" {
+            return .openDataFolder(app.dataDir)
+        }
+        if let action = MenuModel.shortcutActions[id], id.hasPrefix("edit.") {
+            (app.activeEntry ?? app.entry).runShortcut(action)
+            return nil
+        }
+        if let page = helpPages[id] {
+            app.callbook.openDocs(page)
+            return nil
         }
         if fileIds.contains(id) {
             return performFile(id, app: app)
@@ -124,6 +143,8 @@ public enum MenuActions {
         case "settings.print":
             // The job is read off the main thread; it comes back as `exports.pendingRequest` (`takeModelRequest`).
             app.exports.startPrint()
+        case "settings.keys":
+            app.settings.open(tabKey: "keys")
         case "settings.open":
             // Kotlin `openConfigurer(tabSpecs)`; the window follows `windows.windowRequest`.
             app.settings.open()

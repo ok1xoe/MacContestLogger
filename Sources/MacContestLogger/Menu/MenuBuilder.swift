@@ -17,8 +17,15 @@ import Observation
 /// - One Window menu: SwiftUI's own Window menu is removed and `NSApp.windowsMenu` points at the menu of the
 ///   `menu.json` node `window` (AppKit adds the open windows there), or at nothing when `menu.json` has none.
 /// - „Dodatečné zadání" (`contest.postcontest`) carries a ✓ while POSTCONTEST is on (set when validated).
-/// - No key equivalents on `menu.json` items. The only one added is the standard Settings ⌘, in the application
+/// - No key equivalents on `menu.json` items. The Edit and Help items that run an entry-window shortcut show the key the
+///   user has (`MenuEntry.shortcut`) as grey text after the label; the entry window's key router stays the only
+///   thing that reacts to those keys. The one key equivalent added is the standard Settings ⌘, in the application
 ///   menu; it opens the Settings window.
+/// - The `edit` menu ends with the standard Undo, Redo, Cut, Copy, Paste and Select All (⌘Z … ⌘A) for the first
+///   responder, so the text fields keep them. SwiftUI's own Edit, View and Help menus are hidden (not removed, it
+///   puts a removed menu straight back) while the `menu.json` has an `edit` or `help` menu, and `NSApp.helpMenu`
+///   points at the `help` menu: one of each.
+/// - `sep.*` nodes are separator lines.
 /// - SwiftUI owns the main menu and may rebuild it; every change of the main menu, the application menu or the
 ///   windows menu is followed by a check that puts these items back.
 @MainActor
@@ -110,9 +117,27 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
         install()
     }
 
+    /// The title, with the user's key after it in grey when the item has one.
+    private func applyTitle(_ item: NSMenuItem, _ entry: MenuEntry) {
+        item.title = entry.title
+        guard let hint = entry.shortcut else {
+            item.attributedTitle = nil
+            return
+        }
+        let text = NSMutableAttributedString(string: entry.title, attributes: [.font: NSFont.menuFont(ofSize: 0)])
+        text.append(NSAttributedString(string: "   " + hint, attributes: [
+            .font: NSFont.menuFont(ofSize: 0), .foregroundColor: NSColor.secondaryLabelColor,
+        ]))
+        item.attributedTitle = text
+    }
+
     private func makeItem(_ entry: MenuEntry, path: String) -> NSMenuItem {
+        if entry.isSeparator {
+            return NSMenuItem.separator()
+        }
         let itemPath: String = path + "/" + entry.id
         let item = NSMenuItem(title: entry.title, action: nil, keyEquivalent: "")
+        applyTitle(item, entry)
         item.representedObject = NodeBox(entry)
         item.toolTip = entry.toolTip
         itemsByPath[itemPath] = item
@@ -126,6 +151,11 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
         for child in entry.children {
             submenu.addItem(makeItem(child, path: itemPath))
         }
+        if entry.id == "edit" && path.isEmpty {
+            for standard in standardEditItems() {
+                submenu.addItem(standard)
+            }
+        }
         if path.isEmpty && entry.id == "window" {
             addCustomMenu(to: submenu)
         }
@@ -138,8 +168,8 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
     private func refresh(_ entry: MenuEntry, path: String) {
         let itemPath: String = path + "/" + entry.id
         guard let item = itemsByPath[itemPath] else { return }
-        if item.title != entry.title {
-            item.title = entry.title
+        if item.title != entry.title || (item.representedObject as? NodeBox)?.shortcut != entry.shortcut {
+            applyTitle(item, entry)
             item.submenu?.title = entry.title
         }
         if item.toolTip != entry.toolTip {
@@ -230,6 +260,7 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
         }
         installSettings(in: main)
         keepOneWindowMenu(in: main)
+        hideStockMenus(in: main)
     }
 
     /// About, separator, Settings ⌘,, separator, Services — the macOS order.
@@ -265,6 +296,72 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
         placeSystemItems(in: target)
         if NSApp.windowsMenu !== target {
             NSApp.windowsMenu = target
+        }
+    }
+
+    /// Undo, Redo, Cut, Copy, Paste and Select All for the first responder (a text field, the call field), titled from
+    /// the system's localization; they sit at the end of the `edit` menu.
+    private func standardEditItems() -> [NSMenuItem] {
+        func make(_ title: String, _ action: Selector, _ key: String,
+                  _ modifiers: NSEvent.ModifierFlags = [.command]) -> NSMenuItem {
+            let item = NSMenuItem(title: Self.systemTitle(title), action: action, keyEquivalent: key)
+            item.keyEquivalentModifierMask = modifiers
+            return item
+        }
+        return [
+            NSMenuItem.separator(),
+            make("Undo", Selector(("undo:")), "z"),
+            make("Redo", Selector(("redo:")), "z", [.command, .shift]),
+            NSMenuItem.separator(),
+            make("Cut", #selector(NSText.cut(_:)), "x"),
+            make("Copy", #selector(NSText.copy(_:)), "c"),
+            make("Paste", #selector(NSText.paste(_:)), "v"),
+            make("Select All", #selector(NSText.selectAll(_:)), "a"),
+        ]
+    }
+
+    /// The submenu of the `menu.json` node with this id.
+    private func submenu(id: String) -> NSMenu? {
+        installed.first { ($0.representedObject as? NodeBox)?.node.id == id }?.submenu
+    }
+
+    /// Hides SwiftUI's own Edit, View and Help menus (recognised by their title in the system's localization or by
+    /// their standard items) once `menu.json` brings its own, and makes the `help` menu the application's help menu.
+    private func hideStockMenus(in main: NSMenu) {
+        let hasEdit: Bool = submenu(id: "edit") != nil
+        let hasHelp: Bool = submenu(id: "help") != nil
+        if let help = submenu(id: "help"), NSApp.helpMenu !== help {
+            NSApp.helpMenu = help
+        }
+        guard hasEdit || hasHelp else { return }
+        let ours: Set<ObjectIdentifier> = Set(installed.compactMap { $0.submenu }.map { ObjectIdentifier($0) })
+        for (index, item) in main.items.enumerated() where index > 0 && !item.isHidden {
+            guard let submenu = item.submenu, !ours.contains(ObjectIdentifier(submenu)) else { continue }
+            if (hasEdit && Self.isStockMenu(submenu, key: "Edit", actions: Self.editActions))
+                || (hasHelp && Self.isStockMenu(submenu, key: "Help", actions: Self.helpActions))
+                || Self.isStockMenu(submenu, key: "View", actions: Self.viewActions) {
+                item.isHidden = true
+            }
+        }
+    }
+
+    private static let editActions: Set<Selector> = [
+        #selector(NSText.cut(_:)), #selector(NSText.copy(_:)), #selector(NSText.paste(_:)),
+        #selector(NSText.selectAll(_:)), Selector(("undo:")), Selector(("redo:")),
+    ]
+    private static let helpActions: Set<Selector> = [Selector(("showHelp:"))]
+    private static let viewActions: Set<Selector> = [
+        #selector(NSWindow.toggleFullScreen(_:)), #selector(NSWindow.toggleToolbarShown(_:)),
+        Selector(("toggleTabBar:")), Selector(("toggleSidebar:")),
+    ]
+
+    private static func isStockMenu(_ menu: NSMenu, key: String, actions: Set<Selector>) -> Bool {
+        let title: String = systemTitle(key)
+        if menu.title == title || menu.title == key {
+            return true
+        }
+        return menu.items.contains { item in
+            item.action.map { actions.contains($0) } ?? false
         }
     }
 
@@ -395,8 +492,10 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
 private final class NodeBox: NSObject {
     let node: MenuNode
     let ancestors: [MenuNode]
+    let shortcut: String?
 
     init(_ entry: MenuEntry) {
+        self.shortcut = entry.shortcut
         self.node = entry.node
         self.ancestors = entry.ancestors
     }

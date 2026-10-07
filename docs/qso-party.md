@@ -29,7 +29,7 @@ station can be worked again in every session.
 ### Periods in the contest definition
 
 A contest with sessions does not need to have them set by hand — it is enough to
-list them in the YAML definition (Contest → Definition editor, "Závod → Editor
+list them in the YAML definition (Tools → Definition editor, "Nástroje → Editor
 definic"):
 
 ```yaml
@@ -133,7 +133,7 @@ scoring:
 
 The counties of a QSO party (or the counties / sections of another contest) are a
 **multiplier set** in the contest data. The list is loaded into the application in
-**"Závod → Editor definic → Importovat okresy…"** (Contest → Definition editor →
+**"Nástroje → Editor definic → Importovat okresy…"** (Tools → Definition editor →
 Import counties...):
 
 1. choose a file with the list — lines `CODE,Name` (also `;`, tab or space as a

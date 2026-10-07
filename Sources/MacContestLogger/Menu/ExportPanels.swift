@@ -45,6 +45,8 @@ enum ExportPanels {
                     LogPrinting.run(job, app: app)
                 }
             }
+        case .openDataFolder(let dir):
+            NSWorkspace.shared.open(dir)
         case .openBeacons:
             openFile(message: app.language.tr("Soubor majáků (Beacons.txt)")) { file in
                 app.spotNavigation.loadBeacons(url: file)

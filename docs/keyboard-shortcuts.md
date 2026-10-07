@@ -113,7 +113,7 @@ Alt+M, Alt+D and Alt+Shift+D also work while the Bandmap window is the active wi
 
 | Key | Action |
 |---|---|
-| **Alt+H** | help (project documentation) |
+| **Alt+H** | help (project documentation; also Nápověda → Dokumentace) |
 
 ## Remapping keys
 

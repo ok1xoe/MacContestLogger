@@ -24,7 +24,7 @@ DXCC source:
 
 - **Settings → Score Reporting → DXCC z Club Logu (cty.xml)**: the switch *Používat DXCC z Club Logu*
   (on by default) and the button *Aktualizovat DXCC z Club Logu*. The same update is in the menu
-  *Databáze → Aktualizovat DXCC z Club Logu*.
+  *Nástroje → Aktualizovat DXCC z Club Logu*.
 - The download needs the Club Log **API key** entered in the Club Log Live Stream group above
   (`https://cdn.clublog.org/cty.php?api=<key>`). Without a key nothing is downloaded.
 - **At start-up** the file is downloaded in the background when the switch is on, a key is set and the

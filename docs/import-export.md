@@ -2,7 +2,7 @@
 
 ## ADIF
 
-**"Nastavení → Export ADIF…"** (Settings → Export ADIF...) (or the command
+**"Soubor → Export → Export ADIF…"** (File → Export → Export ADIF...) (or the command
 `EXPORT`) writes ADIF 3.1.4 with the QSOs of the active contest — or, in free
 logging, the QSOs logged without a contest:
 
@@ -22,7 +22,7 @@ also for score recalculation.
 
 ## EDI (REG1TEST, VHF)
 
-**"Nastavení → Export EDI (VKV)…"** (Settings → Export EDI (VHF)...) writes, for
+**"Soubor → Export → Export EDI (VKV)…"** (File → Export → Export EDI (VHF)...) writes, for
 each band of the log, a file `<CALLSIGN>_<band>.edi` in the **REG1TEST** format
 (IARU Region 1, VHF contests):
 
@@ -41,7 +41,7 @@ contests in the data — IARU R1 VHF/UHF, Marconi Memorial — have it).
 
 ## CSV, text and summary
 
-**"Nastavení → Export CSV, text a souhrn…"** (Settings → Export CSV, text and
+**"Soubor → Export → Export CSV, text a souhrn…"** (File → Export → Export CSV, text and
 summary...) writes into the chosen directory:
 
 | File | Content |
@@ -52,8 +52,8 @@ summary...) writes into the chosen directory:
 
 ## Merging logs
 
-Equivalent of N1MM **Merge logs** and DXLog **Merge**. **"Nastavení → Sloučit
-deník…"** (Settings → Merge log...) adds QSOs from another log to the current one:
+Equivalent of N1MM **Merge logs** and DXLog **Merge**. **"Soubor → Import →
+Sloučit deník…"** (File → Import → Merge log...) adds QSOs from another log to the current one:
 
 - a MacContestLogger database (`.sqlite`, e.g. the log of a second station without
   network) — the QSOs of the same contest are taken if the source has them,
@@ -70,14 +70,14 @@ skipped.
 
 ## Printing the log
 
-**"Nastavení → Tisk deníku…"** (Settings → Print log...) opens the system print
+**"Soubor → Tisk deníku…"** (File → Print log...) opens the system print
 dialog (printer, PDF) and prints a text listing of the log — a monospaced font,
 column headings on every page, and in the footer the contest name, callsign and
 page number.
 
 ## Recalculating DXCC in the log
 
-**"Databáze → Přepočítat DXCC v deníku…"** (Database → Recalculate DXCC in the
+**"Nástroje → Přepočítat DXCC v deníku…"** (Tools → Recalculate DXCC in the
 log...) goes through all contacts and derives the country (DXCC number, name,
 continent) again from the callsign according to today's country file. Unlike
 filling in at logging time, which touches only empty fields, this action
