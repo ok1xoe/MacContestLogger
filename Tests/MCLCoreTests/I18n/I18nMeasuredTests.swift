@@ -15,16 +15,16 @@ import Testing
 
     /// The shipped `lang_en.json` / `lang_de.json` intentionally differ from Java v1.1.1: 61 keys were appended for
     /// Kotlin literals the Swift UI translates, the 20 `menu.json` labels Java leaves out
-    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 26 keys of the window plugins and 32 keys of their grants, keys and docking. The Java measurement stays as it was; these are its cells for the shipped files
+    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 26 keys of the window plugins and 32 keys of their grants, keys and docking and 15 keys of raw CAT, transmitting and web windows. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
-        "81929": "93381", "afc6becd4f499483": "9162f2e380c6349f",
-        "87423": "99717", "d0c67e41ffca0e5d": "058b99ae9e1832c0",
-        "1006": "1185",
+        "81929": "95113", "afc6becd4f499483": "48da8ab228a16f2f",
+        "87423": "101532", "d0c67e41ffca0e5d": "8508256a779e50e7",
+        "1006": "1200",
         "cc0ee26c076bc811dcc8325b5de39f43b89e7c0e8805e23db59cea0b4def8a4f":
-            "332abb11bbedb91807dcc05f015615475bfb1b17a6b8209fd6b16df30e8045cd",
+            "8602898dae53dca9211c163652118f739802a5839c567397a1dae6c017853c58",
         "2c37f524ad0b3da50e3eac30e91daf1f8bbe8353c3f844467c667a8f5f881bdb":
-            "f33cd7d23a5f5e9b30587ccdcca7d17d0177fe8ccbb2c842841ab25a25fbc4be",
+            "c2ae2844c69c7947aa5425e7887a6d221460e9620abeae53da166720c24ab4cc",
     ]
 
     /// A Java cell describing a shipped file, adjusted to the Swift files (`shippedFileCells`). Only whole

@@ -1,0 +1,9 @@
+{
+  "protocol": 1,
+  "name": "Web score",
+  "version": "1.0",
+  "process": false,
+  "permissions": ["read", "ui"],
+  "events": ["qso-logged", "qso-edited", "qso-deleted", "contest-opened", "contest-closed", "band-changed"],
+  "windows": [{ "id": "main", "title": "Web score", "kind": "web", "page": "index.html", "size": [420, 320] }]
+}

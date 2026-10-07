@@ -61,7 +61,9 @@ plugins/
 | `permissions` | What the plugin may do — see [Permissions](#permissions). A permission this version does not know (`cat`, `transmit`, …) → **the plugin is not started** and the messages window says it needs a permission this version does not support. |
 | `events` | The events the plugin receives (the directory names of [the event table](scripting.md#plugins)). Nothing else is sent. |
 | `run` | The executable, relative to the plugin directory (default `run`; no `..`). It may be a symbolic link, also to a program elsewhere — the plugin directory is yours, the app runs what you put there. |
-| `windows` | 1–8 windows: `id` (letters, digits, `-`, `_`, `.`), `title` (default: `name`), `size` `[width, height]` for the first opening (later the window keeps the size you give it). May be left out when the plugin has `actions`. |
+| `windows` | 1–8 windows: `id` (letters, digits, `-`, `_`, `.`), `title` (default: `name`), `size` `[width, height]` for the first opening (later the window keeps the size you give it), `kind` (`declarative` default, or `web` with `page`: an `.html` file in the plugin directory — see [Web windows](#web-windows)). May be left out when the plugin has `actions`. |
+| `webHosts` | Host names a web window may load from over `https` (also their subdomains); default none. |
+| `process` | `false`: no executable at all — only web windows, which talk to the app themselves (no `actions` then). |
 | `actions` | Up to 32 key actions: `{"id","title"}`. The operator binds keys to them in Settings → Keys; the plugin gets a `key` message. A plugin with actions and no windows starts at the first key press and runs until the quit. |
 
 Problems in `plugin.json` (bad JSON, a missing field, an unknown event) appear in the messages window as
@@ -78,6 +80,8 @@ Problems in `plugin.json` (bad JSON, a missing field, an unknown event) appear i
 | `spots` | `spots.add`, `spots.remove`, `spots.mark`, `spots.blacklist` (local only) | operator's grant |
 | `spots.send` | `spots.send`: a spot to the **public** DX cluster network (needs `spots` too) | operator's grant, off by default |
 | `app.command` | `app.command`: call-field text commands — never one that can transmit, reach a network, run scripts or destroy data | operator's grant |
+| `cat` | `cat.send`: raw `rigctld` commands to the active rig — reading and setting frequency, mode, VFO, split, RIT/XIT, levels, antenna; **never** keying | operator's grant, off by default |
+| `transmit` | `tx.*`: CW, F-key and voice messages and the PTT — **the station transmits** | operator's grant, off by default, with a warning |
 
 A plugin that asks for a permission needing a grant waits until the operator decides: its window shows a banner with
 **Rozhodnout o oprávněních…** (and the messages window says so once). The sheet opens only on that click or from
@@ -246,6 +250,22 @@ reason (no active entry window, the call field holds a command, not connected, �
 Error codes: `unknown_method`, `permission`, `invalid_params`, `refused`, `unavailable` (no logbook open), `busy`
 (more than 4 requests at once), `failed`.
 
+### Rig and transmitting (`cat`, `transmit`)
+
+| Method | Params | Does |
+|---|---|---|
+| `cat.send` | `command` (a `rigctld` command, e.g. `f`, `L RFPOWER 0.5`, `\get_level KEYSPD`) | sends it to the active rig in the extended form; `{"lines":[…],"code":n}` (`code` 0 = OK). Refused: `T`/`\set_ptt`, `b`/`\send_morse`, voice memories, DTMF, `w`/`W` (raw bytes), `G` (VFO operations incl. `TUNE`), `U` (functions incl. the tuner), `L TUNE`, `q`/`\halt`, any `\set_…` long form, control characters, more than 120 characters. At most **10 a second** (more: `rate_limited`). Each command and its reply appear in the CAT log window. Raw commands see the rig's own frequencies (no transverter offset). |
+| `tx.sendCw` | `text` (macros of the F-key messages allowed) | sends CW through the app's keyer (CW mode only) |
+| `tx.fkey` | `key` 1–12, `opposite` | presses that F-key in the active entry window (CW, voice or digital by the mode, ESM rules) |
+| `tx.voice` | `key` 1–12 | the voice message of that F-key (phone modes only) |
+| `tx.stop` | — | Esc: stops every transmission (also a plugin's PTT); `{"stopped": bool}` |
+| `tx.ptt` | `on` | keys or releases the active rig's PTT |
+
+Everything goes through exactly the paths of the F-keys, Esc and the footswitch PTT: the pileup simulator's lock
+refuses, Esc stops it, the quit and a rig's disconnect release it, and a plugin that stops or crashes never leaves the
+PTT keyed. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s). While a plugin
+transmits, the main window shows **Plugin X vysílá** with a stop button.
+
 ### Keys
 
 ```json
@@ -284,10 +304,32 @@ answers are read on a background thread; `_timeout=` sets the wait in seconds, 3
 `@plugin.on_key("action")` handles a key action. The example
 [`band-activity`](plugins/examples/band-activity/) uses `entry`, `rig`, a canvas and a key action.
 
+## Web windows
+
+A window with `"kind": "web"` shows the plugin's own HTML page (`page`, inside the plugin directory) in a web view.
+The page talks to the app through `window.mcl`:
+
+```js
+const score = await window.mcl.request("contest.score");   // a promise; rejected with {code, message}
+window.mcl.on("qso-logged", (qso) => { … });                // the plugin's subscribed events
+```
+
+- The same methods, permissions, limits and transmit rules as a process's requests; a plugin may have a process and
+  web windows, or (`"process": false`) web windows only — see the example
+  [`web-score`](plugins/examples/web-score/).
+- Loads: only files of the plugin directory, `data:` and `blob:`; `https` only to the manifest's `webHosts`
+  (and their subdomains). Everything else — other hosts, `http`, other schemes, navigations away — is blocked (a
+  WebKit content rule list and a check of every navigation). The page has no cookies or storage kept between runs.
+- The window's font stepper zooms the page.
+
+## The Node.js helper
+
+[`docs/plugins/mcl.js`](plugins/mcl.js) is the same helper for Node.js (one file, no packages):
+`new mcl.Plugin()`, `onStart`, `on(event)`, `onClick`, `onChange`, `onKey`, `request` (a promise), `setWindow`,
+`log`, `run`, and the same element and canvas builders as `mcl.py`.
+
 ## Roadmap
 
-- **Stage 3:** `cat` and `transmit` — raw rig commands and keying — behind an explicit grant of each permission by the
-  operator, and a web-view window.
-
-A plugin asking for one of these permissions today is not started; the same `plugin.json` starts once a version that
-grants it is installed and the operator allows it.
+Later versions may add `needed` counts to `contest.multipliers`, more element types and more requests; new
+permissions are added the same way — a plugin asking for one this version does not know is not started, and the same
+`plugin.json` starts once a version that knows it is installed and the operator allows it.

@@ -233,15 +233,15 @@ import Testing
 
     @Test func aPermissionThisVersionLacksIsRefused() async throws {
         let app = try await IntegrationApp.make()
-        let dir: URL = try Self.plugin(app, permissions: ["read", "ui", "transmit"],
+        let dir: URL = try Self.plugin(app, permissions: ["read", "ui", "network"],
                                        body: "touch started\n" + Self.echoLoop)
         let model: PluginWindowsModel = app.model.pluginWindows
         await model.rescan()
-        let refusal = "[demo] Plugin vyžaduje oprávnění, které tato verze neumí: transmit"
+        let refusal = "[demo] Plugin vyžaduje oprávnění, které tato verze neumí: network"
         #expect(Self.texts(app).contains(refusal))
         model.open(Self.key)
-        #expect(model.session("demo")?.phase == .refused(["transmit"]))
-        #expect(model.banner(Self.key) == "Plugin vyžaduje oprávnění, které tato verze neumí: transmit")
+        #expect(model.session("demo")?.phase == .refused(["network"]))
+        #expect(model.banner(Self.key) == "Plugin vyžaduje oprávnění, které tato verze neumí: network")
         #expect(model.session("demo")?.canRestart == false)
         #expect(!FileManager.default.fileExists(atPath: dir.appendingPathComponent("started").path))
         // A second scan does not repeat the message.
@@ -403,8 +403,8 @@ import Testing
         #expect(spots["spots"]?.arrayValue?.compactMap { $0["dxCall"]?.stringValue } == ["DL1AA"])
 
         #expect(try Self.value(await Self.answer("contest.multipliers", context: context)) == .null)
-        #expect(await Self.answer("cat.send", context: context) == .failure(PluginRpc.Failure(
-            code: "unknown_method", message: "unknown method cat.send")))
+        #expect(await Self.answer("net.fetch", context: context) == .failure(PluginRpc.Failure(
+            code: "unknown_method", message: "unknown method net.fetch")))
         #expect(await Self.answer("log.count", permissions: ["ui"], context: context) == .failure(PluginRpc.Failure(
             code: "permission", message: "log.count needs the read permission")))
         #expect(await Self.answer("log.get", context: context) == .failure(PluginRpc.Failure(

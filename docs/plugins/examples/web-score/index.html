@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Web score</title>
+<style>
+  :root { color-scheme: light dark; font: 13px -apple-system, system-ui, sans-serif; }
+  body { margin: 8px; }
+  h1 { font-size: 15px; margin: 0 0 6px; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { padding: 2px 6px; text-align: right; }
+  td:first-child, th:first-child { text-align: left; }
+  .muted { opacity: 0.6; }
+</style>
+</head>
+<body>
+<h1 id="title">Web score</h1>
+<p id="rig" class="muted"></p>
+<table id="bands" aria-label="QSOs and points by band"><thead><tr><th>Band</th><th>QSOs</th><th>Points</th><th>Mults</th></tr></thead><tbody></tbody></table>
+<p id="total"></p>
+<script>
+  // window.mcl is the app's bridge: request(method, params) → Promise, on(event, handler).
+  async function refresh() {
+    const score = await window.mcl.request("contest.score");
+    const rig = await window.mcl.request("rig.state");
+    document.getElementById("rig").textContent = rig ? `${rig.band || "?"} ${rig.mode || ""}` : "";
+    const body = document.querySelector("#bands tbody");
+    body.textContent = "";
+    if (!score) {
+      document.getElementById("title").textContent = "No contest";
+      document.getElementById("total").textContent = "";
+      return;
+    }
+    document.getElementById("title").textContent = score.contestId;
+    for (const band of score.bands) {
+      const row = body.insertRow();
+      for (const value of [band.band, band.qsos, band.points, band.mults]) {
+        row.insertCell().textContent = value;
+      }
+    }
+    document.getElementById("total").textContent = `Total ${score.total} (${score.qsos} QSOs, ${score.mults} mults)`;
+  }
+  for (const event of ["qso-logged", "qso-edited", "qso-deleted", "contest-opened", "contest-closed", "band-changed"]) {
+    window.mcl.on(event, refresh);
+  }
+  refresh().catch((error) => { document.getElementById("total").textContent = error.message || String(error); });
+</script>
+</body>
+</html>
