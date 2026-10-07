@@ -133,10 +133,11 @@ import Testing
         // 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and
         // 16 keys of the Club Log DXCC update and
         // 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and
-        // 3 keys of File → Open recent.
-        #expect(map.count == 1_149)
+        // 3 keys of File → Open recent and
+        // 20 keys of copying a contest to another database and rescoring the last N hours.
+        #expect(map.count == 1_169)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_149)
+        #expect(german.count == 1_169)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

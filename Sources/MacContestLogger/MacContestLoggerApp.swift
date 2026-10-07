@@ -147,6 +147,7 @@ struct MacContestLoggerApp: App {
         dialog(.contests) { ContestBrowserWindowView(host: host) }
         dialog(.databaseNew) { NewDatabaseWindowView(host: host) }
         dialog(.databaseOpen) { OpenDatabaseWindowView(host: host) }
+        dialog(.copyContest) { CopyContestWindowView(host: host) }
         dialog(.operatorLogin) { OperatorWindowView(host: host) }
     }
 

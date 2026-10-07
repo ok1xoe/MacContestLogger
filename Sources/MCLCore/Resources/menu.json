@@ -9,6 +9,7 @@
         { "id": "sep.file.1", "state": "enable" },
         { "id": "database.new",  "label": "Nová databáze…",     "state": "enable" },
         { "id": "database.open", "label": "Otevřít databázi…",  "state": "enable" },
+        { "id": "file.copyContest", "label": "Zkopírovat závod do jiné databáze…", "state": "enable" },
         { "id": "sep.file.2", "state": "enable" },
         {
           "id": "file.import", "label": "Import", "state": "enable",
@@ -53,6 +54,7 @@
       "id": "tools", "label": "Nástroje", "state": "enable",
       "children": [
         { "id": "contest.rescore", "label": "Přepočítat skóre",   "state": "enable" },
+        { "id": "contest.rescoreHours", "label": "Přepočítat posledních N hodin…", "state": "enable" },
         { "id": "database.refillDxcc", "label": "Přepočítat DXCC v deníku…", "state": "enable" },
         { "id": "sep.tools.1", "state": "enable" },
         { "id": "settings.downloadScp", "label": "Stáhnout master.scp", "state": "enable" },

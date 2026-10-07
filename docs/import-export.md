@@ -68,6 +68,29 @@ skipped.
 
 ![Status line after merging: added 0 QSOs, skipped 180 duplicates](img/import-merge.png)
 
+## Copying a contest to another database
+
+Equivalent of N1MM **Copy This Contest to Another Database** and **Copy All Contests to Another Database**.
+**"Soubor → Zkopírovat závod do jiné databáze…"** (File → Copy contest to another database...) opens a window:
+
+- **Závod** (Contest): the active contest (the default), any other contest of the open database, or **Všechny
+  závody** (All contests; the QSOs logged without a contest go along),
+- **Cílová databáze** (Target database): another existing database, or **Nebo nová databáze (název)** (a new one
+  by name; a typed name wins over the chosen one). The open database cannot be the target.
+
+What is copied: the contest row (definition snapshot, setup, station), its QSOs and its QTC records (WAE).
+
+- The **open database is only read**, never changed.
+- **Identity is kept**: the contest id and every QSO's `uuid`, version and station are copied as they are. So
+  copying again adds only the QSOs that are new in the source (matched by `uuid`, then by call, band, mode and time
+  within 2 minutes as in merging), and a database that is later synchronised sees the same QSOs, not new ones.
+  The same QSO then exists in two database files, but only one database is open at a time.
+- A contest the target already has keeps its stored row; only the QSOs it lacks are added.
+- Deleted QSOs (tombstones) are not copied.
+- The copy into the target is one transaction: if it fails, the target stays as it was.
+
+The status line reports the target, the number of contests and QSOs copied and how many QSOs were already there.
+
 ## Printing the log
 
 **"Soubor → Tisk deníku…"** (File → Print log...) opens the system print

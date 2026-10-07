@@ -19,6 +19,8 @@ public final class DialogsModel {
         case contests
         case databaseNew = "db-new"
         case databaseOpen = "db-open"
+        /// „Zkopírovat závod do jiné databáze".
+        case copyContest = "copy-contest"
         /// The operator at the key (Kotlin `OperatorDialog`, Ctrl+O / OPON).
         case operatorLogin = "operator"
 
@@ -30,6 +32,7 @@ public final class DialogsModel {
             case .contests: return CGSize(width: 620, height: 520)
             case .databaseNew: return CGSize(width: 420, height: 200)
             case .databaseOpen: return CGSize(width: 420, height: 360)
+            case .copyContest: return CGSize(width: 520, height: 330)
             case .operatorLogin: return CGSize(width: 400, height: 230)
             }
         }
@@ -42,6 +45,8 @@ public final class DialogsModel {
 
     /// The open „Nový závod" window's state (`nil` = closed).
     public private(set) var newContest: NewContestModel?
+    /// The open „Zkopírovat závod do jiné databáze" window's state (`nil` = closed).
+    public private(set) var copyContest: CopyContestModel?
     public private(set) var showContestBrowser: Bool = false
     public private(set) var showNewDatabase: Bool = false
     public private(set) var showOpenDatabase: Bool = false
@@ -122,6 +127,7 @@ public final class DialogsModel {
         case .contests: return showContestBrowser
         case .databaseNew: return showNewDatabase
         case .databaseOpen: return showOpenDatabase
+        case .copyContest: return copyContest != nil
         case .operatorLogin: return showOperator
         }
     }
@@ -158,6 +164,16 @@ public final class DialogsModel {
                 databaseNames = nil
             }
             showOpenDatabase = open
+        case .copyContest:
+            if !open {
+                copyContest = nil
+            } else if copyContest == nil {
+                let model = CopyContestModel(contest: contest, database: database, status: status)
+                model.onFinished = { [weak self] in
+                    self?.setOpen(.copyContest, false)
+                }
+                copyContest = model
+            }
         case .operatorLogin:
             showOperator = open
         }

@@ -379,6 +379,7 @@ public final class AppModel {
         let contest = ContestModel(environment: contestEnvironment, config: config, status: status,
                                    database: database, logbook: logbook, clock: environment.rescoreClock)
         contest.environmentSource = (dxccDir: environment.dxccDir, dataDir: dataDir)
+        contest.now = environment.now
         let operating = OperatingModel(config: config, status: status)
         let windows = WindowsModel(config: config)
         let menu = MenuModel(language: language, status: status, contest: contest, dataDir: dataDir)

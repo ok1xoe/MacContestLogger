@@ -9,6 +9,8 @@ public enum DefaultMenu {
     private static let labels: [String: String] = [
         "file": "Soubor",
         "file.openRecent": "Otevřít nedávné",
+        "file.copyContest": "Zkopírovat závod do jiné databáze…",
+        "contest.rescoreHours": "Přepočítat posledních N hodin…",
         "file.import": "Import",
         "file.export": "Export",
         "edit": "Úpravy",
@@ -123,7 +125,7 @@ public enum DefaultMenu {
         ])
         let file = node("file", [
             leaf("contest.new"), leaf("contest.open"), leaf("file.openRecent"), leaf("sep.file.1"),
-            leaf("database.new"), leaf("database.open"), leaf("sep.file.2"),
+            leaf("database.new"), leaf("database.open"), leaf("file.copyContest"), leaf("sep.file.2"),
             node("file.import", [leaf("settings.import"), leaf("settings.merge")]),
             node("file.export", [
                 leaf("settings.export"), leaf("settings.exportCabrillo"), leaf("settings.exportEdi"),
@@ -137,7 +139,7 @@ public enum DefaultMenu {
         ])
         let contest = node("contest", [leaf("contest.postcontest"), leaf("contest.record"), leaf("contest.none")])
         let tools = node("tools", [
-            leaf("contest.rescore"), leaf("database.refillDxcc"), leaf("sep.tools.1"),
+            leaf("contest.rescore"), leaf("contest.rescoreHours"), leaf("database.refillDxcc"), leaf("sep.tools.1"),
             leaf("settings.downloadScp"), leaf("contest.updateDefinitions"), leaf("database.updateClubLogDxcc"),
             leaf("contest.updateCallHistory"), leaf("beacons.load"), leaf("sep.tools.2"), leaf("contest.editor"),
         ])
