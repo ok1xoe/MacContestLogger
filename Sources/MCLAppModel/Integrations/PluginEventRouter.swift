@@ -16,6 +16,29 @@ final class PluginEventRouter: Sendable {
     }
 
     private let targets = OSAllocatedUnfairLock<[Target]>(initialState: [])
+
+    /// Web windows' pages listening to events: each gets the event line (on any thread; it hops itself).
+    private struct Sink {
+        let id: Int
+        let events: Set<String>
+        let deliver: @Sendable (String) -> Void
+    }
+
+    private let sinks = OSAllocatedUnfairLock<(next: Int, list: [Sink])>(initialState: (0, []))
+
+    func addSink(events: [String], deliver: @escaping @Sendable (String) -> Void) -> Int {
+        sinks.withLock { state in
+            state.next += 1
+            state.list.append(Sink(id: state.next, events: Set(events), deliver: deliver))
+            return state.next
+        }
+    }
+
+    func removeSink(_ id: Int) {
+        sinks.withLock { state in
+            state.list.removeAll { $0.id == id }
+        }
+    }
     /// The plugin and its run whose input is full.
     let onBackpressure = OSAllocatedUnfairLock<(@MainActor @Sendable (String, Int) -> Void)?>(initialState: nil)
 
@@ -36,14 +59,19 @@ final class PluginEventRouter: Sendable {
     /// Whether any running plugin subscribed to `event` (directory form).
     func wants(_ event: String) -> Bool {
         targets.withLock { list in list.contains { $0.events.contains(event) } }
+            || sinks.withLock { state in state.list.contains { $0.events.contains(event) } }
     }
 
     /// Delivers one event (`qso-logged`, the payload of `PluginEventJson`).
     func deliver(_ event: PluginRunner.Event, json: String) {
         let name: String = PluginRunner.dirName(event)
         let receivers: [Target] = targets.withLock { list in list.filter { $0.events.contains(name) } }
-        guard !receivers.isEmpty else { return }
+        let pages: [Sink] = sinks.withLock { state in state.list.filter { $0.events.contains(name) } }
+        guard !receivers.isEmpty || !pages.isEmpty else { return }
         let line: String = PluginOutbound.event(name, json: json)
+        for page in pages {
+            page.deliver(line)
+        }
         // A closed input (the plugin closed it, or it ended) just stops the events; a full one is a hang.
         for target in receivers where target.connection.send(line) == .full {
             let report = onBackpressure.withLock { $0 }

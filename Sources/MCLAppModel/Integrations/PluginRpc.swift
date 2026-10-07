@@ -55,6 +55,7 @@ enum PluginRpc {
     static let methods: [String: String] = [
         "log.query": "read", "log.count": "read", "log.get": "read", "contest.active": "read",
         "contest.score": "read", "contest.multipliers": "read", "rig.state": "read", "spots.list": "read",
+        "cat.send": "cat", "tx.ptt": "transmit",
     ]
 
     /// The most spots `spots.list` returns.
@@ -64,12 +65,25 @@ enum PluginRpc {
     /// thread (a test seam).
     static func answer(method: String, params: [String: PluginJSON], permissions: [String],
                        context: PluginHostContext,
-                       readProbe: (@Sendable (Bool) -> Void)? = nil) async -> Result<PluginJSON, Failure> {
+                       readProbe: (@Sendable (Bool) -> Void)? = nil,
+                       catEpoch: Int? = nil) async -> Result<PluginJSON, Failure> {
         guard let permission = methods[method] ?? actionMethods[method] else {
             return .failure(Failure(code: "unknown_method", message: "unknown method \(method)"))
         }
         guard permissions.contains(permission) else {
             return .failure(Failure(code: "permission", message: "\(method) needs the \(permission) permission"))
+        }
+        if method == "cat.send" {
+            return await rawCat(params, actions: context.actions, epoch: catEpoch)
+        }
+        if method == "tx.ptt" {
+            guard let on = params["on"]?.boolValue else {
+                return .failure(Failure(code: "invalid_params", message: "tx.ptt needs on"))
+            }
+            if let refusal = await context.actions.ptt(on) {
+                return .failure(Failure(code: "refused", message: refusal))
+            }
+            return .success(.object(["ok": .bool(true)]))
         }
         if actionMethods[method] != nil {
             return act(method: method, params: params, actions: context.actions)
@@ -175,6 +189,28 @@ enum PluginRpc {
             return .success(.raw(json))
         } catch {
             return .failure(Failure(code: "failed", message: "\(error)"))
+        }
+    }
+
+    /// A raw CAT command: checked by `PluginCatPolicy`, sent on the active rig's lane, answered with its reply.
+    private static func rawCat(_ params: [String: PluginJSON],
+                               actions: PluginHostActions, epoch: Int?) async -> Result<PluginJSON, Failure> {
+        guard let command = params["command"]?.stringValue else {
+            return .failure(Failure(code: "invalid_params", message: "cat.send needs command"))
+        }
+        if let refusal = PluginCatPolicy.refusal(command, context: actions.catContext()) {
+            return .failure(Failure(code: "refused", message: refusal))
+        }
+        let result: Result<RigRawReply, CatRawError> = await withCheckedContinuation { continuation in
+            actions.rawCat(command, epoch) { result in
+                continuation.resume(returning: result)
+            }
+        }
+        switch result {
+        case .success(let reply):
+            return .success(.object(["lines": .array(reply.lines.map { .string($0) }), "code": .int(Int64(reply.code))]))
+        case .failure(let error):
+            return .failure(Failure(code: "refused", message: error.message))
         }
     }
 

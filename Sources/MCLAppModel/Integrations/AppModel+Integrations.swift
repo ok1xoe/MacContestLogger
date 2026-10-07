@@ -27,6 +27,12 @@ extension AppModel {
             now: environment.now, appVersion: environment.appVersion)
         plugins.windowEvents = pluginWindows.router
         pluginWindows.context = pluginContext(model)
+        model.rig.onPluginPttReleased = { [weak pluginWindows] in
+            pluginWindows?.pttReleased()
+        }
+        model.rig.onOperatorStop = { [weak pluginWindows] in
+            pluginWindows?.operatorStopped()
+        }
         for panel in [model.panel(vfo: 0), model.vfoB] {
             panel.entry.pluginKeyHook = { [weak pluginWindows] combo, pressed in
                 pluginWindows?.handleKey(combo, pressed: pressed)
@@ -264,6 +270,80 @@ extension AppModel {
             entry.runCommand(command)
             return nil
         }
+        actions.rawCat = { [weak model] command, epoch, then in
+            guard let model else {
+                then(.failure(CatRawError(message: "no rig")))
+                return
+            }
+            model.rig.sendRawCat(command, since: epoch, then: then)
+        }
+        actions.catEpoch = { [weak model] in
+            model?.rig.pluginCatEpoch.withLock { $0 } ?? 0
+        }
+        actions.sendCw = { [weak model] text in
+            guard let model, let entry = model.activeEntry else { return noEntry }
+            guard entry.form.mode == .cw else { return "not in CW" }
+            model.keyer.sendCwText(text, call: entry.form.call)
+            return nil
+        }
+        actions.functionKey = { [weak model] index, opposite in
+            guard let entry = model?.activeEntry else { return noEntry }
+            entry.sendKeys([index], opposite: opposite, refocus: false)
+            return nil
+        }
+        actions.voice = { [weak model] index in
+            guard let entry = model?.activeEntry else { return noEntry }
+            guard entry.form.mode == .ssb || entry.form.mode == .am || entry.form.mode == .fm else {
+                return "not in a phone mode"
+            }
+            entry.sendKeys([index], refocus: false)
+            return nil
+        }
+        // Stop: the plugin PTT, the CQ repeat and the keyer (CW, voice, digital, tune) — directly, with or without an
+        // active entry window.
+        actions.stop = { [weak model] in
+            guard let model else { return false }
+            let ptt: Bool = model.rig.releasePluginPtt(stoppingEverything: true)
+            let repeating: Bool = model.operating.cqRepeat
+            model.operating.applyCqRepeat(false)
+            return model.keyer.stopSending() || repeating || ptt
+        }
+        actions.ptt = { [weak model] on in
+            guard let model else { return "no rig" }
+            return await model.pluginKey(on)
+        }
+        model.rig.pluginReleaseDeferralLimitMs = { [weak model] in
+            (model?.pluginWindows?.settings.pttTimeoutSeconds ?? 30) * 1_000
+        }
+        model.rig.operatorKeying = { [weak model] index in
+            guard let model else { return false }
+            if model.keyer.voice.ptt.isKeyed(model.rig.lanes[index]) {
+                return true
+            }
+            return (model.keyer.isSending || model.keyer.isTuning) && index == model.rig.vfo.activeCatIndex
+        }
+        actions.pttHeld = { [weak model] in
+            model?.rig.pluginPttRig != nil
+        }
+        actions.catIdle = { [weak model] close in
+            model?.rig.pluginCatIdle(close: close)
+        }
+        actions.pttUnconfirmed = { [weak model] in
+            model?.rig.pluginPttUnconfirmed ?? true
+        }
+        actions.releasePtt = { [weak model] in
+            model?.rig.releasePluginPtt() ?? false
+        }
+        actions.catContext = { [weak model] in
+            guard let model else { return PluginCatPolicy.Context(transmitting: true, transverter: true) }
+            let transmitting: Bool = model.keyer.isSending || model.keyer.isTuning || model.rig.pluginPttRig != nil
+                || model.rig.footswitchPttRig != nil
+            return PluginCatPolicy.Context(transmitting: transmitting,
+                                           transverter: !model.config.config.transverters.isEmpty)
+        }
+        actions.isSending = { [weak model] in
+            model?.keyer.isSending ?? false
+        }
         return actions
     }
 
@@ -300,5 +380,16 @@ extension AppModel {
         integrations.startWsjtxIfEnabled()
         integrations.startN1mmIfEnabled()
         integrations.startAdifUdpIfEnabled()
+    }
+}
+
+extension AppModel {
+    /// A plugin's `tx.ptt`: the operator's stop is checked in the same main-actor turn in which the rig records the
+    /// key's release epoch, so no Esc can fall between them (a later Esc drops the queued key).
+    func pluginKey(_ on: Bool) async -> String? {
+        if on, pluginWindows?.transmissionsBlocked == true {
+            return "the operator stopped plugin transmissions"
+        }
+        return await rig.pluginPtt(on)
     }
 }

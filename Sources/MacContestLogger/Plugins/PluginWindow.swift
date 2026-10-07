@@ -58,7 +58,13 @@ struct PluginWindowContent: View {
                     .accessibilityIdentifier("pluginWindow.consent")
                 }
             }
-            if let parsed, let content = session?.contents[parsed.window] {
+            if let parsed, model.window(key)?.isWeb == true {
+                if session?.phase == .running {
+                    PluginWebView(app: app, key: key, title: model.title(key))
+                        .id(model.webIdentity(key))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            } else if let parsed, let content = session?.contents[parsed.window] {
                 ScrollView([.vertical]) {
                     PluginElementsView(elements: content.elements, actions: PluginActions(model: model, key: key))
                         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -460,6 +466,87 @@ struct PluginDockArea: View {
             .frame(height: min(420, CGFloat(keys.count) * 240))
             .padding(.horizontal, 8)
             .accessibilityIdentifier("pluginDock")
+        }
+    }
+}
+
+/// "Plugin X vysílá": shown in the entry window while a plugin's message or PTT is on the air.
+struct PluginTransmitIndicator: View {
+    let app: AppModel
+
+    var body: some View {
+        if app.rig.pluginPttUnconfirmed {
+            let text: String = app.language.tr("PTT pluginu se nepodařilo uvolnit — zkontroluj vysílač!")
+            HStack(spacing: 6) {
+                Image(systemName: "exclamationmark.octagon")
+                    .accessibilityHidden(true)
+                Text(verbatim: text)
+                    .windowFont(13, weight: .bold)
+                Spacer(minLength: 0)
+                if !app.rig.pluginPttCannotConfirm.isEmpty {
+                    Button {
+                        app.rig.retryPluginRelease()
+                    } label: {
+                        Text(verbatim: app.language.tr("Uvolnit znovu")).windowFont(12)
+                    }
+                    .accessibilityLabel(Text(verbatim: app.language.tr("Znovu uvolnit PTT pluginu")))
+                    .accessibilityIdentifier("pluginPttRetryRelease")
+                }
+            }
+            .foregroundStyle(Color(domain: DomainColors.dupe))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 6).stroke(Color(domain: DomainColors.dupe), lineWidth: 2))
+            .padding(.horizontal, 8)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("pluginPttUnconfirmed")
+        }
+        if app.pluginWindows.transmissionsBlocked && app.pluginWindows.transmitting == nil {
+            let text: String = app.language.tr("Vysílání pluginů zastaveno")
+            HStack(spacing: 6) {
+                Image(systemName: "pause.circle")
+                    .accessibilityHidden(true)
+                Text(verbatim: text)
+                    .windowFont(13, weight: .semibold)
+                Spacer(minLength: 0)
+                Button {
+                    app.pluginWindows.allowTransmissions()
+                } label: {
+                    Text(verbatim: app.language.tr("Povolit")).windowFont(12)
+                }
+                .accessibilityLabel(Text(verbatim: app.language.tr("Povolit vysílání pluginů")))
+                .accessibilityIdentifier("pluginTransmissionsAllow")
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 6).stroke(Color(nsColor: .separatorColor)))
+            .padding(.horizontal, 8)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(verbatim: text))
+        }
+        if let name = app.pluginWindows.transmitting {
+            let text: String = app.language.tr("Plugin %s vysílá", .string(name))
+            HStack(spacing: 6) {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .accessibilityHidden(true)
+                Text(verbatim: text)
+                    .windowFont(13, weight: .bold)
+                Spacer(minLength: 0)
+                Button {
+                    app.pluginWindows.stopTransmission()
+                } label: {
+                    Text(verbatim: app.language.tr("Zastavit (Esc)")).windowFont(12)
+                }
+                .accessibilityLabel(Text(verbatim: app.language.tr("Zastavit vysílání pluginu")))
+            }
+            .foregroundStyle(Color(nsColor: .systemOrange))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 6).stroke(Color(nsColor: .systemOrange), lineWidth: 2))
+            .padding(.horizontal, 8)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(verbatim: text))
+            .accessibilityIdentifier("pluginTransmitting")
         }
     }
 }

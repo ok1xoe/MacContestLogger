@@ -43,8 +43,8 @@ import Testing
     /// plugin is never started.
     @Test func anUnknownPermissionIsReportedNotDropped() throws {
         let manifest = try Self.manifest(
-            #"{"protocol":1,"permissions":["read","ui","cat","transmit"],"windows":[{"id":"main"}]}"#)
-        #expect(manifest.unsupportedPermissions == ["cat", "transmit"])
+            #"{"protocol":1,"permissions":["read","ui","network","usb"],"windows":[{"id":"main"}]}"#)
+        #expect(manifest.unsupportedPermissions == ["network", "usb"])
     }
 
     @Test(arguments: [
@@ -123,6 +123,10 @@ import Testing
         #expect(package.manifest.unsupportedPermissions.isEmpty)
         #expect(package.manifest.run == "run.py")
         #expect(access(package.executable, X_OK) == 0)
+        let web: PluginPackage = try #require(scan.package("web-score"))
+        #expect(!web.manifest.hasProcess)
+        #expect(web.manifest.window("main")?.page == "index.html")
+        #expect(FileManager.default.fileExists(atPath: web.directory + "/index.html"))
         let acting: PluginPackage = try #require(scan.package("band-activity"))
         #expect(acting.manifest.permissionsNeedingGrant == ["entry", "rig"])
         #expect(acting.manifest.actions.map(\.id) == ["last-call"])

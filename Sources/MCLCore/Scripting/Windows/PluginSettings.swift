@@ -19,6 +19,14 @@ public struct PluginSettings: Codable, Equatable, Sendable {
     public var passThrough: [String] = []
     /// Plugin window keys (`plugin:<plugin>/<window>`) docked into the main window.
     public var docked: [String] = []
+    /// A plugin's PTT is released after this many seconds however the plugin behaves (5–300).
+    public var pttTimeoutSeconds: Int = PluginSettings.defaultPttTimeoutSeconds
+
+    public static let defaultPttTimeoutSeconds = 30
+    /// A message (CW, voice, F-key) a plugin started is cut after this many seconds (5–300).
+    public var messageLimitSeconds: Int = 60
+    /// Plugins together may be on the air at most this share of any 5 minutes (10–100 %).
+    public var dutyPercent: Int = 50
 
     public init() {}
 
@@ -30,6 +38,11 @@ public struct PluginSettings: Codable, Equatable, Sendable {
         keys = try container.decodeIfPresent([String: String].self, forKey: .keys) ?? [:]
         passThrough = try container.decodeIfPresent([String].self, forKey: .passThrough) ?? []
         docked = try container.decodeIfPresent([String].self, forKey: .docked) ?? []
+        let timeout: Int = try container.decodeIfPresent(Int.self, forKey: .pttTimeoutSeconds)
+            ?? Self.defaultPttTimeoutSeconds
+        pttTimeoutSeconds = min(max(timeout, 5), 300)
+        messageLimitSeconds = min(max(try container.decodeIfPresent(Int.self, forKey: .messageLimitSeconds) ?? 60, 5), 300)
+        dutyPercent = min(max(try container.decodeIfPresent(Int.self, forKey: .dutyPercent) ?? 50, 10), 100)
     }
 
     /// The key of a plugin's grants: its directory and its manifest name.

@@ -14,6 +14,8 @@ enum PluginPermissionText {
         case "spots": return language.tr("Spoty: přidat, odebrat, značka, blacklist")
         case "spots.send": return language.tr("Odesílat spoty do veřejné sítě DX clusteru")
         case "app.command": return language.tr("Textové příkazy volačkového pole (bez vysílání)")
+        case "cat": return language.tr("Surové CAT příkazy rádiu (bez klíčování)")
+        case "transmit": return language.tr("VYSÍLÁNÍ: CW, hlasové zprávy, F-klávesy a PTT")
         default: return permission
         }
     }
@@ -39,6 +41,27 @@ struct PluginsTab: View {
                     PluginGrantRow(app: app, package: package)
                     Divider()
                 }
+                Stepper(value: Binding(get: { model.settings.pttTimeoutSeconds },
+                                       set: { model.setPttTimeout(seconds: $0) }), in: 5...300, step: 5) {
+                    SettingsText(language.tr("PTT pluginu se samo uvolní po %s s",
+                                             .int(model.settings.pttTimeoutSeconds)))
+                }
+                .accessibilityLabel(Text(verbatim: language.tr("PTT pluginu se samo uvolní po %s s",
+                                                                .int(model.settings.pttTimeoutSeconds))))
+                Stepper(value: Binding(get: { model.settings.messageLimitSeconds },
+                                       set: { model.setMessageLimit(seconds: $0) }), in: 5...300, step: 5) {
+                    SettingsText(language.tr("Zprávu pluginu přerušit po %s s",
+                                             .int(model.settings.messageLimitSeconds)))
+                }
+                .accessibilityLabel(Text(verbatim: language.tr("Zprávu pluginu přerušit po %s s",
+                                                                .int(model.settings.messageLimitSeconds))))
+                Stepper(value: Binding(get: { model.settings.dutyPercent },
+                                       set: { model.setDutyPercent($0) }), in: 10...100, step: 10) {
+                    SettingsText(language.tr("Pluginy smí vysílat nejvýš %s procent z každých 5 minut",
+                                             .int(model.settings.dutyPercent)))
+                }
+                .accessibilityLabel(Text(verbatim: language.tr("Pluginy smí vysílat nejvýš %s procent z každých 5 minut",
+                                                                .int(model.settings.dutyPercent))))
                 SettingsButton(language.tr("Načíst pluginy znovu")) {
                     model.refreshCatalog()
                 }
@@ -77,6 +100,9 @@ private struct PluginGrantRow: View {
             if manifest.permissions.contains("spots.send") {
                 SettingsCaption(language.tr(
                     "Odeslaný spot uvidí celá síť DX clusteru. Povol jen pluginu, kterému věříš."))
+            }
+            if manifest.permissions.contains("transmit") || manifest.permissions.contains("cat") {
+                PluginTransmitWarning(language: language)
             }
             if model.settings.needsConsent(manifest) {
                 SettingsButton(language.tr("Rozhodnout o oprávněních…")) {
@@ -144,6 +170,9 @@ private struct PluginConsentSheet: View {
             if manifest.permissions.contains("spots.send") {
                 SettingsCaption(language.tr(
                     "Odeslaný spot uvidí celá síť DX clusteru. Povol jen pluginu, kterému věříš."))
+            }
+            if permissions.contains("transmit") || permissions.contains("cat") {
+                PluginTransmitWarning(language: language)
             }
             SettingsCaption(language.tr("Rozhodnutí můžeš kdykoli změnit v Nastavení → Pluginy."))
             HStack {
@@ -244,5 +273,16 @@ struct PluginKeysGroup: View {
     private func finish() {
         capturing.value = nil
         keys.stopCapture()
+    }
+}
+
+/// The strong warning for `transmit` and `cat`.
+struct PluginTransmitWarning: View {
+    let language: LanguageModel
+
+    var body: some View {
+        SettingsText(language.tr(
+            "Pozor: plugin s oprávněním k vysílání může klíčovat tvoji stanici. Esc, ukončení i odpojení rádia vysílání vždy zastaví a PTT se samo uvolní po nastavené době — povol jen pluginu, jehož kódu věříš."),
+                     size: 12, weight: .semibold, isError: true)
     }
 }

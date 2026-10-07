@@ -24,9 +24,9 @@ import Testing
             try Self.manifest(#"{"protocol":1,"actions":[{"id":"a"},{"id":"a"}]}"#)
         }
         #expect(throws: ContestMessage.self) { try Self.manifest(#"{"protocol":1,"actions":"a"}"#) }
-        // cat and transmit stay unsupported in this stage.
-        #expect(try Self.manifest(#"{"protocol":1,"permissions":["cat"],"actions":[{"id":"a"}]}"#)
-            .unsupportedPermissions == ["cat"])
+        // A permission no version knows stays unsupported.
+        #expect(try Self.manifest(#"{"protocol":1,"permissions":["network"],"actions":[{"id":"a"}]}"#)
+            .unsupportedPermissions == ["network"])
     }
 
     @Test func grantsDecideTheEffectivePermissions() throws {

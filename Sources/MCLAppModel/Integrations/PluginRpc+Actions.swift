@@ -65,6 +65,41 @@ public struct PluginHostActions {
     /// Runs a call-field text command; `nil` = run, else why not.
     public var command: (String) -> String? = { _ in "no entry window" }
 
+    // cat
+    /// A raw CAT command on the active rig (already checked by `PluginCatPolicy`).
+    /// A raw CAT command; the `Int` is the plugin-CAT epoch read when the request was admitted (`nil` = now): a stop,
+    /// release or revoke since then drops it.
+    public var rawCat: (String, Int?, @escaping @MainActor @Sendable (Result<RigRawReply, CatRawError>) -> Void) -> Void = {
+        _, _, then in then(.failure(CatRawError(message: "no rig")))
+    }
+    /// The plugin-CAT epoch now (raised by every stop, release, revoke and plugin end).
+    public var catEpoch: () -> Int = { 0 }
+
+    // transmit — the same paths as the F-keys, Esc and the footswitch PTT
+    /// CW text through the keyer (CW mode only; the macros of the F-key messages apply).
+    public var sendCw: (String) -> String? = { _ in "no keyer" }
+    /// F-key `index` (0…11) of the active entry window, as pressing it (`opposite` = the other message set).
+    public var functionKey: (Int, Bool) -> String? = { _, _ in "no entry window" }
+    /// The voice message of F-key `index` (phone modes only).
+    public var voice: (Int) -> String? = { _ in "no entry window" }
+    /// Esc: stops every transmission (also a plugin's PTT); `true` = something was stopped.
+    public var stop: () -> Bool = { false }
+    /// Whether a plugin's PTT is recorded on the rig (also after a failed release: the rig may still transmit).
+    public var pttHeld: () -> Bool = { false }
+    /// A plugin lost `cat` or stopped: queued plugin commands are dropped; `true` = no plugin needs raw CAT any
+    /// more, the plugin connection closes.
+    public var catIdle: (Bool) -> Void = { _ in }
+    /// A plugin PTT release is not confirmed yet: plugins key nothing.
+    public var pttUnconfirmed: () -> Bool = { false }
+    /// Releases the plugins' PTT at once; `true` = it was held.
+    public var releasePtt: () -> Bool = { false }
+    /// The PTT of the active rig (keying waits for the rig's answer).
+    public var ptt: (Bool) async -> String? = { _ in "no rig" }
+    /// What the raw CAT check needs to know about the rig now.
+    public var catContext: () -> PluginCatPolicy.Context = { PluginCatPolicy.Context(transmitting: true) }
+    /// Whether the keyer is sending now (the transmit indicator).
+    public var isSending: () -> Bool = { false }
+
     public init() {}
 }
 
@@ -91,6 +126,7 @@ extension PluginRpc {
         "spots.add": "spots", "spots.remove": "spots", "spots.mark": "spots", "spots.blacklist": "spots",
         "spots.send": "spots.send",
         "app.command": "app.command",
+        "tx.sendCw": "transmit", "tx.fkey": "transmit", "tx.voice": "transmit", "tx.stop": "transmit",
     ]
 
     static func act(method: String, params: [String: PluginJSON],
@@ -206,6 +242,23 @@ extension PluginRpc {
                 return invalid("spots.send needs a callsign, freqHz inside a band and a comment of at most 60 plain characters")
             }
             return done(actions.sendSpot(call.uppercased(), hz, text("comment") ?? ""))
+        case "tx.sendCw":
+            guard let message = text("text"), !message.isEmpty, isPlainText(message, limit: 200) else {
+                return invalid("tx.sendCw needs a text of at most 200 plain characters")
+            }
+            return done(actions.sendCw(message))
+        case "tx.fkey":
+            guard let index = params["key"]?.intValue, (1...12).contains(index) else {
+                return invalid("tx.fkey needs key 1…12")
+            }
+            return done(actions.functionKey(Int(index) - 1, params["opposite"]?.boolValue ?? false))
+        case "tx.voice":
+            guard let index = params["key"]?.intValue, (1...12).contains(index) else {
+                return invalid("tx.voice needs key 1…12")
+            }
+            return done(actions.voice(Int(index) - 1))
+        case "tx.stop":
+            return .success(.object(["stopped": .bool(actions.stop())]))
         default:
             guard let command = text("text"), !command.isEmpty, isPlainText(command, limit: 80) else {
                 return invalid("app.command needs a text of at most 80 plain characters")

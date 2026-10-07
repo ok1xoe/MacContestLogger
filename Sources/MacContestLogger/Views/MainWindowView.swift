@@ -117,6 +117,7 @@ struct MainWindowView: View {
                 .padding(.horizontal, 8)
                 .padding(.top, 4)
             EntryPanelView(app: app, panel: app.panel(vfo: 0), focus: focus, wheel: wheel)
+            PluginTransmitIndicator(app: app)
             PluginDockArea(app: app)
             Spacer(minLength: 0)
             if app.contest.isActive {

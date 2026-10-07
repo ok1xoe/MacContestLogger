@@ -310,6 +310,10 @@ extension RigModel {
     func closeTransmit() {
         transmitClosed = true
         releaseFootswitchPtt()
+        releasePluginPtt()
+        for index in lanes.indices {
+            operatorTransmissionMayHaveEnded(index)
+        }
     }
 
     /// `setPtt(false)` on the rig the footswitch keyed (nothing when none is keyed): before the footswitch closes
@@ -327,5 +331,7 @@ extension RigModel {
         lanes[index].run { cat in
             try? cat.setPtt(false)
         }
+        // A plugin release that waited for this transmission goes out behind its `T 0`.
+        operatorTransmissionMayHaveEnded(index)
     }
 }
