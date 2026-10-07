@@ -78,6 +78,7 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var minSkimmers: String = ""
     public var autoSplit: Bool = false
     public var showBandPlan: Bool = false
+    public var spotFilter: SpotFilter = .default
 
     // MARK: HamQTH and QRZ.com — `CD:105-117`
 
@@ -327,6 +328,7 @@ extension ConfigurerDraft {
         minSkimmers = String(dx.minSkimmers)
         autoSplit = dx.autoSplit
         showBandPlan = dx.showBandPlan
+        spotFilter = dx.spotFilter
     }
 
     private mutating func loadCallbooks(_ config: AppConfig) {

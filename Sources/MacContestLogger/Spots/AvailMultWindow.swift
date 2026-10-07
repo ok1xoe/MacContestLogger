@@ -42,7 +42,7 @@ struct AvailMultWindowView: View {
             if model.contestActive {
                 Text(verbatim: language.text(model.title(snapshot.counts)))
                     .windowFont(13, weight: .bold)
-                    .foregroundStyle(Color(domain: DomainColors.primary))
+                    .foregroundStyle(.mclPrimary)
                 Divider()
                 AvailMatrixView(matrix: snapshot.matrix)
                 Divider()
@@ -149,11 +149,11 @@ private struct AvailMatrixView: View {
         .frame(height: 18)
     }
 
-    private func color(_ highlighted: Bool?) -> Color {
+    private func color(_ highlighted: Bool?) -> AnyShapeStyle {
         switch highlighted {
-        case nil: Color.primary
-        case true?: Color(domain: DomainColors.primary)
-        case false?: Color.secondary
+        case nil: AnyShapeStyle(Color.primary)
+        case true?: AnyShapeStyle(.mclPrimary)
+        case false?: AnyShapeStyle(Color.secondary)
         }
     }
 }
@@ -211,7 +211,7 @@ private struct AvailTable: View {
         } label: {
             Text(verbatim: title + arrow)
                 .windowFont(11, weight: .bold)
-                .foregroundStyle(active ? Color(domain: DomainColors.primary) : Color.primary)
+                .foregroundStyle(active ? AnyShapeStyle(.mclPrimary) : AnyShapeStyle(Color.primary))
                 .frame(width: width, alignment: .leading)
                 .contentShape(Rectangle())
         }
