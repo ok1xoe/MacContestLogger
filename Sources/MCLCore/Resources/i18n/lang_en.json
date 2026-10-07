@@ -1202,5 +1202,20 @@
  "Vymazat call history?": "Clear the call history?",
  "Soubor call history se přepíše prázdným (zůstanou jen záhlaví sloupců), jeho kopie se uloží vedle něj jako <soubor>.bak-<čas UTC>. Znovu ho naplní Nástroje → Aktualizovat call history z deníku.": "The call history file is overwritten with an empty one (only the column header stays); a copy is kept beside it as <file>.bak-<UTC time>. Tools → Update call history from log fills it again.",
  "Export call history do CSV": "Export call history to CSV",
- "Export call history ve formátu N1MM": "Export call history in N1MM format"
+ "Export call history ve formátu N1MM": "Export call history in N1MM format",
+ "Odeslat výsledek na 3830…": "Post result to 3830…",
+ "Odeslat výsledek: není aktivní závod": "Post result: no active contest",
+ "Odeslat výsledek na 3830": "Post result to 3830",
+ "Údaje pro formulář 3830scores.com:": "Data for the 3830scores.com form:",
+ "Soapbox:": "Soapbox:",
+ "3830scores.com má pro každý závod vlastní formulář, který nejde předvyplnit, a žádné API: otevři web, vyber formulář závodu v levém menu a vlož zkopírované údaje. MCL nic neodesílá a neukládá žádné přihlašovací údaje.": "3830scores.com has its own form for each contest that cannot be prefilled, and no API: open the site, pick the contest's form in the left menu and paste the copied data. MCL posts nothing and stores no credentials.",
+ "Otevřít 3830scores.com": "Open 3830scores.com",
+ "Údaje pro 3830 zkopírovány do schránky": "3830 data copied to the clipboard",
+ "Operátoři": "Operators",
+ "QSO": "QSOs",
+ "Body za QSO": "QSO points",
+ "Násobiče": "Multipliers",
+ "Bonus": "Bonus",
+ "Body za QTC": "QTC points",
+ "Celkové skóre": "Claimed score"
 }

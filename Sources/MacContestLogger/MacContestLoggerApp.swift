@@ -150,6 +150,7 @@ struct MacContestLoggerApp: App {
         dialog(.copyContest) { CopyContestWindowView(host: host) }
         dialog(.adifRange) { AdifRangeWindowView(host: host) }
         dialog(.dxccOverrides) { DxccOverridesWindowView(host: host) }
+        dialog(.score3830) { Score3830WindowView(host: host) }
         dialog(.operatorLogin) { OperatorWindowView(host: host) }
     }
 

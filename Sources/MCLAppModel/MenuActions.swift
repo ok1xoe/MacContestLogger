@@ -153,6 +153,12 @@ public enum MenuActions {
             app.contest.requestRescore(manual: true)
         case "file.copyContest":
             app.dialogs.setOpen(.copyContest, true)
+        case "file.post3830":
+            if app.contest.isActive {
+                app.dialogs.setOpen(.score3830, true)
+            } else {
+                app.status.show("Odeslat výsledek: není aktivní závod")
+            }
         case "settings.exportAdifRange":
             app.dialogs.setOpen(.adifRange, true)
         case "tools.addCallToCountry":

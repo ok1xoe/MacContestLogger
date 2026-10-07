@@ -291,6 +291,11 @@ public final class CallbookModel {
         }
     }
 
+    /// Opens a page in the browser through the URL port (3830scores.com).
+    public func openUrl(_ url: String) {
+        open(url)
+    }
+
     public func openDocs(_ page: DocsPage) {
         open(Self.url(of: page))
     }

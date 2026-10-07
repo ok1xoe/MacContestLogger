@@ -28,7 +28,7 @@ public final class MenuModel {
         "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
         "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast",
         "file.openRecent", "recent.clear", "file.copyContest", "contest.rescoreHours", "settings.exportAdifRange", "callhistory.exportN1mm",
-        "callhistory.exportCsv", "callhistory.clear", "tools.addCallToCountry", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
+        "callhistory.exportCsv", "callhistory.clear", "tools.addCallToCountry", "file.post3830", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
     ]
 
     /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key
@@ -121,7 +121,7 @@ public final class MenuModel {
         switch id {
         case "contest.new", "contest.none":
             return contest.engineAvailable
-        case "settings.exportCabrillo", "settings.exportEdi", "contest.rescore", "contest.rescoreHours",
+        case "settings.exportCabrillo", "settings.exportEdi", "file.post3830", "contest.rescore", "contest.rescoreHours",
              "contest.updateCallHistory":
             return contest.isActive
         default:

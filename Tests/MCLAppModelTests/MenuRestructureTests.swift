@@ -54,7 +54,7 @@ import Testing
         }
         #expect(try children("file") == ["contest.new", "contest.open", "file.openRecent", "database.new",
                                          "database.open", "file.copyContest", "file.import", "file.export",
-                                         "settings.print"])
+                                         "file.post3830", "settings.print"])
         #expect(try children("file.import") == ["settings.import", "settings.merge"])
         #expect(try children("file.export") == ["settings.export", "settings.exportAdifRange",
                                                 "settings.exportCabrillo", "settings.exportEdi",

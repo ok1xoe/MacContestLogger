@@ -16,6 +16,7 @@ public enum DefaultMenu {
         "callhistory.exportCsv": "Call history (CSV)…",
         "callhistory.clear": "Vymazat call history…",
         "tools.addCallToCountry": "Přiřadit volačku k zemi…",
+        "file.post3830": "Odeslat výsledek na 3830…",
         "file.import": "Import",
         "file.export": "Export",
         "edit": "Úpravy",
@@ -137,7 +138,7 @@ public enum DefaultMenu {
                 leaf("settings.exportEdi"), leaf("settings.exportOther"), leaf("callhistory.exportN1mm"),
                 leaf("callhistory.exportCsv"),
             ]),
-            leaf("sep.file.3"), leaf("settings.print"),
+            leaf("sep.file.3"), leaf("file.post3830"), leaf("settings.print"),
         ])
         let edit = node("edit", [
             leaf("edit.wipe"), leaf("edit.wipeUndo"), leaf("edit.incrementNr"), leaf("edit.note"),

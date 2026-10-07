@@ -25,6 +25,8 @@ public final class DialogsModel {
         case adifRange = "adif-range"
         /// „Přiřadit volačku k zemi".
         case dxccOverrides = "dxcc-overrides"
+        /// „Odeslat výsledek na 3830".
+        case score3830 = "score-3830"
         /// The operator at the key (Kotlin `OperatorDialog`, Ctrl+O / OPON).
         case operatorLogin = "operator"
 
@@ -39,6 +41,7 @@ public final class DialogsModel {
             case .copyContest: return CGSize(width: 520, height: 330)
             case .adifRange: return CGSize(width: 460, height: 300)
             case .dxccOverrides: return CGSize(width: 620, height: 640)
+            case .score3830: return CGSize(width: 560, height: 560)
             case .operatorLogin: return CGSize(width: 400, height: 230)
             }
         }
@@ -57,6 +60,8 @@ public final class DialogsModel {
     public private(set) var adifRange: AdifRangeModel?
     /// The open „Přiřadit volačku k zemi" window's state (`nil` = closed).
     public private(set) var dxccOverrides: DxccOverridesModel?
+    /// The open „Odeslat výsledek na 3830" window's state (`nil` = closed).
+    public private(set) var score3830: ScoreSubmitModel?
     public private(set) var showContestBrowser: Bool = false
     public private(set) var showNewDatabase: Bool = false
     public private(set) var showOpenDatabase: Bool = false
@@ -143,6 +148,7 @@ public final class DialogsModel {
         case .copyContest: return copyContest != nil
         case .adifRange: return adifRange != nil
         case .dxccOverrides: return dxccOverrides != nil
+        case .score3830: return score3830 != nil
         case .operatorLogin: return showOperator
         }
     }
@@ -151,6 +157,9 @@ public final class DialogsModel {
     public var openDialogs: Set<Window> {
         Set(Window.allCases.filter { isOpen($0) })
     }
+
+    /// Builds the 3830 window's model (needs the callbook model, wired by the app).
+    @ObservationIgnored var makeScoreSubmit: (@MainActor () -> ScoreSubmitModel?)?
 
     /// The call the „Přiřadit volačku k zemi" window starts with (the one typed in the entry window).
     @ObservationIgnored var prefillCall: @MainActor () -> String = { "" }
@@ -203,6 +212,12 @@ public final class DialogsModel {
                 dxccOverrides = nil
             } else if dxccOverrides == nil {
                 dxccOverrides = DxccOverridesModel(contest: contest, status: status, call: prefillCall())
+            }
+        case .score3830:
+            if !open {
+                score3830 = nil
+            } else if score3830 == nil {
+                score3830 = makeScoreSubmit?()
             }
         case .operatorLogin:
             showOperator = open
