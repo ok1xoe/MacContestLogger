@@ -94,7 +94,7 @@ public final class AvailMultModel {
 
     private func compute(active: Bool) -> Snapshot {
         guard active else { return .empty }
-        let all: [SpotRow] = analysis.current().spotRows(feed.snapshot())
+        let all: [SpotRow] = analysis.current().spotRows(feed.filteredSnapshot())
         let filtered: [SpotRow] = AvailableMults.filter(rows: all, multsOnly: multsOnly, bands: bands, modes: modes)
         return Snapshot(rows: AvailableMults.sorted(filtered, by: sortColumn, ascending: ascending),
                         matrix: AvailableMults.matrix(rows: filtered), counts: AvailableMults.Counts.of(filtered))

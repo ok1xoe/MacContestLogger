@@ -225,6 +225,8 @@ public final class AppModel {
     @ObservationIgnored public internal(set) var onlineServices: OnlineServicesModel!
     /// The plugins.
     @ObservationIgnored public internal(set) var plugins: PluginsModel!
+    /// The window plugins (`plugins/<name>/plugin.json`).
+    @ObservationIgnored public internal(set) var pluginWindows: PluginWindowsModel!
     /// The Info window and the tool windows' models.
     @ObservationIgnored public internal(set) var infoTools: InfoTools!
     /// The pileup simulator and its safety gate.
@@ -727,6 +729,15 @@ public final class AppModel {
         callbook.analyzer = { [weak analysis] in
             analysis?.current()
         }
+        feed.spotFilter = { [weak config] in
+            config?.config.dxCluster.spotFilter ?? .default
+        }
+        feed.filterAnalyzer = { [weak analysis] in
+            analysis?.current()
+        }
+        dxCluster.onSpotFilterChanged = { [weak feed] in
+            feed?.filterChanged()
+        }
         return Spots(dxCluster: dxCluster, feed: feed, blacklist: blacklist, callbook: callbook, analysis: analysis)
     }
 
@@ -741,8 +752,8 @@ public final class AppModel {
                                       status: StatusModel, language: LanguageModel, contest: ContestModel,
                                       operating: OperatingModel, dialogs: DialogsModel) -> SpotTools {
         let navigation = SpotNavigation(SpotNavigation.Dependencies(
-            dxCluster: spots.dxCluster, analysis: spots.analysis, blacklist: spots.blacklist, rig: radio.rig,
-            status: status, config: config, language: language, dialogs: dialogs, now: environment.now))
+            dxCluster: spots.dxCluster, feed: spots.feed, analysis: spots.analysis, blacklist: spots.blacklist,
+            rig: radio.rig, status: status, config: config, language: language, dialogs: dialogs, now: environment.now))
         let bandmap = BandmapModel(BandmapModel.Dependencies(
             feed: spots.feed, analysis: spots.analysis, contest: contest, config: config, operating: operating,
             blacklist: spots.blacklist, callbook: spots.callbook, rig: radio.rig))
@@ -829,6 +840,7 @@ public final class AppModel {
         services.minSkimmers = chain(base.minSkimmers) { [weak dxCluster, weak config] in
             guard let config else { return }
             dxCluster?.spots.setMinSkimmers(config.config.dxCluster.minSkimmers)
+            dxCluster?.onSpotFilterChanged?()
         }
         services.blacklist = chain(base.blacklist) { [weak blacklist = spots.blacklist] in
             blacklist?.apply()
@@ -1022,6 +1034,8 @@ public final class AppModel {
         isShuttingDown = true
         // The plugins hear of the quit first (APP_QUITTING); its run is a lane job, and the quit deadline starts here.
         plugins?.appQuitting(contestId: contest.activeId, name: contest.activeName)
+        // The window plugins got that event too; no further one follows and their input ends.
+        pluginWindows?.beginShutdown()
         // The transmit release comes before everything else (a second signal waits for it, then may exit at once).
         await shutdownServices.releaseTransmit()
         // The watchers and the window models stop (no tick or observer outlives the quit); they only cancel timers

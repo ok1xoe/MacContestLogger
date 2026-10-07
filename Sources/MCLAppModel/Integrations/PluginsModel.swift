@@ -33,6 +33,9 @@ public final class PluginsModel {
     /// The whole quit wait for plugins (10 s however many plugins there are); a test seam.
     @ObservationIgnored var quitBoundMs: Int = 10_000
 
+    /// The window plugins that subscribed to events (every event is offered to them too).
+    @ObservationIgnored var windowEvents: PluginEventRouter?
+
     /// Plugin runs finished (tests wait for it instead of polling the messages).
     public private(set) var completedRuns: Int = 0
 
@@ -207,6 +210,7 @@ public final class PluginsModel {
     /// decides whether anything runs is the first step of the lane job (never a file system call on the main actor);
     /// with no plugin for the event the job ends without a result and shows nothing.
     public func fire(_ event: PluginRunner.Event, json: String) {
+        windowEvents?.deliver(event, json: json)
         guard let runner else { return }
         let deadline = quitDeadline
         lane.submit({ () -> [PluginRunner.Result]? in
@@ -222,11 +226,20 @@ public final class PluginsModel {
     /// The `SPOT_RECEIVED` hook for `DxClusterModel.pluginSpot`: called on a reader thread, only queues. The closure
     /// holds the lane and the runner, not the model.
     var spotHandler: @Sendable (DxSpot) -> Void {
-        guard let runner else { return { _ in } }
+        let router: PluginEventRouter? = windowEvents
+        guard let runner else {
+            return { spot in
+                guard let router, router.wants("spot-received") else { return }
+                router.deliver(.spotReceived, json: PluginEventJson.spotReceived(spot))
+            }
+        }
         let lane: PluginLane = self.lane
         let pending = self.pendingSpots
         let deadline = self.quitDeadline
         return { [weak self] spot in
+            if let router, router.wants("spot-received") {
+                router.deliver(.spotReceived, json: PluginEventJson.spotReceived(spot))
+            }
             // A job the closed lane skips keeps its count: harmless, a closed lane only exists at the quit.
             let admitted: Bool = pending.withLock { count in
                 guard count < PluginsModel.maxPendingSpots else { return false }

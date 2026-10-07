@@ -103,7 +103,7 @@ struct BandmapWindowView: View {
             } else {
                 Text(verbatim: language.tr("Bandmapa — nalaď pásmo"))
                     .windowFont(14, weight: .semibold)
-                    .foregroundStyle(Color(domain: DomainColors.primary))
+                    .foregroundStyle(.mclPrimary)
                     .padding(8)
                 Spacer(minLength: 0)
             }
@@ -116,7 +116,7 @@ struct BandmapWindowView: View {
         HStack(alignment: .center, spacing: 6) {
             Text(verbatim: model.tunedText)
                 .windowFont(18, weight: .bold, design: .monospaced)
-                .foregroundStyle(Color(domain: DomainColors.primary))
+                .foregroundStyle(.mclPrimary)
             Spacer(minLength: 0)
             iconButton("plus", language.tr("Přiblížit")) { model.zoomIn() }
             iconButton("minus", language.tr("Oddálit")) { model.zoomOut() }

@@ -15,9 +15,14 @@ struct AppearanceApplier: ViewModifier {
         let mode: AppearanceModel.Appearance = model?.effectiveAppearance ?? .system
         content
             .tint(Color(nsColor: AppearanceColors.accent(accent)))
+            .environment(\.mclAccent, accent)
             .background(model?.isContrast == true ? Color.black : Color.clear)
-            .onAppear { AppearanceColors.apply(mode) }
+            .onAppear {
+                AppearanceColors.apply(mode)
+                AppearanceColors.applyAccent(accent)
+            }
             .onChange(of: mode) { AppearanceColors.apply(mode) }
+            .onChange(of: accent) { AppearanceColors.applyAccent(accent) }
     }
 }
 
@@ -38,6 +43,25 @@ enum AppearanceColors {
         }
         guard NSApp.appearance?.name != wanted?.name else { return }
         NSApp.appearance = wanted
+    }
+
+    /// Makes the accent current for the AppKit colours and repaints the AppKit views that drew with the old one
+    /// (SwiftUI follows through the environment).
+    static func applyAccent(_ accent: AppearanceModel.Accent) {
+        guard DomainColors.accent != accent else { return }
+        DomainColors.accent = accent
+        for window in NSApp.windows {
+            if let content = window.contentView {
+                invalidate(content)
+            }
+        }
+    }
+
+    private static func invalidate(_ view: NSView) {
+        view.needsDisplay = true
+        for sub in view.subviews {
+            invalidate(sub)
+        }
     }
 
     /// Kotlin's `primary` per accent: teal `#0E8A7D` / `#53DBC9`, blue `#1565C0` / `#9ECAFF`, orange `#B85400` /

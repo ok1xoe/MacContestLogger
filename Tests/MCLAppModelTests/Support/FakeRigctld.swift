@@ -25,6 +25,8 @@ final class FakeRigctld: @unchecked Sendable {
     private var azimuthText = "123.0"
     /// The next `f` closes the connection instead of answering (a lost rig).
     private var dropOnRead = false
+    /// The next command line equal to this closes the connection instead of answering.
+    private var dropLine: String?
     /// Command words answered with `RPRT -1`.
     private var rejected: Set<String> = []
     /// The command line whose answer is held back (a late answer) until `releaseAnswer()`.
@@ -109,6 +111,11 @@ final class FakeRigctld: @unchecked Sendable {
         lock.withLock { dropOnRead = true }
     }
 
+    /// The next `line` closes the connection instead of answering (its outcome stays unknown to the client).
+    func drop(on line: String) {
+        lock.withLock { dropLine = line }
+    }
+
     /// The next `line` is recorded at once but answered only after `releaseAnswer()` — the client's read times out
     /// first (a late answer), and the lines it sends meanwhile wait in the socket.
     func holdAnswer(to line: String) {
@@ -143,6 +150,11 @@ final class FakeRigctld: @unchecked Sendable {
         while answerHeld && Date() < deadline {
             _ = answerGate.wait(until: deadline)
         }
+    }
+
+    /// Answers `word` normally again.
+    func unreject(_ word: String) {
+        lock.withLock { _ = rejected.remove(word) }
     }
 
     func reject(_ word: String) {
@@ -249,8 +261,12 @@ final class FakeRigctld: @unchecked Sendable {
             lines.append(line)
             let words: [Substring] = line.split(separator: " ")
             let word: String = words.first.map(String.init) ?? ""
-            if rejected.contains(word) {
+            if rejected.contains(word) || rejected.contains(line) {
                 return ["RPRT -1"]
+            }
+            if dropLine == line {
+                dropLine = nil
+                return nil
             }
             switch word {
             case "f":
