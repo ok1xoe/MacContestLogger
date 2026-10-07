@@ -117,8 +117,10 @@ struct MainWindowView: View {
                 .padding(.top, 4)
             EntryPanelView(app: app, panel: app.panel(vfo: 0), focus: focus, wheel: wheel)
             Spacer(minLength: 0)
-            ScoreBarView(app: app)
-            Divider()
+            if app.contest.isActive {
+                ScoreBarView(app: app)
+                Divider()
+            }
             StatusBarView(app: app)
         }
     }
@@ -170,7 +172,12 @@ struct ScoreBarView: View {
     let app: AppModel
 
     var body: some View {
-        let line: ScoreLine = ScoreLine.of(contest: app.contest, logbook: app.logbook)
+        if let line = ScoreLine.of(contest: app.contest) {
+            bar(line)
+        }
+    }
+
+    private func bar(_ line: ScoreLine) -> some View {
         HStack(alignment: .center, spacing: 16) {
             cell("QSO", line.qso)
             cell(app.language.tr("Body"), line.points)

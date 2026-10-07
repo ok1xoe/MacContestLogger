@@ -113,8 +113,8 @@ import Testing
         #expect(stored.first?.contestId == "")
     }
 
-    /// The same call on the same band among the free-logging QSOs is flagged, never blocked.
-    @Test func freeLoggingDupeIsAWarningOnly() async throws {
+    /// Free logging has no dupes: the same call on the same band is neither flagged nor blocked.
+    @Test func freeLoggingHasNoDupes() async throws {
         let app = try await TestApp.make()
         let entry: EntryModel = app.model.entry
         entry.setFrequency("14025")
@@ -123,13 +123,12 @@ import Testing
         entry.submit()
         await entry.settle()
         entry.callChanged("DL1ABC")
-        #expect(entry.isDupe)
+        #expect(!entry.isDupe)
+        #expect(!app.model.logbook.isDupe(call: "DL1ABC", band: .m20))
         entry.submit()
         await entry.settle()
         #expect(app.model.logbook.rows.map(\.call) == ["DL1ABC", "DL1ABC"])
-        entry.setFrequency("7025")
-        entry.callChanged("DL1ABC")
-        #expect(!entry.isDupe)
+        #expect(ScoreLine.of(contest: app.model.contest) == nil)
     }
 
     /// „Žádný (volné logování)" after a contest: the log shows the free-logging QSOs only; opening the contest

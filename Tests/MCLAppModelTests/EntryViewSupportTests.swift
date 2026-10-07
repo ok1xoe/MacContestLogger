@@ -117,8 +117,7 @@ import Testing
 
     @Test func scoreAndStatusOutsideAContest() async throws {
         let app = try await TestApp.make()
-        #expect(ScoreLine.of(contest: app.model.contest, logbook: app.model.logbook)
-            == ScoreLine(qso: "0", points: "—", mult: "—", total: "—"))
+        #expect(ScoreLine.of(contest: app.model.contest) == nil)
         let line: StatusLine = StatusLine.of(app.model)
         #expect(line.sentExchange == nil)
         #expect(line.message == "TRX odpojen")
@@ -131,7 +130,7 @@ import Testing
         let app = try await TestApp.make()
         try await app.startCqWwCw()
         await app.logContestQso(call: "DL1ABC", zone: "14")
-        let score: ScoreLine = ScoreLine.of(contest: app.model.contest, logbook: app.model.logbook)
+        let score: ScoreLine = try #require(ScoreLine.of(contest: app.model.contest))
         #expect(score.qso == "1")
         #expect(score.mult == "2")
         let line: StatusLine = StatusLine.of(app.model)
@@ -152,7 +151,8 @@ import Testing
         #expect(!EntryFeedback.missingStationCall(app.model.contest))
     }
 
-    @Test func freeDupeFeedback() async throws {
+    /// Free logging: a repeated call shows no feedback, no contest score and no sent exchange.
+    @Test func freeLoggingHasNoDupeFeedbackAndNoScore() async throws {
         let app = try await TestApp.make()
         try await app.startCqWwCw()
         app.model.contest.deactivate()
@@ -163,7 +163,12 @@ import Testing
         entry.submit()
         await entry.settle()
         entry.callChanged("OK1ABC")
-        #expect(EntryFeedback.of(entry: entry, contest: app.model.contest) == .freeDupe(call: "OK1ABC", band: "20m"))
+        #expect(!entry.isDupe)
+        #expect(EntryFeedback.of(entry: entry, contest: app.model.contest) == .none)
+        #expect(ScoreLine.of(contest: app.model.contest) == nil)
+        let line: StatusLine = StatusLine.of(app.model)
+        #expect(line.sentExchange == nil)
+        #expect(line.contestName == nil)
     }
 }
 
