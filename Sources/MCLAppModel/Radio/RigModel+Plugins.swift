@@ -1,4 +1,5 @@
 import Foundation
+import os
 import MCLCore
 
 /// What window plugins may do with the rig beyond the entry window's own paths: a raw CAT command (`cat`) and the
@@ -63,7 +64,14 @@ extension RigModel {
         return true
     }
 
+    /// The operator stopped transmissions (Esc): the plugin model hears it first; queued plugin CAT is dropped.
+    public func operatorStopped() {
+        pluginCatEpoch.withLock { $0 += 1 }
+        onOperatorStop?()
+    }
+
     func releasePluginPtt(onRig index: Int) {
+        pluginCatEpoch.withLock { $0 += 1 }
         guard pluginPttRig == index else { return }
         pluginPttRig = nil
         lanes[index].run { cat in
@@ -89,7 +97,13 @@ extension RigModel {
     /// A raw CAT command on the active rig (the caller checked it with `PluginCatPolicy`); the reply comes back on
     /// the main actor. Logged to the CAT log as every command.
     public func sendRawCat(_ command: String, then: @escaping @MainActor @Sendable (Result<RigRawReply, CatRawError>) -> Void) {
+        let epochs: OSAllocatedUnfairLock<Int> = pluginCatEpoch
+        let queued: Int = epochs.withLock { $0 }
         activeLane.run({ cat -> Result<RigRawReply, CatRawError> in
+            // A release or stop since it was queued: dropped, the safety `T 0` behind it goes out at once.
+            guard epochs.withLock({ $0 }) == queued else {
+                return .failure(CatRawError(message: "cancelled by a stop or release"))
+            }
             guard let rig = cat.rigOrNull() else { return .failure(CatRawError(message: "no rig connected")) }
             do {
                 return .success(try rig.sendRaw(command))

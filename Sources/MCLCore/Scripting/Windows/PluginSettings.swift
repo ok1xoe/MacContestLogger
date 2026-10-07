@@ -23,6 +23,10 @@ public struct PluginSettings: Codable, Equatable, Sendable {
     public var pttTimeoutSeconds: Int = PluginSettings.defaultPttTimeoutSeconds
 
     public static let defaultPttTimeoutSeconds = 30
+    /// A message (CW, voice, F-key) a plugin started is cut after this many seconds (5–300).
+    public var messageLimitSeconds: Int = 60
+    /// Plugins together may be on the air at most this share of any 5 minutes (10–100 %).
+    public var dutyPercent: Int = 50
 
     public init() {}
 
@@ -37,6 +41,8 @@ public struct PluginSettings: Codable, Equatable, Sendable {
         let timeout: Int = try container.decodeIfPresent(Int.self, forKey: .pttTimeoutSeconds)
             ?? Self.defaultPttTimeoutSeconds
         pttTimeoutSeconds = min(max(timeout, 5), 300)
+        messageLimitSeconds = min(max(try container.decodeIfPresent(Int.self, forKey: .messageLimitSeconds) ?? 60, 5), 300)
+        dutyPercent = min(max(try container.decodeIfPresent(Int.self, forKey: .dutyPercent) ?? 50, 10), 100)
     }
 
     /// The key of a plugin's grants: its directory and its manifest name.

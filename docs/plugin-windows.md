@@ -64,7 +64,7 @@ plugins/
 | `windows` | 1–8 windows: `id` (letters, digits, `-`, `_`, `.`), `title` (default: `name`), `size` `[width, height]` for the first opening (later the window keeps the size you give it), `kind` (`declarative` default, or `web` with `page`: an `.html` file in the plugin directory — see [Web windows](#web-windows)). May be left out when the plugin has `actions`. |
 | `webHosts` | Host names a web window may load from over `https` (also their subdomains); default none. |
 | `process` | `false`: no executable at all — only web windows, which talk to the app themselves (no `actions` then). |
-| `webInlineScripts` | `true`: web pages may run inline scripts (never while the plugin holds `transmit` or `cat`). |
+| `webInlineScripts` | `true`: web pages may run inline scripts (never when the manifest asks for `transmit` or `cat`). |
 | `actions` | Up to 32 key actions: `{"id","title"}`. The operator binds keys to them in Settings → Keys; the plugin gets a `key` message. A plugin with actions and no windows starts at the first key press and runs until the quit. |
 
 Problems in `plugin.json` (bad JSON, a missing field, an unknown event) appear in the messages window as
@@ -255,7 +255,7 @@ Error codes: `unknown_method`, `permission`, `invalid_params`, `refused`, `unava
 
 | Method | Params | Does |
 |---|---|---|
-| `cat.send` | `command` | sends one `rigctld` command to the active rig in the extended form; `{"lines":[…],"code":n}` (`code` 0 = OK). An exact grammar — the command and the number and form of its arguments: reading `f m v s i x j z t y`, `l <level>`, `\get_freq|mode|vfo|split_vfo|split_freq|split_mode|rit|xit|ptt|ant`, `\get_level <level>`; setting `F <Hz>`/`I <Hz>` (inside an amateur band; refused with a transverter configured), `M`/`X <mode> <passband>`, `V <vfo>`, `S <0/1> <vfo>`, `J`/`Z <Hz ±99999>`, `L <AF/RF/SQL/NR 0–1, KEYSPD 5–60, CWPITCH 300–1000>` (never `RFPOWER`), `Y <antenna> <option>` (not while transmitting). Everything else is refused: keying, raw bytes, tuner, power, the daemon's own commands, dumps, `;` `|` `\` separators, extra or missing words, control characters. At most **10 a second** per plugin and 15 for all plugins (`rate_limited`). A reply over 16 KiB closes the rig connection (it is never left half-read). Each command and its reply appear in the CAT log window. |
+| `cat.send` | `command` | sends one `rigctld` command to the active rig in the extended form; `{"lines":[…],"code":n}` (`code` 0 = OK). An exact grammar — the command and the number and form of its arguments: reading `f m v s i x j z t y`, `l <level>`, `\get_freq|mode|vfo|split_vfo|split_freq|split_mode|rit|xit|ptt|ant`, `\get_level <level>`; setting `F <Hz>`/`I <Hz>` (inside an amateur band; refused with a transverter configured), `M`/`X <mode> <passband>`, `V <vfo>`, `S <0/1> <vfo>`, `J`/`Z <Hz ±99999>`, `L <AF/RF/SQL/NR 0–1, KEYSPD 10–60, CWPITCH 300–1000>` (never `RFPOWER`), `Y <antenna> <option>` (not while transmitting). Everything else is refused: keying, raw bytes, tuner, power, the daemon's own commands, dumps, `;` `|` `\` separators, extra or missing words, leading, trailing or doubled spaces, control characters. At most **10 a second** per plugin and 15 for all plugins (`rate_limited`). A reply over 16 KiB, or any read error or timeout, closes the rig connection (a reply is never left half-read). Plugin CAT commands still queued when the operator stops a transmission or a plugin PTT is released are dropped, so the safety `T 0` goes out at once. Each command and its reply appear in the CAT log window. |
 | `tx.sendCw` | `text` (macros of the F-key messages allowed) | sends CW through the app's keyer (CW mode only) |
 | `tx.fkey` | `key` 1–12, `opposite` | presses that F-key in the active entry window (CW, voice or digital by the mode, ESM rules) |
 | `tx.voice` | `key` 1–12 | the voice message of that F-key (phone modes only) |
@@ -266,10 +266,18 @@ Everything goes through exactly the paths of the F-keys, Esc and the footswitch 
 refuses, Esc stops it (and everything else that transmits), the quit and a rig's disconnect release it, and a plugin
 that stops, crashes or loses its `transmit` grant never leaves the PTT keyed or its message on the air. A refused
 `T 1` is followed by `T 0` at once and reported (`refused`); without a connected rig the PTT is refused. A plugin's PTT
-is released after **30 s** at the latest (Settings → Pluginy, 5–300 s): keying again while keyed does not extend it,
-and after that forced release the plugin may not key for 10 s. Only the plugin holding the PTT releases it (another
-plugin's `off` changes nothing, the operator's own transmissions are never cut by a plugin). While a plugin
-transmits, the main window shows **Plugin X vysílá** with a stop button.
+is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the moment the rig was keyed:
+while one plugin holds the PTT no other plugin can key it, keying again does not extend the limit, and after that
+forced release the plugin may not key for 10 s. Only the plugin holding the PTT releases it (another plugin's `off`
+changes nothing, the operator's own transmissions are never cut by a plugin). While a plugin transmits, the main
+window shows **Plugin X vysílá** with a stop button.
+
+- **Esc and Stop stick:** when the operator presses Esc (or the indicator's Stop) while a plugin transmits, plugin
+  transmissions stay blocked — the main window shows *Vysílání pluginů zastaveno* with **Povolit** — until the
+  operator allows them again.
+- **On-air budget** (conservative defaults, Settings → Pluginy): a message (CW, voice, F-key) a plugin started is cut
+  after **60 s** (5–300 s); all plugins together may be on the air at most **50 %** of any 5 minutes (10–100 %); a
+  plugin may have at most two CW texts on the air in one transmission (`busy`), each at most 200 characters.
 
 ### Keys
 
@@ -324,7 +332,7 @@ window.mcl.on("qso-logged", (qso) => { … });                // the plugin's su
   [`web-score`](plugins/examples/web-score/).
 - The app serves the plugin's files itself (`mcl-plugin://local/…`, only from the plugin directory) with a strict
   **Content-Security-Policy**: scripts only from the plugin's own files (put them in `.js` files — inline scripts
-  are blocked unless the manifest says `"webInlineScripts": true`, and even then never while the plugin holds
+  are blocked unless the manifest says `"webInlineScripts": true`, and never for a plugin whose manifest asks for
   `transmit` or `cat`), no plugins, `connect`/`img`/`frame` only to the plugin itself and `https` to the manifest's
   `webHosts`.
 - The page never navigates away from the plugin's files (no remote page, no `data:`, `blob:`, `javascript:` or

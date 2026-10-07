@@ -1214,5 +1214,11 @@
  "plugin.json: akce potřebují proces (process nesmí být false)": "plugin.json: Aktionen brauchen einen Prozess (process darf nicht false sein)",
  "plugin.json: plugin bez procesu potřebuje webové okno": "plugin.json: ein Plugin ohne Prozess braucht ein Webfenster",
  "Rig surové příkazy nepodporuje": "Das Funkgerät unterstützt keine rohen Befehle",
- "rigctld: odpověď na surový příkaz je příliš dlouhá": "rigctld: die Antwort auf einen rohen Befehl ist zu lang"
+ "rigctld: odpověď na surový příkaz je příliš dlouhá": "rigctld: die Antwort auf einen rohen Befehl ist zu lang",
+ "Zpráva pluginu přerušena po %s s": "Die Nachricht des Plugins wurde nach %s s abgebrochen",
+ "Vysílání pluginů zastaveno": "Senden der Plugins gestoppt",
+ "Povolit": "Erlauben",
+ "Povolit vysílání pluginů": "Senden der Plugins erlauben",
+ "Zprávu pluginu přerušit po %s s": "Nachricht eines Plugins nach %s s abbrechen",
+ "Pluginy smí vysílat nejvýš %s procent z každých 5 minut": "Plugins dürfen höchstens %s Prozent von je 5 Minuten senden"
 }

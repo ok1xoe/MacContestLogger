@@ -30,6 +30,9 @@ extension AppModel {
         model.rig.onPluginPttReleased = { [weak pluginWindows] in
             pluginWindows?.pttReleased()
         }
+        model.rig.onOperatorStop = { [weak pluginWindows] in
+            pluginWindows?.operatorStopped()
+        }
         for panel in [model.panel(vfo: 0), model.vfoB] {
             panel.entry.pluginKeyHook = { [weak pluginWindows] combo, pressed in
                 pluginWindows?.handleKey(combo, pressed: pressed)

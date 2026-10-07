@@ -474,6 +474,29 @@ struct PluginTransmitIndicator: View {
     let app: AppModel
 
     var body: some View {
+        if app.pluginWindows.transmissionsBlocked && app.pluginWindows.transmitting == nil {
+            let text: String = app.language.tr("Vysílání pluginů zastaveno")
+            HStack(spacing: 6) {
+                Image(systemName: "pause.circle")
+                    .accessibilityHidden(true)
+                Text(verbatim: text)
+                    .windowFont(13, weight: .semibold)
+                Spacer(minLength: 0)
+                Button {
+                    app.pluginWindows.allowTransmissions()
+                } label: {
+                    Text(verbatim: app.language.tr("Povolit")).windowFont(12)
+                }
+                .accessibilityLabel(Text(verbatim: app.language.tr("Povolit vysílání pluginů")))
+                .accessibilityIdentifier("pluginTransmissionsAllow")
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 6).stroke(Color(nsColor: .separatorColor)))
+            .padding(.horizontal, 8)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(verbatim: text))
+        }
         if let name = app.pluginWindows.transmitting {
             let text: String = app.language.tr("Plugin %s vysílá", .string(name))
             HStack(spacing: 6) {

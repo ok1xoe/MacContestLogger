@@ -48,6 +48,20 @@ struct PluginsTab: View {
                 }
                 .accessibilityLabel(Text(verbatim: language.tr("PTT pluginu se samo uvolní po %s s",
                                                                 .int(model.settings.pttTimeoutSeconds))))
+                Stepper(value: Binding(get: { model.settings.messageLimitSeconds },
+                                       set: { model.setMessageLimit(seconds: $0) }), in: 5...300, step: 5) {
+                    SettingsText(language.tr("Zprávu pluginu přerušit po %s s",
+                                             .int(model.settings.messageLimitSeconds)))
+                }
+                .accessibilityLabel(Text(verbatim: language.tr("Zprávu pluginu přerušit po %s s",
+                                                                .int(model.settings.messageLimitSeconds))))
+                Stepper(value: Binding(get: { model.settings.dutyPercent },
+                                       set: { model.setDutyPercent($0) }), in: 10...100, step: 10) {
+                    SettingsText(language.tr("Pluginy smí vysílat nejvýš %s procent z každých 5 minut",
+                                             .int(model.settings.dutyPercent)))
+                }
+                .accessibilityLabel(Text(verbatim: language.tr("Pluginy smí vysílat nejvýš %s procent z každých 5 minut",
+                                                                .int(model.settings.dutyPercent))))
                 SettingsButton(language.tr("Načíst pluginy znovu")) {
                     model.refreshCatalog()
                 }

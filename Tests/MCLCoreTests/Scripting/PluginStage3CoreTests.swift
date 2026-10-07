@@ -26,6 +26,8 @@ import Testing
             // Values.
             "F 100", "F 99999999999", "F abc", "M MORSE 0", "M USB -1", "V VFOZ", "J 200000", "L KEYSPD 200",
             "L AF 2", "Y 9 0", String(repeating: "f", count: 121), "ř",
+            // Only the canonical form, and no keyer slower than 10 WPM.
+            " f", "f ", "F  14025000", "L KEYSPD 5",
         ] {
             #expect(PluginCatPolicy.refusal(refused) != nil, "\(refused.debugDescription) must be refused")
         }
@@ -184,5 +186,26 @@ import Testing
         #expect(!matches("https://api.example.org.evil.net/"))
         #expect(!matches("http://api.example.org/"))
         #expect(try PluginJSON.parse(PluginWebPolicy.contentRules(hosts: [])).arrayValue?.count == 2)
+    }
+
+    /// A raw command whose reply never ends (a timeout) closes the connection: it is never read as the next answer.
+    @Test func aRawTimeoutClosesTheConnection() async throws {
+        let server = try FakeLineServer(script: ["+f": [.silent]], fallback: [.line("RPRT 0")])
+        defer { server.stop() }
+        let port: Int = server.port
+        let outcome: (Bool, Bool) = try await onOwnThread {
+            let client = try RigctldClient(host: "localhost", port: port, timeoutMs: 200,
+                                           log: CatTrafficLog(maxLines: 10))
+            defer { client.close() }
+            var threw = false
+            do {
+                _ = try client.sendRaw("f")
+            } catch {
+                threw = true
+            }
+            return (threw, client.isConnected())
+        }
+        #expect(outcome.0)
+        #expect(!outcome.1)
     }
 }

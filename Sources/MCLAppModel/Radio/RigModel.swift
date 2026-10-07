@@ -64,6 +64,11 @@ public final class RigModel {
     @ObservationIgnored var pluginPttOwed: Set<Int> = []
     /// Told whenever a plugin's PTT was released (Esc, a disconnect, the quit, the plugin model itself).
     @ObservationIgnored public var onPluginPttReleased: (@MainActor () -> Void)?
+    /// Told when the operator stops transmissions (Esc), before anything is released.
+    @ObservationIgnored public var onOperatorStop: (@MainActor () -> Void)?
+    /// Raised by every release and operator stop: plugin CAT commands queued before it are dropped, so a safety
+    /// `T 0` never waits behind them.
+    let pluginCatEpoch = OSAllocatedUnfairLock(initialState: 0)
     /// Set when the quit starts releasing the transmitter: a footswitch press is refused from then on (a release
     /// edge still releases), so nothing keys a rig after the transmit-release milestone.
     @ObservationIgnored var transmitClosed = false

@@ -207,11 +207,23 @@ public final class RigctldClient: RigController, @unchecked Sendable {
     public func sendRaw(_ command: String) throws -> RigRawReply {
         lock.lock()
         defer { lock.unlock() }
-        try send("+" + command)
         var lines: [String] = []
         var bytes = 0
+        // Any failure (a timeout above all) closes the connection: a reply read later would answer the next command.
+        do {
+            try send("+" + command)
+        } catch {
+            close()
+            throw error
+        }
         while true {
-            let line: String = try readLine()
+            let line: String
+            do {
+                line = try readLine()
+            } catch {
+                close()
+                throw error
+            }
             if Self.startsWith(line, "RPRT") {
                 let code: Int = Int(JavaText.trim(String(line.dropFirst(4)))) ?? -1
                 return RigRawReply(lines: lines, code: code)

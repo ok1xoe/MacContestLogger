@@ -38,7 +38,7 @@ public enum PluginCatPolicy {
                                               "SWR", "ALC", "PREAMP", "ATT", "AGC"]
     /// Levels a plugin may set, with their range. No transmit power, no VOX, no tuner.
     static let settableLevels: [String: ClosedRange<Double>] = [
-        "AF": 0...1, "RF": 0...1, "SQL": 0...1, "NR": 0...1, "KEYSPD": 5...60, "CWPITCH": 300...1_000,
+        "AF": 0...1, "RF": 0...1, "SQL": 0...1, "NR": 0...1, "KEYSPD": 10...60, "CWPITCH": 300...1_000,
     ]
 
     /// Why `command` is refused (`nil` = allowed).
@@ -48,6 +48,8 @@ public enum PluginCatPolicy {
             return "only printable ASCII"
         }
         let words: [String] = command.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
+        // The canonical form only: single spaces, none leading or trailing (hamlib reads `+ f` differently).
+        guard words.joined(separator: " ") == command else { return "only single spaces between words" }
         guard let head = words.first else { return "empty command" }
         let rest: [String] = Array(words.dropFirst())
         // `;`, `|` and `\` only as the long form's leading `\`.

@@ -1214,5 +1214,11 @@
  "plugin.json: akce potřebují proces (process nesmí být false)": "plugin.json: actions need a process (process must not be false)",
  "plugin.json: plugin bez procesu potřebuje webové okno": "plugin.json: a plugin without a process needs a web window",
  "Rig surové příkazy nepodporuje": "The rig does not support raw commands",
- "rigctld: odpověď na surový příkaz je příliš dlouhá": "rigctld: the reply to a raw command is too long"
+ "rigctld: odpověď na surový příkaz je příliš dlouhá": "rigctld: the reply to a raw command is too long",
+ "Zpráva pluginu přerušena po %s s": "The plugin's message was cut after %s s",
+ "Vysílání pluginů zastaveno": "Plugin transmissions stopped",
+ "Povolit": "Allow",
+ "Povolit vysílání pluginů": "Allow plugin transmissions",
+ "Zprávu pluginu přerušit po %s s": "Cut a plugin's message after %s s",
+ "Pluginy smí vysílat nejvýš %s procent z každých 5 minut": "Plugins may transmit at most %s percent of any 5 minutes"
 }

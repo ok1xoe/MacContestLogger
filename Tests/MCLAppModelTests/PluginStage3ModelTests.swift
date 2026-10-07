@@ -16,6 +16,13 @@ import Testing
         let keying: KeyingApp
         let rig: FakeRigctld
         let clock: ManualClock
+        /// The app's "now" (the on-air budget counts by it); `advance` moves it with the clock.
+        let now: Box<Date>
+
+        func advance(by ms: Int) {
+            now.value = now.value.addingTimeInterval(Double(ms) / 1000)
+            clock.advance(by: ms)
+        }
 
         var model: AppModel { keying.model }
         var plugins: PluginWindowsModel { keying.model.pluginWindows }
@@ -25,6 +32,7 @@ import Testing
                      others: [String] = [], pollIntervalMs: Int64? = nil) async throws -> Rig {
         let fake = try FakeRigctld(mode: cw ? "CW" : "USB")
         let clock = ManualClock()
+        let now = Box<Date>(Date(timeIntervalSince1970: 1_790_000_000))
         let manifest: PluginJSON = .object([
             "protocol": .int(1), "name": .string("Web"), "process": .bool(false),
             "permissions": .array(permissions.map { .string($0) }), "events": .array([.string("qso-logged")]),
@@ -48,9 +56,8 @@ import Testing
         }, adjust: { environment in
             environment.integrationClock = clock
             _ = pollIntervalMs
-            // A fixed "now": the CAT rate limit counts by the app's clock, never by how fast the test runs.
-            let fixed = Date(timeIntervalSince1970: 1_790_000_000)
-            environment.now = { fixed }
+            // The app's "now" moves only with the test: the CAT rate limit and the on-air budget count by it.
+            environment.now = { now.value }
             environment.network.plugins = PluginsPorts(makeRunner: { _, _ in nil }, launchWindowPlugin: { _, _, _ in
                 preconditionFailure("a web-only plugin starts no process")
             })
@@ -65,7 +72,7 @@ import Testing
             plugins.answerConsent(name, granted: granted, shown: plugins.consentPermissions(name))
             plugins.open("plugin:" + name + "/main")
         }
-        return Rig(keying: keying, rig: fake, clock: clock)
+        return Rig(keying: keying, rig: fake, clock: clock, now: now)
     }
 
     static func ask(_ rig: Rig, _ method: String, _ params: [String: PluginJSON] = [:],
@@ -118,6 +125,8 @@ import Testing
         await rig.model.rig.settle()
         #expect(rig.rig.writes.last == "T 0")
         #expect(rig.model.rig.pluginPttRig == nil)
+        // Esc blocked plugin keying until the operator allows it again.
+        rig.plugins.allowTransmissions()
         // The time limit (30 s of the manual clock).
         _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
         rig.clock.advance(by: 29_999)
@@ -303,6 +312,7 @@ import Testing
         #expect(rig.rig.commands.filter { $0.hasPrefix("T ") } == ["T 1", "T 0", "T 0"])
         #expect(rig.model.rig.pluginPttRig == nil)
         #expect(rig.plugins.pttHolder == nil)
+        rig.plugins.allowTransmissions()
         // No rig: refused, nothing recorded.
         rig.model.rig.toggle(vfo: 0)
         await eventually("disconnected") { !rig.model.rig.connected(vfo: 0) }
@@ -387,5 +397,151 @@ import Testing
         #expect(await Self.ask(rig, "cat.send", ["command": .string("f T 1")], plugin: "web")["error"]?["code"] != nil)
         await rig.model.rig.settle()
         #expect(!rig.rig.commands.contains { $0.contains("T 1") })
+    }
+
+    // MARK: - second security review
+
+    /// While one plugin holds the PTT, another's `on` is refused: alternating plugins cannot keep the rig keyed
+    /// beyond the time limit.
+    @Test func aSecondPluginCannotTakeOverThePtt() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], others: ["other"])
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        rig.advance(by: 25_000)
+        let taken: PluginJSON = await Self.ask(rig, "tx.ptt", ["on": .bool(true)], plugin: "other")
+        #expect(taken["error"]?["message"] == .string("another plugin holds the PTT"))
+        rig.advance(by: 5_000)
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes == ["T 1", "T 0"])
+        #expect(rig.plugins.pttHolder == nil)
+    }
+
+    /// Esc (and the indicator's Stop) during a plugin transmission blocks plugin keying until the operator allows it.
+    @Test func escAndStopStick() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        _ = rig.model.entry.stopSending()
+        #expect(rig.plugins.transmissionsBlocked)
+        let again: PluginJSON = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        #expect(again["error"]?["code"] == .string("refused"))
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes == ["T 1", "T 0"])
+        rig.plugins.allowTransmissions()
+        #expect(await Self.ask(rig, "tx.ptt", ["on": .bool(true)])["result"] != nil)
+        rig.plugins.stopTransmission()
+        #expect(rig.plugins.transmissionsBlocked)
+        #expect(await Self.ask(rig, "tx.ptt", ["on": .bool(true)])["error"]?["code"] == .string("refused"))
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes == ["T 1", "T 0", "T 1", "T 0"])
+        // Esc without a plugin on the air blocks nothing.
+        rig.plugins.allowTransmissions()
+        _ = rig.model.entry.stopSending()
+        #expect(!rig.plugins.transmissionsBlocked)
+    }
+
+    /// Plugin CAT commands queued before a stop are dropped: the safety `T 0` never waits behind them.
+    @Test func aStopJumpsQueuedPluginCat() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit", "cat"], granted: ["transmit", "cat"])
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        rig.rig.holdAnswer(to: "+f")
+        async let first: PluginJSON = Self.ask(rig, "cat.send", ["command": .string("f")])
+        await eventually("held") { rig.rig.isHoldingAnswer }
+        async let second: PluginJSON = Self.ask(rig, "cat.send", ["command": .string("m")])
+        await drainMainQueue()
+        _ = rig.model.entry.stopSending()
+        rig.rig.releaseAnswer()
+        _ = await first
+        let dropped: PluginJSON = await second
+        #expect(dropped["error"]?["message"] == .string("cancelled by a stop or release"))
+        await rig.model.rig.settle()
+        let commands: [String] = rig.rig.commands.filter { $0.hasPrefix("+") || $0.hasPrefix("T ") }
+        #expect(commands == ["T 1", "+f", "T 0"])
+    }
+
+    /// The page policy is fixed by what the manifest asks for: a plugin asking for transmit or cat never gets
+    /// inline scripts, whatever is granted.
+    @Test func inlineScriptsFollowTheRequestedPermissions() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: [])
+        defer { rig.rig.stop() }
+        let setup = try #require(rig.plugins.webSetup(Self.key))
+        #expect(!setup.contentSecurityPolicy.contains("unsafe-inline'; object"))
+        #expect(setup.contentSecurityPolicy.contains("script-src 'self';"))
+    }
+
+    /// A plugin's message is cut at the message limit; the plugins' on-air budget refuses more once used up; a CW
+    /// call queue holds at most two texts.
+    @Test func theOnAirBudget() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], cw: true)
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.sendCw", ["text": .string(String(repeating: "CQ TEST ", count: 20))])
+        await rig.keying.settle()
+        let key: FakeCwKeyer = try #require(rig.keying.keying.lastKeyer)
+        rig.advance(by: 60_000)
+        await rig.keying.settle()
+        #expect(key.events.last == "abort")
+        #expect(rig.model.messages.lines.map(\.text).contains("[Web] Zpráva pluginu přerušena po 60 s"))
+        #expect(rig.plugins.transmitting == nil)
+        // Two texts during one transmission, not a third.
+        _ = await Self.ask(rig, "tx.sendCw", ["text": .string("A")])
+        _ = await Self.ask(rig, "tx.sendCw", ["text": .string("B")])
+        #expect(await Self.ask(rig, "tx.sendCw", ["text": .string("C")])["error"]?["code"] == .string("busy"))
+        _ = await Self.ask(rig, "tx.stop")
+        // The budget: 10 % of 5 minutes = 30 s, already used by the first message.
+        rig.plugins.setDutyPercent(10)
+        let over: PluginJSON = await Self.ask(rig, "tx.sendCw", ["text": .string("D")])
+        #expect(over["error"]?["message"]?.stringValue?.contains("on-air budget") == true)
+        // Five minutes later it is free again.
+        rig.advance(by: 300_000)
+        #expect(await Self.ask(rig, "tx.sendCw", ["text": .string("E")])["result"] != nil)
+    }
+
+    /// A plugin process whose `transmit` is revoked while its `T 1` is on the way: the PTT is released at once and
+    /// the plugin gets the permission error (nothing stays keyed until the time limit).
+    @Test func aRevokeDuringAKeyReleasesAtOnce() async throws {
+        let fake = try FakeRigctld(mode: "USB")
+        defer { fake.stop() }
+        let keying = try await KeyingApp.make(configure: { config, _ in
+            config.rig = fakeRigConfig(fake.port)
+        }, adjust: { environment in
+            environment.integrationClock = ManualClock()
+            environment.network.plugins = PluginsPorts(makeRunner: { _, _ in nil }, launchWindowPlugin: { package, env, handlers in
+                precondition(package.directory.contains("mcl-app-model-"), "test plugins only")
+                return PluginsPorts.liveLauncher(package, env, handlers)
+            })
+        })
+        await keying.connectRig(fake)
+        let dir: URL = keying.app.dataDir.appendingPathComponent("plugins/demo", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try #"{"protocol":1,"permissions":["read","ui","transmit"],"windows":[{"id":"main"}]}"#
+            .write(to: dir.appendingPathComponent("plugin.json"), atomically: true, encoding: .utf8)
+        let run: URL = dir.appendingPathComponent("run")
+        try """
+            #!/bin/sh
+            IFS= read -r hello
+            echo '{"type":"request","id":1,"method":"tx.ptt","params":{"on":true}}'
+            IFS= read -r answer
+            printf '%s\\n' "$answer" > answer.json
+            while IFS= read -r line; do :; done
+            """.write(to: run, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: run.path)
+        let plugins: PluginWindowsModel = keying.model.pluginWindows
+        await plugins.rescan()
+        plugins.answerConsent("demo", granted: ["transmit"], shown: ["transmit"])
+        fake.holdAnswer(to: "T 1")
+        plugins.open("plugin:demo/main")
+        await eventually("keying held") { fake.isHoldingAnswer }
+        plugins.setGrants("demo", [])
+        fake.releaseAnswer()
+        let answer: URL = dir.appendingPathComponent("answer.json")
+        await eventually("answered") { FileManager.default.fileExists(atPath: answer.path) }
+        let reply: String = try String(contentsOf: answer, encoding: .utf8)
+        #expect(reply.contains("\"permission\""))
+        await keying.model.rig.settle()
+        #expect(fake.writes.last == "T 0")
+        #expect(keying.model.rig.pluginPttRig == nil)
+        #expect(plugins.pttHolder == nil)
+        await plugins.shutdown()
     }
 }

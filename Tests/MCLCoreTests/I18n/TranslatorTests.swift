@@ -132,9 +132,9 @@ import Testing
         // 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and
         // 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and
         // 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter.
-        #expect(map.count == 1_216)
+        #expect(map.count == 1_222)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_216)
+        #expect(german.count == 1_222)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)
