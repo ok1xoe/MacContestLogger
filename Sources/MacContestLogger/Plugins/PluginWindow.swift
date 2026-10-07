@@ -483,7 +483,7 @@ struct PluginTransmitIndicator: View {
                     .windowFont(13, weight: .bold)
                 Spacer(minLength: 0)
                 Button {
-                    _ = app.activeEntry?.stopSending()
+                    app.pluginWindows.stopTransmission()
                 } label: {
                     Text(verbatim: app.language.tr("Zastavit (Esc)")).windowFont(12)
                 }

@@ -27,6 +27,9 @@ extension AppModel {
             now: environment.now, appVersion: environment.appVersion)
         plugins.windowEvents = pluginWindows.router
         pluginWindows.context = pluginContext(model)
+        model.rig.onPluginPttReleased = { [weak pluginWindows] in
+            pluginWindows?.pttReleased()
+        }
         for panel in [model.panel(vfo: 0), model.vfoB] {
             panel.entry.pluginKeyHook = { [weak pluginWindows] combo, pressed in
                 pluginWindows?.handleKey(combo, pressed: pressed)
@@ -290,12 +293,31 @@ extension AppModel {
             entry.sendKeys([index], refocus: false)
             return nil
         }
+        // Stop: the plugin PTT, the CQ repeat and the keyer (CW, voice, digital, tune) — directly, with or without an
+        // active entry window.
         actions.stop = { [weak model] in
-            model?.activeEntry?.stopSending() ?? false
+            guard let model else { return false }
+            let ptt: Bool = model.rig.releasePluginPtt()
+            let repeating: Bool = model.operating.cqRepeat
+            model.operating.applyCqRepeat(false)
+            return model.keyer.stopSending() || repeating || ptt
         }
         actions.ptt = { [weak model] on in
             guard let model else { return "no rig" }
-            return model.rig.pluginPtt(on)
+            return await model.rig.pluginPtt(on)
+        }
+        actions.pttHeld = { [weak model] in
+            model?.rig.pluginPttRig != nil
+        }
+        actions.releasePtt = { [weak model] in
+            model?.rig.releasePluginPtt() ?? false
+        }
+        actions.catContext = { [weak model] in
+            guard let model else { return PluginCatPolicy.Context(transmitting: true, transverter: true) }
+            let transmitting: Bool = model.keyer.isSending || model.keyer.isTuning || model.rig.pluginPttRig != nil
+                || model.rig.footswitchPttRig != nil
+            return PluginCatPolicy.Context(transmitting: transmitting,
+                                           transverter: !model.config.config.transverters.isEmpty)
         }
         actions.isSending = { [weak model] in
             model?.keyer.isSending ?? false

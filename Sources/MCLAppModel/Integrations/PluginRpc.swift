@@ -55,7 +55,7 @@ enum PluginRpc {
     static let methods: [String: String] = [
         "log.query": "read", "log.count": "read", "log.get": "read", "contest.active": "read",
         "contest.score": "read", "contest.multipliers": "read", "rig.state": "read", "spots.list": "read",
-        "cat.send": "cat",
+        "cat.send": "cat", "tx.ptt": "transmit",
     ]
 
     /// The most spots `spots.list` returns.
@@ -74,6 +74,15 @@ enum PluginRpc {
         }
         if method == "cat.send" {
             return await rawCat(params, actions: context.actions)
+        }
+        if method == "tx.ptt" {
+            guard let on = params["on"]?.boolValue else {
+                return .failure(Failure(code: "invalid_params", message: "tx.ptt needs on"))
+            }
+            if let refusal = await context.actions.ptt(on) {
+                return .failure(Failure(code: "refused", message: refusal))
+            }
+            return .success(.object(["ok": .bool(true)]))
         }
         if actionMethods[method] != nil {
             return act(method: method, params: params, actions: context.actions)
@@ -188,7 +197,7 @@ enum PluginRpc {
         guard let command = params["command"]?.stringValue else {
             return .failure(Failure(code: "invalid_params", message: "cat.send needs command"))
         }
-        if let refusal = PluginCatPolicy.refusal(command) {
+        if let refusal = PluginCatPolicy.refusal(command, context: actions.catContext()) {
             return .failure(Failure(code: "refused", message: refusal))
         }
         let result: Result<RigRawReply, CatRawError> = await withCheckedContinuation { continuation in

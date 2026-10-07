@@ -80,8 +80,14 @@ public struct PluginHostActions {
     public var voice: (Int) -> String? = { _ in "no entry window" }
     /// Esc: stops every transmission (also a plugin's PTT); `true` = something was stopped.
     public var stop: () -> Bool = { false }
-    /// The PTT of the active rig.
-    public var ptt: (Bool) -> String? = { _ in "no rig" }
+    /// Whether a plugin's PTT is recorded on the rig (also after a failed release: the rig may still transmit).
+    public var pttHeld: () -> Bool = { false }
+    /// Releases the plugins' PTT at once; `true` = it was held.
+    public var releasePtt: () -> Bool = { false }
+    /// The PTT of the active rig (keying waits for the rig's answer).
+    public var ptt: (Bool) async -> String? = { _ in "no rig" }
+    /// What the raw CAT check needs to know about the rig now.
+    public var catContext: () -> PluginCatPolicy.Context = { PluginCatPolicy.Context(transmitting: true) }
     /// Whether the keyer is sending now (the transmit indicator).
     public var isSending: () -> Bool = { false }
 
@@ -112,7 +118,6 @@ extension PluginRpc {
         "spots.send": "spots.send",
         "app.command": "app.command",
         "tx.sendCw": "transmit", "tx.fkey": "transmit", "tx.voice": "transmit", "tx.stop": "transmit",
-        "tx.ptt": "transmit",
     ]
 
     static func act(method: String, params: [String: PluginJSON],
@@ -245,9 +250,6 @@ extension PluginRpc {
             return done(actions.voice(Int(index) - 1))
         case "tx.stop":
             return .success(.object(["stopped": .bool(actions.stop())]))
-        case "tx.ptt":
-            guard let on = params["on"]?.boolValue else { return invalid("tx.ptt needs on") }
-            return done(actions.ptt(on))
         default:
             guard let command = text("text"), !command.isEmpty, isPlainText(command, limit: 80) else {
                 return invalid("app.command needs a text of at most 80 plain characters")

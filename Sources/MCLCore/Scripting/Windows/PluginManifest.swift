@@ -58,6 +58,9 @@ public struct PluginManifest: Equatable, Sendable {
     public var webHosts: [String] = []
     /// `false` (`"process": false`): no executable runs; only web windows talk to the app.
     public var hasProcess: Bool = true
+    /// `webInlineScripts: true`: the pages may run inline scripts — only while the plugin holds neither `transmit`
+    /// nor `cat`.
+    public var webInlineScripts: Bool = false
     /// The executable relative to the plugin directory (`run`, default `run`).
     public let run: String
 
@@ -112,6 +115,7 @@ public struct PluginManifest: Equatable, Sendable {
             throw ContestMessage("plugin.json: neplatný webový host %s", .string(host))
         }
         manifest.hasProcess = root["process"]?.boolValue ?? true
+        manifest.webInlineScripts = root["webInlineScripts"]?.boolValue ?? false
         if !manifest.hasProcess && !manifest.actions.isEmpty {
             throw ContestMessage("plugin.json: akce potřebují proces (process nesmí být false)")
         }

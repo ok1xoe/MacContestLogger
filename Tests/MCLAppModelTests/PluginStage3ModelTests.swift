@@ -21,7 +21,8 @@ import Testing
         var plugins: PluginWindowsModel { keying.model.pluginWindows }
     }
 
-    static func make(permissions: [String], granted: [String], cw: Bool = false) async throws -> Rig {
+    static func make(permissions: [String], granted: [String], cw: Bool = false,
+                     others: [String] = [], pollIntervalMs: Int64? = nil) async throws -> Rig {
         let fake = try FakeRigctld(mode: cw ? "CW" : "USB")
         let clock = ManualClock()
         let manifest: PluginJSON = .object([
@@ -34,33 +35,42 @@ import Testing
             if cw {
                 winkeyerConfig(&config)
             }
-            let dir: URL = dataDir.appendingPathComponent("plugins/web", isDirectory: true)
-            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-            try manifest.serialized().write(to: dir.appendingPathComponent("plugin.json"), atomically: true,
-                                            encoding: .utf8)
-            try "<html></html>".write(to: dir.appendingPathComponent("index.html"), atomically: true, encoding: .utf8)
+            for name in ["web"] + others {
+                let dir: URL = dataDir.appendingPathComponent("plugins/" + name, isDirectory: true)
+                try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                let named: String = name == "web" ? manifest.serialized()
+                    : manifest.serialized().replacingOccurrences(of: "\"Web\"", with: "\"" + name + "\"")
+                try named
+                    .write(to: dir.appendingPathComponent("plugin.json"), atomically: true, encoding: .utf8)
+                try "<html></html>".write(to: dir.appendingPathComponent("index.html"), atomically: true,
+                                          encoding: .utf8)
+            }
         }, adjust: { environment in
             environment.integrationClock = clock
+            _ = pollIntervalMs
             // A fixed "now": the CAT rate limit counts by the app's clock, never by how fast the test runs.
             let fixed = Date(timeIntervalSince1970: 1_790_000_000)
             environment.now = { fixed }
             environment.network.plugins = PluginsPorts(makeRunner: { _, _ in nil }, launchWindowPlugin: { _, _, _ in
                 preconditionFailure("a web-only plugin starts no process")
             })
-        })
+        }, pollIntervalMs: pollIntervalMs)
         await keying.connectRig(fake)
         if cw {
             keying.entry.setMode(.cw)
         }
         let plugins: PluginWindowsModel = keying.model.pluginWindows
         await plugins.rescan()
-        plugins.answerConsent("web", granted: granted, shown: plugins.consentPermissions("web"))
-        plugins.open(Self.key)
+        for name in ["web"] + others {
+            plugins.answerConsent(name, granted: granted, shown: plugins.consentPermissions(name))
+            plugins.open("plugin:" + name + "/main")
+        }
         return Rig(keying: keying, rig: fake, clock: clock)
     }
 
-    static func ask(_ rig: Rig, _ method: String, _ params: [String: PluginJSON] = [:]) async -> PluginJSON {
-        await rig.plugins.webAnswer(Self.key, method: method, params: params)
+    static func ask(_ rig: Rig, _ method: String, _ params: [String: PluginJSON] = [:],
+                    plugin: String = "web") async -> PluginJSON {
+        await rig.plugins.webAnswer("plugin:" + plugin + "/main", method: method, params: params)
     }
 
     // MARK: - raw CAT
@@ -118,6 +128,7 @@ import Testing
         #expect(rig.rig.writes.last == "T 0")
         #expect(rig.plugins.pttHolder == nil)
         #expect(rig.model.messages.lines.map(\.text).contains("[Web] PTT pluginu uvolněno po 30 s"))
+        rig.clock.advance(by: PluginWindowsModel.pttCooldownMs)
         // The plugin stops (its window closes).
         _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
         rig.plugins.windowClosed(Self.key)
@@ -229,5 +240,152 @@ import Testing
         #expect(model.pttHolder == nil)
         #expect(app.model.rig.pluginPttRig == nil)
         #expect(model.transmitting == nil)
+    }
+
+    // MARK: - security review
+
+    /// Keying again while keyed never extends the time limit; after the forced release the plugin cools down.
+    @Test func thePttTimeLimitCannotBeExtended() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        rig.clock.advance(by: 29_000)
+        #expect(await Self.ask(rig, "tx.ptt", ["on": .bool(true)])["result"] != nil)
+        rig.clock.advance(by: 1_000)
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes == ["T 1", "T 0"], "the second on neither re-keyed nor extended: \(rig.rig.writes)")
+        #expect(rig.plugins.pttHolder == nil)
+        // The cool-down.
+        #expect(await Self.ask(rig, "tx.ptt", ["on": .bool(true)])["error"]?["code"] == .string("refused"))
+        rig.clock.advance(by: PluginWindowsModel.pttCooldownMs)
+        #expect(await Self.ask(rig, "tx.ptt", ["on": .bool(true)])["result"] != nil)
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(false)])
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes.last == "T 0")
+    }
+
+    /// Revoking `transmit` releases the plugin's PTT and stops its message at once.
+    @Test func revokingTransmitStopsEverything() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], cw: true)
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.sendCw", ["text": .string("CQ TEST")])
+        await rig.keying.settle()
+        let key: FakeCwKeyer = try #require(rig.keying.keying.lastKeyer)
+        rig.plugins.setGrants("web", [])
+        await rig.keying.settle()
+        #expect(key.events.last == "abort")
+        #expect(rig.plugins.transmitting == nil)
+        rig.plugins.setGrants("web", ["transmit"])
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        rig.plugins.setGrants("web", [])
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes.last == "T 0")
+        #expect(rig.model.rig.pluginPttRig == nil)
+        #expect(rig.plugins.pttHolder == nil)
+    }
+
+    /// A refused `T 1` is followed by `T 0` and reported to the plugin; without a rig the PTT is refused.
+    @Test func aFailedKeyIsReleasedAndReported() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        rig.rig.reject("T")
+        let answer: PluginJSON = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        #expect(answer["error"]?["code"] == .string("refused"))
+        await rig.model.rig.settle()
+        // `T 1` refused → `T 0` at once; that was refused too, so the rig stays recorded as keyed and Esc sends `T 0`
+        // again.
+        #expect(rig.rig.commands.filter { $0.hasPrefix("T ") } == ["T 1", "T 0"])
+        #expect(rig.model.rig.pluginPttRig == 0)
+        // The time limit still runs for it.
+        #expect(rig.plugins.pttHolder == "web")
+        _ = rig.model.entry.stopSending()
+        await rig.model.rig.settle()
+        #expect(rig.rig.commands.filter { $0.hasPrefix("T ") } == ["T 1", "T 0", "T 0"])
+        #expect(rig.model.rig.pluginPttRig == nil)
+        #expect(rig.plugins.pttHolder == nil)
+        // No rig: refused, nothing recorded.
+        rig.model.rig.toggle(vfo: 0)
+        await eventually("disconnected") { !rig.model.rig.connected(vfo: 0) }
+        let noRig: PluginJSON = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        #expect(noRig["error"]?["message"] == .string("no rig connected"))
+        #expect(rig.model.rig.pluginPttRig == nil)
+    }
+
+    /// Esc releases a plugin's PTT and still stops the keyer; the indicator goes.
+    @Test func escReleasesThePttAndStopsTheKeyerToo() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], cw: true)
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        _ = await Self.ask(rig, "tx.sendCw", ["text": .string("CQ")])
+        await rig.keying.settle()
+        let key: FakeCwKeyer = try #require(rig.keying.keying.lastKeyer)
+        #expect(rig.model.entry.stopSending())
+        await rig.keying.settle()
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes.last == "T 0")
+        #expect(key.events.last == "abort")
+        #expect(rig.plugins.pttHolder == nil)
+        rig.keying.clock.advance(by: 60_000)
+        rig.clock.advance(by: PluginWindowsModel.transmitCheckMs)
+        #expect(rig.plugins.transmitting == nil)
+        // The indicator's Stop works without the entry window.
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        rig.plugins.stopTransmission()
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes.last == "T 0")
+        #expect(rig.plugins.transmitting == nil)
+    }
+
+    /// Another plugin cannot release the holder's PTT (nor the operator's), and the indicator names the holder.
+    @Test func onlyTheHolderReleasesThePtt() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], others: ["other"])
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        #expect(rig.plugins.transmitting == "Web")
+        #expect(await Self.ask(rig, "tx.ptt", ["on": .bool(false)], plugin: "other")["result"] != nil)
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes == ["T 1"])
+        #expect(rig.plugins.pttHolder == "web")
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(false)])
+        await rig.model.rig.settle()
+        #expect(rig.rig.writes == ["T 1", "T 0"])
+    }
+
+    /// A rig that drops its connection while a plugin keyed it: the state is cleared, `T 0` goes out first on the
+    /// next connection.
+    @Test func aLostRigClearsThePluginPtt() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"],
+                                      pollIntervalMs: 20)
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        #expect(rig.model.rig.pluginPttRig == 0)
+        rig.rig.dropNextRead()
+        await eventually("lost") { !rig.model.rig.connected(vfo: 0) }
+        #expect(rig.model.rig.pluginPttRig == nil)
+        #expect(rig.plugins.pttHolder == nil)
+        // The next connection releases first.
+        rig.model.rig.toggle(vfo: 0)
+        await eventually("reconnected and released") {
+            rig.model.rig.connected(vfo: 0) && rig.rig.writes.last == "T 0"
+        }
+    }
+
+    /// All plugins together send at most `catPerSecondTotal` raw commands a second.
+    @Test func rawCatIsLimitedAcrossPlugins() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "cat"], granted: ["cat"], others: ["other"])
+        defer { rig.rig.stop() }
+        var limited = 0
+        for index in 0..<20 {
+            let answer: PluginJSON = await Self.ask(rig, "cat.send", ["command": .string("f")],
+                                                    plugin: index % 2 == 0 ? "web" : "other")
+            if answer["error"]?["code"] == .string("rate_limited") {
+                limited += 1
+            }
+        }
+        #expect(limited == 20 - PluginWindowsModel.catPerSecondTotal)
+        // A smuggled keying word never reaches the rig.
+        #expect(await Self.ask(rig, "cat.send", ["command": .string("f T 1")], plugin: "web")["error"]?["code"] != nil)
+        await rig.model.rig.settle()
+        #expect(!rig.rig.commands.contains { $0.contains("T 1") })
     }
 }

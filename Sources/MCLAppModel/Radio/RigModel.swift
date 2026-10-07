@@ -60,6 +60,10 @@ public final class RigModel {
     @ObservationIgnored var footswitchPttRig: Int?
     /// The rig a plugin's `tx.ptt` keyed (`nil` = none).
     public internal(set) var pluginPttRig: Int?
+    /// Rigs that lost their connection while a plugin's PTT was on: `T 0` goes out first when they connect again.
+    @ObservationIgnored var pluginPttOwed: Set<Int> = []
+    /// Told whenever a plugin's PTT was released (Esc, a disconnect, the quit, the plugin model itself).
+    @ObservationIgnored public var onPluginPttReleased: (@MainActor () -> Void)?
     /// Set when the quit starts releasing the transmitter: a footswitch press is refused from then on (a release
     /// edge still releases), so nothing keys a rig after the transmit-release milestone.
     @ObservationIgnored var transmitClosed = false
@@ -172,6 +176,7 @@ public final class RigModel {
         } else {
             cat2 = snapshot
         }
+        pluginPttConnectionChanged(index, connected: snapshot.connected)
         // Kotlin `LaunchedEffect(state.cat.state, …)`: only a different state of the active rig is followed.
         if index == vfo.activeCatIndex && previous != snapshot.state {
             notifyEntries { $0.followRig() }
