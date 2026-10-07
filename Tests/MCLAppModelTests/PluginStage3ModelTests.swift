@@ -313,17 +313,10 @@ import Testing
         let answer: PluginJSON = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
         #expect(answer["error"]?["code"] == .string("refused"))
         await rig.model.rig.settle()
-        // `T 1` refused → `T 0` at once; that was refused too, so the rig stays recorded as keyed and Esc sends `T 0`
-        // again.
-        #expect(rig.rig.commands.filter { $0.hasPrefix("T ") } == ["T 1", "T 0"])
-        #expect(rig.model.rig.pluginPttRig == 0)
-        // The time limit still runs for it.
-        #expect(rig.plugins.pttHolder == "web")
-        _ = rig.model.entry.stopSending()
-        await rig.model.rig.settle()
-        // Esc: `T 0` on the rig's lane (refused again), then over a fresh connection (refused too): owed, and said.
-        await eventually("fresh release tried") {
-            rig.rig.commands.filter { $0.hasPrefix("T ") } == ["T 1", "T 0", "T 0", "T 0"]
+        // `T 1` refused → `T 0` at once; refused too, so a release is requested at once: `T 0` on the lane and over a
+        // fresh connection (both refused) — owed.
+        await eventually("released at once") {
+            rig.rig.commands.filter { $0.hasPrefix("T ") }.prefix(4) == ["T 1", "T 0", "T 0", "T 0"]
         }
         // Unconfirmed: a persistent warning, and no plugin keys meanwhile.
         #expect(rig.model.rig.pluginPttUnconfirmed)
@@ -471,7 +464,7 @@ import Testing
         async let first: PluginJSON = Self.ask(rig, "cat.send", ["command": .string("f")])
         await eventually("held") { rig.rig.isHoldingAnswer }
         async let second: PluginJSON = Self.ask(rig, "cat.send", ["command": .string("m")])
-        await drainMainQueue()
+        await eventually("second queued") { rig.model.rig.pluginCat?.pendingCount == 2 }
         _ = rig.model.entry.stopSending()
         rig.rig.releaseAnswer()
         _ = await first
@@ -813,5 +806,157 @@ import Testing
         let again: String = rig.plugins.webIdentity(Self.key)
         await rig.plugins.rescan()
         #expect(rig.plugins.webIdentity(Self.key) == again)
+    }
+
+    // MARK: - fifth security review
+
+    static func pttCommands(_ rig: Rig) -> [String] {
+        rig.rig.commands.filter { $0.hasPrefix("T ") }
+    }
+
+    /// The repro: a poll held on the lane, a plugin `T 1` queued behind it, Esc. The fresh `T 0` goes first and must
+    /// not confirm; the queued `T 1` is dropped before it is written; the lane `T 0` confirms.
+    @Test func aQueuedKeyCannotOvertakeTheRelease() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
+        defer {
+            rig.rig.releaseAnswer()
+            rig.rig.stop()
+        }
+        rig.rig.holdAnswer(to: "f")
+        await eventually("poll held") { rig.rig.isHoldingAnswer }
+        async let keyed: PluginJSON = Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        await eventually("T 1 queued on the lane") { rig.model.rig.pluginKeysInFlight[0] == 1 }
+        _ = rig.model.entry.stopSending()
+        await eventually("fresh T 0") { Self.pttCommands(rig).contains("T 0") }
+        await rig.model.rig.settlePluginReleases()
+        #expect(rig.model.rig.pluginPttUnconfirmed, "a fresh T 0 sent while a key was queued does not confirm")
+        rig.rig.releaseAnswer()
+        let answer: PluginJSON = await keyed
+        #expect(answer["error"] != nil)
+        await eventually("confirmed by the lane") { !rig.model.rig.pluginPttUnconfirmed }
+        #expect(!Self.pttCommands(rig).contains("T 1"), "the stale key was dropped: \(Self.pttCommands(rig))")
+        #expect(Self.pttCommands(rig).last == "T 0")
+    }
+
+    /// A key already on the wire when the release came: once it completes, another `T 0` follows at once.
+    @Test func aKeyCompletingAfterARequestedReleaseIsReleasedAgain() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer {
+            rig.rig.releaseAnswer()
+            rig.rig.stop()
+        }
+        rig.rig.holdAnswer(to: "T 1")
+        // The rig layer itself (the plugin model re-checks after the key too, which would hide it).
+        let model = rig.model.rig
+        async let keyed: String? = model.pluginPtt(true)
+        await eventually("T 1 on the wire") { rig.rig.isHoldingAnswer }
+        #expect(model.releasePluginPtt())
+        rig.rig.releaseAnswer()
+        #expect(await keyed == "released meanwhile")
+        // Besides the lane `T 0` queued behind the key, another release follows the late key.
+        await eventually("released again after the key") {
+            let commands = Self.pttCommands(rig)
+            guard let key = commands.firstIndex(of: "T 1") else { return false }
+            return commands[(key + 1)...].filter { $0 == "T 0" }.count >= 2 && !model.pluginPttUnconfirmed
+        }
+        #expect(Self.pttCommands(rig).last == "T 0")
+        #expect(model.pluginPttRig == nil)
+    }
+
+    /// The rig drops after a key and every `T 0` fails: the release stays owed (no plugin keys) until the next
+    /// connection's `T 0` gets through.
+    @Test func aDroppedRigStaysOwedUntilItsNextConnection() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
+        defer { rig.rig.stop() }
+        // No timed retries and no fresh-connection release: only the next connection's lane `T 0` can confirm.
+        rig.model.rig.releaseRetries = 0
+        rig.model.rig.freshPttRelease = { _, _ in false }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        rig.rig.reject("T")
+        rig.rig.dropNextRead()
+        await eventually("lost") { !rig.model.rig.connected(vfo: 0) }
+        await rig.model.rig.settle()
+        #expect(rig.model.rig.pluginPttUnconfirmed)
+        #expect(await Self.ask(rig, "tx.ptt", ["on": .bool(true)])["error"]?["message"]
+            == .string("an earlier PTT release is not confirmed yet"))
+        rig.rig.unreject("T")
+        rig.model.rig.toggle(vfo: 0)
+        await eventually("confirmed on the next connection") {
+            rig.model.rig.connected(vfo: 0) && !rig.model.rig.pluginPttUnconfirmed
+        }
+        #expect(Self.pttCommands(rig).last == "T 0")
+    }
+
+    /// The plugins' CAT connection closes when no plugin needs it (revoke, quit); queued commands of a revoked
+    /// plugin are dropped; the queue is bounded.
+    @Test func thePluginCatConnectionIsClosedAndBounded() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "cat"], granted: ["cat"])
+        defer {
+            rig.rig.releaseAnswer()
+            rig.rig.stop()
+        }
+        let channel = try #require(rig.model.rig.pluginCat)
+        _ = await Self.ask(rig, "cat.send", ["command": .string("f")])
+        #expect(channel.isOpen)
+        rig.plugins.setGrants("web", [])
+        #expect(!channel.isOpen)
+        rig.plugins.setGrants("web", ["cat"])
+        // Queued commands of a revoked plugin are dropped.
+        rig.rig.holdAnswer(to: "+f")
+        async let first: PluginJSON = Self.ask(rig, "cat.send", ["command": .string("f")])
+        await eventually("held") { rig.rig.isHoldingAnswer }
+        async let second: PluginJSON = Self.ask(rig, "cat.send", ["command": .string("m")])
+        await eventually("second queued") { rig.model.rig.pluginCat?.pendingCount == 2 }
+        rig.plugins.setGrants("web", [])
+        rig.rig.releaseAnswer()
+        _ = await first
+        #expect(await second["error"] != nil)
+        #expect(!rig.rig.commands.contains("+m"))
+        // The bound.
+        rig.rig.holdAnswer(to: "+f")
+        let busy = Box<Int>(0)
+        let done = Box<Int>(0)
+        for _ in 0..<(PluginCatChannel.maxPending + 4) {
+            rig.model.rig.sendRawCat("f") { result in
+                if case .failure(let error) = result, error.message.hasPrefix("busy") { busy.value += 1 }
+                done.value += 1
+            }
+        }
+        await eventually("busy answered") { busy.value == 4 }
+        rig.rig.releaseAnswer()
+        await eventually("all answered") { done.value == PluginCatChannel.maxPending + 4 }
+        // The quit closes it.
+        _ = await Self.ask(rig, "cat.send", ["command": .string("f")])
+        await rig.model.rig.shutdown()
+        #expect(!channel.isOpen)
+    }
+
+    /// A refused lane `T 0` is retried while the rig stays connected; the retry confirms.
+    @Test func aFailedLaneReleaseIsRetried() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        rig.rig.reject("T")
+        _ = rig.model.entry.stopSending()
+        await eventually("lane T 0 refused") { rig.model.rig.releaseAttempts[0] == 1 }
+        #expect(rig.model.rig.pluginPttUnconfirmed)
+        rig.rig.unreject("T")
+        await eventually("retried and confirmed") { !rig.model.rig.pluginPttUnconfirmed }
+        #expect(Self.pttCommands(rig).last == "T 0")
+    }
+
+    /// A key asked for after the operator stopped plugin transmissions never reaches the rig, even when it got past
+    /// the plugin model's check before the stop.
+    @Test func aKeyAfterTheOperatorsStopNeverReachesTheRig() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        _ = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
+        _ = rig.model.entry.stopSending()
+        #expect(rig.plugins.transmissionsBlocked)
+        await eventually("release confirmed") { !rig.model.rig.pluginPttUnconfirmed }
+        // The rig layer alone would key now; the operator's stop still holds.
+        #expect(await rig.model.pluginKey(true) == "the operator stopped plugin transmissions")
+        await rig.model.rig.settle()
+        #expect(Self.pttCommands(rig).filter { $0 == "T 1" }.count == 1)
     }
 }

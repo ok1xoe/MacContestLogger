@@ -270,12 +270,15 @@ extension AppModel {
             entry.runCommand(command)
             return nil
         }
-        actions.rawCat = { [weak model] command, then in
+        actions.rawCat = { [weak model] command, epoch, then in
             guard let model else {
                 then(.failure(CatRawError(message: "no rig")))
                 return
             }
-            model.rig.sendRawCat(command, then: then)
+            model.rig.sendRawCat(command, since: epoch, then: then)
+        }
+        actions.catEpoch = { [weak model] in
+            model?.rig.pluginCatEpoch.withLock { $0 } ?? 0
         }
         actions.sendCw = { [weak model] text in
             guard let model, let entry = model.activeEntry else { return noEntry }
@@ -307,10 +310,13 @@ extension AppModel {
         }
         actions.ptt = { [weak model] on in
             guard let model else { return "no rig" }
-            return await model.rig.pluginPtt(on)
+            return await model.pluginKey(on)
         }
         actions.pttHeld = { [weak model] in
             model?.rig.pluginPttRig != nil
+        }
+        actions.catIdle = { [weak model] close in
+            model?.rig.pluginCatIdle(close: close)
         }
         actions.pttUnconfirmed = { [weak model] in
             model?.rig.pluginPttUnconfirmed ?? true
@@ -364,5 +370,16 @@ extension AppModel {
         integrations.startWsjtxIfEnabled()
         integrations.startN1mmIfEnabled()
         integrations.startAdifUdpIfEnabled()
+    }
+}
+
+extension AppModel {
+    /// A plugin's `tx.ptt`: the operator's stop is checked in the same main-actor turn in which the rig records the
+    /// key's release epoch, so no Esc can fall between them (a later Esc drops the queued key).
+    func pluginKey(_ on: Bool) async -> String? {
+        if on, pluginWindows?.transmissionsBlocked == true {
+            return "the operator stopped plugin transmissions"
+        }
+        return await rig.pluginPtt(on)
     }
 }

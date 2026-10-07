@@ -65,7 +65,8 @@ enum PluginRpc {
     /// thread (a test seam).
     static func answer(method: String, params: [String: PluginJSON], permissions: [String],
                        context: PluginHostContext,
-                       readProbe: (@Sendable (Bool) -> Void)? = nil) async -> Result<PluginJSON, Failure> {
+                       readProbe: (@Sendable (Bool) -> Void)? = nil,
+                       catEpoch: Int? = nil) async -> Result<PluginJSON, Failure> {
         guard let permission = methods[method] ?? actionMethods[method] else {
             return .failure(Failure(code: "unknown_method", message: "unknown method \(method)"))
         }
@@ -73,7 +74,7 @@ enum PluginRpc {
             return .failure(Failure(code: "permission", message: "\(method) needs the \(permission) permission"))
         }
         if method == "cat.send" {
-            return await rawCat(params, actions: context.actions)
+            return await rawCat(params, actions: context.actions, epoch: catEpoch)
         }
         if method == "tx.ptt" {
             guard let on = params["on"]?.boolValue else {
@@ -193,7 +194,7 @@ enum PluginRpc {
 
     /// A raw CAT command: checked by `PluginCatPolicy`, sent on the active rig's lane, answered with its reply.
     private static func rawCat(_ params: [String: PluginJSON],
-                               actions: PluginHostActions) async -> Result<PluginJSON, Failure> {
+                               actions: PluginHostActions, epoch: Int?) async -> Result<PluginJSON, Failure> {
         guard let command = params["command"]?.stringValue else {
             return .failure(Failure(code: "invalid_params", message: "cat.send needs command"))
         }
@@ -201,7 +202,7 @@ enum PluginRpc {
             return .failure(Failure(code: "refused", message: refusal))
         }
         let result: Result<RigRawReply, CatRawError> = await withCheckedContinuation { continuation in
-            actions.rawCat(command) { result in
+            actions.rawCat(command, epoch) { result in
                 continuation.resume(returning: result)
             }
         }

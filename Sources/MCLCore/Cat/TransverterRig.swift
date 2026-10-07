@@ -80,6 +80,10 @@ public final class TransverterRig: RigController {
         try inner.setPtt(on)
     }
 
+    public func keyPtt(unless cancelled: () -> Bool) throws -> Bool {
+        try inner.keyPtt(unless: cancelled)
+    }
+
     public func sendMorse(_ text: String) throws {
         try inner.sendMorse(text)
     }

@@ -80,6 +80,16 @@ public final class RigModel {
     /// Raised by every release and operator stop: plugin CAT commands queued before it are dropped, so a safety
     /// `T 0` never waits behind them.
     let pluginCatEpoch = OSAllocatedUnfairLock(initialState: 0)
+    /// The plugin-PTT release epoch: raised by every requested release. A plugin `T 1` carries the epoch it was
+    /// issued in and is dropped right before it is written when a release came since.
+    let pluginKeyEpoch = OSAllocatedUnfairLock(initialState: 0)
+    /// Plugin `T 1`s queued or on their way, per rig: a fresh-connection `T 0` sent while one is pending may be
+    /// overtaken by it and never confirms a release.
+    @ObservationIgnored var pluginKeysInFlight: [Int: Int] = [:]
+    /// Lane `T 0` retries of an unconfirmed release, per rig.
+    @ObservationIgnored var releaseAttempts: [Int: Int] = [:]
+    /// How many times a failed lane `T 0` is retried (after 0.5, 1, 1.5 s …) before the next connection retries it.
+    @ObservationIgnored var releaseRetries = 3
     /// Rigs with a plugin's raw CAT command on their lane right now (a release closes that connection first).
     /// The last resort of a plugin PTT release: `T 0` over a fresh connection to the rig's `rigctld` (host, port);
     /// `true` = sent. Never connects under `MCL_INERT_HARDWARE`.
@@ -369,6 +379,7 @@ public final class RigModel {
         // A plugin release over a fresh connection gets through before the rigs (and a launched rigctld) go; each
         // such connection gives up after 1 s.
         await settlePluginReleases()
+        pluginCatIdle()
         beforeShutdownDisconnect?()
         let message: String = language.tr("ukončeno")
         for lane in lanes {

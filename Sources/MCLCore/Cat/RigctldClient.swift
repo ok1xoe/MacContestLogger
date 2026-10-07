@@ -178,6 +178,18 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         try expectRprtOk(on ? "zaklíčování (PTT)" : "odklíčování (PTT)")
     }
 
+    public func keyPtt(unless cancelled: () -> Bool) throws -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        // Under the lock: nothing else is written to this connection between the check and `T 1`.
+        if cancelled() {
+            return false
+        }
+        try send("T 1")
+        try expectRprtOk("zaklíčování (PTT)")
+        return true
+    }
+
     public func sendMorse(_ text: String) throws {
         lock.lock()
         defer { lock.unlock() }

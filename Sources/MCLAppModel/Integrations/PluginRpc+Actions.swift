@@ -67,9 +67,13 @@ public struct PluginHostActions {
 
     // cat
     /// A raw CAT command on the active rig (already checked by `PluginCatPolicy`).
-    public var rawCat: (String, @escaping @MainActor @Sendable (Result<RigRawReply, CatRawError>) -> Void) -> Void = {
-        _, then in then(.failure(CatRawError(message: "no rig")))
+    /// A raw CAT command; the `Int` is the plugin-CAT epoch read when the request was admitted (`nil` = now): a stop,
+    /// release or revoke since then drops it.
+    public var rawCat: (String, Int?, @escaping @MainActor @Sendable (Result<RigRawReply, CatRawError>) -> Void) -> Void = {
+        _, _, then in then(.failure(CatRawError(message: "no rig")))
     }
+    /// The plugin-CAT epoch now (raised by every stop, release, revoke and plugin end).
+    public var catEpoch: () -> Int = { 0 }
 
     // transmit — the same paths as the F-keys, Esc and the footswitch PTT
     /// CW text through the keyer (CW mode only; the macros of the F-key messages apply).
@@ -82,6 +86,9 @@ public struct PluginHostActions {
     public var stop: () -> Bool = { false }
     /// Whether a plugin's PTT is recorded on the rig (also after a failed release: the rig may still transmit).
     public var pttHeld: () -> Bool = { false }
+    /// A plugin lost `cat` or stopped: queued plugin commands are dropped; `true` = no plugin needs raw CAT any
+    /// more, the plugin connection closes.
+    public var catIdle: (Bool) -> Void = { _ in }
     /// A plugin PTT release is not confirmed yet: plugins key nothing.
     public var pttUnconfirmed: () -> Bool = { false }
     /// Releases the plugins' PTT at once; `true` = it was held.

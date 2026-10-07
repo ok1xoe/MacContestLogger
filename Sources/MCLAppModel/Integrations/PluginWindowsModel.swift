@@ -291,9 +291,23 @@ public final class PluginWindowsModel {
 
     /// After a grant changed: without `transmit` now, what the plugin keyed or sent stops at once.
     private func revoked(_ package: PluginPackage) {
-        if !settings.effectivePermissions(package.manifest).contains("transmit") {
+        let granted: [String] = settings.effectivePermissions(package.manifest)
+        if !granted.contains("transmit") {
             stopTransmissions(of: package.id)
         }
+        if !granted.contains("cat") {
+            catNoLongerNeeded(by: package.id)
+        }
+    }
+
+    /// A plugin lost `cat` or stopped: its queued raw commands are dropped, and the plugin connection closes when no
+    /// running plugin holds `cat` any more (it reopens on the next command).
+    private func catNoLongerNeeded(by plugin: String) {
+        let stillNeeded: Bool = sessions.values.contains { session in
+            session.package.id != plugin && (session.phase == .running || session.phase == .starting)
+                && settings.effectivePermissions(session.package.manifest).contains("cat")
+        }
+        context.actions.catIdle(!stillNeeded)
     }
 
     // MARK: - keys
@@ -681,8 +695,11 @@ public final class PluginWindowsModel {
     /// Takes the connection off a session that stops: no more events or messages; the process is held in
     /// `retiring` until it ended (so the quit can still kill it).
     private func retire(_ session: PluginSession) -> (any PluginConnection)? {
-        // A plugin that stops never leaves the transmitter keyed nor its message on the air.
+        // A plugin that stops never leaves the transmitter keyed nor its message on the air, nor CAT commands queued.
         stopTransmissions(of: session.package.id)
+        if settings.effectivePermissions(session.package.manifest).contains("cat") {
+            catNoLongerNeeded(by: session.package.id)
+        }
         router.remove(plugin: session.package.id)
         session.helloTimer?.cancel()
         session.helloTimer = nil
@@ -847,8 +864,10 @@ public final class PluginWindowsModel {
             } else {
                 let keying: Bool = method.hasPrefix("tx.") && method != "tx.stop"
                 if keying { self.keyingInFlight += 1 }
+                // The CAT epoch of admission: a revoke, stop or release before the command reaches the rig drops it.
+                let catEpoch: Int? = method == "cat.send" ? context.actions.catEpoch() : nil
                 result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
-                                                context: context, readProbe: probe)
+                                                context: context, readProbe: probe, catEpoch: catEpoch)
                 if keying { self.keyingInFlight -= 1 }
             }
             guard let session = self.current(plugin, generation) else {
@@ -933,8 +952,9 @@ public final class PluginWindowsModel {
         defer { webInFlight[plugin] = max((webInFlight[plugin] ?? 1) - 1, 0) }
         let keying: Bool = method.hasPrefix("tx.") && method != "tx.stop"
         if keying { keyingInFlight += 1 }
+        let catEpoch: Int? = method == "cat.send" ? context.actions.catEpoch() : nil
         let result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
-                                            context: context, readProbe: readProbe)
+                                            context: context, readProbe: readProbe, catEpoch: catEpoch)
         if keying { keyingInFlight -= 1 }
         // This model is main-actor isolated: the await above may have let the plugin stop (its window closed), lose
         // its grant, or the operator stop plugin transmissions. What finished after that does not count — a PTT it

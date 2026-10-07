@@ -23,6 +23,10 @@ public protocol RigController: AnyObject, Sendable {
     /// Keys (`true`) or unkeys the transmitter — PTT for the voice keyer.
     func setPtt(_ on: Bool) throws
 
+    /// Keys the transmitter unless `cancelled()` says otherwise when the command is about to be written (checked
+    /// while the connection is held, so a release requested meanwhile always wins); `false` = not keyed.
+    func keyPtt(unless cancelled: () -> Bool) throws -> Bool
+
     /// Sends text through the rig's keyer (CW over CAT, hamlib `send_morse`).
     func sendMorse(_ text: String) throws
 
@@ -164,5 +168,15 @@ public struct RigState: Equatable, Sendable {
     /// `freqHz / 1000.0` (`long` → `double` conversion rounds to nearest, like Java).
     public var freqKHz: Double {
         Double(freqHz) / 1000.0
+    }
+}
+
+extension RigController {
+    public func keyPtt(unless cancelled: () -> Bool) throws -> Bool {
+        if cancelled() {
+            return false
+        }
+        try setPtt(true)
+        return true
     }
 }

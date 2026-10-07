@@ -145,6 +145,11 @@ final class FakeRigctld: @unchecked Sendable {
         }
     }
 
+    /// Answers `word` normally again.
+    func unreject(_ word: String) {
+        lock.withLock { _ = rejected.remove(word) }
+    }
+
     func reject(_ word: String) {
         lock.withLock { _ = rejected.insert(word) }
     }
