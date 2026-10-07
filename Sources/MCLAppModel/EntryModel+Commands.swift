@@ -132,6 +132,10 @@ extension EntryModel {
     /// something was stopped (the CQ repeat counts).
     @discardableResult
     public func stopSending() -> Bool {
+        // Esc releases a plugin's PTT too (plugin transmissions stay blocked until allowed again), and goes on to
+        // stop everything else.
+        rig?.operatorStopped()
+        let pluginPtt: Bool = rig?.releasePluginPtt(stoppingEverything: true) ?? false
         let keyer: any KeyerPort = ports.keyer
         if keyer.isTuning {
             _ = keyer.stopSending()
@@ -139,7 +143,8 @@ extension EntryModel {
         }
         let repeating: Bool = operating.cqRepeat
         operating.applyCqRepeat(false)
-        return keyer.stopSending() || repeating
+        let stopped: Bool = keyer.stopSending()
+        return stopped || repeating || pluginPtt
     }
 
     /// Kotlin `takeSuggestion(index)`.

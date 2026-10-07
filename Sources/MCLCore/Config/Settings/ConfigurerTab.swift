@@ -25,6 +25,8 @@ public enum ConfigurerTab: CaseIterable, Sendable, Hashable {
     case bandplan
     case digiFreq
     case map
+    /// The window plugins' grants (Swift only).
+    case plugins
 
     /// Kebab identifier from `menu.json` (`online_logs` keeps its underscore, as in Kotlin).
     public var key: String {
@@ -49,6 +51,7 @@ public enum ConfigurerTab: CaseIterable, Sendable, Hashable {
         case .bandplan: return "bandplan"
         case .digiFreq: return "digifreq"
         case .map: return "map"
+        case .plugins: return "plugins"
         }
     }
 
@@ -75,13 +78,14 @@ public enum ConfigurerTab: CaseIterable, Sendable, Hashable {
         case .bandplan: return "Bandplán"
         case .digiFreq: return "Digi frekvence"
         case .map: return "Mapa"
+        case .plugins: return "Pluginy"
         }
     }
 
     /// Whether Kotlin wraps the title in `tr` (`KEYS`, `WINKEY`, `CONTEST`, `BANDPLAN`).
     public var isTitleTranslated: Bool {
         switch self {
-        case .keys, .winkey, .contest, .bandplan: return true
+        case .keys, .winkey, .contest, .bandplan, .plugins: return true
         default: return false
         }
     }

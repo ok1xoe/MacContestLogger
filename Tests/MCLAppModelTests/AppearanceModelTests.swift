@@ -65,3 +65,52 @@ import Testing
         #expect(appearance.accent == .orange)
     }
 }
+
+/// The colours of the strips and highlights follow the accent (the bars used to stay teal).
+@MainActor @Suite struct AccentPaletteTests {
+
+    private static let accents: [AppearanceModel.Accent] = [.teal, .blue, .orange, .contrast]
+
+    private static func luminance(_ hex: Int) -> Double {
+        func channel(_ shift: Int) -> Double {
+            let value = Double((hex >> shift) & 0xFF) / 255
+            return value <= 0.03928 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * channel(16) + 0.7152 * channel(8) + 0.0722 * channel(0)
+    }
+
+    private static func contrast(_ first: Int, _ second: Int) -> Double {
+        let lights = [luminance(first), luminance(second)].sorted(by: >)
+        return (lights[0] + 0.05) / (lights[1] + 0.05)
+    }
+
+    @Test func everyAccentHasItsOwnStripAndPrimary() {
+        for dark in [false, true] {
+            let strips = Self.accents.map { AccentPalette.palette(for: $0).strip.value(dark: dark) }
+            let primaries = Self.accents.map { AccentPalette.palette(for: $0).primary.value(dark: dark) }
+            #expect(Set(strips).count == Self.accents.count, "strip dark=\(dark)")
+            #expect(Set(primaries).count == Self.accents.count, "primary dark=\(dark)")
+        }
+    }
+
+    @Test func orangeIsNotTeal() {
+        #expect(AccentPalette.palette(for: .orange).strip != AccentPalette.teal.strip)
+        #expect(AccentPalette.palette(for: .orange).onStrip != AccentPalette.teal.onStrip)
+    }
+
+    @Test func textOnTheStripIsReadable() {
+        for accent in Self.accents {
+            let palette = AccentPalette.palette(for: accent)
+            for dark in [false, true] {
+                let ratio = Self.contrast(palette.onStrip.value(dark: dark), palette.strip.value(dark: dark))
+                #expect(ratio >= 7, "\(accent) dark=\(dark) ratio \(ratio)")
+            }
+        }
+    }
+
+    @Test func highContrastIsTheSameInBothAppearances() {
+        let palette = AccentPalette.palette(for: .contrast)
+        #expect(palette.strip.light == palette.strip.dark)
+        #expect(palette.primary.light == palette.primary.dark)
+    }
+}

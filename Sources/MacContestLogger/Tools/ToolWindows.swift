@@ -101,8 +101,8 @@ private struct SimulatorContent: View {
                 ForEach(Array(model.checks.enumerated()), id: \.offset) { _, check in
                     Text(verbatim: SimulatorSession.checkText(check, translate: language.translator))
                         .windowFont(12, design: .monospaced)
-                        .foregroundStyle(check.ok ? Color(domain: DomainColors.primary)
-                                                  : Color(domain: DomainColors.dupe))
+                        .foregroundStyle(check.ok ? AnyShapeStyle(.mclPrimary)
+                                                  : AnyShapeStyle(Color(domain: DomainColors.dupe)))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -346,14 +346,14 @@ private struct PropagationContent: View {
     private func grid(_ table: PropagationRows.Table) -> some View {
         let cell: CGFloat = CGFloat(windowSize * 2)
         let label: CGFloat = CGFloat(windowSize * 4)
-        let primary = Color(domain: DomainColors.primary)
+        let primary = AnyShapeStyle(.mclPrimary)
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Spacer().frame(width: label)
                 ForEach(Array(table.hourLabels.enumerated()), id: \.offset) { hour, text in
                     Text(verbatim: text)
                         .windowFont(10, design: .monospaced)
-                        .foregroundStyle(hour == table.nowHour ? primary : Color.secondary)
+                        .foregroundStyle(hour == table.nowHour ? primary : AnyShapeStyle(Color.secondary))
                         .frame(width: cell, alignment: .leading)
                 }
             }

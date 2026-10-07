@@ -15,16 +15,16 @@ import Testing
 
     /// The shipped `lang_en.json` / `lang_de.json` intentionally differ from Java v1.1.1: 61 keys were appended for
     /// Kotlin literals the Swift UI translates, the 20 `menu.json` labels Java leaves out
-    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and 3 keys of File → Open recent and 20 keys of copying a contest to another database and rescoring the last N hours and 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing. The Java measurement stays as it was; these are its cells for the shipped files
+    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and 26 keys of the window plugins and 32 keys of their grants, keys and docking and 22 keys of raw CAT, transmitting and web windows and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and 3 keys of File → Open recent and 20 keys of copying a contest to another database and rescoring the last N hours and 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
-        "81929": "93503", "afc6becd4f499483": "343b43a4ac4a61da",
-        "87423": "99777", "d0c67e41ffca0e5d": "1896bf8eed8affb2",
-        "1006": "1204",
+        "81929": "102491", "afc6becd4f499483": "5e33d7ec8f523b98",
+        "87423": "109429", "d0c67e41ffca0e5d": "ab07e31fa457c6ff",
+        "1006": "1302",
         "cc0ee26c076bc811dcc8325b5de39f43b89e7c0e8805e23db59cea0b4def8a4f":
-            "9ebb9ee3f67f9a510658436a28c2d60014618655283af81dff6765a007d66f97",
+            "f62a1d16e7be9da2ea12363a2437e1e0e0a7daa544eb153d67dda1ade6ca14f8",
         "2c37f524ad0b3da50e3eac30e91daf1f8bbe8353c3f844467c667a8f5f881bdb":
-            "1367389a4ceabdb29c0d623f9eabf144e28bfafedcad2cab4c76c90483051a6c",
+            "89257da85ef2d24c2e15d5e6c3c10a2f94ead0ba96b4ead0aeaf4a2061740f96",
     ]
 
     /// A Java cell describing a shipped file, adjusted to the Swift files (`shippedFileCells`). Only whole

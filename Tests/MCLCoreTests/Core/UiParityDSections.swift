@@ -389,11 +389,12 @@ enum UiParityDSections {
     static func tabsRow(_ path: String, _ f: [String]) throws -> Rows {
         guard f.count == 1 else { throw X.Malformed(text: path) }
         if path.hasPrefix("k/") {
-            guard let tab = ConfigurerTab.byKey(text(f[0])) else { return [(path, ["~", "~"])] }
+            guard let tab = ConfigurerTab.byKey(text(f[0])), tab != .plugins else { return [(path, ["~", "~"])] }
             return [(path, [tab.key, F.tx(tab.titleKey)])]
         }
         let menu: MenuConfig = MenuConfigStore.parse(Data(text(f[0]).utf8))
-        let specs: [ConfigurerTabSpec] = ConfigurerTabSpecs.build(menu: menu)
+        // The Plugins tab exists only in the Swift version (window plugins); the Java measurement never had it.
+        let specs: [ConfigurerTabSpec] = ConfigurerTabSpecs.build(menu: menu).filter { $0.tab != .plugins }
         var rows: Rows = [(path, [String(specs.count)])]
         for (index, spec) in specs.enumerated() {
             let state: String = spec.state.rawValue.uppercased()
