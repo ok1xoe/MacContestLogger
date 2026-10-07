@@ -7,6 +7,25 @@ import Foundation
 public enum DefaultMenu {
 
     private static let labels: [String: String] = [
+        "file": "Soubor",
+        "file.import": "Import",
+        "file.export": "Export",
+        "edit": "Úpravy",
+        "edit.wipe": "Vymazat pole (nevratně)",
+        "edit.wipeUndo": "Vymazat / vrátit pole",
+        "edit.incrementNr": "Číslo ve výměně +1",
+        "edit.note": "Poznámka k QSO",
+        "edit.find": "Najít volačku v deníku",
+        "edit.deleteLast": "Smazat poslední QSO",
+        "tools": "Nástroje",
+        "beacons.load": "Načíst soubor majáků…",
+        "help": "Nápověda",
+        "help.docs": "Dokumentace",
+        "help.shortcuts": "Klávesové zkratky",
+        "help.commands": "Textové příkazy",
+        "help.report": "Nahlásit chybu…",
+        "help.dataFolder": "Otevřít datovou složku",
+        "settings.keys": "Klávesy…",
         "settings": "Nastavení",
         "settings.open": "Nastavení…",
         "settings.import": "Import QSO (ADIF/Cabrillo)…",
@@ -101,19 +120,31 @@ public enum DefaultMenu {
             leaf("tab.contest"), leaf("tab.cluster"), leaf("tab.dxcluster"), leaf("tab.online_logs"),
             leaf("tab.bandplan"), leaf("tab.digifreq"), leaf("tab.map"),
         ])
-        let settings = node("settings", [
-            settingsOpen, leaf("settings.import"), leaf("settings.export"),
-            leaf("settings.exportCabrillo"), leaf("settings.merge"), leaf("settings.print"),
-            leaf("settings.profiles"), leaf("settings.exportEdi"), leaf("settings.exportOther"),
-            leaf("settings.downloadScp"),
+        let file = node("file", [
+            leaf("contest.new"), leaf("contest.open"), leaf("sep.file.1"),
+            leaf("database.new"), leaf("database.open"), leaf("sep.file.2"),
+            node("file.import", [leaf("settings.import"), leaf("settings.merge")]),
+            node("file.export", [
+                leaf("settings.export"), leaf("settings.exportCabrillo"), leaf("settings.exportEdi"),
+                leaf("settings.exportOther"),
+            ]),
+            leaf("sep.file.3"), leaf("settings.print"),
         ])
-        let contest = node("contest", [
-            leaf("contest.new"), leaf("contest.open"),
-            leaf("contest.rescore"), leaf("contest.postcontest"), leaf("contest.record"),
-            leaf("contest.editor"), leaf("contest.updateDefinitions"), leaf("contest.updateCallHistory"),
-            leaf("contest.none"),
+        let edit = node("edit", [
+            leaf("edit.wipe"), leaf("edit.wipeUndo"), leaf("edit.incrementNr"), leaf("edit.note"),
+            leaf("edit.find"), leaf("edit.deleteLast"),
         ])
-        let database = node("database", [leaf("database.new"), leaf("database.open")])
+        let contest = node("contest", [leaf("contest.postcontest"), leaf("contest.record"), leaf("contest.none")])
+        let tools = node("tools", [
+            leaf("contest.rescore"), leaf("database.refillDxcc"), leaf("sep.tools.1"),
+            leaf("settings.downloadScp"), leaf("contest.updateDefinitions"), leaf("database.updateClubLogDxcc"),
+            leaf("contest.updateCallHistory"), leaf("beacons.load"), leaf("sep.tools.2"), leaf("contest.editor"),
+        ])
+        let settings = node("settings", [settingsOpen, leaf("settings.keys"), leaf("settings.profiles")])
+        let help = node("help", [
+            leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("sep.help.1"),
+            leaf("help.report"), leaf("help.dataFolder"),
+        ])
         let window = node("window", [
             leaf("window.log"),
             leaf("window.catlog"), leaf("window.dxcluster"), leaf("window.bandmap"),
@@ -127,7 +158,7 @@ public enum DefaultMenu {
         let buffer = MenuNode(id: "buffer", label: nil, state: .hidden, children: [])
 
         var cfg = MenuConfig()
-        cfg.menu = [settings, contest, database, window, buffer]
+        cfg.menu = [file, edit, contest, tools, settings, window, help, buffer]
         return cfg
     }
 }

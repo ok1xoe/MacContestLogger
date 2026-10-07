@@ -138,7 +138,7 @@ private struct ProfileFixture: Codable, Equatable, Sendable {
         #expect(result.source == .builtIn)
         #expect(result.error == nil)
         #expect(!result.menu.menu.isEmpty)
-        #expect(result.menu.menu.first?.id == "settings") // the built-in menu starts with Settings
+        #expect(result.menu.menu.first?.id == "file") // the built-in menu starts with File
     }
 
     @Test func menuConfigStoreUserFileWins() throws {
@@ -167,7 +167,7 @@ private struct ProfileFixture: Codable, Equatable, Sendable {
         #expect(result.source == .userInvalid)
         #expect(result.error != nil, "the user must learn why their file was not used")
         #expect(!result.menu.menu.isEmpty, "the application must not be left without a menu")
-        #expect(result.menu.menu.first?.id == "settings")
+        #expect(result.menu.menu.first?.id == "file")
     }
 
     @Test func menuConfigStoreErrorSaysWhereTheProblemIs() throws {
@@ -222,7 +222,7 @@ private struct ProfileFixture: Codable, Equatable, Sendable {
         #expect(MenuConfigStore.loadFrom(dataDir: dir).menu.menu.first?.label == "Moje nastavení")
 
         #expect(try MenuConfigStore.writeBuiltIn(dataDir: dir, overwrite: true) != nil)
-        #expect(MenuConfigStore.loadFrom(dataDir: dir).menu.menu.first?.id == "settings")
+        #expect(MenuConfigStore.loadFrom(dataDir: dir).menu.menu.first?.id == "file")
     }
 
     /// `save` has no counterpart in the Java `MenuConfigStore` (the menu is only read there) —
@@ -244,11 +244,12 @@ private struct ProfileFixture: Codable, Equatable, Sendable {
 
     @Test func topLevelMenusInOrder() {
         let ids = DefaultMenu.tree().menu.map(\.id)
-        #expect(ids == ["settings", "contest", "database", "window", "buffer"])
+        #expect(ids == ["file", "edit", "contest", "tools", "settings", "window", "help", "buffer"])
     }
 
     @Test func settingsOpenHas20Tabs() {
-        let settings = DefaultMenu.tree().menu[0]
+        let settings = DefaultMenu.tree().menu[4]
+        #expect(settings.id == "settings")
         let open = settings.children[0]
         #expect(open.id == "settings.open")
         #expect(open.children.count == 20)
@@ -256,7 +257,7 @@ private struct ProfileFixture: Codable, Equatable, Sendable {
     }
 
     @Test func bufferIsHidden() {
-        let buffer = DefaultMenu.tree().menu[4]
+        let buffer = DefaultMenu.tree().menu[7]
         #expect(buffer.id == "buffer")
         #expect(buffer.state == .hidden)
     }

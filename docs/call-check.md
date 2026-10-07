@@ -44,8 +44,8 @@ Open it with **"Okno → Dupesheet"** (Window → Dupesheet).
 ## Downloading master.scp
 
 Equivalent of N1MM **Tools → Download latest Check Partial file** and DXLog
-**Update Super Check Partial database**. Menu **"Nastavení → Stáhnout master.scp"**
-(Settings → Download master.scp):
+**Update Super Check Partial database**. Menu **"Nástroje → Stáhnout master.scp"**
+(Tools → Download master.scp):
 
 - downloads the current `MASTER.SCP` from [supercheckpartial.com](https://www.supercheckpartial.com/),
 - saves it to the file set in "Nastavení → Závod → Soubor master.scp" (Settings →

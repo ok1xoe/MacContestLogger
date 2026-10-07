@@ -272,6 +272,29 @@ public final class CallbookModel {
         open(Self.helpUrl)
     }
 
+    /// Where a Help menu item goes: the documentation index, one of its pages, or the bug tracker.
+    public enum DocsPage: Equatable, Sendable {
+        case index
+        case page(String)
+        case issues
+    }
+
+    /// The public repository's pages of the Help menu.
+    public static let issuesUrl = "https://github.com/ok1xoe/MacContestLogger/issues"
+    public static let docsPageBase = "https://github.com/ok1xoe/MacContestLogger/blob/main/docs/"
+
+    public static func url(of page: DocsPage) -> String {
+        switch page {
+        case .index: return helpUrl
+        case .page(let name): return docsPageBase + name
+        case .issues: return issuesUrl
+        }
+    }
+
+    public func openDocs(_ page: DocsPage) {
+        open(Self.url(of: page))
+    }
+
     func open(_ url: String) {
         let opener: UrlOpener = network.urlOpener
         browser.submit {

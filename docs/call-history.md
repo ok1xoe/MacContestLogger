@@ -39,8 +39,8 @@ callsign disappear.
 ## Update from the log
 
 Equivalent of N1MM **Update Call History from log** and DXLog **Update prefill
-database from log**. Menu **"Závod → Aktualizovat call history z deníku"**
-(Contest → Update call history from log; only in an open contest):
+database from log**. Menu **"Nástroje → Aktualizovat call history z deníku"**
+(Tools → Update call history from log; only in an open contest):
 
 - from each QSO it takes the received exchange fields (without report and serial
   number); when a station is in the log several times, the **newest** QSO counts,

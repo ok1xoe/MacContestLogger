@@ -382,6 +382,9 @@ public final class AppModel {
         let operating = OperatingModel(config: config, status: status)
         let windows = WindowsModel(config: config)
         let menu = MenuModel(language: language, status: status, contest: contest, dataDir: dataDir)
+        menu.keyBindingsSource = { [weak config] in
+            config?.config.keyBindings
+        }
         let dialogs = DialogsModel(contest: contest, database: database, config: config, status: status,
                                    logbook: logbook, operating: operating, now: environment.now)
         let radio: Radio = Self.makeRadio(environment, config: config, status: status, language: language,

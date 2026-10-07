@@ -1,6 +1,69 @@
 {
   "menu": [
     {
+      "id": "file", "label": "Soubor", "state": "enable",
+      "children": [
+        { "id": "contest.new",  "label": "Nový závod…",            "state": "enable" },
+        { "id": "contest.open", "label": "Otevřít závod…",         "state": "enable" },
+        { "id": "sep.file.1", "state": "enable" },
+        { "id": "database.new",  "label": "Nová databáze…",     "state": "enable" },
+        { "id": "database.open", "label": "Otevřít databázi…",  "state": "enable" },
+        { "id": "sep.file.2", "state": "enable" },
+        {
+          "id": "file.import", "label": "Import", "state": "enable",
+          "children": [
+            { "id": "settings.import", "label": "Import QSO (ADIF/Cabrillo)…", "state": "enable" },
+            { "id": "settings.merge", "label": "Sloučit deník…", "state": "enable" }
+          ]
+        },
+        {
+          "id": "file.export", "label": "Export", "state": "enable",
+          "children": [
+            { "id": "settings.export", "label": "Export ADIF…", "state": "enable" },
+            { "id": "settings.exportCabrillo", "label": "Export Cabrillo…", "state": "enable" },
+            { "id": "settings.exportEdi", "label": "Export EDI (VKV)…", "state": "enable" },
+            { "id": "settings.exportOther", "label": "Export CSV, text a souhrn…", "state": "enable" }
+          ]
+        },
+        { "id": "sep.file.3", "state": "enable" },
+        { "id": "settings.print", "label": "Tisk deníku…", "state": "enable" }
+      ]
+    },
+    {
+      "id": "edit", "label": "Úpravy", "state": "enable",
+      "children": [
+        { "id": "edit.wipe", "label": "Vymazat pole (nevratně)", "state": "enable" },
+        { "id": "edit.wipeUndo", "label": "Vymazat / vrátit pole", "state": "enable" },
+        { "id": "edit.incrementNr", "label": "Číslo ve výměně +1", "state": "enable" },
+        { "id": "edit.note", "label": "Poznámka k QSO", "state": "enable" },
+        { "id": "edit.find", "label": "Najít volačku v deníku", "state": "enable" },
+        { "id": "edit.deleteLast", "label": "Smazat poslední QSO", "state": "enable" }
+      ]
+    },
+    {
+      "id": "contest", "label": "Závod", "state": "enable",
+      "children": [
+        { "id": "contest.postcontest", "label": "Dodatečné zadání (papírový deník)", "state": "enable" },
+        { "id": "contest.record", "label": "Nahrávat závod (zap / vyp)", "state": "enable" },
+        { "id": "contest.none", "label": "Žádný (volné logování)", "state": "enable" }
+      ]
+    },
+    {
+      "id": "tools", "label": "Nástroje", "state": "enable",
+      "children": [
+        { "id": "contest.rescore", "label": "Přepočítat skóre",   "state": "enable" },
+        { "id": "database.refillDxcc", "label": "Přepočítat DXCC v deníku…", "state": "enable" },
+        { "id": "sep.tools.1", "state": "enable" },
+        { "id": "settings.downloadScp", "label": "Stáhnout master.scp", "state": "enable" },
+        { "id": "contest.updateDefinitions", "label": "Aktualizovat definice z internetu", "state": "enable" },
+        { "id": "database.updateClubLogDxcc", "label": "Aktualizovat DXCC z Club Logu", "state": "enable" },
+        { "id": "contest.updateCallHistory", "label": "Aktualizovat call history z deníku", "state": "enable" },
+        { "id": "beacons.load", "label": "Načíst soubor majáků…", "state": "enable" },
+        { "id": "sep.tools.2", "state": "enable" },
+        { "id": "contest.editor", "label": "Editor definic…", "state": "enable" }
+      ]
+    },
+    {
       "id": "settings", "label": "Nastavení", "state": "enable",
       "children": [
         {
@@ -34,38 +97,8 @@
             { "id": "tab.map",             "label": "Mapa",            "state": "enable" }
           ]
         },
-        { "id": "settings.import", "label": "Import QSO (ADIF/Cabrillo)…", "state": "enable" },
-        { "id": "settings.export", "label": "Export ADIF…", "state": "enable" },
-        { "id": "settings.exportCabrillo", "label": "Export Cabrillo…", "state": "enable" },
-        { "id": "settings.merge", "label": "Sloučit deník…", "state": "enable" },
-        { "id": "settings.print", "label": "Tisk deníku…", "state": "enable" },
-        { "id": "settings.profiles", "label": "Profily nastavení…", "state": "enable" },
-        { "id": "settings.exportEdi", "label": "Export EDI (VKV)…", "state": "enable" },
-        { "id": "settings.exportOther", "label": "Export CSV, text a souhrn…", "state": "enable" },
-        { "id": "settings.downloadScp", "label": "Stáhnout master.scp", "state": "enable" }
-      ]
-    },
-    {
-      "id": "contest", "label": "Závod", "state": "enable",
-      "children": [
-        { "id": "contest.new",  "label": "Nový závod…",            "state": "enable" },
-        { "id": "contest.open", "label": "Otevřít závod…",         "state": "enable" },
-        { "id": "contest.rescore", "label": "Přepočítat skóre",   "state": "enable" },
-        { "id": "contest.postcontest", "label": "Dodatečné zadání (papírový deník)", "state": "enable" },
-        { "id": "contest.record", "label": "Nahrávat závod (zap / vyp)", "state": "enable" },
-        { "id": "contest.editor", "label": "Editor definic…", "state": "enable" },
-        { "id": "contest.updateDefinitions", "label": "Aktualizovat definice z internetu", "state": "enable" },
-        { "id": "contest.updateCallHistory", "label": "Aktualizovat call history z deníku", "state": "enable" },
-        { "id": "contest.none", "label": "Žádný (volné logování)", "state": "enable" }
-      ]
-    },
-    {
-      "id": "database", "label": "Databáze", "state": "enable",
-      "children": [
-        { "id": "database.new",  "label": "Nová databáze…",     "state": "enable" },
-        { "id": "database.open", "label": "Otevřít databázi…",  "state": "enable" },
-        { "id": "database.refillDxcc", "label": "Přepočítat DXCC v deníku…", "state": "enable" },
-        { "id": "database.updateClubLogDxcc", "label": "Aktualizovat DXCC z Club Logu", "state": "enable" }
+        { "id": "settings.keys", "label": "Klávesy…", "state": "enable" },
+        { "id": "settings.profiles", "label": "Profily nastavení…", "state": "enable" }
       ]
     },
     {
@@ -116,6 +149,17 @@
             }
           ]
         }
+      ]
+    },
+    {
+      "id": "help", "label": "Nápověda", "state": "enable",
+      "children": [
+        { "id": "help.docs", "label": "Dokumentace", "state": "enable" },
+        { "id": "help.shortcuts", "label": "Klávesové zkratky", "state": "enable" },
+        { "id": "help.commands", "label": "Textové příkazy", "state": "enable" },
+        { "id": "sep.help.1", "state": "enable" },
+        { "id": "help.report", "label": "Nahlásit chybu…", "state": "enable" },
+        { "id": "help.dataFolder", "label": "Otevřít datovou složku", "state": "enable" }
       ]
     },
     { "id": "buffer", "label": "Nezařazené", "state": "hidden", "children": [] }

@@ -26,7 +26,20 @@ public final class MenuModel {
         "window.score", "window.movemults", "window.dupesheet", "window.statistics", "window.qtc",
         "window.propagation", "window.bandnotes", "window.simulator", "window.dxccmap", "mult.dxcc", "mult.grid",
         "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
+        "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast",
+        "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
     ]
+
+    /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key
+    /// the user has (remapped or default) next to the label; the item itself carries no key equivalent, the entry
+    /// window's key router stays the only one that reacts to the keys.
+    public static let shortcutActions: [String: ShortcutAction] = [
+        "edit.wipe": .wipe, "edit.wipeUndo": .wipeUndo, "edit.incrementNr": .incrementNr, "edit.note": .note,
+        "edit.find": .find, "edit.deleteLast": .deleteLast, "help.docs": .help,
+    ]
+
+    /// Prefix of the ids of separator nodes (`sep.file.1`): drawn as a separator line, never an item.
+    public static let separatorPrefix = "sep."
 
     /// A menu action requested by a call-field command (Kotlin `pendingMenuAction`: EXPORT, CABRILLO, CLOSE…); the
     /// main window runs it through `MenuActions.performPending` like the menu item.
@@ -47,6 +60,9 @@ public final class MenuModel {
     @ObservationIgnored private let status: StatusModel
     @ObservationIgnored private let contest: ContestModel
     @ObservationIgnored private let dataDir: URL
+    /// The user's key remapping (`config.keyBindings`); read while the entries are built, so a change of the
+    /// bindings rebuilds the shown keys.
+    @ObservationIgnored public var keyBindingsSource: (@MainActor () -> [String: String]?)?
 
     init(language: LanguageModel, status: StatusModel, contest: ContestModel, dataDir: URL) {
         self.language = language
@@ -102,6 +118,16 @@ public final class MenuModel {
         }
     }
 
+    /// The key an item shows next to its label (`Ctrl+W`), or `nil` (no key, or not a shortcut item).
+    public func shortcutHint(_ id: String) -> String? {
+        guard let action = Self.shortcutActions[id] else { return nil }
+        return KeyBindings(keyBindingsSource?()).comboFor(action)?.format()
+    }
+
+    public func isSeparator(_ node: MenuNode) -> Bool {
+        node.id.hasPrefix(Self.separatorPrefix) && node.children.isEmpty
+    }
+
     public func isImplemented(_ id: String) -> Bool {
         Self.implementedActions.contains(id)
     }
@@ -147,6 +173,10 @@ public struct MenuEntry: Equatable, Sendable {
     /// A leaf the user can choose (also the Settings host whose children are only `tab.*` nodes).
     public let isItem: Bool
     public let children: [MenuEntry]
+    /// The user's key of an Edit or Help item, shown right-aligned (not a key equivalent).
+    public var shortcut: String? = nil
+    /// A separator line (`sep.*` nodes); the other fields mean nothing.
+    public var isSeparator: Bool = false
 
     public var id: String {
         node.id
@@ -170,10 +200,15 @@ extension MenuModel {
     private func childEntries(_ node: MenuNode, ancestors: [MenuNode]) -> [MenuEntry] {
         menuChildren(node).compactMap { child in
             guard child.state != .hidden else { return nil }
+            if isSeparator(child) {
+                return MenuEntry(node: child, ancestors: ancestors, title: "", enabled: false, toolTip: nil,
+                                 isItem: false, children: [], isSeparator: true)
+            }
             let item: Bool = isItem(child)
             return MenuEntry(node: child, ancestors: ancestors, title: label(child),
                              enabled: isEnabled(child, ancestors: ancestors), toolTip: unavailableHint(child),
-                             isItem: item, children: item ? [] : childEntries(child, ancestors: ancestors + [child]))
+                             isItem: item, children: item ? [] : childEntries(child, ancestors: ancestors + [child]),
+                             shortcut: item ? shortcutHint(child.id) : nil)
         }
     }
 }
@@ -192,7 +227,7 @@ public struct MenuShape: Equatable, Sendable {
 
     private static func collect(_ entries: [MenuEntry], depth: Int, into ids: inout [String]) {
         for entry in entries {
-            ids.append(String(depth) + (entry.isItem ? ":item:" : ":menu:") + entry.id)
+            ids.append(String(depth) + (entry.isSeparator ? ":sep:" : entry.isItem ? ":item:" : ":menu:") + entry.id)
             collect(entry.children, depth: depth + 1, into: &ids)
         }
         ids.append(String(depth) + ":end")

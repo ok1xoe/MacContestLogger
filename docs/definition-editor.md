@@ -8,7 +8,7 @@ Contests are declarative YAML in the contest data directory ("Nastavení → Zá
 Nastavení dat závodů…", Settings → Contest → Contest data settings...); the editor
 edits them directly in the application.
 
-To open it: **"Závod → Editor definic…"** (Contest → Definition editor...)
+To open it: **"Nástroje → Editor definic…"** (Tools → Definition editor...)
 
 ## The window
 
@@ -64,8 +64,8 @@ version 1.1.1, not in this application.
 
 ## Updating definitions from the internet
 
-Equivalent of N1MM **Check for updated contest definitions**. Menu **"Závod →
-Aktualizovat definice z internetu"** (Contest → Update definitions from the
+Equivalent of N1MM **Check for updated contest definitions**. Menu **"Nástroje →
+Aktualizovat definice z internetu"** (Tools → Update definitions from the
 internet):
 
 - downloads `index.txt` and the files listed in it from the published

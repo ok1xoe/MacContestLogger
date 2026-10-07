@@ -147,6 +147,28 @@ Synchronizace času** (Settings → Other → Time synchronization):
   rights — it is recommended to turn on automatic time in System Settings). A manually
   entered time (late entry) is not changed.
 
+## Menu bar
+
+The menus follow N1MM+: **Soubor** (File), **Úpravy** (Edit), **Závod** (Contest), **Nástroje** (Tools),
+**Nastavení** (Settings), **Okno** (Window) and **Nápověda** (Help). The application menu keeps About,
+Settings `Cmd+,` and Quit.
+
+| Menu | Items |
+|---|---|
+| Soubor (File) | New contest, Open contest, New / Open database, Import (QSOs, Merge log), Export (ADIF, Cabrillo, EDI, CSV / text / summary), Print log |
+| Úpravy (Edit) | the entry window's actions with your current keys shown next to them (wipe, restore, +1 to the number, note, find, delete last QSO), then Undo, Redo, Cut, Copy, Paste and Select All for the text fields |
+| Závod (Contest) | Late entry, Record contest, None (free logging) |
+| Nástroje (Tools) | Rescore, Recalculate DXCC in the log, Download master.scp, Update definitions, Update DXCC from Club Log, Update call history, Load beacon file, Definition editor |
+| Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles |
+| Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Report a bug (GitHub issues), Open data folder (honours `MCL_DATA_DIR`) |
+
+The keys in the Edit and Help menus are only shown: the entry window's own key handling (Settings → Keys)
+stays the one that reacts to them, so a remapped key is shown as remapped.
+
+A `menu.json` of your own (below) replaces the built-in menu as a whole. If you made one before this
+layout, it keeps your old structure; to get the new one, create a fresh copy with **Vytvořit menu.json k
+úpravám** after moving the old file away. A node whose `id` starts with `sep.` is a separator line.
+
 ## Application menu
 
 The menus in the top bar (and the list of Settings tabs) are described by `menu.json`.
