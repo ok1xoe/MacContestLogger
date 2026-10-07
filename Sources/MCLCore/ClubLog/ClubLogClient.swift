@@ -25,15 +25,20 @@ public struct ClubLogClient: Sendable {
     public let url: String
     private let http: JavaHttpClient
     private let requestTimeout: TimeInterval
+    private let trafficLog: ClubLogTrafficLog?
 
-    /// Java `new ClubLogClient()`: `HttpClient.newBuilder().connectTimeout(10 s)` (NEVER), default URL.
+    /// Java `new ClubLogClient()`: `HttpClient.newBuilder().connectTimeout(10 s)` (NEVER), default URL. Every
+    /// upload goes to the shared `clublog.log`.
     public init() {
-        self.init(http: JavaHttpClient(connectTimeout: Self.connectTimeout, redirect: .never), url: Self.defaultURL)
+        self.init(http: JavaHttpClient(connectTimeout: Self.connectTimeout, redirect: .never), url: Self.defaultURL,
+                  trafficLog: .shared)
     }
 
     /// Java package-private constructor `ClubLogClient(HttpClient, String)`; the request timeout is fixed in Java
     /// (20 s), settable here for tests.
-    init(http: JavaHttpClient, url: String, requestTimeout: TimeInterval = ClubLogClient.requestTimeout) {
+    init(http: JavaHttpClient, url: String, requestTimeout: TimeInterval = ClubLogClient.requestTimeout,
+         trafficLog: ClubLogTrafficLog? = nil) {
+        self.trafficLog = trafficLog
         self.http = http
         self.url = url
         self.requestTimeout = requestTimeout
@@ -45,15 +50,20 @@ public struct ClubLogClient: Sendable {
         let body = Self.formBody(email: email, password: password, callsign: callsign, apiKey: apiKey,
                                  adifRecord: adifRecord)
         let headers: [(String, String)] = [("Content-Type", Self.contentType)]
+        let secrets: [String] = [password ?? "", apiKey ?? ""]
+        trafficLog?.upload(url: url, email: email, callsign: callsign, adif: adifRecord)
         do {
             let response = try http.send(method: "POST", url: url, headers: headers, body: Data(body.utf8),
                                          requestTimeout: requestTimeout)
+            trafficLog?.response(status: response.status, body: response.body, secrets: secrets)
             return Self.classify(response.status)
         } catch {
             switch error {
             case .illegalArgument(let illegal):
+                trafficLog?.failure(String(describing: illegal), secrets: secrets)
                 throw illegal
-            case .io:
+            case .io(let io):
+                trafficLog?.failure(String(describing: io), secrets: secrets)
                 return .RETRY
             }
         }

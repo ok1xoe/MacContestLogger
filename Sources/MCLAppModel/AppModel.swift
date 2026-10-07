@@ -515,6 +515,7 @@ public final class AppModel {
         }
         Self.wireSimulator(model, environment: environment)
         environment.catLog.setFile(dataDir.appendingPathComponent("cat.log"))
+        ClubLogTrafficLog.shared.setFile(dataDir.appendingPathComponent("clublog.log"))
         Self.startSpots(spots)
         Self.startRadio(radio)
         runner.start()
