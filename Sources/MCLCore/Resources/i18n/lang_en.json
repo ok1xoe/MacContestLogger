@@ -1125,5 +1125,21 @@
  "poškozená data (gzip)": "corrupt data (gzip)",
  "nelze uložit: %s": "cannot save: %s",
  "cty.xml: chybí element <clublog>": "cty.xml: the <clublog> element is missing",
- "cty.xml: žádné entity nebo prefixy": "cty.xml: no entities or prefixes"
+ "cty.xml: žádné entity nebo prefixy": "cty.xml: no entities or prefixes",
+ "Jen pásma a módy aktivního závodu": "Only the bands and modes of the active contest",
+ "Zobrazovat nepracovatelné spoty": "Show non-workable spots",
+ "Nepracovatelný spot = pásmo nebo mód, který aktivní závod nepovoluje. Dupe se skrývají jen ručně.": "A non-workable spot is on a band or in a mode the active contest does not allow. Dupes always stay.",
+ "Filtr se použije v okně DX Cluster (řádky spotů), v bandmapě, v Dostupných a při skoku na spot. Vlastní spoty se nikdy neskrývají.": "The filter applies to the DX Cluster window (spot lines), the band map, Available Mults and spot jumps. Own spots are never hidden.",
+ "Obnovit výchozí": "Restore defaults",
+ "Módy": "Modes",
+ "Přepnout skupinu pásem %s": "Toggle band group %s",
+ "Všechny módy": "All modes",
+ "Spot s neurčitelným módem se zobrazí, pokud není vypnutý žádný mód. Digi zahrnuje RTTY, FT8, PSK…": "A spot whose mode cannot be determined is shown unless all modes are off. Digi covers RTTY, FT8, PSK…",
+ "Fonie": "Phone",
+ "Jen spoty od spotterů z": "Only spots from spotters in",
+ "Vlastní země": "Own country",
+ "Nic nezaškrtnuto = bez filtru. Skimmer spoty se řídí polohou skimmeru.": "Nothing checked = no filter. Skimmer spots follow the skimmer's location.",
+ "Filtr spotů": "Spot filter",
+ "zapnuto": "on",
+ "Časový limit spotu = Buffer spotů (min); QSY smaže spot podle Prahu self-spotu (Hz).": "Spot timeout = Spot buffer (min); a QSY drops the spot by the self-spot threshold (Hz)."
 }
