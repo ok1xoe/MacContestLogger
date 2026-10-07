@@ -52,8 +52,8 @@ public final class OnlineServicesModel {
     let deps: Dependencies
     @ObservationIgnored private let clubLogLane = HttpLane(name: "clublog")
     @ObservationIgnored private let scoreLane = HttpLane(name: "scoreboard")
-    @ObservationIgnored private var clubLogQueue: [String] = []
-    @ObservationIgnored private var clubLogSending: String?
+    @ObservationIgnored private var clubLogQueue: [ClubLogItem] = []
+    @ObservationIgnored private var clubLogSending: ClubLogItem?
     @ObservationIgnored private var clubLogRetryTimer: (any RescoreTimer)?
     @ObservationIgnored private var scoreTimer: (any RescoreTimer)?
     @ObservationIgnored private var clockTimer: (any RescoreTimer)?
@@ -64,6 +64,11 @@ public final class OnlineServicesModel {
     @ObservationIgnored private var isClosed = false
     /// `false` while the pileup simulator runs — nothing is reported to the scoreboard then.
     @ObservationIgnored var outwardAllowed: @MainActor () -> Bool = { true }
+    /// The plugins' `CLUBLOG_UPLOAD`: outcome (`ok`, `rejected`, `retry`), the QSO's call and the status text.
+    @ObservationIgnored var onClubLogUpload: (@MainActor (_ outcome: String, _ call: String, _ status: String) -> Void)?
+    /// The plugins' `SCORE_REPORTED`: host, HTTP status (0 = no answer), accepted and the status text.
+    @ObservationIgnored var onScoreReported: (@MainActor (_ host: String?, _ status: Int, _ accepted: Bool,
+                                                          _ message: String) -> Void)?
     /// Test seam: runs after a Club Log upload outcome was handled.
     @ObservationIgnored var afterClubLogOutcome: (@MainActor () -> Void)?
     /// Test seam: runs after a score report outcome was handled.
@@ -96,14 +101,15 @@ public final class OnlineServicesModel {
             appLog.notice("\(NetworkPorts.disabledMessage, privacy: .public): Club Log")
             return
         }
-        clubLogQueue.append(AdifWriter().record(qso))
+        clubLogQueue.append(ClubLogItem(record: AdifWriter().record(qso), call: qso.call))
         sendNextClubLog()
     }
 
     private func sendNextClubLog() {
         guard !isClosed, clubLogSending == nil, clubLogRetryTimer == nil, !clubLogQueue.isEmpty else { return }
-        let record: String = clubLogQueue.removeFirst()
-        clubLogSending = record
+        let item: ClubLogItem = clubLogQueue.removeFirst()
+        let record: String = item.record
+        clubLogSending = item
         let cl: ClubLogConfig = config.clubLog
         let callsign: String = ClubLogQueuePolicy.callsign(configured: cl.callsign, stationCall: config.station.call)
         let upload = deps.network.online.uploadClubLog
@@ -114,11 +120,11 @@ public final class OnlineServicesModel {
                 return .failed(ErrorText.message(error))
             }
         }, then: { [weak self] attempt in
-            self?.clubLogFinished(record, attempt)
+            self?.clubLogFinished(item, attempt)
         })
     }
 
-    private func clubLogFinished(_ record: String, _ attempt: ClubLogAttempt) {
+    private func clubLogFinished(_ record: ClubLogItem, _ attempt: ClubLogAttempt) {
         clubLogSending = nil
         guard !isClosed else { return }
         let outcome: ClubLogClient.Outcome
@@ -129,6 +135,7 @@ public final class OnlineServicesModel {
             // Kotlin lets the exception end the sender loop; here the record waits and is tried again.
             clubLogStatus = .verbatim(message)
             ClubLogTrafficLog.shared.note("failed: \(message); retry in \(ClubLogQueuePolicy.retryDelayMs / 1000) s")
+            reportClubLog("retry", record.call, "Club Log upload failed")
             retryClubLog(record)
             afterClubLogOutcome?()
             return
@@ -136,6 +143,8 @@ public final class OnlineServicesModel {
         let handled = ClubLogQueuePolicy.handle(outcome, queued: clubLogQueue.count)
         clubLogStatus = handled.status
         ClubLogTrafficLog.shared.note(ClubLogQueuePolicy.logNote(outcome, queued: clubLogQueue.count))
+        reportClubLog(outcome.rawValue == "OK" ? "ok" : outcome.rawValue.lowercased(), record.call,
+                      statusText(handled.status))
         switch handled.action {
         case .done, .drop:
             sendNextClubLog()
@@ -145,7 +154,15 @@ public final class OnlineServicesModel {
         afterClubLogOutcome?()
     }
 
-    private func retryClubLog(_ record: String, delayMs: Int = ClubLogQueuePolicy.retryDelayMs) {
+    private func statusText(_ status: EntryStatus) -> String {
+        status.text(deps.language.translator, decimalSeparator: deps.language.decimalSeparator)
+    }
+
+    private func reportClubLog(_ outcome: String, _ call: String, _ status: String) {
+        onClubLogUpload?(outcome, call, status)
+    }
+
+    private func retryClubLog(_ record: ClubLogItem, delayMs: Int = ClubLogQueuePolicy.retryDelayMs) {
         clubLogQueue.insert(record, at: 0)
         clubLogRetryTimer = deps.clock.schedule(afterMilliseconds: delayMs) { [weak self] in
             guard let self else { return }
@@ -253,7 +270,36 @@ public final class OnlineServicesModel {
             lastScoreRevision = job.revision
         }
         scoreReportStatus = outcome.status
+        reportScore(result, outcome: outcome, url: job.url)
         afterScoreOutcome?()
+    }
+
+    /// The plugins' `SCORE_REPORTED`; never the URL (it may carry a token), a raw failure message or a rejection text.
+    private func reportScore(_ result: ScoreReportPolicy.PostResult, outcome: ScoreReportPolicy.Outcome, url: String) {
+        let host: String? = URL(string: url)?.host
+        let status: Int
+        let message: String
+        switch result {
+        case .http(let code):
+            status = code
+            message = statusText(outcome.status)
+        case .rejected(let code, _):
+            status = code
+            message = "HTTP " + String(code)
+        case .unreachable:
+            status = 0
+            message = "server unreachable"
+        case .timedOut:
+            status = 0
+            message = "timed out"
+        case .invalidAddress:
+            status = 0
+            message = "invalid address"
+        case .failure:
+            status = 0
+            message = "post failed"
+        }
+        onScoreReported?(host, status, outcome.accepted, message)
     }
 
     // MARK: - clock check
@@ -342,6 +388,12 @@ public final class OnlineServicesModel {
         await scoreLane.settle()
         await drainMainQueue()
     }
+}
+
+/// A Club Log record waiting in the queue, with the call of its QSO (for the plugins' event).
+private struct ClubLogItem: Sendable {
+    let record: String
+    let call: String
 }
 
 /// How a Club Log attempt ended on the lane.

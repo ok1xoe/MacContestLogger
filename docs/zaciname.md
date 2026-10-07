@@ -67,7 +67,7 @@ Logged contacts appear in the [log window](log-window.md), the score in the
 
 You do not need a contest to log. With **Závod → Žádný (volné logování)**
 (Contest → None (free logging)), the `CLOSE` command, or simply before you open a
-contest, the entry window has generic fields (received report and exchange) and
+contest, the entry window has only the reports (sent and received; no serial number and no exchange) and
 **Enter** / **Log It** saves the QSO into the open database without a contest — no
 points or multipliers, the country is filled in as usual.
 

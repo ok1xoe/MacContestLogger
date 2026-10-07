@@ -387,7 +387,7 @@ extension EntryModel {
         }
         fieldFrequencyChanged()
         updatePreview()
-        operating.tuned(cq, mode: form.mode)
+        reportTuned(cq)
         return true
     }
 

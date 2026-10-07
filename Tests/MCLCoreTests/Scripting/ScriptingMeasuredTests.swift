@@ -47,7 +47,11 @@ import Testing
     // MARK: - PluginRunner (rows `PLUGIN.*`)
 
     @Test func dirNames() {
-        #expect(PluginRunner.Event.allCases.map(PluginRunner.dirName) == ["qso-logged", "contest-opened", "spot-received"])
+        #expect(PluginRunner.Event.allCases.map(PluginRunner.dirName) == [
+            "qso-logged", "contest-opened", "spot-received", "qso-edited", "qso-deleted", "contest-closed",
+            "app-started", "app-quitting", "band-changed", "mode-changed", "frequency-changed", "self-spotted",
+            "new-multiplier", "score-changed", "score-reported", "clublog-upload",
+        ])
     }
 
     @Test func missingDirectoriesGiveNoPlugins() async throws {

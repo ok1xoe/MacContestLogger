@@ -39,6 +39,8 @@ public final class DxClusterModel {
     @ObservationIgnored private let network: NetworkPorts
     @ObservationIgnored let translator: TranslatorBox
     @ObservationIgnored let sink = ClusterSink()
+    /// The station was spotted (the plugins' `SELF_SPOTTED`); runs on the main actor with the message.
+    @ObservationIgnored public var onSelfSpotted: (@MainActor (SelfSpot) -> Void)?
     @ObservationIgnored let hooks = SpotHooks()
     @ObservationIgnored private(set) var mainLane: ClusterLane!
     @ObservationIgnored private(set) var mainToken: Int = 0
@@ -304,6 +306,7 @@ public final class DxClusterModel {
     /// Kotlin `onSelfSpot`: RBN → `tr("RBN: %s tě slyší na %s kHz")` + SNR + WPM, otherwise the untranslated
     /// „Byl jsi spotnut: …"; the frequency in the system's decimal format (Kotlin `"%.1f".format`).
     func selfSpotted(_ own: SelfSpot) {
+        onSelfSpotted?(own)
         let text: String = SpotActions.selfSpotMessage(own, translator: language.translator,
                                                        decimalSeparator: language.decimalSeparator)
         messages.add(text, at: own.at)
