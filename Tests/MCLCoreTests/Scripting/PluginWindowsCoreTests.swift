@@ -113,6 +113,18 @@ import Testing
         #expect(PluginCatalog.reservedNames.contains("qso-logged"))
     }
 
+    /// The example shipped in the docs is a valid protocol-1 plugin.
+    @Test func theDocumentedExampleIsValid() throws {
+        let docs: URL = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("docs/plugins/examples")
+        let scan: PluginCatalog.Scan = PluginCatalog.scan(root: docs.path)
+        #expect(scan.problems.isEmpty)
+        let package: PluginPackage = try #require(scan.package("qso-by-band"))
+        #expect(package.manifest.unsupportedPermissions.isEmpty)
+        #expect(package.manifest.run == "run.py")
+        #expect(access(package.executable, X_OK) == 0)
+    }
+
     @Test func aMissingPluginsDirectoryIsEmpty() {
         let scan = PluginCatalog.scan(root: "/nonexistent/mcl-plugins")
         #expect(scan.packages.isEmpty && scan.problems.isEmpty)

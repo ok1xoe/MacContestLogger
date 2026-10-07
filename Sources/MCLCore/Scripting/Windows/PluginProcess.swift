@@ -243,7 +243,7 @@ public final class PluginProcess: @unchecked Sendable {
             case .overflow:
                 handlers.protocolError("a line over \(PluginLineFramer.maxLineBytes) bytes was dropped")
             case .line(let line):
-                do {
+                do throws(PluginJSON.ParseError) {
                     handlers.message(try PluginInbound.decode(line))
                 } catch {
                     handlers.protocolError(error.message)

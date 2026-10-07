@@ -200,7 +200,7 @@ public enum PluginCatalog {
                 scan.problems.append(Problem(plugin: name, message: ContestMessage("plugin.json nelze přečíst")))
                 continue
             }
-            do {
+            do throws(ContestMessage) {
                 let manifest: PluginManifest = try PluginManifest.parse(Array(data), directoryName: name)
                 let executable: String = (directory as NSString).appendingPathComponent(manifest.run)
                 scan.packages.append(PluginPackage(manifest: manifest, directory: directory, executable: executable))

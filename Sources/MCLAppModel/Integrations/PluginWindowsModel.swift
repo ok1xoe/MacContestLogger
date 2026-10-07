@@ -280,7 +280,7 @@ public final class PluginWindowsModel {
             "PYTHONUNBUFFERED": "1",
         ]
         let connection: any PluginConnection = launcher(session.package, environment, handlers)
-        do {
+        do throws(ProcessRunnerError) {
             try connection.start()
         } catch {
             session.phase = .failed(error.message)

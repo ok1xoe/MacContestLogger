@@ -96,7 +96,7 @@ enum PluginRpc {
     private static func logQuery(_ params: [String: PluginJSON], countOnly: Bool, context: PluginHostContext,
                                  readProbe: (@Sendable (Bool) -> Void)?) async -> Result<PluginJSON, Failure> {
         let query: PluginLogQuery
-        do {
+        do throws(PluginLogQuery.Invalid) {
             query = try PluginLogQuery.parse(params)
         } catch {
             return .failure(Failure(code: "invalid_params", message: error.message))
