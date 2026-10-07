@@ -1220,5 +1220,6 @@
  "Povolit": "Allow",
  "Povolit vysílání pluginů": "Allow plugin transmissions",
  "Zprávu pluginu přerušit po %s s": "Cut a plugin's message after %s s",
- "Pluginy smí vysílat nejvýš %s procent z každých 5 minut": "Plugins may transmit at most %s percent of any 5 minutes"
+ "Pluginy smí vysílat nejvýš %s procent z každých 5 minut": "Plugins may transmit at most %s percent of any 5 minutes",
+ "PTT pluginu se nepodařilo uvolnit — zkontroluj vysílač!": "The plugin's PTT could not be released — check the transmitter!"
 }

@@ -267,17 +267,24 @@ refuses, Esc stops it (and everything else that transmits), the quit and a rig's
 that stops, crashes or loses its `transmit` grant never leaves the PTT keyed or its message on the air. A refused
 `T 1` is followed by `T 0` at once and reported (`refused`); without a connected rig the PTT is refused. A plugin's PTT
 is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the moment the rig was keyed:
-while one plugin holds the PTT no other plugin can key it, keying again does not extend the limit, and after that
-forced release the plugin may not key for 10 s. Only the plugin holding the PTT releases it (another plugin's `off`
+while one plugin holds the PTT no other plugin can key it, keying again does not extend the limit, and after a
+forced release no plugin may key for 10 s (after a plugin's own release, for 2 s). A release is guaranteed: a plugin
+CAT command still running on that rig is cut off, `T 0` goes out on the rig's connection or, if that fails, over a
+fresh connection to its `rigctld`; if that fails too, the rig gets `T 0` first when it connects again and the
+status line warns the operator. Only the plugin holding the PTT releases it (another plugin's `off`
 changes nothing, the operator's own transmissions are never cut by a plugin). While a plugin transmits, the main
 window shows **Plugin X vysílá** with a stop button.
 
 - **Esc and Stop stick:** when the operator presses Esc (or the indicator's Stop) while a plugin transmits, plugin
   transmissions stay blocked — the main window shows *Vysílání pluginů zastaveno* with **Povolit** — until the
   operator allows them again.
-- **On-air budget** (conservative defaults, Settings → Pluginy): a message (CW, voice, F-key) a plugin started is cut
-  after **60 s** (5–300 s); all plugins together may be on the air at most **50 %** of any 5 minutes (10–100 %); a
-  plugin may have at most two CW texts on the air in one transmission (`busy`), each at most 200 characters.
+- **On-air budget** (conservative defaults the owner may change, Settings → Pluginy): a plugin transmission
+  (messages chained back to back count as one) is cut after **60 s** (5–300 s); all plugins together may be on the
+  air at most **50 %** of any 5 minutes (10–100 %) — a PTT or message never runs past what is left of it; at most two
+  plugin messages may be on the air in one transmission, whichever plugins sent them (`busy`), each CW text at most
+  200 characters.
+- Esc during a plugin's `T 1` that is still on its way blocks plugin transmissions too, and that key is released as
+  soon as it completes.
 
 ### Keys
 

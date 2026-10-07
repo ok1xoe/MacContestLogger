@@ -69,6 +69,11 @@ public final class RigModel {
     /// Raised by every release and operator stop: plugin CAT commands queued before it are dropped, so a safety
     /// `T 0` never waits behind them.
     let pluginCatEpoch = OSAllocatedUnfairLock(initialState: 0)
+    /// Rigs with a plugin's raw CAT command on their lane right now (a release closes that connection first).
+    let pluginCatInFlight = OSAllocatedUnfairLock<Set<Int>>(initialState: [])
+    /// The last resort of a plugin PTT release: `T 0` over a fresh connection to the rig's `rigctld` (host, port);
+    /// `true` = sent. Never connects under `MCL_INERT_HARDWARE`.
+    @ObservationIgnored var freshPttRelease: @Sendable (String, Int) -> Bool = { _, _ in false }
     /// Set when the quit starts releasing the transmitter: a footswitch press is refused from then on (a release
     /// edge still releases), so nothing keys a rig after the transmit-release milestone.
     @ObservationIgnored var transmitClosed = false
@@ -92,6 +97,14 @@ public final class RigModel {
     }
 
     init(_ dependencies: Dependencies) {
+        if !dependencies.hardware.isInert {
+            freshPttRelease = { host, port in
+                guard let client = try? RigctldClient(host: host, port: port, timeoutMs: 1_000,
+                                                      log: dependencies.catLog) else { return false }
+                defer { client.close() }
+                return (try? client.setPtt(false)) != nil
+            }
+        }
         config = dependencies.config
         status = dependencies.status
         language = dependencies.language

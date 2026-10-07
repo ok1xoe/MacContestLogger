@@ -62,12 +62,16 @@ public final class PluginWindowsModel {
     @ObservationIgnored private var transmitTimer: (any RescoreTimer)?
     @ObservationIgnored private var catTimes: [String: [Date]] = [:]
     @ObservationIgnored private var catTimesAll: [Date] = []
-    @ObservationIgnored private var pttCooldown: Set<String> = []
+    /// After any forced PTT release no plugin keys for `pttCooldownMs`; after a voluntary release for
+    /// `pttRekeyMs`.
+    @ObservationIgnored private var pttCoolingDown = false
+    /// Plugin keying requests on their way to the rig (an Esc meanwhile blocks plugin transmissions too).
+    @ObservationIgnored private var keyingInFlight = 0
     /// The operator stopped plugin transmissions (Esc or Stop while one was on): none until allowed again.
     public private(set) var transmissionsBlocked = false
     @ObservationIgnored private var messageTimer: (any RescoreTimer)?
-    @ObservationIgnored private var messageGeneration = 0
-    @ObservationIgnored private var messagesInTransmission = 0
+    @ObservationIgnored private var cooldownGeneration = 0
+    @ObservationIgnored private(set) var messagesInTransmission = 0
     @ObservationIgnored private var airStart: Date?
     @ObservationIgnored private var onAir: [(start: Date, end: Date)] = []
     static let dutyWindowSeconds: Double = 300
@@ -841,8 +845,11 @@ public final class PluginWindowsModel {
                let shortcut = self.transmitPreflight(plugin: plugin, method: method, params: params) {
                 result = shortcut.map { .failure($0) } ?? .success(.object(["ok": .bool(true)]))
             } else {
+                let keying: Bool = method.hasPrefix("tx.") && method != "tx.stop"
+                if keying { self.keyingInFlight += 1 }
                 result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
                                                 context: context, readProbe: probe)
+                if keying { self.keyingInFlight -= 1 }
             }
             guard let session = self.current(plugin, generation) else {
                 // The run ended while a PTT request was answered: release what it may have keyed.
@@ -852,6 +859,18 @@ public final class PluginWindowsModel {
                 return
             }
             session.inFlight -= 1
+            if case .success = result, method.hasPrefix("tx."), method != "tx.stop", self.transmissionsBlocked {
+                // The operator stopped plugin transmissions while this one was on its way: it stops at once.
+                if method == "tx.ptt" {
+                    _ = context.actions.releasePtt()
+                    self.pttReleased()
+                } else {
+                    _ = context.actions.stop()
+                }
+                self.send(session, PluginOutbound.error(id: id, code: "refused",
+                                                        message: "the operator stopped plugin transmissions"))
+                return
+            }
             if case .success = result, method.hasPrefix("tx."),
                !self.settings.effectivePermissions(session.package.manifest).contains("transmit") {
                 // Revoked while the rig answered: what was just keyed or started stops at once.
@@ -912,16 +931,32 @@ public final class PluginWindowsModel {
         }
         webInFlight[plugin] = inFlight + 1
         defer { webInFlight[plugin] = max((webInFlight[plugin] ?? 1) - 1, 0) }
+        let keying: Bool = method.hasPrefix("tx.") && method != "tx.stop"
+        if keying { keyingInFlight += 1 }
         let result = await PluginRpc.answer(method: method, params: params, permissions: permissions,
                                             context: context, readProbe: readProbe)
-        // This model is main-actor isolated: the await above may have let the plugin stop (its window closed, a
-        // revoke). A request that finished after that does not count — and a PTT it keyed is released.
-        if case .success = result, sessions[plugin]?.phase != .running
-            || (method.hasPrefix("tx.") && !settings.effectivePermissions(package.manifest).contains("transmit")) {
-            if method == "tx.ptt" {
-                _ = context.actions.releasePtt()
-                pttReleased()
+        if keying { keyingInFlight -= 1 }
+        // This model is main-actor isolated: the await above may have let the plugin stop (its window closed), lose
+        // its grant, or the operator stop plugin transmissions. What finished after that does not count — a PTT it
+        // keyed is released, a message stopped.
+        if case .success = result, keying {
+            let revoked: Bool = !settings.effectivePermissions(package.manifest).contains("transmit")
+            if revoked || transmissionsBlocked || sessions[plugin]?.phase != .running {
+                if method == "tx.ptt" {
+                    _ = context.actions.releasePtt()
+                    pttReleased()
+                } else {
+                    _ = context.actions.stop()
+                }
+                if revoked {
+                    return error("permission", "the transmit permission was revoked")
+                }
+                return error(transmissionsBlocked ? "refused" : "unavailable",
+                             transmissionsBlocked ? "the operator stopped plugin transmissions"
+                                                  : "the plugin stopped meanwhile")
             }
+        }
+        if case .success = result, sessions[plugin]?.phase != .running {
             return error("unavailable", "the plugin stopped meanwhile")
         }
         if case .failure = result {
@@ -959,6 +994,14 @@ public final class PluginWindowsModel {
         public let contentSecurityPolicy: String
     }
 
+    /// Changes whenever what the web window is built from changes (the manifest): the view is rebuilt then.
+    public func webIdentity(_ key: String) -> String {
+        guard let parsed = PluginCatalog.parseWindowKey(key), let package = catalog.package(parsed.plugin) else {
+            return key
+        }
+        return key + "|" + String(describing: package.manifest).hashValue.description
+    }
+
     public func webSetup(_ key: String) -> WebSetup? {
         guard let parsed = PluginCatalog.parseWindowKey(key), let package = catalog.package(parsed.plugin),
               let page = package.manifest.window(parsed.window)?.page else { return nil }
@@ -977,6 +1020,8 @@ public final class PluginWindowsModel {
     public static let catPerSecondTotal = 15
     /// After the time limit released a plugin's PTT, it may not key again for this long.
     public static let pttCooldownMs = 10_000
+    /// The short pause after a plugin released its PTT itself.
+    public static let pttRekeyMs = 2_000
 
     /// At most `catPerSecond` raw CAT commands of a plugin and `catPerSecondTotal` of all plugins in any second (the
     /// app's clock).
@@ -1008,7 +1053,10 @@ public final class PluginWindowsModel {
             return nil
         }
         if method == "tx.ptt", params["on"]?.boolValue == false {
-            return pttHolder == plugin ? nil : .some(nil)
+            guard pttHolder == plugin else { return .some(nil) }
+            // A voluntary release: a short pause for every plugin follows.
+            coolDown(Self.pttRekeyMs)
+            return nil
         }
         if transmissionsBlocked {
             return refuse("the operator stopped plugin transmissions; they are allowed again in the main window")
@@ -1017,18 +1065,18 @@ public final class PluginWindowsModel {
             if pttHolder == plugin {
                 return .some(nil)
             }
-            if pttHolder != nil || context.actions.pttHeld() {
+            if pttHolder != nil || context.actions.pttHeld() || keyingInFlight > 0 {
                 return refuse("another plugin holds the PTT")
             }
-            if pttCooldown.contains(plugin) {
-                return refuse("the PTT time limit was reached; wait a moment")
+            if pttCoolingDown {
+                return refuse("the PTT was just released; wait a moment")
             }
         }
-        if dutyExceeded() {
+        if remainingBudgetSeconds() < 1 {
             return refuse("the plugins' on-air budget (\(settings.dutyPercent) % of 5 minutes) is used up")
         }
-        if method == "tx.sendCw" && transmittingPlugin == plugin && messagesInTransmission >= 2 {
-            return .some(PluginRpc.Failure(code: "busy", message: "two CW texts are already on the air"))
+        if method != "tx.ptt" && transmittingPlugin != nil && messagesInTransmission >= 2 {
+            return .some(PluginRpc.Failure(code: "busy", message: "two plugin messages are already on the air"))
         }
         return nil
     }
@@ -1042,11 +1090,12 @@ public final class PluginWindowsModel {
             if pttHolder == nil {
                 pttHolder = plugin
                 pttTimer?.cancel()
-                let seconds: Int = settings.pttTimeoutSeconds
+                // The time limit, or what is left of the on-air budget if that is less (no overshoot).
+                let seconds: Int = min(settings.pttTimeoutSeconds, max(Int(remainingBudgetSeconds()), 1))
                 pttTimer = clock.schedule(afterMilliseconds: seconds * 1000) { [weak self] in
                     guard let self, self.pttHolder == plugin else { return }
                     self.releasePtt(reason: "[" + name + "] " + self.language.tr(
-                        "PTT pluginu uvolněno po %s s", .int(seconds)), cooldown: plugin)
+                        "PTT pluginu uvolněno po %s s", .int(seconds)), cooldownMs: Self.pttCooldownMs)
                 }
             }
         case "tx.ptt":
@@ -1061,17 +1110,17 @@ public final class PluginWindowsModel {
             return
         default:
             messagesInTransmission += 1
-            messageGeneration += 1
-            let generation: Int = messageGeneration
-            let seconds: Int = settings.messageLimitSeconds
-            messageTimer?.cancel()
-            messageTimer = clock.schedule(afterMilliseconds: seconds * 1000) { [weak self] in
-                guard let self, self.messageGeneration == generation, self.transmittingPlugin == plugin,
-                      self.context.actions.isSending() else { return }
+            // One limit for the whole continuous transmission: messages chained back to back do not start a fresh
+            // one; the rest of the on-air budget caps it too.
+            if messageTimer == nil {
+                let seconds: Int = min(settings.messageLimitSeconds, max(Int(remainingBudgetSeconds()), 1))
+                messageTimer = clock.schedule(afterMilliseconds: seconds * 1000) { [weak self] in
+                    guard let self, self.transmittingPlugin != nil, self.context.actions.isSending() else { return }
                 _ = self.context.actions.stop()
                 self.messages.add("[" + name + "] " + self.language.tr(
                     "Zpráva pluginu přerušena po %s s", .int(seconds)), at: self.now())
                 self.endTransmission()
+                }
             }
         }
         if airStart == nil {
@@ -1095,8 +1144,8 @@ public final class PluginWindowsModel {
         transmittingPlugin = nil
     }
 
-    /// Whether the plugins were on the air for `dutyPercent` of the last 5 minutes (counting one going on now).
-    private func dutyExceeded() -> Bool {
+    /// What is left of the plugins' on-air budget in the current 5 minutes (seconds).
+    private func remainingBudgetSeconds() -> Double {
         let current: Date = now()
         let windowStart: Date = current.addingTimeInterval(-Self.dutyWindowSeconds)
         onAir.removeAll { $0.end < windowStart }
@@ -1106,13 +1155,13 @@ public final class PluginWindowsModel {
         if let start = airStart {
             seconds += current.timeIntervalSince(max(start, windowStart))
         }
-        return seconds >= Self.dutyWindowSeconds * Double(settings.dutyPercent) / 100
+        return Self.dutyWindowSeconds * Double(settings.dutyPercent) / 100 - seconds
     }
 
     /// The operator stopped transmissions (Esc, the indicator's Stop): when a plugin was on the air, plugin
     /// transmissions stay blocked until the operator allows them again.
     public func operatorStopped() {
-        if pttHolder != nil || transmittingPlugin != nil {
+        if pttHolder != nil || transmittingPlugin != nil || context.actions.pttHeld() || keyingInFlight > 0 {
             transmissionsBlocked = true
         }
     }
@@ -1132,17 +1181,25 @@ public final class PluginWindowsModel {
     }
 
     /// Releases the plugins' PTT on the rig (the rig model reports back through `pttReleased`).
-    private func releasePtt(reason: String?, cooldown plugin: String? = nil) {
+    private func releasePtt(reason: String?, cooldownMs: Int? = nil) {
         _ = context.actions.releasePtt()
         pttReleased()
         if let reason {
             messages.add(reason, at: now())
         }
-        if let plugin {
-            pttCooldown.insert(plugin)
-            _ = clock.schedule(afterMilliseconds: Self.pttCooldownMs) { [weak self] in
-                self?.pttCooldown.remove(plugin)
-            }
+        if let cooldownMs {
+            coolDown(cooldownMs)
+        }
+    }
+
+    /// No plugin keys for `ms` (the latest pause wins if it is longer).
+    private func coolDown(_ ms: Int) {
+        pttCoolingDown = true
+        cooldownGeneration += 1
+        let generation: Int = cooldownGeneration
+        _ = clock.schedule(afterMilliseconds: ms) { [weak self] in
+            guard let self, self.cooldownGeneration == generation else { return }
+            self.pttCoolingDown = false
         }
     }
 

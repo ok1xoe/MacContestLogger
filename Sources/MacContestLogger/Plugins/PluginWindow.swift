@@ -61,6 +61,7 @@ struct PluginWindowContent: View {
             if let parsed, model.window(key)?.isWeb == true {
                 if session?.phase == .running {
                     PluginWebView(app: app, key: key, title: model.title(key))
+                        .id(model.webIdentity(key))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             } else if let parsed, let content = session?.contents[parsed.window] {

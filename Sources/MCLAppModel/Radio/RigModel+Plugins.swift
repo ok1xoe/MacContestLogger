@@ -70,14 +70,43 @@ extension RigModel {
         onOperatorStop?()
     }
 
+    /// Releases a plugin's PTT on rig `index` — guaranteed: a plugin CAT command in flight on that rig has its
+    /// connection closed first (its read ends at once instead of after the timeout), then `T 0` goes out on the rig's
+    /// lane; if that fails (or the connection is gone) `T 0` goes over a fresh connection, and if that fails too the
+    /// rig is owed `T 0` on its next connection and the operator is told.
     func releasePluginPtt(onRig index: Int) {
         pluginCatEpoch.withLock { $0 += 1 }
         guard pluginPttRig == index else { return }
         pluginPttRig = nil
-        lanes[index].run { cat in
-            try? cat.setPtt(false)
+        let lane: RigLane = lanes[index]
+        if pluginCatInFlight.withLock({ $0.contains(index) }) {
+            lane.cat.rigOrNull()?.close()
         }
+        lane.run({ cat -> Bool in
+            guard let rig = cat.rigOrNull(), rig.isConnected() else { return false }
+            return (try? rig.setPtt(false)) != nil
+        }, then: { [weak self] released in
+            if !released {
+                self?.releaseOverFreshConnection(index)
+            }
+        })
         onPluginPttReleased?()
+    }
+
+    /// `T 0` over a fresh connection; if that fails, owed on the next connection and shown.
+    func releaseOverFreshConnection(_ index: Int) {
+        let rc: RigConfig = rigConfig(vfo: index)
+        let release: @Sendable (String, Int) -> Bool = freshPttRelease
+        pluginPttOwed.insert(index)
+        Task { [weak self] in
+            let sent: Bool = (try? await BlockingQueue.run { release(rc.host, rc.port) }) ?? false
+            guard let self else { return }
+            if sent {
+                self.pluginPttOwed.remove(index)
+            } else {
+                self.status.showVerbatim(self.language.tr("PTT pluginu se nepodařilo uvolnit — zkontroluj vysílač!"))
+            }
+        }
     }
 
     /// A rig lost its connection while a plugin keyed it: the state is cleared (and the plugin told); `T 0` goes out
@@ -85,7 +114,7 @@ extension RigModel {
     func pluginPttConnectionChanged(_ index: Int, connected: Bool) {
         if !connected, pluginPttRig == index {
             pluginPttRig = nil
-            pluginPttOwed.insert(index)
+            releaseOverFreshConnection(index)
             onPluginPttReleased?()
         } else if connected, pluginPttOwed.remove(index) != nil {
             lanes[index].run { cat in
@@ -99,8 +128,16 @@ extension RigModel {
     public func sendRawCat(_ command: String, then: @escaping @MainActor @Sendable (Result<RigRawReply, CatRawError>) -> Void) {
         let epochs: OSAllocatedUnfairLock<Int> = pluginCatEpoch
         let queued: Int = epochs.withLock { $0 }
-        activeLane.run({ cat -> Result<RigRawReply, CatRawError> in
+        let index: Int = vfo.activeCatIndex
+        let inFlight: OSAllocatedUnfairLock<Set<Int>> = pluginCatInFlight
+        lanes[index].run({ cat -> Result<RigRawReply, CatRawError> in
             // A release or stop since it was queued: dropped, the safety `T 0` behind it goes out at once.
+            guard epochs.withLock({ $0 }) == queued else {
+                return .failure(CatRawError(message: "cancelled by a stop or release"))
+            }
+            inFlight.withLock { _ = $0.insert(index) }
+            defer { inFlight.withLock { _ = $0.remove(index) } }
+            // A release that came between the check and the mark closes nothing: check once more.
             guard epochs.withLock({ $0 }) == queued else {
                 return .failure(CatRawError(message: "cancelled by a stop or release"))
             }
