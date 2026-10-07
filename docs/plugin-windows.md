@@ -276,8 +276,10 @@ closes). A plugin `T 1` that went out but got no reply may still run later — `
 — even after a `T 0` sent over another connection. So `T 0` goes right behind it on the same connection (`rigctld`
 runs one connection's commands in order), that connection is kept and read in the background, and while it is, no
 other `T 0` confirms the release. If the `T 0` behind the key is accepted, the release is confirmed. If the key
-answered but that `T 0` did not, a `T 0` sent from then on confirms. If not even the key answered, nothing confirms
-until the operator checks the rig and chooses **Uvolnit znovu**. Without a connected rig the PTT is refused. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the
+answered but that `T 0` did not — or `rigctld` closed or reset that connection, so the key cannot run any more — a
+`T 0` sent from then on confirms. Only if not even the key answered and its connection stayed open (it may still run)
+does nothing confirm until the operator checks the rig and chooses **Uvolnit znovu**. Without a connected rig the PTT
+is refused. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the
 moment the rig was keyed. While one plugin holds the PTT no other plugin can key it, and keying again does not extend
 the limit. After a forced release no plugin may key for 10 s (after a plugin's own release, for 2 s). A release never
 touches the operator's own rig connection: `T 0` goes out on it (behind the commands already queued there) and at the

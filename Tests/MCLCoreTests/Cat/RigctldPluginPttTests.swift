@@ -120,10 +120,13 @@ import Testing
         #expect(server.commands(1) == ["F 7000000"])
     }
 
-    /// The drain tells a refused `T 0` behind an answered key, and a key that never answered.
+    /// The drain tells a refused `T 0` behind an answered key, a key whose connection `rigctld` closed or reset (it
+    /// cannot run later), and a key that never answered on a connection that stayed open.
     @Test func anUnansweredKeyDrainTellsHowItEnded() async throws {
         for (script, expected) in [(["T 1": [FakeLineServer.Step.delay(150), .line("RPRT 0")], "T 0": [.line("RPRT -1")]],
                                     PttKeyDrain.Result.keyRan),
+                                   (["T 1": [.close]], .keyRan),
+                                   (["T 1": [.reset]], .keyRan),
                                    (["T 1": [.silent], "T 0": [.silent]], .unknown)] {
             let server = try FakeLineServer(script: script)
             defer { server.stop() }

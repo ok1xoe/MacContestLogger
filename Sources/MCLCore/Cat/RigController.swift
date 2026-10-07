@@ -221,9 +221,10 @@ public final class PttKeyDrain: @unchecked Sendable {
     public enum Result: Sendable, Equatable {
         /// The `T 0` behind the key was accepted: released in order.
         case released
-        /// The key's reply came (it ran), but its `T 0` was refused or never answered: a later `T 0` runs after it.
+        /// The key ran (its reply came) or can no longer run (`rigctld` closed or reset its connection), and its `T 0`
+        /// was not confirmed: a later `T 0` on any connection runs after it.
         case keyRan
-        /// Not even the key's reply came: it may still run at any time.
+        /// Not even the key's reply came and its connection stayed open: it may still run at any time.
         case unknown
     }
 
@@ -264,6 +265,8 @@ public final class PttKeyDrain: @unchecked Sendable {
     static func read(_ socket: LineSocket, sentRelease: Bool, maxWaitMs: Int, log: CatTrafficLog) -> Result {
         let deadline: Date = Date().addingTimeInterval(Double(maxWaitMs) / 1_000)
         var replies: [String] = []
+        // `rigctld` closed or reset the connection: nothing queued on it can run any more.
+        var ended = false
         while replies.count < 2 && Date() < deadline {
             let read: String?
             do {
@@ -272,9 +275,11 @@ public final class PttKeyDrain: @unchecked Sendable {
                 if error.kind == .readTimeout {
                     continue // still waiting for the replies
                 }
+                ended = error.kind == .reset
                 break // reset, closed, another I/O error: no more replies on this connection
             }
             guard let line = read else {
+                ended = true
                 break // end of stream
             }
             let trimmed: String = JavaText.trim(line)
@@ -287,6 +292,9 @@ public final class PttKeyDrain: @unchecked Sendable {
         if replies.count == 2 && sentRelease && replies[1].utf16.starts(with: "RPRT 0".utf16) {
             return .released
         }
-        return replies.isEmpty ? .unknown : .keyRan
+        // No reply at all: if the server ended the connection, the key cannot run later any more (it may have run
+        // before the end, so a release is still owed, but any `T 0` from now on comes after it); only an open
+        // connection that stayed silent leaves it unknown.
+        return replies.isEmpty && !ended ? .unknown : .keyRan
     }
 }

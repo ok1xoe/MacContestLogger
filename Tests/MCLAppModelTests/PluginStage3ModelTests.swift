@@ -332,22 +332,20 @@ import Testing
         rig.model.rig.retryPluginRelease()
         await eventually("released by hand") { !rig.model.rig.pluginPttUnconfirmed }
         await rig.model.rig.settle()
-        // The outcome unknown: the connection drops on `T 1` (no reply). The client reopens it at once (the rig stays
-        // connected, the poller goes on); the release is owed and, as not even the key answered, only „Uvolnit znovu"
-        // confirms it.
+        // `rigctld` closes the connection on `T 1` (no reply). The client reopens it at once (the rig stays connected,
+        // the poller goes on). The key may have run before the close but cannot run later: the release is owed, and
+        // the next `T 0` that gets through confirms it — no „Uvolnit znovu" needed.
         let connections: Int = rig.rig.connectionCount
         rig.rig.drop(on: "T 1")
         _ = await rig.model.rig.pluginPtt(true)
-        await rig.model.rig.settle()
+        // Owed at first (the drain decides; no other `T 0` confirms meanwhile).
         #expect(rig.model.rig.pluginPttUnconfirmed)
+        await rig.model.rig.settle()
         #expect(rig.model.rig.pluginPttRig == nil)
         #expect(rig.rig.connectionCount > connections)
         await eventually("its connection was read") { rig.model.rig.keyDrains[0, default: 0] == 0 }
-        await rig.model.rig.settle()
-        #expect(rig.model.rig.pluginPttUnconfirmed)
-        #expect(rig.model.rig.pluginPttCannotConfirm.contains(0))
-        rig.model.rig.retryPluginRelease()
-        await eventually("released") { !rig.model.rig.pluginPttUnconfirmed }
+        await eventually("released by the next T 0") { !rig.model.rig.pluginPttUnconfirmed }
+        #expect(rig.model.rig.pluginPttCannotConfirm.isEmpty)
         #expect(rig.model.rig.connected(vfo: 0))
         #expect(Self.pttCommands(rig).last == "T 0")
     }
