@@ -29,14 +29,10 @@ public struct ScoreLine: Equatable, Sendable {
     public let mult: String
     public let total: String
 
-    /// In a contest the session's score (zeros before the first score), otherwise the logbook count and dashes.
+    /// In a contest the session's score (zeros before the first score); `nil` in free logging, which has no score.
     @MainActor
-    public static func of(contest: ContestModel, logbook: LogbookModel) -> ScoreLine {
-        guard contest.isActive else {
-            let count: Int = logbook.qsoCount
-            let dash: String = "—"
-            return ScoreLine(qso: String(count), points: dash, mult: dash, total: dash)
-        }
+    public static func of(contest: ContestModel) -> ScoreLine? {
+        guard contest.isActive else { return nil }
         let score: ScoreState? = contest.score
         let qso: Int32 = score?.qsoCount ?? 0
         let points: Int64 = score?.qsoPoints ?? 0
@@ -66,7 +62,8 @@ public struct StatusLine: Equatable, Sendable {
         let contest: ContestModel = app.contest
         let name: String? = contest.activeName ?? contest.activeId
         let shownName: String? = contest.isActive ? KotlinStrings.nilIfBlank(name) : nil
-        return StatusLine(sentExchange: KotlinStrings.nilIfBlank(sent), message: message, contestName: shownName)
+        let shownSent: String? = contest.isActive ? KotlinStrings.nilIfBlank(sent) : nil
+        return StatusLine(sentExchange: shownSent, message: message, contestName: shownName)
     }
 }
 
@@ -80,8 +77,6 @@ public enum EntryFeedback: Equatable, Sendable {
     }
 
     case none
-    /// Free logging: „DUPE — %s už pracováno na %s" with the call and the band.
-    case freeDupe(call: String, band: String)
     /// A contest preview: the DUPE chip and the multiplier chips.
     case contest(dupe: Bool, chips: [Chip])
 
@@ -95,9 +90,6 @@ public enum EntryFeedback: Equatable, Sendable {
                      state: result.state)
             }
             return .contest(dupe: preview.dupe, chips: chips)
-        }
-        if entry.isDupe {
-            return .freeDupe(call: call, band: entry.band?.adif ?? "")
         }
         return .none
     }

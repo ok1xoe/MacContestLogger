@@ -73,8 +73,9 @@ points or multipliers, the country is filled in as usual.
 
 - The [log window](log-window.md) then shows only the free-logging QSOs; opening a
   contest again shows only that contest's QSOs. The two logs never mix.
-- The same callsign on the same band is flagged as a dupe, but it is only a
-  warning — the QSO is still logged.
+- There are no dupes in free logging: a repeated callsign is never flagged,
+  beeps or blocks anything. The bottom of the main window shows no score,
+  points or multiplier counters either — those appear only with a contest.
 - **Export ADIF** writes the free-logging QSOs (without `CONTEST_ID`); Cabrillo
   needs a contest.
 - Free-logging QSOs stay on this station: they are not sent to the

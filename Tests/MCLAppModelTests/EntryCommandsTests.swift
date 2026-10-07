@@ -845,6 +845,28 @@ struct PortedApp {
     }
 }
 
+// MARK: - free logging
+
+@MainActor @Suite struct FreeLoggingDupeBeepTests {
+
+    @Test func repeatedCallNeverBeepsWithoutAContest() async throws {
+        let app = try await PortedApp.make { config in
+            config.beepOnDupe = true
+        }
+        app.entry.setFrequency("14025")
+        app.entry.callChanged("DL1ABC")
+        app.entry.submit()
+        await app.entry.settle()
+        app.entry.callChanged("DL1AB")
+        app.entry.callChanged("DL1ABC")
+        #expect(!app.entry.isDupe)
+        #expect(app.beeps.count == 0)
+        app.entry.submit()
+        await app.entry.settle()
+        #expect(app.model.logbook.rows.count == 2)
+    }
+}
+
 // MARK: - keys, Run/S&P, ESM
 
 @MainActor @Suite struct EntryKeysAndRunModeTests {

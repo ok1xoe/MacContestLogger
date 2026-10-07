@@ -55,7 +55,6 @@ private struct EntryColumn: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             EntryFieldsRow(app: app, entry: panel.entry, focus: focus)
-            EntryFeedbackView(app: app, entry: panel.entry)
             if panel.suggestions.showsScpRow {
                 ScpSuggestionsView(app: app, panel: panel)
             }
@@ -168,29 +167,6 @@ private struct EntryFieldBox: View {
                            fontSize: WindowFont.size(big ? 20 : 14, windowSize: size), bold: big, isError: isError,
                            accessibilityLabel: label, focus: focus, onChange: onChange, onTab: onTab)
                 .frame(height: WindowFont.size(big ? 34 : 26, windowSize: size))
-        }
-    }
-}
-
-// MARK: - feedback
-
-/// DUPE outside a contest (`EP:1163-1186`); the contest preview's chips (DUPE, `binding: state`) are in the strip.
-private struct EntryFeedbackView: View {
-    let app: AppModel
-    let entry: EntryModel
-
-    var body: some View {
-        let language: LanguageModel = app.language
-        switch EntryFeedback.of(entry: entry, contest: app.contest) {
-        case .none:
-            EmptyView()
-        case .freeDupe(let call, let band):
-            Text(verbatim: language.tr("DUPE — %s už pracováno na %s", .string(call), .string(band)))
-                .windowFont(14, weight: .medium)
-                .foregroundStyle(Color(domain: DomainColors.dupe))
-        case .contest:
-            // The DUPE and multiplier chips are in the frequency strip (`StripChipsView`).
-            EmptyView()
         }
     }
 }

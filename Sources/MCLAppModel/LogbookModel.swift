@@ -214,8 +214,9 @@ public final class LogbookModel {
     }
 
     /// Kotlin `isDupe(call, band)`: `band != null && dupeChecker.isDupe(call, band)`.
+    /// Free logging (no active contest) has no dupes at all: a repeated call is just another QSO.
     public func isDupe(call: String, band: Band?) -> Bool {
-        guard let band else { return false }
+        guard !activeContestId.isEmpty, let band else { return false }
         return mutations.isDupe(call: call, band: band)
     }
 
