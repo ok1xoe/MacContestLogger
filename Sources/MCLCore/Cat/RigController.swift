@@ -27,6 +27,10 @@ public protocol RigController: AnyObject, Sendable {
     /// while the connection is held, so a release requested meanwhile always wins); `false` = not keyed.
     func keyPtt(unless cancelled: () -> Bool) throws -> Bool
 
+    /// Unkeys the transmitter for a plugin release: like `setPtt(false)`, but never over a connection that may be
+    /// out of step after a timeout.
+    func releasePtt() throws
+
     /// Sends text through the rig's keyer (CW over CAT, hamlib `send_morse`).
     func sendMorse(_ text: String) throws
 
@@ -178,6 +182,10 @@ extension RigController {
         }
         try setPtt(true)
         return true
+    }
+
+    public func releasePtt() throws {
+        try setPtt(false)
     }
 }
 

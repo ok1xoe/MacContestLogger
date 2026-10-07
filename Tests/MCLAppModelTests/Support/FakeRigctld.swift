@@ -261,7 +261,7 @@ final class FakeRigctld: @unchecked Sendable {
             lines.append(line)
             let words: [Substring] = line.split(separator: " ")
             let word: String = words.first.map(String.init) ?? ""
-            if rejected.contains(word) {
+            if rejected.contains(word) || rejected.contains(line) {
                 return ["RPRT -1"]
             }
             if dropLine == line {

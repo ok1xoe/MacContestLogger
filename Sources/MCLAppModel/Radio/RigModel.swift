@@ -94,6 +94,9 @@ public final class RigModel {
     @ObservationIgnored var releaseRetryScheduled: Set<Int> = []
     /// The slow retry of a refused plugin release, while the rig stays connected.
     @ObservationIgnored var releaseSlowRetryMs = 10_000
+    /// The longest a plugin release waits for the operator's own transmission (the plugin PTT time limit; wired by
+    /// the app model).
+    @ObservationIgnored var pluginReleaseDeferralLimitMs: @MainActor () -> Int = { 30_000 }
     /// Whether the operator's voice, CW or tune keys rig `index` (wired by the app model).
     @ObservationIgnored var operatorKeying: @MainActor (Int) -> Bool = { _ in false }
     /// Plugin `T 1`s queued or on their way, per rig: a fresh-connection `T 0` sent while one is pending may be
@@ -388,7 +391,7 @@ public final class RigModel {
     /// `rigctld` or poller survives the quit.
     func shutdown() async {
         releaseFootswitchPtt()
-        releasePluginPtt()
+        releasePluginPtt(stoppingEverything: true)
         // A plugin release over a fresh connection gets through before the rigs (and a launched rigctld) go; each
         // such connection gives up after 1 s.
         await settlePluginReleases()

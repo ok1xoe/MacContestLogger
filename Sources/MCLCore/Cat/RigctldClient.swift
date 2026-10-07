@@ -33,6 +33,9 @@ public final class RigctldClient: RigController, @unchecked Sendable {
     private let closedFlag = OSAllocatedUnfairLock(initialState: false)
     /// The rig answered the split query with an error — we stop asking (under `lock`).
     private var splitUnsupported = false
+    /// A read failed (a timeout) since connecting: a late reply may still come, so the connection may be out of step
+    /// (under `lock`; plugin PTT commands refuse such a connection).
+    private var readFailed = false
 
     /// Connects (Java `new RigctldClient(host, port[, timeoutMs])`; default timeout 2,000 ms for connecting
     /// and every read). `modes` is read on every `read`/`setMode` (replacement for global `HamlibModes`).
@@ -185,16 +188,50 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         if cancelled() {
             return false
         }
+        try requireInStep()
         try send("T 1")
-        let line = try readLine()
+        let line: String = try readInStep()
         if Self.startsWith(line, "RPRT 0") {
             return true
         }
         if Self.startsWith(line, "RPRT -") {
-            // rigctld answered with an error: the rig was not keyed.
+            // rigctld answered with an error — the rig may still have acted on it (hamlib reports some errors after
+            // the command reached the rig), so the caller releases anyway.
             throw CatRefusal(message: "rigctld odmítl zaklíčování (PTT): " + line)
         }
         throw CatException("rigctld odmítl zaklíčování (PTT): " + line)
+    }
+
+    public func releasePtt() throws {
+        lock.lock()
+        defer { lock.unlock() }
+        try requireInStep()
+        try send("T 0")
+        let line: String = try readInStep()
+        if !Self.startsWith(line, "RPRT 0") {
+            throw CatException("rigctld odmítl odklíčování (PTT): " + line)
+        }
+    }
+
+    /// A plugin PTT command never goes over a connection that may be out of step (a read failed on it since it was
+    /// connected, so a late reply may still be on its way and would be read as this command's): the connection is
+    /// closed instead (the rig is then connected again; the operator's own commands keep the measured behaviour).
+    private func requireInStep() throws {
+        if readFailed {
+            close()
+            throw CatException("Spojení s rigctld je po vypršení odpovědi mimo krok — zavřeno")
+        }
+    }
+
+    /// A plugin PTT reply: a read error closes the connection (its reply may still come and must never be read as
+    /// the reply to a later command).
+    private func readInStep() throws -> String {
+        do {
+            return try readLine()
+        } catch {
+            close()
+            throw error
+        }
     }
 
     public func sendMorse(_ text: String) throws {
@@ -303,6 +340,7 @@ public final class RigctldClient: RigController, @unchecked Sendable {
         do {
             line = try socket.readLine()
         } catch {
+            readFailed = true
             throw CatException("Chyba čtení odpovědi z rigctld", cause: error)
         }
         guard let line else {

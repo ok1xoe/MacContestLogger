@@ -312,6 +312,9 @@ extension AppModel {
             guard let model else { return "no rig" }
             return await model.pluginKey(on)
         }
+        model.rig.pluginReleaseDeferralLimitMs = { [weak model] in
+            (model?.pluginWindows?.settings.pttTimeoutSeconds ?? 30) * 1_000
+        }
         model.rig.operatorKeying = { [weak model] index in
             guard let model else { return false }
             if model.keyer.voice.ptt.isKeyed(model.rig.lanes[index]) {

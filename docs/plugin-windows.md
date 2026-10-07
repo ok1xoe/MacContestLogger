@@ -265,9 +265,11 @@ Error codes: `unknown_method`, `permission`, `invalid_params`, `refused`, `unava
 Everything goes through exactly the paths of the F-keys, Esc and the footswitch PTT: the pileup simulator's lock
 refuses, Esc stops it (and everything else that transmits), the quit and a rig's disconnect release it, and a plugin
 that stops, crashes or loses its `transmit` grant never leaves the PTT keyed or its message on the air. A
-`T 1` that `rigctld` refuses (`RPRT -n`) keyed nothing: it is reported (`refused`) and nothing is owed. A `T 1` whose
-outcome is unknown (a timeout, a lost connection) is followed by `T 0` at once. Without a connected rig the PTT is
-refused. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the
+`T 1` is never assumed to have keyed nothing once it went out: whether `rigctld` refused it (`RPRT -n`; hamlib reports
+some errors after the rig acted) or its outcome is unknown (a timeout, a lost connection), `T 0` follows at once and the
+plugin gets `refused`; if that `T 0` fails too, the release is owed. A plugin `T 1` or release `T 0` never goes over a
+rig connection on which an earlier reply timed out (that late reply could be read as its own): such a connection is
+closed instead, and a plugin PTT command that times out closes it too. Without a connected rig the PTT is refused. A plugin's PTT is released after **30 s** at the latest (Settings → Pluginy, 5–300 s), counted from the
 moment the rig was keyed. While one plugin holds the PTT no other plugin can key it, and keying again does not extend
 the limit. After a forced release no plugin may key for 10 s (after a plugin's own release, for 2 s). A release never
 touches the operator's own rig connection: `T 0` goes out on it (behind the commands already queued there) and at the
@@ -287,9 +289,10 @@ goes out once (not on every poll). After the quick retries the warning offers **
 fresh release.
 
 A plugin's release never cuts the operator's own transmission on the same rig (footswitch, voice, CW, tune): the
-plugin's `T 1` is moot while the operator owns the PTT. Its `T 0` waits and goes out right after that transmission ended
-(behind the operator's own `T 0`). Esc, the indicator's Stop, a disconnect and the quit stop the operator's
-transmission too and never wait.
+plugin's `T 1` is moot while the operator owns the PTT. Its `T 0` waits and goes out as soon as that transmission
+ended (the keyer's, voice keyer's and footswitch's state is followed directly, not only at the next poll), and at the
+latest after the plugin PTT time limit. Esc, the indicator's Stop, **Uvolnit znovu**, a disconnect or a lost rig and
+the quit never wait (a release already waiting goes out at once).
 
 Only the plugin holding the PTT releases it (another plugin's `off` changes nothing, the operator's own transmissions
 are never cut by a plugin). While a plugin transmits, the main

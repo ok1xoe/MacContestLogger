@@ -68,10 +68,12 @@ extension RigModel {
                     }
                     return .keyed
                 } catch let refusal as CatRefusal {
-                    return .refused(refusal.message)
+                    // Never assumed unkeyed after `T 1` went out (hamlib reports some errors after the rig acted, and
+                    // a late reply may stand in for it): `T 0` at once, and owed if that fails too.
+                    return (try? rig.releasePtt()) != nil ? .refused(refusal.message) : .stuck(refusal.message)
                 } catch {
                     let message: String = ErrorText.message(error)
-                    return (try? rig.setPtt(false)) != nil ? .failed(message) : .stuck(message)
+                    return (try? rig.releasePtt()) != nil ? .failed(message) : .stuck(message)
                 }
             }, then: { continuation.resume(returning: $0) })
         }
@@ -91,7 +93,7 @@ extension RigModel {
         case .noRig:
             return "no rig connected"
         case .refused(let message):
-            return "the rig refused the PTT, nothing was keyed: " + message
+            return "the rig refused the PTT (released at once): " + message
         case .failed(let message):
             return message
         case .stuck(let message):
@@ -110,6 +112,14 @@ extension RigModel {
         for index in lanes.indices where pluginPttRig == index || pluginKeysInFlight[index, default: 0] > 0 {
             releasePluginPtt(onRig: index, waitForOperator: !stoppingEverything)
             any = true
+        }
+        if stoppingEverything {
+            // A release that waited for the operator goes now: the operator's transmission stops too.
+            for index in pluginReleaseDeferred.sorted() {
+                pluginReleaseDeferred.remove(index)
+                sendRelease(index)
+                any = true
+            }
         }
         return any
     }
@@ -141,7 +151,7 @@ extension RigModel {
         pluginPttOwed.insert(index)
         releaseAttempts[index] = 0
         if waitForOperator && !transmitClosed && operatorTransmitting(index) {
-            pluginReleaseDeferred.insert(index)
+            deferRelease(index)
         } else {
             pluginReleaseDeferred.remove(index)
             sendRelease(index)
@@ -163,7 +173,7 @@ extension RigModel {
     private func laneRelease(_ index: Int, epoch: Int) {
         lanes[index].run({ cat -> Bool in
             guard let rig = cat.rigOrNull(), rig.isConnected() else { return false }
-            return (try? rig.setPtt(false)) != nil
+            return (try? rig.releasePtt()) != nil
         }, then: { [weak self] released in
             guard let self, self.pluginPttOwed.contains(index) else { return }
             if released {
@@ -195,12 +205,44 @@ extension RigModel {
         }
     }
 
-    /// „Uvolnit znovu": every unconfirmed release goes out again at once.
+    /// „Uvolnit znovu": every unconfirmed release goes out again at once (one waiting for the operator, too).
     public func retryPluginRelease() {
-        for index in pluginPttOwed.sorted() where !pluginReleaseDeferred.contains(index) {
+        for index in pluginPttOwed.sorted() {
+            pluginReleaseDeferred.remove(index)
             releaseAttempts[index] = 0
             pluginPttCannotConfirm.remove(index)
             sendRelease(index)
+        }
+    }
+
+    /// The release of rig `index` waits for the operator's own transmission on it: it goes out when that ended (the
+    /// keyer's, voice keyer's and footswitch's state is watched), when the rig disconnects, on Esc or „Uvolnit
+    /// znovu", and at the latest after the plugin PTT time limit.
+    private func deferRelease(_ index: Int) {
+        pluginReleaseDeferred.insert(index)
+        watchOperator(index)
+        let epoch: Int = pluginKeyEpoch(index)
+        let limitMs: Int = max(pluginReleaseDeferralLimitMs(), 1)
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(limitMs) * 1_000_000)
+            guard let self, self.pluginReleaseDeferred.contains(index), self.pluginKeyEpoch(index) == epoch else { return }
+            // The operator's transmission did not end in time (or its end was never seen): released anyway.
+            self.pluginReleaseDeferred.remove(index)
+            self.sendRelease(index)
+        }
+    }
+
+    /// Re-checks the deferred release whenever the operator's transmit state may have changed.
+    private func watchOperator(_ index: Int) {
+        guard pluginReleaseDeferred.contains(index) else { return }
+        withObservationTracking {
+            _ = operatorTransmitting(index)
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.operatorTransmissionMayHaveEnded(index)
+                self.watchOperator(index)
+            }
         }
     }
 
@@ -250,6 +292,10 @@ extension RigModel {
             pluginCat?.close()
             if pluginPttRig == index || pluginKeysInFlight[index, default: 0] > 0 {
                 requestRelease(index, waitForOperator: false)
+            } else if pluginReleaseDeferred.contains(index) {
+                // The operator's transmission on a lost rig is moot: released now (over a fresh connection).
+                pluginReleaseDeferred.remove(index)
+                sendRelease(index)
             }
         } else if !was && connected && pluginPttOwed.contains(index) && !pluginReleaseDeferred.contains(index) {
             releaseAttempts[index] = 0

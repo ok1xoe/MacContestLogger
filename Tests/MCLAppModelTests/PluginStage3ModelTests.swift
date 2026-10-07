@@ -305,25 +305,34 @@ import Testing
         #expect(rig.plugins.pttHolder == nil)
     }
 
-    /// A `T 1` the rig's `rigctld` refuses keyed nothing: it is reported, nothing is owed and plugins key again once
-    /// the rig accepts. One whose outcome is unknown (the connection dropped) is released and owed until a `T 0`
-    /// gets through.
-    @Test func aRefusedKeyOwesNothingAndAnUnknownOneIsReleased() async throws {
+    /// A `T 1` the rig's `rigctld` refuses is never taken as "not keyed": `T 0` follows at once, and only when that
+    /// gets through is nothing owed; refused too, the release is owed. One whose outcome is unknown (the connection
+    /// dropped) is released and owed until a `T 0` gets through.
+    @Test func aRefusedKeyIsReleasedAtOnceAndAnUnknownOneIsOwed() async throws {
         let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
         defer { rig.rig.stop() }
-        rig.rig.reject("T")
+        rig.rig.reject("T 1")
         let answer: PluginJSON = await Self.ask(rig, "tx.ptt", ["on": .bool(true)])
         #expect(answer["error"]?["code"] == .string("refused"))
-        #expect(answer["error"]?["message"]?.stringValue?.contains("nothing was keyed") == true)
         await rig.model.rig.settle()
-        #expect(Self.pttCommands(rig) == ["T 1"])
+        #expect(Self.pttCommands(rig) == ["T 1", "T 0"])
         #expect(!rig.model.rig.pluginPttUnconfirmed)
         #expect(rig.model.rig.pluginPttRig == nil)
+        // `T 0` refused as well: owed.
+        rig.rig.unreject("T 1")
+        rig.rig.reject("T")
+        rig.model.rig.freshPttRelease = { _, _ in false }
+        rig.model.rig.releaseRetries = 0
+        rig.model.rig.releaseSlowRetryMs = 3_600_000
+        rig.plugins.allowTransmissions()
+        _ = await rig.model.rig.pluginPtt(true)
+        await rig.model.rig.settle()
+        #expect(rig.model.rig.pluginPttUnconfirmed)
+        rig.rig.unreject("T")
+        rig.model.rig.retryPluginRelease()
+        await eventually("released by hand") { !rig.model.rig.pluginPttUnconfirmed }
         // The outcome unknown: the connection drops on `T 1`; its `T 0` fails too — owed, and only a `T 0` that gets
         // through (here: the next connection's) clears it.
-        rig.rig.unreject("T")
-        rig.model.rig.releaseRetries = 0
-        rig.model.rig.freshPttRelease = { _, _ in false }
         rig.rig.drop(on: "T 1")
         _ = await rig.model.rig.pluginPtt(true)
         await rig.model.rig.settle()
@@ -1166,4 +1175,112 @@ import Testing
         #expect(failure.message == "cancelled by a stop or release")
         #expect(!rig.rig.commands.contains("+m"))
     }
+
+    // MARK: - seventh security review
+
+    /// Esc and „Uvolnit znovu" never wait for the operator; a release waits at most the PTT time limit.
+    @Test func aWaitingReleaseIsOverriddenAndBounded() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        model.operatorKeying = { _ in true }
+        model.pluginReleaseDeferralLimitMs = { 3_600_000 }
+        // Esc.
+        #expect(await model.pluginPtt(true) == nil)
+        #expect(model.releasePluginPtt())
+        await model.settle()
+        #expect(Self.pttCommands(rig) == ["T 1"])
+        _ = rig.model.entry.stopSending()
+        await eventually("Esc released") { Self.pttCommands(rig).last == "T 0" && !model.pluginPttUnconfirmed }
+        await model.settle()
+        // „Uvolnit znovu".
+        rig.plugins.allowTransmissions()
+        #expect(await model.pluginPtt(true) == nil)
+        #expect(model.releasePluginPtt())
+        await model.settle()
+        #expect(Self.pttCommands(rig).last == "T 1")
+        model.retryPluginRelease()
+        await eventually("released by hand") { Self.pttCommands(rig).last == "T 0" && !model.pluginPttUnconfirmed }
+        await model.settle()
+        // The bound.
+        model.pluginReleaseDeferralLimitMs = { 30 }
+        #expect(await model.pluginPtt(true) == nil)
+        #expect(model.releasePluginPtt())
+        await eventually("released after the limit") {
+            Self.pttCommands(rig).last == "T 0" && !model.pluginPttUnconfirmed
+        }
+    }
+
+    /// The end of the operator's transmission is seen at once (no poll).
+    @Test func aWaitingReleaseFollowsTheOperatorAndTheConnection() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        let flag = OperatorFlag()
+        flag.on = true
+        model.operatorKeying = { _ in flag.on }
+        model.pluginReleaseDeferralLimitMs = { 3_600_000 }
+        #expect(await model.pluginPtt(true) == nil)
+        #expect(model.releasePluginPtt())
+        await model.settle()
+        #expect(model.pluginReleaseDeferred.contains(0))
+        flag.on = false
+        await eventually("released when the operator ended") {
+            Self.pttCommands(rig).last == "T 0" && !model.pluginPttUnconfirmed
+        }
+    }
+
+    /// A rig lost while a release waits for the operator: released at once (over a fresh connection).
+    @Test func aWaitingReleaseGoesWhenTheRigIsLost() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"], pollIntervalMs: 50)
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        model.operatorKeying = { _ in true }
+        model.pluginReleaseDeferralLimitMs = { 3_600_000 }
+        #expect(await model.pluginPtt(true) == nil)
+        #expect(model.releasePluginPtt())
+        await model.settle()
+        #expect(model.pluginReleaseDeferred.contains(0))
+        rig.rig.dropNextRead()
+        await eventually("lost") { !model.connected(vfo: 0) }
+        await eventually("released on the disconnect") {
+            Self.pttCommands(rig).last == "T 0" && !model.pluginPttUnconfirmed
+        }
+        #expect(model.pluginReleaseDeferred.isEmpty)
+    }
+
+    /// The footswitch's end releases a plugin release that waited for it; the quit releases one still waiting before
+    /// the rigs disconnect.
+    @Test func theFootswitchEndAndTheQuitReleaseAWaitingRelease() async throws {
+        let rig = try await Self.make(permissions: ["read", "ui", "transmit"], granted: ["transmit"])
+        defer { rig.rig.stop() }
+        let model = rig.model.rig
+        model.pluginReleaseDeferralLimitMs = { 3_600_000 }
+        #expect(await model.pluginPtt(true) == nil)
+        model.footswitchPttRig = 0
+        #expect(model.releasePluginPtt())
+        await model.settle()
+        #expect(model.pluginReleaseDeferred.contains(0))
+        model.footswitch(false)
+        await eventually("released after the footswitch") { !model.pluginPttUnconfirmed }
+        #expect(Self.pttCommands(rig).suffix(2) == ["T 0", "T 0"])
+        // The quit.
+        model.operatorKeying = { _ in true }
+        rig.plugins.allowTransmissions()
+        #expect(await model.pluginPtt(true) == nil)
+        #expect(model.releasePluginPtt())
+        await model.settle()
+        #expect(model.pluginReleaseDeferred.contains(0))
+        // The quit's transmit release (before anything disconnects).
+        model.closeTransmit()
+        await model.settle()
+        #expect(model.pluginReleaseDeferred.isEmpty)
+        #expect(Self.pttCommands(rig).last == "T 0")
+        #expect(!model.pluginPttUnconfirmed)
+    }
+}
+
+@Observable @MainActor
+final class OperatorFlag {
+    var on = false
 }
