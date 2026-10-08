@@ -89,9 +89,10 @@ directory, a missing folder created), using the same rule as Ctrl+Shift+F. It is
 "Wav directory" shown in the dialog, so a file recorded before pressing "Použít" already lies where the keyer will
 look after it. **Otevřít složku ve Finderu** opens the wav directory.
 
-A key is not offered for recording when its message is empty, has several items (`a.wav,b.wav`), is speech
-(`[text]`), or is a macro (`!`, `#`, `*`, `@`, `{MYCALL}`, control macros such as `{WIPE}`, `{LOG}`, `{RUN}`); the
-line says why. `{OPERATOR}` needs an operator callsign (command `OPON`).
+A message may combine one audio file with control macros (`cq.wav,{LOG}`, `{WIPE},cq.wav,{RUN}`; also `{S&P}`,
+`{END}`, `{F1}`…`{F12}`, `{CLEARRIT}`, `{RITCLEAR}`, `{CQFREQ}`, `{NOSPLIT}`): that one file is recorded. A key is not
+offered for recording when its message is empty, has several audio items (`a.wav,b.wav`), is speech (`[text]`),
+or has only macros (`!`, `#`, `*`, `@`, `{MYCALL}`, control macros alone); the line says why. `{OPERATOR}` needs an operator callsign (command `OPON`).
 
 ## Controls
 

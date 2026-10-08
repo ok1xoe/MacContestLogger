@@ -79,6 +79,13 @@ import Testing
         for (text, reason) in cases {
             #expect(studio.target(for: Self.request(app, text)) == .unavailable(reason), "\(text)")
         }
+        let wav = try JavaPath(Self.wavDir(app).path)
+        for text in ["cq.wav,{LOG}", "{WIPE},cq.wav,{RUN}", "cq.wav,{f3},{S&P},{CQFREQ},{NOSPLIT},{CLEARRIT},{END}"] {
+            #expect(studio.target(for: Self.request(app, text)) == .target(try wav.resolve("cq.wav").normalize()), "\(text)")
+        }
+        #expect(studio.target(for: Self.request(app, "a.wav,b.wav,{LOG}")) == .unavailable(.several))
+        #expect(studio.target(for: Self.request(app, "[CQ *],{LOG}")) == .unavailable(.speech))
+        #expect(studio.target(for: Self.request(app, "{LOG},{WIPE}")) == .unavailable(.macro))
         app.model.operating.operatorCall = " "
         #expect(studio.target(for: Self.request(app, "{OPERATOR}/cq.wav")) == .unavailable(.operatorMissing))
     }

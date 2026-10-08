@@ -204,15 +204,35 @@ public enum VoiceMessagePlanner {
         case unavailable(NotRecordable)
     }
 
-    /// The file the voice keyer plays for a message that is one wav file (exactly `recordTarget`), or the reason there
+    /// Control macros that run an action instead of playing audio (they may stand beside one audio file).
+    static func isControlMacro(_ item: String) -> Bool {
+        let name = item.uppercased()
+        switch name {
+        case "{LOG}", "{WIPE}", "{RUN}", "{S&P}", "{END}", "{CLEARRIT}", "{RITCLEAR}", "{CQFREQ}", "{NOSPLIT}":
+            return true
+        default:
+            guard name.hasPrefix("{F"), name.hasSuffix("}"), let number = Int(name.dropFirst(2).dropLast()) else {
+                return false
+            }
+            return (1...12).contains(number) && !name.dropFirst(2).dropLast().hasPrefix("0")
+        }
+    }
+
+    /// The file the voice keyer plays for a message with one audio file item, beside any control macros (`recordTarget`), or the reason there
     /// is none. Settings records, picks and deletes this file, so the voice keyer finds it under the same name.
     public static func recordability(_ text: String?, operatorCall: String?, wavDir: JavaPath) -> RecordTarget {
         guard let text, !JavaText.isBlank(text) else { return .unavailable(.empty) }
         var tokens: [String] = []
+        var sawControl = false
         for raw in JavaText.split(text, unit: 0x2C) where !JavaText.isBlank(raw) {
-            tokens.append(JavaText.trim(raw))
+            let item = JavaText.trim(raw)
+            if isControlMacro(item) {
+                sawControl = true
+            } else {
+                tokens.append(item)
+            }
         }
-        guard let token = tokens.first else { return .unavailable(.empty) }
+        guard let token = tokens.first else { return .unavailable(sawControl ? .macro : .empty) }
         if tokens.count > 1 { return .unavailable(.several) }
         if JavaChar.equalsIgnoreCase(token, "empty.wav") { return .unavailable(.empty) }
         let units = Array(token.utf16)
@@ -228,7 +248,7 @@ public enum VoiceMessagePlanner {
         let expanded = expandPath(token, operatorCall)
         if expanded.contains("{") { return .unavailable(.macro) }
         do {
-            if let target = try recordTarget(text, operatorCall: operatorCall, wavDir: wavDir) {
+            if let target = try recordTarget(token, operatorCall: operatorCall, wavDir: wavDir) {
                 return .target(target)
             }
         } catch {
