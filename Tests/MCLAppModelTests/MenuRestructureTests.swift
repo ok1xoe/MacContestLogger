@@ -39,7 +39,8 @@ import Testing
     @Test func everyImplementedActionIsInTheTree() async throws {
         let app = try await TestApp.make()
         let ids: [String] = Self.ids(app.model.menu.entries())
-        for action in MenuModel.implementedActions {
+        // „Vymazat seznam" is only in the menu while there is something to clear (`OpenRecentTests`).
+        for action in MenuModel.implementedActions.subtracting(["recent.clear"]) {
             #expect(ids.filter { $0 == action }.count == 1, "\(action) is not exactly once in the menu")
         }
         #expect(Set(ids).count == ids.count, "an id is in the menu twice")
@@ -51,7 +52,7 @@ import Testing
         func children(_ id: String) throws -> [String] {
             try #require(Self.entry(id, in: entries)).children.filter { !$0.isSeparator }.map(\.id)
         }
-        #expect(try children("file") == ["contest.new", "contest.open", "database.new", "database.open",
+        #expect(try children("file") == ["contest.new", "contest.open", "file.openRecent", "database.new", "database.open",
                                          "file.import", "file.export", "settings.print"])
         #expect(try children("file.import") == ["settings.import", "settings.merge"])
         #expect(try children("file.export") == ["settings.export", "settings.exportCabrillo", "settings.exportEdi",

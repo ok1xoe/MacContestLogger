@@ -1242,5 +1242,8 @@
  "Pluginy smí vysílat nejvýš %s procent z každých 5 minut": "Plugins may transmit at most %s percent of any 5 minutes",
  "PTT pluginu se nepodařilo uvolnit — zkontroluj vysílač!": "The plugin's PTT could not be released — check the transmitter!",
  "Uvolnit znovu": "Release again",
- "Znovu uvolnit PTT pluginu": "Release the plugin PTT again"
+ "Znovu uvolnit PTT pluginu": "Release the plugin PTT again",
+ "Otevřít nedávné": "Open recent",
+ "Žádné nedávné závody": "No recent contests",
+ "Vymazat seznam": "Clear list"
 }

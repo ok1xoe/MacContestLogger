@@ -27,7 +27,7 @@ public final class MenuModel {
         "window.propagation", "window.bandnotes", "window.simulator", "window.dxccmap", "mult.dxcc", "mult.grid",
         "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
         "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast",
-        "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
+        "file.openRecent", "recent.clear", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
     ]
 
     /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key
@@ -37,6 +37,11 @@ public final class MenuModel {
         "edit.wipe": .wipe, "edit.wipeUndo": .wipeUndo, "edit.incrementNr": .incrementNr, "edit.note": .note,
         "edit.find": .find, "edit.deleteLast": .deleteLast, "help.docs": .help,
     ]
+
+    /// The node whose children are the contests of File → Open recent, made at run time.
+    public static let recentId = "file.openRecent"
+    /// Prefix of the id of an Open recent entry: `recent.open:<contest id>`.
+    public static let recentOpenPrefix = "recent.open:"
 
     /// Prefix of the ids of separator nodes (`sep.file.1`): drawn as a separator line, never an item.
     public static let separatorPrefix = "sep."
@@ -103,7 +108,11 @@ public final class MenuModel {
 
     /// `tr(node.label ?: DefaultMenu.labelFor(id) ?: id)`.
     public func label(_ node: MenuNode) -> String {
-        language.tr(node.label ?? DefaultMenu.labelFor(node.id) ?? node.id)
+        if node.id.hasPrefix(Self.recentOpenPrefix) {
+            // A contest's own name, not a translatable text.
+            return node.label ?? node.id
+        }
+        return language.tr(node.label ?? DefaultMenu.labelFor(node.id) ?? node.id)
     }
 
     /// Kotlin `runtimeEnabled(id, state)`.
@@ -129,12 +138,26 @@ public final class MenuModel {
     }
 
     public func isImplemented(_ id: String) -> Bool {
-        Self.implementedActions.contains(id)
+        id.hasPrefix(Self.recentOpenPrefix) || id == "recent.none" || Self.implementedActions.contains(id)
     }
 
     /// Children shown as menu entries (`tab.*` nodes are Settings tabs).
     public func menuChildren(_ node: MenuNode) -> [MenuNode] {
-        node.children.filter { !$0.id.hasPrefix(Self.tabPrefix) }
+        if node.id == Self.recentId {
+            return recentNodes()
+        }
+        return node.children.filter { !$0.id.hasPrefix(Self.tabPrefix) }
+    }
+
+    /// The Open recent submenu: the contests of the open database (newest first), a separator and „Vymazat
+    /// seznam", or one disabled line when there are none.
+    private func recentNodes() -> [MenuNode] {
+        let recent: [ContestModel.RecentContest] = contest.recent
+        guard !recent.isEmpty else {
+            return [MenuNode(id: "recent.none", label: "Žádné nedávné závody", state: .disable)]
+        }
+        return recent.map { MenuNode(id: Self.recentOpenPrefix + $0.contestId, label: $0.title) }
+            + [MenuNode(id: Self.separatorPrefix + "recent"), MenuNode(id: "recent.clear", label: "Vymazat seznam")]
     }
 
     /// A node rendered as an item: no children, or only `tab.*` children (the Settings host).

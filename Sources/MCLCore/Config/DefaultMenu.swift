@@ -8,6 +8,7 @@ public enum DefaultMenu {
 
     private static let labels: [String: String] = [
         "file": "Soubor",
+        "file.openRecent": "Otevřít nedávné",
         "file.import": "Import",
         "file.export": "Export",
         "edit": "Úpravy",
@@ -122,7 +123,7 @@ public enum DefaultMenu {
             leaf("tab.bandplan"), leaf("tab.digifreq"), leaf("tab.map"), leaf("tab.plugins"),
         ])
         let file = node("file", [
-            leaf("contest.new"), leaf("contest.open"), leaf("sep.file.1"),
+            leaf("contest.new"), leaf("contest.open"), leaf("file.openRecent"), leaf("sep.file.1"),
             leaf("database.new"), leaf("database.open"), leaf("sep.file.2"),
             node("file.import", [leaf("settings.import"), leaf("settings.merge")]),
             node("file.export", [

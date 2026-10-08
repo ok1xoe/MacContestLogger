@@ -22,6 +22,11 @@ After startup the application asks how to continue:
 - **Nový závod…** (New contest...) — you pick a definition and enter your callsign and station details.
 - **Otevřít existující…** (Open existing...) — switches to another contest in the same database.
 
+**Soubor → Otevřít nedávné** (File → Open recent) lists the last 9 contests opened in the current database,
+newest first; a click opens one the same way as **Otevřít závod…**, and **Vymazat seznam** (Clear list) empties
+the list (the contests stay in the database). The list is stored in the database file itself, so every database
+has its own.
+
 A database is a single SQLite file per contest; with **Soubor → Nová databáze…**
 (File → New database...) you can create several (for example one per weekend).
 
