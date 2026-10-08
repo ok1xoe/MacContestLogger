@@ -49,3 +49,20 @@ key are written as `***`, the e-mail address as `t***@example.com`.
 
 The queue is in memory — QSOs not sent by the time the application quits must be
 uploaded to Club Log manually (ADIF export).
+
+## Posting the result to 3830scores.com
+
+Equivalent of N1MM **Report Score to 3830**. **"Soubor → Odeslat výsledek na 3830…"** (File → Post result to 3830...;
+needs an open contest) shows the data of the [3830scores.com](https://www.3830scores.com/) score form for the active
+contest:
+
+- call, contest, category (`OPERATOR: …, POWER: …` from the contest setup), operators, locator,
+- QSOs, QSO points, multipliers (with the groups when the contest has several), bonus and QTC points when they
+  score, and the **claimed score** of the whole log,
+- a **Soapbox** field, which starts as the soapbox of the contest setup and can be edited here (it is not written
+  back).
+
+**Zkopírovat** (Copy) puts the lines on the clipboard, **Otevřít 3830scores.com** (Open 3830scores.com) opens the
+site in the browser. The site has **one form per contest** (linked in its left navigation) with an address that cannot
+be built, no documented way to prefill it and no API, so MacContestLogger **posts nothing and stores no credentials**:
+open the site, pick the contest's form and paste the copied data. (The real-time scoreboard above is another service.)

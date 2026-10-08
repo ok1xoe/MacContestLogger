@@ -535,6 +535,11 @@ public final class AppModel {
             recording?.toggle()
         }
         registerToolActions(model)
+        model.dialogs.makeScoreSubmit = { [weak model] in
+            guard let model else { return nil }
+            return ScoreSubmitModel(contest: model.contest, config: model.config, language: model.language,
+                                    callbook: model.callbook)
+        }
         model.dialogs.prefillCall = { [weak model] in
             model?.typedCall ?? ""
         }

@@ -135,10 +135,11 @@ import Testing
         // 80 keys of the window plugins and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and
         // 3 keys of File → Open recent and
         // 20 keys of copying a contest to another database and rescoring the last N hours and
-        // 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing.
-        #expect(map.count == 1_302)
+        // 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing and
+        // 15 keys of the 3830 score post.
+        #expect(map.count == 1_317)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_302)
+        #expect(german.count == 1_317)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)
