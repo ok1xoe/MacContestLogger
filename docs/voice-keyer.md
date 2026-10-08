@@ -59,6 +59,33 @@ instead of `CQ.wav` works well.
 If a message has a missing file, the keyer still transmits it without the missing
 parts. The missing files are listed in the status line.
 
+## Control macros
+
+As in N1MM+, a message may also contain control macros between the wav files. They are
+performed, never played as files (the same set and meaning as in
+[cw-keyer.md](cw-keyer.md)):
+
+| Macro | Action |
+|---|---|
+| `{LOG}` | logs the QSO |
+| `{WIPE}` | clears the fields |
+| `{RUN}` / `{S&P}` | switches the mode |
+| `{CLEARRIT}` / `{RITCLEAR}` | resets RIT |
+| `{CQFREQ}` | jump to the CQ frequency (and clear the fields) |
+| `{NOSPLIT}` | turns split off |
+| `{F1}`...`{F12}` | inserts the message of another F-key of the same set (chaining, at most 3 levels) |
+| `{END}` | ends the message; everything after it is ignored |
+
+Order: items run left to right. A macro runs once the audio before it has finished
+playing (the transmitter stays keyed), so `tu.wav,{LOG}` logs after "thank you" has
+been sent. Macros before the first wav file run at once, before the transmitter is
+keyed; a message of macros only (`{WIPE}`) does not key the transmitter at all.
+Esc stops the message and the macros after the point where it stopped do not run
+(no `{LOG}` after an interrupted message); the same applies after an audio error.
+
+Any other `{...}` item (for example `{CAT1ASC}`) is not performed and is not looked
+up as a file; the status line warns about it.
+
 ## Recording and choosing messages in Settings
 
 In **"Nastavení → Function Keys"** with the **SSB** set shown, every key whose message is exactly one wav file
