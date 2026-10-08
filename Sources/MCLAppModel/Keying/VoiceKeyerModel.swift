@@ -24,6 +24,8 @@ public final class VoiceKeyerModel {
     public private(set) var recordingStarting: Bool = false
 
     @ObservationIgnored weak var keyer: KeyerModel?
+    /// Performs a control macro of a message (`{LOG}`, `{WIPE}`, `{RUN}`…) in the entry window; wired by the app.
+    @ObservationIgnored var performAction: (@MainActor (CwMessage.Action) -> Void)?
     @ObservationIgnored private let voiceKeyer: VoiceKeyer
     @ObservationIgnored let ptt: VoicePtt
     @ObservationIgnored private let settings: VoiceSettingsBox
@@ -115,7 +117,7 @@ public final class VoiceKeyerModel {
             text: texts.joined(separator: ","), wavDir: wavDirectory, lettersPath: app.voiceKeyer.lettersPath,
             context: VoiceMessagePlanner.Context(operatorCall: operating.operatorCall, myCall: app.station.call,
                                                  hisCall: hisCall, serial: Int32(clamping: nextSerial()),
-                                                 freqHz: freqHz),
+                                                 freqHz: freqHz, functionKeys: set.map(\.text)),
             ttsVoice: app.ttsVoice, synthesize: hardware.synthesize)
         settings.update(outputDevice: app.voiceKeyer.outputDevice, pttDelayMs: app.voiceKeyer.pttDelayMs)
         ptt.arm(target: keyer.activeRigLane(), viaCat: app.voiceKeyer.pttViaCat)
@@ -137,21 +139,45 @@ public final class VoiceKeyerModel {
             show(.tr("Hlasový klíč: %s", .string(message)))
             keyer?.noteSendFailure()
         case .plan(let plan, let wav):
+            if !plan.unknownMacros.isEmpty {
+                show(.tr("%s: makra %s zatím neumím — vynechána", .string(label),
+                         .string(plan.unknownMacros.joined(separator: " "))))
+            }
             if !plan.missing.isEmpty {
                 show(.tr("%s: chybí %s (v %s)", .string(label), .string(plan.missing.joined(separator: ", ")),
                          .string(wav)))
             }
+            // Actions before the first audio (or of a message with no audio) are performed at once.
+            let leading: [CwMessage.Action] = plan.leadingActions
+            for action in leading {
+                performAction?(action)
+            }
             if plan.files.isEmpty {
-                if plan.missing.isEmpty {
+                if plan.missing.isEmpty && plan.unknownMacros.isEmpty && leading.isEmpty {
                     show(.tr("%s: zpráva je prázdná (Nastavení → Function Keys)", .string(label)))
                 }
-                keyer?.noteSendFailure()
+                // A message of control macros only is a success; one that sent nothing because of missing files is not.
+                if !plan.missing.isEmpty || (leading.isEmpty && plan.unknownMacros.isEmpty) {
+                    keyer?.noteSendFailure()
+                }
                 return
             }
             voiceToken &+= 1
             let token: Int64 = voiceToken
             playingKey = key
-            voiceKeyer.play(plan.files) { [weak self] error in
+            // Runs on the voice queue: the action is performed on the main actor and the next audio starts only after it
+            // has completed, however long that takes (a local model call). Only a hung main actor (10 s) aborts the
+            // rest of the message, which releases the transmitter; nothing ever continues out of order.
+            let onAction: @Sendable (CwMessage.Action) -> Bool = { [weak self] action in
+                let done = DispatchSemaphore(value: 0)
+                MainHop.post {
+                    defer { done.signal() }
+                    guard let self, self.voiceToken == token, self.playingKey != nil else { return }
+                    self.performAction?(action)
+                }
+                return done.wait(timeout: .now() + 10) == .success
+            }
+            voiceKeyer.play(steps: plan.playSteps, onAction: onAction) { [weak self] error in
                 MainHop.post {
                     self?.finished(token: token, error: error)
                 }

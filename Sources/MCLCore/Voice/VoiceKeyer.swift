@@ -53,6 +53,18 @@ public final class VoiceKeyer: Sendable {
 
     /// Plays files (interrupts the previous message). An empty list sends nothing.
     public func play(_ files: [JavaPath], listener: Listener?) {
+        play(steps: files.isEmpty ? [] : [.play(files)], onAction: { _ in true }, listener: listener)
+    }
+
+    /// Plays a message with control macros: the files of each `.play` step in order, and `onAction` (called on the
+    /// keyer queue; the caller hops to its own actor) for each `.action` step once the audio before it has finished,
+    /// with the transmitter still keyed; the next audio starts only after it returned `true`. After Esc, a newer message or an error nothing further runs — no action either.
+    /// A message without any audio sends nothing (the caller performs its actions itself).
+    public func play(steps: [VoiceMessagePlanner.Step], onAction: @escaping @Sendable (CwMessage.Action) -> Bool,
+                     listener: Listener?) {
+        let files: [JavaPath] = steps.flatMap { step -> [JavaPath] in
+            if case .play(let files) = step { files } else { [] }
+        }
         let (gen, closed): (Int64, Bool) = state.withLock { s in
             s.generation += 1
             return (s.generation, s.closed)
@@ -61,7 +73,7 @@ public final class VoiceKeyer: Sendable {
             return
         }
         queue.async { [self] in
-            run(gen, files, listener)
+            run(gen, steps, onAction, listener)
         }
     }
 
@@ -69,7 +81,8 @@ public final class VoiceKeyer: Sendable {
         state.withLock { $0.generation != gen }
     }
 
-    private func run(_ gen: Int64, _ files: [JavaPath], _ listener: Listener?) {
+    private func run(_ gen: Int64, _ steps: [VoiceMessagePlanner.Step],
+                     _ onAction: @Sendable (CwMessage.Action) -> Bool, _ listener: Listener?) {
         let cancelled: @Sendable () -> Bool = { [self] in isCancelled(gen) }
         if cancelled() {
             return
@@ -81,11 +94,25 @@ public final class VoiceKeyer: Sendable {
             try ptt(true)
             keyed = true
             delay(Int64(pttDelayMs()), cancelled)
-            for file in files {
-                if cancelled() {
-                    break
+            stepLoop: for step in steps {
+                switch step {
+                case .play(let files):
+                    for file in files {
+                        if cancelled() {
+                            break stepLoop
+                        }
+                        try audio(file, cancelled)
+                    }
+                case .action(let action):
+                    if cancelled() {
+                        break stepLoop
+                    }
+                    // `false` = the action did not complete: the rest of the message is dropped, never played out of
+                    // order, and the transmitter is released below.
+                    if !onAction(action) {
+                        break stepLoop
+                    }
                 }
-                try audio(file, cancelled)
             }
         } catch let failure {
             error = String(describing: failure)

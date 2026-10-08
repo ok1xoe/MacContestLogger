@@ -6,7 +6,11 @@
 ///   `{Operator}`) are replaced by the operator callsign, backslashes from N1MM files work too;
 /// - `!` the other station's callsign, `#` serial number, `*`/`{MYCALL}` my callsign, `@` frequency in kHz —
 ///   assembled from recorded letters and digits in the letters directory, a recorded snippet (`DL1.wav`) takes precedence;
-/// - `[text]` (longer than 2 characters) is spoken by speech synthesis.
+/// - `[text]` (longer than 2 characters) is spoken by speech synthesis;
+/// - control macros are performed, not played (same set and meaning as in CW, `CwMessageBuilder`): `{LOG}`, `{WIPE}`,
+///   `{RUN}`, `{S&P}`, `{CLEARRIT}`/`{RITCLEAR}`, `{CQFREQ}`, `{NOSPLIT}`; `{F1}`…`{F12}` insert another F-key's
+///   message (at most 3 levels); `{END}` ends the message (the rest is ignored); any other `{…}` item is reported
+///   in `unknownMacros` and never looked up as a file. An action runs in message order: after the audio before it.
 ///
 /// Paths are Java `Path` (`JavaPath`): `resolve` + `normalize` (`../../cq3.wav` over `/wav` →
 /// `/cq3.wav`), a missing message file is reported relative to wav (`a//b.wav` → `a/b.wav`), a missing
@@ -21,8 +25,12 @@ public enum VoiceMessagePlanner {
         public var hisCall: String
         public var serial: Int32
         public var freqHz: Int64
+        /// Texts F1…F12 of the current set for `{F1}`…; missing item = "".
+        public var functionKeys: [String]
 
-        public init(operatorCall: String, myCall: String, hisCall: String, serial: Int32, freqHz: Int64) {
+        public init(operatorCall: String, myCall: String, hisCall: String, serial: Int32, freqHz: Int64,
+                    functionKeys: [String] = []) {
+            self.functionKeys = functionKeys
             self.operatorCall = operatorCall
             self.myCall = myCall
             self.hisCall = hisCall
@@ -31,15 +39,82 @@ public enum VoiceMessagePlanner {
         }
     }
 
-    /// Files in playback order + those that are missing (paths for reporting).
+    /// One step of a message, in message order.
+    public enum Step: Equatable, Sendable {
+        /// Audio files played in a row.
+        case play([JavaPath])
+        /// A control macro; performed after the audio before it has finished.
+        case action(CwMessage.Action)
+    }
+
+    /// Files in playback order + those that are missing (paths for reporting), the same as `steps` (audio and control
+    /// macros in message order) and the macros that are not known.
     public struct Plan: Equatable, Sendable {
         public var files: [JavaPath]
         public var missing: [String]
+        public var steps: [Step]
+        public var unknownMacros: [String]
 
-        public init(files: [JavaPath], missing: [String]) {
+        public init(files: [JavaPath], missing: [String], steps: [Step]? = nil, unknownMacros: [String] = []) {
             self.files = files
             self.missing = missing
+            self.steps = steps ?? (files.isEmpty ? [] : [.play(files)])
+            self.unknownMacros = unknownMacros
         }
+
+        /// The actions before any audio: performed at once, before the transmitter is keyed.
+        public var leadingActions: [CwMessage.Action] {
+            var out: [CwMessage.Action] = []
+            for step in steps {
+                guard case .action(let action) = step else { break }
+                out.append(action)
+            }
+            return out
+        }
+
+        /// The steps from the first audio on (what the voice keyer plays).
+        public var playSteps: [Step] {
+            Array(steps.drop { if case .action = $0 { true } else { false } })
+        }
+    }
+
+    private static let actions: [String: CwMessage.Action] = [
+        "{LOG}": .log, "{WIPE}": .wipe, "{RUN}": .run, "{S&P}": .searchAndPounce,
+        "{CLEARRIT}": .clearRit, "{RITCLEAR}": .clearRit, "{CQFREQ}": .cqFrequency, "{NOSPLIT}": .splitOff,
+    ]
+
+    /// Items of a message with `{F1}`…`{F12}` replaced by the items of that key (depth ≤ 2 as in CW; deeper stays
+    /// and is reported as unknown).
+    static func items(_ text: String, _ functionKeys: [String], depth: Int = 0) -> [String] {
+        var out: [String] = []
+        for raw in JavaText.split(text, unit: 0x2C) {
+            let token = JavaText.trim(raw)
+            if depth <= 2, let key = functionKeyIndex(token) {
+                if key < functionKeys.count {
+                    out.append(contentsOf: items(functionKeys[key], functionKeys, depth: depth + 1))
+                }
+            } else {
+                out.append(token)
+            }
+        }
+        return out
+    }
+
+    /// `{F1}`…`{F12}` (ASCII case-insensitive) → index from 0.
+    private static func functionKeyIndex(_ token: String) -> Int? {
+        let units = Array(token.utf16)
+        guard units.count >= 4, units.first == 0x7B, units.last == 0x7D,
+              units[1] == 0x46 || units[1] == 0x66,
+              let n = Int(String(decoding: units[2..<(units.count - 1)], as: UTF16.self)),
+              (1...12).contains(n), units.count == String(n).utf16.count + 3 else { return nil }
+        return n - 1
+    }
+
+    /// A `{…}` item that is a macro (a single brace group), not a path with `{OPERATOR}`/`{WAVDIR}`.
+    private static func isMacroToken(_ token: String) -> Bool {
+        let units = Array(token.utf16)
+        guard units.count >= 2, units.first == 0x7B, units.last == 0x7D else { return false }
+        return !units[1..<(units.count - 1)].contains(0x7B) && !units[1..<(units.count - 1)].contains(0x7D)
     }
 
     /// Speech synthesis (TTS) to a wav file; `nil` = synthesis failed (Java `Speech`).
@@ -121,12 +196,30 @@ public enum VoiceMessagePlanner {
                             exists: (JavaPath) -> Bool, speech: Speech? = nil) throws -> Plan {
         var files: [JavaPath] = []
         var missing: [String] = []
+        var steps: [Step] = []
+        var unknown: [String] = []
+        var flushed = 0
         guard let text else {
             return Plan(files: files, missing: missing)
         }
-        for raw in JavaText.split(text, unit: 0x2C) {
-            let token = JavaText.trim(raw)
+        for token in items(text, ctx.functionKeys) {
             if token.isEmpty || JavaChar.equalsIgnoreCase(token, "empty.wav") {
+                continue
+            }
+            let macro = token.uppercased()
+            if macro == "{END}" {
+                break
+            }
+            if let action = actions[macro] {
+                if files.count > flushed {
+                    steps.append(.play(Array(files[flushed...])))
+                    flushed = files.count
+                }
+                steps.append(.action(action))
+                continue
+            }
+            if isMacroToken(token) && !["{MYCALL}", "{OPERATOR}", "{WAVDIR}"].contains(macro) {
+                unknown.append(macro)
                 continue
             }
             let units = Array(token.utf16)
@@ -156,7 +249,10 @@ public enum VoiceMessagePlanner {
                 }
             }
         }
-        return Plan(files: files, missing: missing)
+        if files.count > flushed {
+            steps.append(.play(Array(files[flushed...])))
+        }
+        return Plan(files: files, missing: missing, steps: steps, unknownMacros: unknown)
     }
 
     /// Where to record a message (N1MM "Recording on the Fly"): only when the message plays exactly one
