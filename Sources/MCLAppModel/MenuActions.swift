@@ -140,6 +140,10 @@ public enum MenuActions {
             app.dialogs.setOpen(.contests, true)
         case "contest.rescore":
             app.contest.requestRescore(manual: true)
+        case "file.copyContest":
+            app.dialogs.setOpen(.copyContest, true)
+        case "contest.rescoreHours":
+            promptRescoreHours(app: app)
         case "database.new":
             app.dialogs.setOpen(.databaseNew, true)
         case "database.open":
@@ -166,6 +170,22 @@ public enum MenuActions {
                 // Implemented by a model that is not wired yet.
                 app.status.show(EntryTexts.unavailable)
             }
+        }
+    }
+
+    /// „Přepočítat posledních N hodin…": asks for N, then rescores the QSOs of that window (`RescoreWindow`).
+    private static func promptRescoreHours(app: AppModel) {
+        let contest: ContestModel = app.contest
+        let status: StatusModel = app.status
+        app.dialogs.prompt(
+            title: ContestMessage("Přepočet skóre"),
+            hint: ContestMessage("Kolik posledních hodin přepočítat (celé číslo 1–%s)", .int(RescoreWindow.maxHours)),
+            initial: "24") { text in
+            guard let hours = RescoreWindow.parseHours(text) else {
+                status.show("Neplatný počet hodin (1–%s)", .int(RescoreWindow.maxHours))
+                return
+            }
+            contest.requestRescore(manual: true, lastHours: hours)
         }
     }
 

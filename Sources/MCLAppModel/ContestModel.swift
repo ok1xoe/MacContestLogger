@@ -67,7 +67,13 @@ public final class ContestModel {
         let contestId: String?
         let snapshot: [Qso]
         let before: Int64?
+        /// A partial rescore of the last `hours` hours: the QSOs from `since` on.
+        var hours: Int? = nil
+        var since: Date? = nil
     }
+
+    /// The clock of a partial rescore („posledních N hodin"); the injected one in tests.
+    @ObservationIgnored var now: @Sendable () -> Date = Date.init
 
     private struct ColumnsKey: Equatable {
         let activeId: String?
@@ -571,9 +577,20 @@ public final class ContestModel {
 
     /// Kotlin `requestRescore(manual)`: captures the contest, the log snapshot and the score first (a manual request
     /// runs at once).
-    public func requestRescore(manual: Bool = false) {
+    public func requestRescore(manual: Bool = false, lastHours: Int? = nil) {
         if runtime.isActive {
-            capture = RescoreCapture(contestId: runtime.activeId, snapshot: logbook.rows, before: runtime.score?.total)
+            var captured = RescoreCapture(contestId: runtime.activeId, snapshot: logbook.rows,
+                                          before: runtime.score?.total)
+            if let lastHours {
+                let since: Date = RescoreWindow.cutoff(hours: lastHours, now: now())
+                guard RescoreWindow.count(captured.snapshot, since: since) > 0 else {
+                    status.show(ContestMessage("Přepočet skóre: v posledních %s h nejsou žádná QSO", .int(lastHours)))
+                    return
+                }
+                captured.hours = lastHours
+                captured.since = since
+            }
+            capture = captured
         }
         if let message = scheduler.request(manual: manual, isActive: runtime.isActive, revision: logbook.revision) {
             status.show(message)
@@ -586,23 +603,28 @@ public final class ContestModel {
             return
         }
         rescoreTask = Task { [weak self] in
-            let outcome: ContestReplay.Outcome? = try? await BlockingQueue.run {
-                Perf.measure("rescore", String(capture.snapshot.count) + " qso") {
-                    ContestReplay.replay(fresh, capture.snapshot)
+            let ran: (outcome: ContestReplay.Outcome, window: (replayed: Int, skipped: Int)?)? =
+                try? await BlockingQueue.run {
+                    Perf.measure("rescore", String(capture.snapshot.count) + " qso") {
+                        if let since = capture.since {
+                            let result = ContestReplay.replayWindow(fresh, capture.snapshot, since: since)
+                            return (result.outcome, (result.window.count, result.skippedInWindow))
+                        }
+                        return (ContestReplay.replay(fresh, capture.snapshot), nil)
+                    }
                 }
-            }
-            guard let self, let outcome else { return }
-            await self.finishRescore(job, capture: capture, outcome: outcome)
+            guard let self, let ran else { return }
+            await self.finishRescore(job, capture: capture, outcome: ran.outcome, window: ran.window)
         }
     }
 
     private func finishRescore(_ job: RescoreScheduler.Job, capture: RescoreCapture,
-                               outcome: ContestReplay.Outcome) async {
+                               outcome: ContestReplay.Outcome, window: (replayed: Int, skipped: Int)?) async {
         switch scheduler.finish(job, currentRevision: logbook.revision) {
         case .discard:
             return
         case .rerun(let manual):
-            requestRescore(manual: manual)
+            requestRescore(manual: manual, lastHours: capture.hours)
             return
         case .adopt:
             break
@@ -612,7 +634,10 @@ public final class ContestModel {
         sync()
         guard job.manual else { return }
         let dxcc: (any DxccLookup)? = runtime.dxccLookup
-        let snapshot: [Qso] = capture.snapshot
+        // A partial rescore writes only inside its window (the earlier QSOs are context for the replay).
+        let snapshot: [Qso] = capture.since.map { since in
+            capture.snapshot.filter { RescoreWindow.contains($0, since: since) }
+        } ?? capture.snapshot
         let filled: Int = (try? await database.handle.run { access in
             RescoreScheduler.backfillDxcc(snapshot, dxcc: dxcc) { qso in
                 try access.service.update(qso)
@@ -622,8 +647,14 @@ public final class ContestModel {
             logbook.bumpRevision()
         }
         let after: Int64 = runtime.score?.total ?? 0
-        let parts: [ContestMessage] = RescoreScheduler.summary(replayed: outcome.replayed, skipped: outcome.skipped,
-                                                               before: capture.before, after: after, filled: filled)
+        let parts: [ContestMessage]
+        if let hours = capture.hours, let window {
+            parts = RescoreScheduler.windowSummary(hours: hours, replayed: window.replayed, skipped: window.skipped,
+                                                   before: capture.before, after: after, filled: filled)
+        } else {
+            parts = RescoreScheduler.summary(replayed: outcome.replayed, skipped: outcome.skipped,
+                                             before: capture.before, after: after, filled: filled)
+        }
         status.showJoined(parts, separator: " · ")
     }
 

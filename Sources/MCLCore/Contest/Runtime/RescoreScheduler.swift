@@ -188,6 +188,25 @@ public final class RescoreScheduler {
         return parts
     }
 
+    /// Status parts of a manual recount of the last `hours` hours: the QSOs of the window, the score of the whole log,
+    /// then skipped and filled as in `summary`.
+    nonisolated public static func windowSummary(hours: Int, replayed: Int, skipped: Int, before: Int64?, after: Int64,
+                                                 filled: Int) -> [ContestMessage] {
+        var parts: [ContestMessage] = summary(replayed: replayed, skipped: skipped, before: before, after: after,
+                                              filled: filled)
+        parts[0] = ContestMessage("Skóre přepočteno za posledních %s h: %s QSO, celkem %s (%s)",
+                                  parts: [.value(.int(hours)), .value(.int(replayed)),
+                                          .value(.string(String(after))), .message(changeMessage(before, after))])
+        return parts
+    }
+
+    nonisolated private static func changeMessage(_ before: Int64?, _ after: Int64) -> ContestMessage {
+        if let before, before != after {
+            return ContestMessage("předtím %s", .string(String(before)))
+        }
+        return ContestMessage("beze změny")
+    }
+
     /// `summary` translated and joined like Kotlin `buildString`.
     nonisolated public static func summaryText(_ parts: [ContestMessage], translator: Translator,
                                                decimalSeparator: String = ".") -> String {
