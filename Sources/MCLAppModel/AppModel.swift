@@ -633,6 +633,9 @@ public final class AppModel {
             base.functionKeys = context.cw.messages(run: context.run, opposite: false).map(\.text)
             return base
         }
+        keyer.voice.performAction = { [weak entry] action in
+            entry?.performMacroAction(action)
+        }
         keyer.entryModeKeyable = { [weak entry, weak keyer] in
             guard let entry, let keyer else { return false }
             return CqRepeatLoop.isKeyable(mode: entry.form.mode, digitalReady: keyer.digital.ready)

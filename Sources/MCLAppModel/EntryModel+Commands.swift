@@ -451,7 +451,7 @@ extension EntryModel {
             show(message)
         }
         for action in outcome.actions {
-            macroAction(action)
+            performMacroAction(action)
         }
         if let freqHz = outcome.cqSentFreqHz {
             operating.onCqSent(freqHz)
@@ -465,7 +465,7 @@ extension EntryModel {
     }
 
     /// `CwMessage.Action` of a sent message (`EP:731-741`).
-    private func macroAction(_ action: CwMessage.Action) {
+    func performMacroAction(_ action: CwMessage.Action) {
         switch action {
         case .log:
             submit()
