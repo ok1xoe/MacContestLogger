@@ -53,14 +53,14 @@ public final class VoiceKeyer: Sendable {
 
     /// Plays files (interrupts the previous message). An empty list sends nothing.
     public func play(_ files: [JavaPath], listener: Listener?) {
-        play(steps: files.isEmpty ? [] : [.play(files)], onAction: { _ in }, listener: listener)
+        play(steps: files.isEmpty ? [] : [.play(files)], onAction: { _ in true }, listener: listener)
     }
 
     /// Plays a message with control macros: the files of each `.play` step in order, and `onAction` (called on the
     /// keyer queue; the caller hops to its own actor) for each `.action` step once the audio before it has finished,
-    /// with the transmitter still keyed. After Esc, a newer message or an error nothing further runs — no action either.
+    /// with the transmitter still keyed; the next audio starts only after it returned `true`. After Esc, a newer message or an error nothing further runs — no action either.
     /// A message without any audio sends nothing (the caller performs its actions itself).
-    public func play(steps: [VoiceMessagePlanner.Step], onAction: @escaping @Sendable (CwMessage.Action) -> Void,
+    public func play(steps: [VoiceMessagePlanner.Step], onAction: @escaping @Sendable (CwMessage.Action) -> Bool,
                      listener: Listener?) {
         let files: [JavaPath] = steps.flatMap { step -> [JavaPath] in
             if case .play(let files) = step { files } else { [] }
@@ -82,7 +82,7 @@ public final class VoiceKeyer: Sendable {
     }
 
     private func run(_ gen: Int64, _ steps: [VoiceMessagePlanner.Step],
-                     _ onAction: @Sendable (CwMessage.Action) -> Void, _ listener: Listener?) {
+                     _ onAction: @Sendable (CwMessage.Action) -> Bool, _ listener: Listener?) {
         let cancelled: @Sendable () -> Bool = { [self] in isCancelled(gen) }
         if cancelled() {
             return
@@ -107,7 +107,11 @@ public final class VoiceKeyer: Sendable {
                     if cancelled() {
                         break stepLoop
                     }
-                    onAction(action)
+                    // `false` = the action did not complete: the rest of the message is dropped, never played out of
+                    // order, and the transmitter is released below.
+                    if !onAction(action) {
+                        break stepLoop
+                    }
                 }
             }
         } catch let failure {

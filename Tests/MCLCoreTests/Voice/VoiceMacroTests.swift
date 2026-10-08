@@ -114,7 +114,7 @@ import Testing
         let keyer = make(events)
         let done = VoiceKeyerTests.Done()
         keyer.play(steps: [.play([Self.file("cq.wav")]), .action(.log), .play([Self.file("tu.wav")]), .action(.wipe)],
-                   onAction: { events.add("action \($0.rawValue)") }, listener: done.listener)
+                   onAction: { events.add("action \($0.rawValue)"); return true }, listener: done.listener)
         #expect(await done.value() == nil)
         keyer.close()
         #expect(events.all == ["PTT on", "play cq.wav", "action LOG", "play tu.wav", "action WIPE", "PTT off"])
@@ -125,7 +125,7 @@ import Testing
         let keyer = make(events, held: true)
         let done = VoiceKeyerTests.Done()
         keyer.play(steps: [.play([Self.file("cq.wav")]), .action(.log)],
-                   onAction: { events.add("action \($0.rawValue)") }, listener: done.listener)
+                   onAction: { events.add("action \($0.rawValue)"); return true }, listener: done.listener)
         await events.waitFor { $0.contains("play cq.wav") }
         keyer.stop()
         #expect(await done.value() == nil)
@@ -139,9 +139,23 @@ import Testing
                                ptt: { on in events.add(on ? "PTT on" : "PTT off") }, pttDelayMs: { 0 })
         let done = VoiceKeyerTests.Done()
         keyer.play(steps: [.play([Self.file("cq.wav")]), .action(.log)],
-                   onAction: { events.add("action \($0.rawValue)") }, listener: done.listener)
+                   onAction: { events.add("action \($0.rawValue)"); return true }, listener: done.listener)
         #expect(await done.value() == "boom")
         keyer.close()
         #expect(events.all == ["PTT on", "PTT off"])
+    }
+}
+
+extension VoiceMacroTests {
+    @Test func anActionThatDoesNotCompleteDropsTheRestAndReleasesTheKey() async {
+        let events = VoiceKeyerTests.Events()
+        let keyer = VoiceKeyer(audio: { file, _ in events.add("play " + (file.description.split(separator: "/").last.map(String.init) ?? "")) },
+                               ptt: { on in events.add(on ? "PTT on" : "PTT off") }, pttDelayMs: { 0 })
+        let done = VoiceKeyerTests.Done()
+        keyer.play(steps: [.play([Self.file("cq.wav")]), .action(.log), .play([Self.file("tu.wav")])],
+                   onAction: { events.add("action \($0.rawValue)"); return false }, listener: done.listener)
+        #expect(await done.value() == nil)
+        keyer.close()
+        #expect(events.all == ["PTT on", "play cq.wav", "action LOG", "PTT off"])
     }
 }

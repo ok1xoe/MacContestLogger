@@ -165,17 +165,17 @@ public final class VoiceKeyerModel {
             voiceToken &+= 1
             let token: Int64 = voiceToken
             playingKey = key
-            // Runs on the voice queue: the action is performed on the main actor and the next audio waits for it (so
-            // `{LOG},tu.wav` logs before "tu" starts), but never longer than a second, so a busy main actor cannot
-            // hold the transmitter keyed.
-            let onAction: @Sendable (CwMessage.Action) -> Void = { [weak self] action in
+            // Runs on the voice queue: the action is performed on the main actor and the next audio starts only after it
+            // has completed, however long that takes (a local model call). Only a hung main actor (10 s) aborts the
+            // rest of the message, which releases the transmitter; nothing ever continues out of order.
+            let onAction: @Sendable (CwMessage.Action) -> Bool = { [weak self] action in
                 let done = DispatchSemaphore(value: 0)
                 MainHop.post {
                     defer { done.signal() }
                     guard let self, self.voiceToken == token, self.playingKey != nil else { return }
                     self.performAction?(action)
                 }
-                _ = done.wait(timeout: .now() + 1)
+                return done.wait(timeout: .now() + 10) == .success
             }
             voiceKeyer.play(steps: plan.playSteps, onAction: onAction) { [weak self] error in
                 MainHop.post {
