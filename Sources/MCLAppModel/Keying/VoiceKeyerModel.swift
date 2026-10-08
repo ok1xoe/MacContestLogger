@@ -23,6 +23,8 @@ public final class VoiceKeyerModel {
     /// A recording is starting (the input opens on the voice lane).
     public private(set) var recordingStarting: Bool = false
 
+    /// Recording and choosing the files of the keys in Settings.
+    @ObservationIgnored public let studio: VoiceMessageStudio
     @ObservationIgnored weak var keyer: KeyerModel?
     @ObservationIgnored private let voiceKeyer: VoiceKeyer
     @ObservationIgnored let ptt: VoicePtt
@@ -67,14 +69,23 @@ public final class VoiceKeyerModel {
         self.settings = settings
         let ptt = VoicePtt()
         self.ptt = ptt
+        studio = VoiceMessageStudio(VoiceMessageStudio.Dependencies(
+            hardware: dependencies.hardware, config: dependencies.config, operating: dependencies.operating,
+            clock: dependencies.clock, dataDir: dependencies.dataDir))
         voiceKeyer = VoiceKeyer(audio: dependencies.hardware.voicePlayer { settings.outputDevice },
                                 ptt: { on in try ptt.set(on) },
                                 pttDelayMs: { settings.pttDelayMs }, delay: dependencies.hardware.voicePttDelay)
+        studio.voice = self
     }
 
     /// Esc would stop something here.
     public var isActive: Bool {
         playingKey != nil || planning || recording != nil || recordingStarting
+    }
+
+    /// A message is planned, playing or recorded, or the rig is keyed by it (the studio refuses to start then).
+    var keyerBusy: Bool {
+        playingKey != nil || planning || recording != nil || recordingStarting || voiceKeyer.isPlaying
     }
 
     /// Kotlin `wavDir()`: the configured directory (trimmed), otherwise `<data>/wav`.
@@ -96,6 +107,10 @@ public final class VoiceKeyerModel {
     /// error follow when the plan or the playback is done.
     public func play(_ indices: [Int], hisCall: String, freqHz: Int64, opposite: Bool) -> EntryStatus? {
         guard let last = indices.last, let keyer, !closed else { return nil }
+        if studio.isRecording {
+            keyer.noteSendFailure()
+            return .tr("Zpráva se nahrává v Nastavení — nejdřív ji ukonči")
+        }
         if recording != nil || recordingStarting {
             keyer.noteSendFailure()
             return .tr("Nahrává se — nejdřív ukonči záznam (Esc)")
@@ -202,6 +217,9 @@ public final class VoiceKeyerModel {
             return nil
         }
         guard !closed else { return nil }
+        if studio.isRecording {
+            return .tr("Zpráva se nahrává v Nastavení — nejdřív ji ukonči")
+        }
         let set: [FunctionKeyMessage] = messages(opposite: false)
         guard index >= 0, index < set.count else { return nil }
         let wav: JavaPath? = try? JavaPath(wavDirectory)
@@ -304,6 +322,7 @@ public final class VoiceKeyerModel {
         recordingKey = nil
         playingKey = nil
         let voiceKeyer: VoiceKeyer = self.voiceKeyer
+        await studio.shutdown()
         // The message on the air stops at once (the state lock only), not when the plan lane is free; the lane then
         // drains it (its PTT released over the rig's lane).
         voiceKeyer.close()

@@ -180,6 +180,63 @@ public enum VoiceMessagePlanner {
         return rel.isAbsolute ? rel : wavDir.resolve(rel).normalize()
     }
 
+    /// Why a message text has no single wav file to record into (Settings → Function Keys).
+    public enum NotRecordable: Equatable, Sendable {
+        /// Empty text or `empty.wav`: the message transmits nothing.
+        case empty
+        /// More than one item: a recording replaces exactly one file.
+        case several
+        /// `[text]`: spoken by speech synthesis, no recording involved.
+        case speech
+        /// `!`, `#`, `*`, `@`, `{MYCALL}` or a control macro such as `{WIPE}`, `{LOG}`, `{RUN}`: not a wav file.
+        case macro
+        /// A single item that is not a `.wav` name.
+        case notWav
+        /// The path uses `{OPERATOR}` but no operator callsign is set, so the folder would be empty.
+        case operatorMissing
+        /// The path has a NUL character or otherwise cannot be a path.
+        case invalidPath
+    }
+
+    /// The result of `recordability`.
+    public enum RecordTarget: Equatable, Sendable {
+        case target(JavaPath)
+        case unavailable(NotRecordable)
+    }
+
+    /// The file the voice keyer plays for a message that is one wav file (exactly `recordTarget`), or the reason there
+    /// is none. Settings records, picks and deletes this file, so the voice keyer finds it under the same name.
+    public static func recordability(_ text: String?, operatorCall: String?, wavDir: JavaPath) -> RecordTarget {
+        guard let text, !JavaText.isBlank(text) else { return .unavailable(.empty) }
+        var tokens: [String] = []
+        for raw in JavaText.split(text, unit: 0x2C) where !JavaText.isBlank(raw) {
+            tokens.append(JavaText.trim(raw))
+        }
+        guard let token = tokens.first else { return .unavailable(.empty) }
+        if tokens.count > 1 { return .unavailable(.several) }
+        if JavaChar.equalsIgnoreCase(token, "empty.wav") { return .unavailable(.empty) }
+        let units = Array(token.utf16)
+        if units.first == 0x5B && units.last == 0x5D && units.count > 2 { return .unavailable(.speech) }
+        switch token.uppercased() {
+        case "!", "#", "*", "@", "{MYCALL}": return .unavailable(.macro)
+        default: break
+        }
+        let hasOperator = token.contains("{OPERATOR}") || token.contains("{WAVDIR}") || token.contains("{operator}")
+        if hasOperator && (operatorCall.map { JavaText.isBlank($0) } ?? true) {
+            return .unavailable(.operatorMissing)
+        }
+        let expanded = expandPath(token, operatorCall)
+        if expanded.contains("{") { return .unavailable(.macro) }
+        do {
+            if let target = try recordTarget(text, operatorCall: operatorCall, wavDir: wavDir) {
+                return .target(target)
+            }
+        } catch {
+            return .unavailable(.invalidPath)
+        }
+        return .unavailable(.notWav)
+    }
+
     /// kHz with one decimal when non-zero: 14 250 500 Hz → "14250.5".
     static func frequency(_ freqHz: Int64) -> String {
         if freqHz <= 0 {

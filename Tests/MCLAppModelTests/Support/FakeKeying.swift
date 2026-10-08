@@ -134,6 +134,7 @@ final class FakeKeyingHardware: @unchecked Sendable {
     private var audioFailure: String?
     private var recordFailure: String?
     private var recordStopFailure: String?
+    private var microphoneAllowed = true
     private var playFailure: String?
     private var played: [[UInt8]] = []
     private var audioGeneration: UInt64?
@@ -284,6 +285,11 @@ final class FakeKeyingHardware: @unchecked Sendable {
         lock.withLock { recordFailure = message }
     }
 
+    /// The system's microphone permission: `false` = denied.
+    func allowMicrophone(_ allowed: Bool) {
+        lock.withLock { microphoneAllowed = allowed }
+    }
+
     func failRecordingStop(_ message: String?) {
         lock.withLock { recordStopFailure = message }
     }
@@ -328,6 +334,10 @@ final class FakeKeyingHardware: @unchecked Sendable {
             let recording = FakeRecording(target: target, stopFailure: lock.withLock { recordStopFailure })
             lock.withLock { recordings.append(recording) }
             return recording
+        }
+        ports.microphoneAccess = { [self] in
+            record("microphone access")
+            return lock.withLock { microphoneAllowed }
         }
         ports.synthesize = { [self] _, _, text in
             speechGate.lock()
