@@ -87,6 +87,7 @@ struct MainWindowView: View {
                     }
                 }
                 .modifier(DialogPresenter(app: app))
+                .modifier(PluginConsentPresenter(app: app))
                 .modifier(WindowRequestPresenter(app: app))
                 .modifier(DataToolsDialogPresenter(app: app))
                 .modifier(EntryDialogPresenter(app: app))
@@ -116,6 +117,8 @@ struct MainWindowView: View {
                 .padding(.horizontal, 8)
                 .padding(.top, 4)
             EntryPanelView(app: app, panel: app.panel(vfo: 0), focus: focus, wheel: wheel)
+            PluginTransmitIndicator(app: app)
+            PluginDockArea(app: app)
             Spacer(minLength: 0)
             if app.contest.isActive {
                 ScoreBarView(app: app)
@@ -131,6 +134,10 @@ struct MainWindowView: View {
         let ids: [String] = app.windows.openIds.filter { !WindowsModel.notPersisted.contains($0) }
         for id in ids where WindowsModel.implemented.contains(id) {
             openWindow(id: WindowsModel.sceneId(for: id))
+        }
+        // The plugin windows reopen too; each starts its plugin once the plugins directory was read.
+        for id in ids where PluginCatalog.parseWindowKey(id) != nil {
+            openWindow(id: PluginWindowView.sceneId, value: id)
         }
     }
 }
@@ -186,10 +193,10 @@ struct ScoreBarView: View {
             Text(verbatim: app.language.tr("Skóre:") + " " + line.total)
                 .windowFont(16, weight: .bold, design: .monospaced)
         }
-        .foregroundStyle(Color(domain: DomainColors.onStrip))
+        .foregroundStyle(.mclOnStrip)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color(domain: DomainColors.strip))
+        .background(.mclStrip)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: app.language.tr("Skóre")))
         .accessibilityValue(Text(verbatim: AccessibilityText.scoreBarValue(

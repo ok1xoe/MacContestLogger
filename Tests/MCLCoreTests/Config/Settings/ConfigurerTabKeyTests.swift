@@ -22,6 +22,6 @@ import Testing
 
     /// The name is kept from Kotlin so that the two test sets pair up; the Kotlin test asserts 20 tabs too.
     @Test func nineteenTabs() {
-        #expect(ConfigurerTab.allCases.count == 20)
+        #expect(ConfigurerTab.allCases.count == 21)
     }
 }

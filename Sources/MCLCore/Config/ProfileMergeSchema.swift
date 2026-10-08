@@ -17,12 +17,21 @@ enum ProfileMergeSchema {
 
     /// Hand-maintained Swift-only properties by owning Java class (see the type's documentation): the two switches
     /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`), the preferred online callbook
-    /// (`preferredCallbook`) and Club Log's DXCC data switch (`clubLog.ctyEnabled`).
+    /// (`preferredCallbook`) Club Log's DXCC data switch (`clubLog.ctyEnabled`) and the DX cluster Bands/Modes spot filter
+    /// (`dxCluster.spotFilter*`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
             Property("nPlusOneEnabled", .boolean, .fieldDefault),
             Property("preferredCallbook", .string, .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.DxClusterConfig": [
+            Property("spotFilterHiddenBands", .list(.string), .fieldDefault),
+            Property("spotFilterHiddenModes", .list(.string), .fieldDefault),
+            Property("spotFilterContest", .boolean, .fieldDefault),
+            Property("spotFilterSpotterContinents", .list(.string), .fieldDefault),
+            Property("spotFilterSpotterOwnCountry", .boolean, .fieldDefault),
+            Property("spotFilterHideNonWorkable", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
             Property("ctyEnabled", .boolean, .fieldDefault),

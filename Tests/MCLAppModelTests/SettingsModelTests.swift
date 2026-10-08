@@ -186,7 +186,7 @@ struct SettingsHarness {
         settings.open()
 
         #expect(settings.isOpen)
-        #expect(settings.specs.count == 20)
+        #expect(settings.specs.count == 21)
         #expect(settings.selected == .hardware)
         #expect(harness.model.windows.windowRequest?.id == "settings")
         await settings.settle()

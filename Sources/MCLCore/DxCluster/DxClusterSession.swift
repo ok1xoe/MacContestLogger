@@ -274,6 +274,8 @@ public final class DxClusterSession: @unchecked Sendable {
         guard let c = client else { return }
         let cmd = KotlinText.trim(command)
         if cmd.isEmpty { return }
+        // One command per call: an embedded line end would make it several (never sent).
+        if cmd.unicodeScalars.contains(where: { $0 == "\r" || $0 == "\n" }) { return }
         sendInBackground(c, cmd)
         try log.tx(cmd)
     }

@@ -16,7 +16,7 @@ struct EntryWindowHeader: View {
             let active: Bool = rig.vfo.activeVfo == vfo
             Text(verbatim: Self.text(so2r: rig.vfo.so2r, vfo: vfo, active: active, language: app.language))
                 .windowFont(12, weight: .medium)
-                .foregroundStyle(active ? Color(domain: DomainColors.primary) : Color.secondary)
+                .foregroundStyle(active ? AnyShapeStyle(.mclPrimary) : AnyShapeStyle(Color.secondary))
         }
     }
 
@@ -43,7 +43,7 @@ struct FrequencyStripView: View {
 
     var body: some View {
         let entry: EntryModel = panel.entry
-        let onStrip = Color(domain: DomainColors.onStrip)
+        let onStrip = AccentToken(kind: .onStrip)
         HStack(alignment: .center, spacing: 0) {
             WindowFontReader { size in
                 EntryTextField(key: nil, text: entry.form.freqKHz, transform: .frequency,
@@ -73,7 +73,7 @@ struct FrequencyStripView: View {
         .foregroundStyle(onStrip)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(RoundedRectangle(cornerRadius: 6).fill(Color(domain: DomainColors.strip)))
+        .background(RoundedRectangle(cornerRadius: 6).fill(.mclStrip))
     }
 }
 

@@ -82,6 +82,7 @@ final class DxClusterWindowState: ObservableObject {
     @Published var editLabel: String = ""
     @Published var editCommand: String = ""
     @Published var sheetFontSize: Int = WindowFont.defaultSize
+    @Published var showFilter: Bool = false
 }
 
 /// Kotlin `DxClusterWindow` (`dxCluster` 760×560, `DxClusterWindow.kt:77-278`): the favourite, connect / log in, the
@@ -112,7 +113,7 @@ struct DxClusterWindowView: View {
     private func content(_ app: AppModel) -> some View {
         let language: LanguageModel = app.language
         let cluster: DxClusterModel = app.dxCluster
-        let lines: [String] = consoleLines(cluster)
+        let lines: [String] = consoleLines(app)
         return VStack(alignment: .leading, spacing: 0) {
             WindowTopBar(size: $session.fontSize, language: language)
                 .padding(.horizontal, 8)
@@ -139,12 +140,21 @@ struct DxClusterWindowView: View {
         .sheet(item: Binding(get: { state.edit }, set: { state.edit = $0 })) { edit in
             MacroEditSheet(app: app, state: state, index: edit.id)
         }
+        .sheet(isPresented: Binding(get: { state.showFilter }, set: { state.showFilter = $0 })) {
+            SpotFilterSheet(app: app, state: state)
+        }
     }
 
     /// The traffic log as of the last revision (the model coalesces the log's listener into `logRevision`).
-    private func consoleLines(_ cluster: DxClusterModel) -> [String] {
+    /// Spot lines pass the Bands/Modes and origin filter; every other line (command replies, WWV, prompts) stays.
+    private func consoleLines(_ app: AppModel) -> [String] {
+        let cluster: DxClusterModel = app.dxCluster
         _ = cluster.logRevision
-        return cluster.log.snapshot()
+        _ = app.spotAnalysis.revision
+        let filter: SpotFilter = cluster.spotFilter
+        let all: [String] = cluster.log.snapshot()
+        guard !filter.isDefault else { return all }
+        return filter.applyToConsole(all, analyzer: app.spotAnalysis.current())
     }
 
     // MARK: - header
@@ -177,6 +187,16 @@ struct DxClusterWindowView: View {
             .disabled(!cluster.connected || selected == nil)
             .accessibilityIdentifier("dxcluster.login")
             Spacer(minLength: 0)
+            Button {
+                state.sheetFontSize = session.fontSize
+                state.showFilter = true
+            } label: {
+                Text(verbatim: language.tr("Filtr spotů") + (cluster.spotFilter.isDefault ? "" : " •"))
+                    .windowFont(13)
+            }
+            .accessibilityLabel(language.tr("Filtr spotů"))
+            .accessibilityValue(cluster.spotFilter.isDefault ? "" : language.tr("zapnuto"))
+            .accessibilityIdentifier("dxcluster.filter")
             Button {
                 let board = NSPasteboard.general
                 board.clearContents()

@@ -15,9 +15,19 @@ enum InfoColors {
     static let operatorCall = Color(red: 0x15 / 255, green: 0x65 / 255, blue: 0xC0 / 255)
 
     /// The colour of a bar or a point against the goal (`barColor`).
-    static func color(_ status: GoalStatus) -> Color {
+    static func color(_ status: GoalStatus) -> AnyShapeStyle {
         switch status {
-        case .none: return Color(domain: DomainColors.primary)
+        case .none: return AnyShapeStyle(.mclPrimary)
+        case .met: return AnyShapeStyle(goalMet)
+        case .close: return AnyShapeStyle(goalClose)
+        case .missed: return AnyShapeStyle(goalMissed)
+        }
+    }
+
+    /// The same for a `Canvas`, which resolves against its own environment.
+    static func color(_ status: GoalStatus, in environment: EnvironmentValues) -> Color {
+        switch status {
+        case .none: return AccentToken.color(.primary, in: environment)
         case .met: return goalMet
         case .close: return goalClose
         case .missed: return goalMissed
@@ -176,7 +186,7 @@ struct TrendChart: View {
             context.stroke(line, with: .color(InfoColors.goalLine),
                            style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
         }
-        let lineColor: Color = Color(domain: DomainColors.primary)
+        let lineColor: Color = AccentToken.color(.primary, in: context.environment)
         for index in 0..<(points.count - 1) {
             let unfinished: Bool = index == points.count - 2
             var segment = Path()
@@ -189,7 +199,7 @@ struct TrendChart: View {
                                       design: .monospaced)
         for (index, point) in points.enumerated() {
             let center = CGPoint(x: xAt(index), y: yAt(point.value))
-            let color: Color = InfoColors.color(point.status)
+            let color: Color = InfoColors.color(point.status, in: context.environment)
             let dot = Path(ellipseIn: CGRect(x: center.x - 3.5, y: center.y - 3.5, width: 7, height: 7))
             if index == points.count - 1 {
                 context.stroke(dot, with: .color(color), lineWidth: 1.5)
@@ -223,7 +233,7 @@ struct InfoTimerView: View {
                 .lineLimit(1)
             Text(verbatim: cell.value ?? "—")
                 .windowFont(18, weight: .bold, design: .monospaced)
-                .foregroundStyle(background == nil ? Color(domain: DomainColors.primary) : Color.black)
+                .foregroundStyle(background == nil ? AnyShapeStyle(.mclPrimary) : AnyShapeStyle(Color.black))
                 .lineLimit(1)
         }
         .padding(.horizontal, 4)

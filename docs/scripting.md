@@ -22,6 +22,9 @@ The commands are executed in order as if the operator were typing them; a nested
 
 ## Plugins
 
+Plugins that show their own windows and read the log while they run are described in
+[Plugin windows](plugin-windows.md); the event plugins below are unaffected by them.
+
 An executable file (a script with `#!`, a program) in a subdirectory according to
 the event:
 

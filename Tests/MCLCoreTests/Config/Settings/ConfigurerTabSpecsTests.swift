@@ -27,7 +27,7 @@ import Testing
 
     @Test func defaultTreeWithoutLabelsUsesDefaultMenuLabels() {
         let specs = ConfigurerTabSpecs.build(menu: DefaultMenu.tree())
-        #expect(specs.count == 20)
+        #expect(specs.count == 21)
         for spec in specs {
             #expect(spec.labelKey == DefaultMenu.labelFor("tab." + spec.tab.key))
         }
@@ -67,7 +67,7 @@ import Testing
         let specs = ConfigurerTabSpecs.build(menu: cfg)
         #expect(specs.map(\.tab) == ConfigurerTab.allCases)
         #expect(specs.allSatisfy { $0.state == .enable && $0.labelKey == $0.tab.titleKey })
-        #expect(specs.filter(\.isLabelTranslated).map(\.tab) == [.keys, .winkey, .contest, .bandplan])
+        #expect(specs.filter(\.isLabelTranslated).map(\.tab) == [.keys, .winkey, .contest, .bandplan, .plugins])
     }
 
     /// `findTabHost` checks a node before its children and stops at the first match (pre-order, depth-first).

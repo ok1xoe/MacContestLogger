@@ -1,0 +1,9 @@
+{
+  "protocol": 1,
+  "name": "QSOs by band",
+  "version": "1.0",
+  "permissions": ["read", "ui"],
+  "events": ["qso-logged", "qso-edited", "qso-deleted", "contest-opened", "contest-closed"],
+  "run": "run.py",
+  "windows": [{ "id": "main", "title": "QSOs by band", "size": [420, 360] }]
+}

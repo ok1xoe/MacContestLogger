@@ -41,6 +41,9 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
     private var observers: [NSObjectProtocol] = []
     private var observations: [NSKeyValueObservation] = []
     private var checkScheduled = false
+    /// Window → Custom: the windows of the window plugins, filled each time the menu opens.
+    private var customItem: NSMenuItem?
+    private var customSeparator: NSMenuItem?
 
     init(app: AppModel) {
         self.app = app
@@ -101,6 +104,8 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
                 refresh(entry, path: "")
             }
             settingsItem?.title = app.language.tr("Nastavení…")
+            customItem?.title = app.language.tr("Vlastní")
+            customItem?.submenu?.title = app.language.tr("Vlastní")
             return
         }
         shape = newShape
@@ -151,6 +156,9 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
                 submenu.addItem(standard)
             }
         }
+        if path.isEmpty && entry.id == "window" {
+            addCustomMenu(to: submenu)
+        }
         item.submenu = submenu
         item.isEnabled = entry.enabled
         return item
@@ -174,6 +182,43 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
         for child in entry.children {
             refresh(child, path: itemPath)
         }
+    }
+
+    /// Window → Custom (after a separator): one item per window of every window plugin, rebuilt when the menu opens
+    /// (the plugins directory is read again in the background, so a new plugin shows the next time).
+    private func addCustomMenu(to menu: NSMenu) {
+        let separator = NSMenuItem.separator()
+        let item = NSMenuItem(title: app.language.tr("Vlastní"), action: nil, keyEquivalent: "")
+        let submenu = NSMenu(title: app.language.tr("Vlastní"))
+        submenu.delegate = self
+        item.submenu = submenu
+        menu.addItem(separator)
+        menu.addItem(item)
+        customSeparator = separator
+        customItem = item
+        fillCustomMenu(submenu)
+    }
+
+    private func fillCustomMenu(_ menu: NSMenu) {
+        menu.removeAllItems()
+        let windows = app.pluginWindows.menuWindows
+        guard !windows.isEmpty else {
+            let empty = NSMenuItem(title: app.language.tr("Žádné pluginy s okny"), action: nil, keyEquivalent: "")
+            empty.isEnabled = false
+            menu.addItem(empty)
+            return
+        }
+        for window in windows {
+            let item = NSMenuItem(title: window.title, action: #selector(openPluginWindow(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = window.key as NSString
+            menu.addItem(item)
+        }
+    }
+
+    @objc private func openPluginWindow(_ sender: NSMenuItem) {
+        guard let key = sender.representedObject as? NSString else { return }
+        app.pluginWindows.open(key as String)
     }
 
     /// The standard „Nastavení…" ⌘, of the application menu: opens the Settings window (the menu action
@@ -413,6 +458,9 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
         if menuItem === settingsItem {
             return true
         }
+        if menuItem.action == #selector(openPluginWindow(_:)) {
+            return true
+        }
         guard let box = menuItem.representedObject as? NodeBox else { return false }
         // The POSTCONTEST toggle shows its state.
         let checked: NSControl.StateValue = MenuActions.isChecked(box.node.id, app: app) ? .on : .off
@@ -423,6 +471,15 @@ final class MenuBuilder: NSObject, NSMenuItemValidation, NSMenuDelegate {
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
+        if menu === customItem?.submenu {
+            fillCustomMenu(menu)
+            return
+        }
+        if menu === customItem?.menu {
+            // The Window menu opens: read the plugins directory again for the Custom submenu.
+            app.pluginWindows.refreshCatalog()
+            customItem?.isEnabled = true
+        }
         for item in menu.items where item.submenu != nil {
             if let box = item.representedObject as? NodeBox {
                 item.isEnabled = app.menu.isEnabled(box.node, ancestors: box.ancestors)
