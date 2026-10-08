@@ -86,6 +86,41 @@ Esc stops the message and the macros after the point where it stopped do not run
 Any other `{...}` item (for example `{CAT1ASC}`) is not performed and is not looked
 up as a file; the status line warns about it.
 
+## Recording and choosing messages in Settings
+
+In **"Nastavení → Function Keys"** with the **SSB** set shown, every key whose message is exactly one wav file
+(for example `cq.wav` or `{OPERATOR}/CQ.wav`) has a line with the file it plays (name and length, or "file
+missing") and these buttons:
+
+- **Nahrát** (Record): records from the input device set in Settings → Audio, the same one Ctrl+Shift+F uses; the
+  button turns into **● Stop** with the elapsed seconds. The recording ends by itself after the "Max. recording
+  length" of the Audio tab, at most 60 s. It is saved as 16-bit mono 22,050 Hz and replaces the file only when it
+  ends successfully. The first time, macOS asks for microphone access; if it is denied, allow it in System
+  Settings → Privacy & Security → Microphone.
+- **Přehrát** (Play): plays the file on the computer's default output so you can check it. It never keys the rig
+  and never uses the keyer's output device.
+- **Vybrat WAV…** (Choose WAV): copies an audio file from disk to the key's file (the original is not referenced,
+  so moving or backing up the wav folder keeps working). A wav the keyer can play (PCM, float, A-law or μ-law,
+  mono or stereo, 4–192 kHz) is copied unchanged; AIFF, CAF, MP3, M4A and other wav files are converted to
+  16-bit mono 22,050 Hz wav. Files over 64 MB, longer than 5 minutes, silent or in an unknown format are refused
+  with a message.
+- **Smazat** (Delete): deletes the file after confirmation.
+
+Recording over, or copying over, an existing file asks for confirmation first. All buttons are refused while
+the voice keyer plays or records or a CW or digital message is being sent, and the keyer's F-keys are refused while
+a message is recorded in Settings.
+
+**Where the files go:** exactly where the voice keyer looks for them. The path is the message text resolved
+against the wav directory (`{OPERATOR}` replaced by the operator's callsign, a relative path under the wav
+directory, a missing folder created), using the same rule as Ctrl+Shift+F. It is taken from the texts and the
+"Wav directory" shown in the dialog, so a file recorded before pressing "Použít" already lies where the keyer will
+look after it. **Otevřít složku ve Finderu** opens the wav directory.
+
+A message may combine one audio file with control macros (`cq.wav,{LOG}`, `{WIPE},cq.wav,{RUN}`; also `{S&P}`,
+`{END}`, `{F1}`…`{F12}`, `{CLEARRIT}`, `{RITCLEAR}`, `{CQFREQ}`, `{NOSPLIT}`): that one file is recorded. A key is not
+offered for recording when its message is empty, has several audio items (`a.wav,b.wav`), is speech (`[text]`),
+or has only macros (`!`, `#`, `*`, `@`, `{MYCALL}`, control macros alone); the line says why. `{OPERATOR}` needs an operator callsign (command `OPON`).
+
 ## Controls
 
 | Key | Action |

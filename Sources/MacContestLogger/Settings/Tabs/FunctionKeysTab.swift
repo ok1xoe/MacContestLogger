@@ -70,7 +70,7 @@ struct FunctionKeysTab: View {
                 "Text k odvysílání s makry (formát N1MM): * nebo {MYCALL} moje volačka · ! volačka protistanice · # pořadové číslo · {SENTRST} / {SENTRSTCUT} report (5NN) · {EXCH} odesílaná výměna ze setupu závodu · prosigny ] SK, + AR, [ AS, = BT · < > rychlost ±2 WPM · {LOG} {WIPE} {RUN} {S&P} akce.")
         default:
             return language.tr(
-                "Zpráva = čárkou oddělené wav soubory a makra: {OPERATOR}/CQ.wav · ! volačka protistanice · # odesílané číslo · * nebo {MYCALL} moje volačka · @ frekvence. Víc souborů za sebou: a.wav,b.wav. Prázdná zpráva nic nevysílá. Nahrát zprávu s jedním wav: Ctrl+Shift+F-klávesa v zadávacím okně.")
+                "Zpráva = čárkou oddělené wav soubory a makra: {OPERATOR}/CQ.wav · ! volačka protistanice · # odesílané číslo · * nebo {MYCALL} moje volačka · @ frekvence. Víc souborů za sebou: a.wav,b.wav. Prázdná zpráva nic nevysílá. Zprávu s jedním wav souborem můžeš nahrát tlačítkem Nahrát (nebo Ctrl+Shift+F-klávesou v zadávacím okně), přehrát na počítači, nahradit vybraným souborem nebo smazat. Soubor leží tam, odkud ho hlasový klíč přehraje.")
         }
     }
 
@@ -81,10 +81,37 @@ struct FunctionKeysTab: View {
             switcher
             VStack(alignment: .leading, spacing: 6) {
                 ForEach($draft[dynamicMember: path]) { $message in
-                    MessageRow(index: indexOf(message.id, in: draft[keyPath: path]), message: $message)
+                    let index: Int = indexOf(message.id, in: draft[keyPath: path])
+                    MessageRow(index: index, message: $message)
+                    if kind == 0 {
+                        VoiceMessageControls(studio: studio, language: language, request: request(index, message))
+                    }
                 }
             }
+            if kind == 0 {
+                VoiceMessageFooter(studio: studio, language: language, wavDir: draft.vkWavDir)
+            }
         }
+        .onAppear { refreshFiles() }
+        .onChange(of: requests) { studio.refresh(requests) }
+        .onDisappear { studio.abandon() }
+    }
+
+    private var studio: VoiceMessageStudio { app.keyer.voice.studio }
+
+    private func request(_ index: Int, _ message: FunctionKeyDraft) -> VoiceMessageStudio.Request {
+        VoiceMessageStudio.Request(slot: VoiceMessageStudio.Slot(run: run, index: index), text: message.text,
+                                   wavDir: draft.vkWavDir)
+    }
+
+    /// The SSB keys shown (empty for CW and digi).
+    private var requests: [VoiceMessageStudio.Request] {
+        guard kind == 0 else { return [] }
+        return draft[keyPath: path].enumerated().map { request($0.offset, $0.element) }
+    }
+
+    private func refreshFiles() {
+        studio.refresh(requests)
     }
 
     private func indexOf(_ id: UUID, in rows: [FunctionKeyDraft]) -> Int {

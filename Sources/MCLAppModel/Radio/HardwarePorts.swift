@@ -87,6 +87,9 @@ public struct HardwarePorts: Sendable {
     public var recordMessage: @Sendable (JavaPath, String?) throws -> any MessageRecording = { _, _ in
         throw InertHardwareError()
     }
+    /// Whether the app may record from the microphone (asks the user the first time; `false` = denied). Inert and
+    /// tests: allowed, the recording port decides what happens next.
+    public var microphoneAccess: @Sendable () async -> Bool = { true }
     /// `MacSpeech(cacheDir, voice).synthesize(text)` (`say`; blocks; called on the voice lane); `nil` = failed.
     public var synthesize: @Sendable (_ cacheDir: JavaPath, _ voice: String, _ text: String) -> JavaPath? = { _, _, _ in
         nil
@@ -138,6 +141,7 @@ public struct HardwarePorts: Sendable {
         ports.openWinkeyer = { port, wpm in try WinkeyerKeyer.open(portPath: port, wpm: wpm) }
         ports.voicePlayer = { device in SoundCard.player(deviceName: device) }
         ports.recordMessage = { target, device in try SoundCard.record(target: target, deviceName: device) }
+        ports.microphoneAccess = { await MicrophoneAccess.request() }
         ports.synthesize = { cacheDir, voice, text in MacSpeech(cacheDir: cacheDir, voice: voice).synthesize(text) }
         ports.makeFldigi = { host, port in try FldigiClient(host: host, port: port) }
         ports.startAudio = { capture, device throws(AudioIOError) in try capture.start(deviceName: device) }
