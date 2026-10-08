@@ -20,6 +20,15 @@ Import (`IMPORT`) reads `SRX_STRING` / `STX_STRING` back into the exchange (the
 report at the start is not tripled), so export → import preserves the exchange
 also for score recalculation.
 
+### ADIF by date
+
+Equivalent of N1MM **Export → ADIF by date**. **"Soubor → Export → ADIF podle data…"** (File → Export → ADIF by
+date...) asks for the **first and last day (UTC)**; both days are included whole (00:00:00 UTC of the first to
+23:59:59 UTC of the last). The window starts on the first and last day of the open log and shows how many QSOs are
+in the chosen period; **Exportovat…** (Export...) then asks for the file (suggested name
+`maccontestlogger-2026-11-28-2026-11-29.adi`). The content is the same as the whole export, limited to those
+QSOs of the active contest (or of free logging). A period without a QSO writes no file and says so.
+
 ## EDI (REG1TEST, VHF)
 
 **"Soubor → Export → Export EDI (VKV)…"** (File → Export → Export EDI (VHF)...) writes, for
@@ -90,6 +99,19 @@ What is copied: the contest row (definition snapshot, setup, station), its QSOs 
 - The copy into the target is one transaction: if it fails, the target stays as it was.
 
 The status line reports the target, the number of contests and QSOs copied and how many QSOs were already there.
+
+## Exporting the call history
+
+**"Soubor → Export → Call history (N1MM)…"** and **"… (CSV)…"** (File → Export → Call history (N1MM) / (CSV)...)
+write the **loaded** call history (the file in Settings → Contest → Call history) to a file of your choice, N1MM's
+equivalent of **Export Call History**:
+
+- **N1MM** is the text format the logger reads (`!!Order!!` header, the N1MM column names), so the file can be
+  loaded again or given to another logger,
+- **CSV** is a spreadsheet-ready file (RFC 4180, UTF-8): a header line, one line per callsign, a value with a comma,
+  quote or line break quoted.
+
+Callsigns are sorted. The loaded file is not changed. Without a call history the status line says so.
 
 ## Printing the log
 

@@ -17,6 +17,16 @@ enum ExportPanels {
             save(message: app.language.tr("Export deníku do ADIF"), name: name) { file in
                 app.exports.start { await $0.exportAdif(to: file) }
             }
+        case .saveAdifRange(let name, let range):
+            save(message: app.language.tr("Export deníku do ADIF"), name: name) { file in
+                app.exports.start { await $0.exportAdif(to: file, range: range) }
+            }
+        case .saveCallHistory(let format, let name):
+            let message: String = format == .csv ? app.language.tr("Export call history do CSV")
+                : app.language.tr("Export call history ve formátu N1MM")
+            save(message: message, name: name) { file in
+                app.dataTools.startExportCallHistory(to: file, format: format)
+            }
         case .saveCabrillo(let name):
             save(message: app.language.tr("Export deníku do Cabrilla"), name: name) { file in
                 app.exports.start { await $0.exportCabrillo(to: file) }

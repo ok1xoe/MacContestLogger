@@ -53,6 +53,15 @@ database from log**. Menu **"Nástroje → Aktualizovat call history z deníku"*
 Without a configured file, `CALLHISTORY.txt` is created in the application data
 directory and the path is saved in the settings. X-QSOs and deleted QSOs are not used.
 
+## Clearing the call history
+
+**"Nástroje → Vymazat call history…"** (Tools → Clear call history...), after a confirmation, empties the loaded call
+history: the file keeps its columns (the `!!Order!!` header) and no callsign, and the history in the logger is empty at
+once. The file is **never lost**: its previous content is copied beside it first as `<file>.bak-<UTC time>`
+(for example `CALLHISTORY.txt.bak-20261128-143000`). N1MM's **Clear Call History then Update** is these two menu items
+in a row: clear, then **Aktualizovat call history z deníku** (Update call history from log). To keep a copy elsewhere,
+use **Soubor → Export → Call history** first (see [Import and export](import-export.md)).
+
 ## Reverse lookup
 
 Equivalent of N1MM **Reverse Call History Lookup**

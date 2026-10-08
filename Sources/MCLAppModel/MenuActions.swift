@@ -41,13 +41,17 @@ public enum MenuActions {
         case openBeacons
         /// The data directory in the Finder (`help.dataFolder`; honours `MCL_DATA_DIR`).
         case openDataFolder(URL)
+        /// The ADIF of the QSOs in `range` (Export → ADIF by date) → `exportAdif(to:range:)`.
+        case saveAdifRange(suggestedName: String, range: AdifDateRange)
+        /// The loaded call history → `exportCallHistory(to:format:)`.
+        case saveCallHistory(format: DataToolsModel.CallHistoryFormat, suggestedName: String)
     }
 
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to
     /// type-check).
     private static let fileIds: Set<String> = [
         "settings.export", "settings.exportCabrillo", "settings.exportEdi", "settings.exportOther", "settings.import",
-        "settings.merge", "database.refillDxcc",
+        "settings.merge", "database.refillDxcc", "callhistory.exportN1mm", "callhistory.exportCsv",
     ]
 
     /// The Help items and the documentation page each opens (`nil` = the docs index, `.issues` = the bug tracker).
@@ -124,6 +128,13 @@ public enum MenuActions {
             return .chooseDirectory(.other)
         case "database.refillDxcc":
             return .confirmRefillDxcc(count: app.logbook.rows.count)
+        case "callhistory.exportN1mm", "callhistory.exportCsv":
+            guard app.dataTools.hasCallHistory else {
+                app.status.show("Call history je prázdná")
+                return nil
+            }
+            let format: DataToolsModel.CallHistoryFormat = id == "callhistory.exportCsv" ? .csv : .n1mm
+            return .saveCallHistory(format: format, suggestedName: app.dataTools.callHistoryFileName(format))
         default:
             return nil
         }
@@ -142,6 +153,16 @@ public enum MenuActions {
             app.contest.requestRescore(manual: true)
         case "file.copyContest":
             app.dialogs.setOpen(.copyContest, true)
+        case "settings.exportAdifRange":
+            app.dialogs.setOpen(.adifRange, true)
+        case "tools.addCallToCountry":
+            app.dialogs.setOpen(.dxccOverrides, true)
+        case "callhistory.clear":
+            if app.dataTools.hasCallHistory {
+                app.dialogs.ask(.clearCallHistory)
+            } else {
+                app.status.show("Call history je prázdná")
+            }
         case "contest.rescoreHours":
             promptRescoreHours(app: app)
         case "database.new":

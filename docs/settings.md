@@ -155,10 +155,10 @@ Settings `Cmd+,` and Quit.
 
 | Menu | Items |
 |---|---|
-| Soubor (File) | New contest, Open contest, Open recent (the last 9 contests of the open database), New / Open database, Copy contest to another database, Import (QSOs, Merge log), Export (ADIF, Cabrillo, EDI, CSV / text / summary), Print log |
+| Soubor (File) | New contest, Open contest, Open recent (the last 9 contests of the open database), New / Open database, Copy contest to another database, Import (QSOs, Merge log), Export (ADIF, ADIF by date, Cabrillo, EDI, CSV / text / summary, call history), Print log |
 | Úpravy (Edit) | the entry window's actions with your current keys shown next to them (wipe, restore, +1 to the number, note, find, delete last QSO), then Undo, Redo, Cut, Copy, Paste and Select All for the text fields |
 | Závod (Contest) | Late entry, Record contest, None (free logging) |
-| Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Download master.scp, Update definitions, Update DXCC from Club Log, Update call history, Load beacon file, Definition editor |
+| Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Assign call to country, Download master.scp, Update definitions, Update DXCC from Club Log, Update call history, Clear call history, Load beacon file, Definition editor |
 | Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles |
 | Okno (Window) | the application's windows, Multiplikátory (Multipliers) and, after a separator, **Vlastní** (Custom) with the windows of window plugins ([Plugin windows](plugin-windows.md)) |
 | Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Report a bug (GitHub issues), Open data folder (honours `MCL_DATA_DIR`) |

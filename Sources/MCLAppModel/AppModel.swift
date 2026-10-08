@@ -371,9 +371,10 @@ public final class AppModel {
                                      needsDatabasesDir: resolved.needsChoice, dataDir: dataDir, config: config,
                                      status: status, now: environment.now)
 
+        let dxccOverrides = DxccOverrideStore(file: DxccOverrideStore.file(in: dataDir))
         let contestEnvironment: ContestEnvironment = await ContestModel.loadEnvironment(
             contestDataDir: loaded.contestDataDir, dxccDir: environment.dxccDir, dataDir: dataDir,
-            clubLogDxcc: loaded.clubLog.ctyEnabled)
+            clubLogDxcc: loaded.clubLog.ctyEnabled, overrides: dxccOverrides)
         let logbook = LogbookModel(database: database, status: status)
         logbook.ownStationId = { [weak config] in
             config?.config.cluster.stationId ?? ""
@@ -382,6 +383,7 @@ public final class AppModel {
                                    database: database, logbook: logbook, clock: environment.rescoreClock)
         contest.environmentSource = (dxccDir: environment.dxccDir, dataDir: dataDir)
         contest.now = environment.now
+        contest.dxccOverrides = dxccOverrides
         let operating = OperatingModel(config: config, status: status)
         let windows = WindowsModel(config: config)
         let menu = MenuModel(language: language, status: status, contest: contest, dataDir: dataDir)
@@ -533,6 +535,12 @@ public final class AppModel {
             recording?.toggle()
         }
         registerToolActions(model)
+        model.dialogs.prefillCall = { [weak model] in
+            model?.typedCall ?? ""
+        }
+        model.dialogs.onClearCallHistory = { [weak model] in
+            model?.dataTools.startClearCallHistory()
+        }
         // The log warnings read `master.scp` and the DXCC lookup (Kotlin `remember(snapshot, state.scp, …)`).
         logbook.warningSources = { [weak callData, weak contest] in
             WarningSources(scp: callData?.scp, dxcc: contest?.runtime.dxccLookup)

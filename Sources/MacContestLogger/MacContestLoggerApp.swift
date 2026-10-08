@@ -157,6 +157,8 @@ struct MacContestLoggerApp: App {
         dialog(.databaseNew) { NewDatabaseWindowView(host: host) }
         dialog(.databaseOpen) { OpenDatabaseWindowView(host: host) }
         dialog(.copyContest) { CopyContestWindowView(host: host) }
+        dialog(.adifRange) { AdifRangeWindowView(host: host) }
+        dialog(.dxccOverrides) { DxccOverridesWindowView(host: host) }
         dialog(.operatorLogin) { OperatorWindowView(host: host) }
     }
 

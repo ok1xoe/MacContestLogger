@@ -21,6 +21,10 @@ public final class DialogsModel {
         case databaseOpen = "db-open"
         /// „Zkopírovat závod do jiné databáze".
         case copyContest = "copy-contest"
+        /// „Export ADIF podle data".
+        case adifRange = "adif-range"
+        /// „Přiřadit volačku k zemi".
+        case dxccOverrides = "dxcc-overrides"
         /// The operator at the key (Kotlin `OperatorDialog`, Ctrl+O / OPON).
         case operatorLogin = "operator"
 
@@ -33,6 +37,8 @@ public final class DialogsModel {
             case .databaseNew: return CGSize(width: 420, height: 200)
             case .databaseOpen: return CGSize(width: 420, height: 360)
             case .copyContest: return CGSize(width: 520, height: 330)
+            case .adifRange: return CGSize(width: 460, height: 300)
+            case .dxccOverrides: return CGSize(width: 620, height: 640)
             case .operatorLogin: return CGSize(width: 400, height: 230)
             }
         }
@@ -47,6 +53,10 @@ public final class DialogsModel {
     public private(set) var newContest: NewContestModel?
     /// The open „Zkopírovat závod do jiné databáze" window's state (`nil` = closed).
     public private(set) var copyContest: CopyContestModel?
+    /// The open „Export ADIF podle data" window's state (`nil` = closed).
+    public private(set) var adifRange: AdifRangeModel?
+    /// The open „Přiřadit volačku k zemi" window's state (`nil` = closed).
+    public private(set) var dxccOverrides: DxccOverridesModel?
     public private(set) var showContestBrowser: Bool = false
     public private(set) var showNewDatabase: Bool = false
     public private(set) var showOpenDatabase: Bool = false
@@ -80,6 +90,8 @@ public final class DialogsModel {
         case deleteLast
         /// BYE / EXIT / QUIT.
         case exit
+        /// Tools → Clear call history.
+        case clearCallHistory
     }
 
     /// The open text prompt (Kotlin `textPrompt`).
@@ -93,6 +105,7 @@ public final class DialogsModel {
     /// What the wipe and delete confirmations do (wired by the app model).
     @ObservationIgnored var onWipeLog: (@MainActor () -> Void)?
     @ObservationIgnored var onDeleteLast: (@MainActor () -> Void)?
+    @ObservationIgnored var onClearCallHistory: (@MainActor () -> Void)?
     @ObservationIgnored private var promptCounter: Int = 0
 
     @ObservationIgnored private let contest: ContestModel
@@ -128,6 +141,8 @@ public final class DialogsModel {
         case .databaseNew: return showNewDatabase
         case .databaseOpen: return showOpenDatabase
         case .copyContest: return copyContest != nil
+        case .adifRange: return adifRange != nil
+        case .dxccOverrides: return dxccOverrides != nil
         case .operatorLogin: return showOperator
         }
     }
@@ -136,6 +151,9 @@ public final class DialogsModel {
     public var openDialogs: Set<Window> {
         Set(Window.allCases.filter { isOpen($0) })
     }
+
+    /// The call the „Přiřadit volačku k zemi" window starts with (the one typed in the entry window).
+    @ObservationIgnored var prefillCall: @MainActor () -> String = { "" }
 
     /// Opens or closes a dialog (menu action, a button, the window's close button). Opening resets the window's
     /// state, as Kotlin's `remember` inside a window that is shown again.
@@ -173,6 +191,18 @@ public final class DialogsModel {
                     self?.setOpen(.copyContest, false)
                 }
                 copyContest = model
+            }
+        case .adifRange:
+            if !open {
+                adifRange = nil
+            } else if adifRange == nil {
+                adifRange = AdifRangeModel(logbook: logbook, now: now())
+            }
+        case .dxccOverrides:
+            if !open {
+                dxccOverrides = nil
+            } else if dxccOverrides == nil {
+                dxccOverrides = DxccOverridesModel(contest: contest, status: status, call: prefillCall())
             }
         case .operatorLogin:
             showOperator = open
@@ -306,6 +336,8 @@ public final class DialogsModel {
             onDeleteLast?()
         case .exit:
             quitRequest += 1
+        case .clearCallHistory:
+            onClearCallHistory?()
         }
     }
 
@@ -326,6 +358,8 @@ public final class DialogsModel {
             return ContestMessage("Smazat poslední QSO %s?", .string(last.call))
         case .exit?:
             return ContestMessage("Ukončit MacContestLogger?")
+        case .clearCallHistory?:
+            return ContestMessage("Vymazat call history?")
         }
     }
 
@@ -342,6 +376,8 @@ public final class DialogsModel {
             return .tr("Spojení se odstraní z deníku a skóre se přepočítá.")
         case .exit?:
             return .tr("Deník je uložený průběžně, nic se neztratí.")
+        case .clearCallHistory?:
+            return .tr("Soubor call history se přepíše prázdným (zůstanou jen záhlaví sloupců), jeho kopie se uloží vedle něj jako <soubor>.bak-<čas UTC>. Znovu ho naplní Nástroje → Aktualizovat call history z deníku.")
         }
     }
 
@@ -352,6 +388,7 @@ public final class DialogsModel {
         case .wipeLog?: return .verbatim("Vymazat")
         case .deleteLast?: return .verbatim("Smazat")
         case .exit?: return ContestMessage("Ukončit")
+        case .clearCallHistory?: return .verbatim("Vymazat")
         }
     }
 

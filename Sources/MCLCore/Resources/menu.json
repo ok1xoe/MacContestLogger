@@ -22,9 +22,12 @@
           "id": "file.export", "label": "Export", "state": "enable",
           "children": [
             { "id": "settings.export", "label": "Export ADIF…", "state": "enable" },
+            { "id": "settings.exportAdifRange", "label": "ADIF podle data…", "state": "enable" },
             { "id": "settings.exportCabrillo", "label": "Export Cabrillo…", "state": "enable" },
             { "id": "settings.exportEdi", "label": "Export EDI (VKV)…", "state": "enable" },
-            { "id": "settings.exportOther", "label": "Export CSV, text a souhrn…", "state": "enable" }
+            { "id": "settings.exportOther", "label": "Export CSV, text a souhrn…", "state": "enable" },
+            { "id": "callhistory.exportN1mm", "label": "Call history (N1MM)…", "state": "enable" },
+            { "id": "callhistory.exportCsv", "label": "Call history (CSV)…", "state": "enable" }
           ]
         },
         { "id": "sep.file.3", "state": "enable" },
@@ -56,11 +59,13 @@
         { "id": "contest.rescore", "label": "Přepočítat skóre",   "state": "enable" },
         { "id": "contest.rescoreHours", "label": "Přepočítat posledních N hodin…", "state": "enable" },
         { "id": "database.refillDxcc", "label": "Přepočítat DXCC v deníku…", "state": "enable" },
+        { "id": "tools.addCallToCountry", "label": "Přiřadit volačku k zemi…", "state": "enable" },
         { "id": "sep.tools.1", "state": "enable" },
         { "id": "settings.downloadScp", "label": "Stáhnout master.scp", "state": "enable" },
         { "id": "contest.updateDefinitions", "label": "Aktualizovat definice z internetu", "state": "enable" },
         { "id": "database.updateClubLogDxcc", "label": "Aktualizovat DXCC z Club Logu", "state": "enable" },
         { "id": "contest.updateCallHistory", "label": "Aktualizovat call history z deníku", "state": "enable" },
+        { "id": "callhistory.clear", "label": "Vymazat call history…", "state": "enable" },
         { "id": "beacons.load", "label": "Načíst soubor majáků…", "state": "enable" },
         { "id": "sep.tools.2", "state": "enable" },
         { "id": "contest.editor", "label": "Editor definic…", "state": "enable" }

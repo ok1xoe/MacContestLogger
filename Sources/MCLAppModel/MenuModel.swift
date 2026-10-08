@@ -27,7 +27,8 @@ public final class MenuModel {
         "window.propagation", "window.bandnotes", "window.simulator", "window.dxccmap", "mult.dxcc", "mult.grid",
         "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
         "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast",
-        "file.openRecent", "recent.clear", "file.copyContest", "contest.rescoreHours", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
+        "file.openRecent", "recent.clear", "file.copyContest", "contest.rescoreHours", "settings.exportAdifRange", "callhistory.exportN1mm",
+        "callhistory.exportCsv", "callhistory.clear", "tools.addCallToCountry", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
     ]
 
     /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key
