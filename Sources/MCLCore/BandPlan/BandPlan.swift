@@ -151,18 +151,25 @@ public struct BandPlan: Sendable {
     /// supplies others).
     public static func defaultPlan() -> BandPlan {
         var r1: [Segment] = []
-        addBand(&r1, 1_810, 1_838, 1_838, 1_840, 1_840, 2_000)       // 160m
-        addBand(&r1, 3_500, 3_600, 3_580, 3_600, 3_600, 3_800)       // 80m
-        addBand(&r1, 7_000, 7_040, 7_040, 7_050, 7_050, 7_200)       // 40m
-        addBand(&r1, 14_000, 14_070, 14_070, 14_099, 14_101, 14_350) // 20m
-        addBand(&r1, 21_000, 21_070, 21_070, 21_150, 21_151, 21_450) // 15m
-        addBand(&r1, 28_000, 28_070, 28_070, 28_190, 28_300, 29_700) // 10m
+        for row in defaultRows {
+            addBand(&r1, row.cw.0, row.cw.1, row.digi.0, row.digi.1, row.phone.0, row.phone.1)
+        }
         var map: [IaruRegion: [Segment]] = [:]
         for region in IaruRegion.allCases {
             map[region] = r1
         }
         return BandPlan(byRegion: map)
     }
+
+    /// The built-in rows in kHz, one band each: CW, DIGI and PHONE as written (before any overlap is cut).
+    public static let defaultRows: [(cw: (Int, Int), digi: (Int, Int), phone: (Int, Int))] = [
+        ((1_810, 1_838), (1_838, 1_840), (1_840, 2_000)),         // 160m
+        ((3_500, 3_600), (3_580, 3_600), (3_600, 3_800)),         // 80m
+        ((7_000, 7_040), (7_040, 7_050), (7_050, 7_200)),         // 40m
+        ((14_000, 14_070), (14_070, 14_099), (14_101, 14_350)),   // 20m
+        ((21_000, 21_070), (21_070, 21_150), (21_151, 21_450)),   // 15m
+        ((28_000, 28_070), (28_070, 28_190), (28_300, 29_700)),   // 10m
+    ]
 
     /// Adds three segments (CW/DIGI/PHONE) in kHz for one band.
     private static func addBand(_ out: inout [Segment],

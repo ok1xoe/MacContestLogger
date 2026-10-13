@@ -201,6 +201,19 @@ public final class SpotBuffer: Sendable {
         notifyListeners()
     }
 
+    /// Removes every stored spot (live or expired) the predicate selects (the band map's "Remove spots, this band
+    /// only / all bands, leave self spots"); listeners are called once. Returns how many were removed.
+    @discardableResult
+    public func removeAll(where shouldRemove: (DxSpot) -> Bool) -> Int {
+        let removed: Int = state.withLockUnchecked { s in
+            let before: Int = s.keys.count
+            s.removeKeys { shouldRemove($0.spot) }
+            return before - s.keys.count
+        }
+        notifyListeners()
+        return removed
+    }
+
     /// Empties the buffer.
     public func clear() {
         state.withLock { s in

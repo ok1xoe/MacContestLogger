@@ -31,6 +31,8 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var autoSplit: Bool = true
     /// Tint the bandplan segments in the bandmap (CW / digi / phone).
     public var showBandPlan: Bool = true
+    /// Draw the US licence class sub-band edges on the band map scale (Swift-only key; off by default).
+    public var showUsLicenseLines: Bool = false
     /// Skimmer / RBN spots: 0 = hide, 1 = all, n = confirmed by at least n skimmers.
     public var minSkimmers: Int = 1 {
         didSet {
@@ -104,6 +106,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case blacklistedCalls, blacklistedSpotters, callBlacklist, spotterBlacklist
         case spotFilterHiddenBands, spotFilterHiddenModes, spotFilterContest
         case spotFilterSpotterContinents, spotFilterSpotterOwnCountry, spotFilterHideNonWorkable
+        case showUsLicenseLines
         case bandmapLowestAtBottom, bandmapWheelDisabled
     }
 
@@ -119,6 +122,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
             c.value(.spotBufferMinutes, default: d.spotBufferMinutes))
         autoSplit = c.value(.autoSplit, default: d.autoSplit)
         showBandPlan = c.value(.showBandPlan, default: d.showBandPlan)
+        showUsLicenseLines = c.value(.showUsLicenseLines, default: d.showUsLicenseLines)
         minSkimmers = max(0, c.value(.minSkimmers, default: d.minSkimmers))
         wheelStepHz = DxClusterConfig.normalizedWheelStepHz(c.value(.wheelStepHz, default: d.wheelStepHz))
         wheelStepShiftHz = DxClusterConfig.normalizedWheelStepShiftHz(

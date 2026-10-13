@@ -27,6 +27,7 @@ public final class BandmapModel {
     @ObservationIgnored private let blacklist: BlacklistModel
     @ObservationIgnored private let callbook: CallbookModel
     @ObservationIgnored private let rig: RigModel
+    @ObservationIgnored private let status: StatusModel
     /// The spot actions of the entry windows (Remove spot of a call); wired by `AppModel`.
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
     /// The entry window the spot keys act for (the active one); wired by `AppModel`.
@@ -51,6 +52,7 @@ public final class BandmapModel {
         let blacklist: BlacklistModel
         let callbook: CallbookModel
         let rig: RigModel
+        let status: StatusModel
     }
 
     init(_ dependencies: Dependencies) {
@@ -62,6 +64,7 @@ public final class BandmapModel {
         blacklist = dependencies.blacklist
         callbook = dependencies.callbook
         rig = dependencies.rig
+        status = dependencies.status
         storedBand = rig.currentBand
         storedViewport = BandmapViewport(band: storedBand, tunedHz: rig.tuning.tunedFreqHz)
         observeBand()
@@ -468,9 +471,79 @@ public final class BandmapModel {
         callbook.openHamQth(spot.dxCall)
     }
 
-    /// `tr("Smazat všechny spoty")`.
+    /// `tr("Smazat všechny spoty")` (N1MM "Remove Spots, ALL BANDS").
     public func clearSpots() {
         feed.buffer.clear()
+    }
+
+    /// N1MM "Remove Spots, This Band Only[, Leave Self Spots]" and "Remove Spots, ALL Bands, Leave Self Spots": the
+    /// spots of the band map's band (`thisBand`) or of every band; `keepSelf` leaves the self spots (Mark, Store, the
+    /// spots of calls tuned away from). Without a tuned band "this band" removes nothing.
+    public func removeSpots(thisBand: Bool, keepSelf: Bool) {
+        let band: Band? = self.band
+        if thisBand && band == nil { return }
+        feed.buffer.removeAll { spot in
+            if keepSelf && spot.selfSpotted { return false }
+            return !thisBand || spot.band == band
+        }
+    }
+
+    // MARK: - band plan and licence lines
+
+    /// The US licence class edges in the window when the option is on (N1MM's red lines on the scale).
+    public var licenseLines: [Int64] {
+        guard showLicenseLines else { return [] }
+        let window: BandmapViewport = viewport
+        return UsLicenseLines.edges(lo: window.loHz, hi: window.hiHz)
+    }
+
+    /// `dxCluster.showUsLicenseLines` (read live, so Settings and the menu both apply at once).
+    public var showLicenseLines: Bool {
+        config.config.dxCluster.showUsLicenseLines
+    }
+
+    /// „Zobrazit/Skrýt čáry licenčních tříd USA": written into the configuration and saved like the band plan option.
+    public func toggleLicenseLines() {
+        config.config.dxCluster.showUsLicenseLines = !showLicenseLines
+        config.saveSilently()
+    }
+
+    /// The band plan edited at `freqHz` from the context menu (N1MM: a right click on the frequency sets a CW,
+    /// digital or phone sub-band edge there or removes the sub-band): the station region's rows of
+    /// `bandplan.yaml` change (`BandPlanEdit`), the file is written and the band data reloaded as after Settings →
+    /// Band plan, so the band map redraws with the new plan. A refused edit or a failed write says why in the status
+    /// line. Returns whether the plan changed.
+    @discardableResult
+    public func editBandPlan(_ action: BandPlanEdit.Action, atHz freqHz: Int64) async -> Bool {
+        guard let root = contest.bandDataRoot else { return false }
+        let region: String = analyzer().stationRegion.rawValue
+        let band: Band? = Band.from(frequencyHz: Int(clamping: freqHz))
+        let khz: Double = (Double(freqHz) / 100.0).rounded() / 10.0
+        let outcome: BandPlanEdit.Outcome? = try? await BlockingQueue.run {
+            let rows: [BandPlanFile.Segment] = BandPlanEdit.seeded(BandPlanFile.read(root), region: region)
+            let outcome: BandPlanEdit.Outcome = BandPlanEdit.apply(action, atKhz: khz, band: band, region: region,
+                                                                   segments: rows)
+            if case .edited(let edited) = outcome {
+                try BandPlanFile.write(root, edited)
+            }
+            return outcome
+        }
+        switch outcome {
+        case .edited?:
+            await contest.reloadBandData()
+            status.show(ContestMessage("Bandplán upraven na %s kHz", .string(FrequencyText.formatHz(freqHz))))
+            return true
+        case .refused(let refusal)?:
+            switch refusal {
+            case .outsideBand: status.show(ContestMessage("Bandplán: kmitočet není v pásmu"))
+            case .noSegment: status.show(ContestMessage("Bandplán: na tomto pásmu takový úsek není"))
+            case .empty: status.show(ContestMessage("Bandplán: úsek by byl prázdný"))
+            }
+            return false
+        case nil:
+            status.show(ContestMessage("Bandplán se nepodařilo uložit"))
+            return false
+        }
     }
 
     /// „Zobrazit/Skrýt bandplán": the option is written into the configuration and saved — the file only, without
