@@ -203,6 +203,11 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var callStackOrder: String = CallStack.Order.multsFirst.rawValue
     public var callStackClearOnBandChange: Bool = true
     public var digitalCallStacking: Bool = false
+    public var cwIdEnabled: Bool = false
+    public var cwIdText: String = "DE {MYCALL}"
+    public var diButtonCount: Int = 0
+    public var rxOutputToFile: Bool = false
+    public var diMessages: [FunctionKeyDraft] = []
     public var grabOrder: String = GrabList.Order.lifo.rawValue
     public var grabNoDupes: Bool = true
     public var grabOnlyScp: Bool = false
@@ -478,6 +483,11 @@ extension ConfigurerDraft {
         callStackOrder = config.esm.callStackOrder
         callStackClearOnBandChange = config.esm.callStackClearOnBandChange
         digitalCallStacking = config.digital.digitalCallStacking
+        cwIdEnabled = config.digital.cwIdEnabled
+        cwIdText = config.digital.cwIdText
+        diButtonCount = config.digital.diButtonCount
+        rxOutputToFile = config.digital.rxOutputToFile
+        diMessages = config.digital.diMessages.map { FunctionKeyDraft($0) }
         grabOrder = config.digital.grabOrder
         grabNoDupes = config.digital.grabNoDupes
         grabOnlyScp = config.digital.grabOnlyScp

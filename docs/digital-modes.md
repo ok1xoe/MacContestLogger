@@ -149,6 +149,42 @@ With Digital Call Stacking on (Run), Alt+G also puts the callsign that was in th
 stack, and **Ctrl+Alt+G** moves the highlighted Grab callsign onto the stack without touching the
 field.
 
+## Transmitting: TX window, macros and buttons
+
+**TX window** (N1MM): the line under the text. **Alt+T** or the **TX** button (in a digital mode) makes
+fldigi transmit; every character typed into the line then goes out at once, Enter starts a new line.
+**Alt+T** again or **RX** returns to receive after the text (fldigi's `^r`); **Esc** stops at once.
+Without transmitting, Enter sends the typed line as a message. **Ctrl+K** in a digital mode opens the
+window, transmits and puts the cursor into the TX line (in CW it still opens the CW keyboard).
+
+**Macros of the digital messages** (also everything from the CW keyer):
+
+| Macro | Action |
+|---|---|
+| `{TX}` / `{RX}` | N1MM messages start with `{TX}` and end with `{RX}`. A message **with `{TX}` and without `{RX}` keeps fldigi transmitting** (the TX window, Alt+T or Esc ends it). A message without either works as before (fldigi returns to receive after it). `{TX}` or `{RX}` alone switch transmit on / back to receive |
+| `{ENTERLF}`, `{ENTER}` | a new line |
+| `{CLRRX}` / `{CLRTX}` | clears the Digital Interface's received text / fldigi's TX buffer |
+| `{ALT-T}` / `{ALT-Q}` | as Alt+T (transmit on/off) / Alt+Q (back to the CQ frequency) |
+| `{FILE:name}` | the text of a file in `FunctionKeyMessages` in the data folder (at most 64 kB, line breaks kept) |
+| `{DI1}`…`{DI24}` | the text of a message button |
+| `{NAME}` | the other station's name from the [call history](call-history.md) |
+
+`{TX}`, `{RX}`, `{CLRTX}` and `{ALT-T}` do nothing in CW and SSB.
+
+**Message buttons.** **Settings → Digital modes → Digital Interface message buttons** (or the window's
+**Nastavení → Tlačítka zpráv**) shows 0, 8, 16 or 24 extra buttons DI1–DI24 under the text; their
+texts use the same macros and are sent from the active entry window (with its lamp, Esc, `{LOGTHENPOP}`).
+**Načíst .mc… / Uložit .mc…** reads and writes them as an N1MM message file (`Label,Text` per line).
+
+**Nastavení → Odeslat textový soubor…** sends a text file through fldigi (at most 64 kB).
+
+**CW ID** (Settings → Digital modes, or the Setup menu): after every digital transmission fldigi
+switches to its CW modem, sends the text (default `DE {MYCALL}`), and the previous modem is restored;
+Esc stops it like any transmission (the modem is restored too).
+
+**Nastavení → Ukládat přijatý text do souboru** (N1MM "Output Main RX Window to Text File") appends
+everything received to `ExportFiles/<MMddyyyy>DigitalInterface1Output.txt` in the data folder.
+
 ## Call stacking
 
 **Option+click** (N1MM Alt+click) on a callsign, in the text or in the callsign list, puts it on the

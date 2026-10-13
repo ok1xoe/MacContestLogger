@@ -67,6 +67,11 @@ enum ProfileMergeSchema {
             Property("grabClearOnCq", .boolean, .fieldDefault),
             Property("grabSendSpace", .boolean, .fieldDefault),
             Property("grabAddToBandmap", .boolean, .fieldDefault),
+            Property("cwIdEnabled", .boolean, .fieldDefault),
+            Property("cwIdText", .string, .fieldDefault),
+            Property("diButtonCount", .int, .fieldDefault),
+            Property("rxOutputToFile", .boolean, .fieldDefault),
+            Property("diMessages", .list(.bean("cz.ok1xoe.maccontestlogger.config.FunctionKeyMessage")), .fieldDefault),
         ],
     ]
 

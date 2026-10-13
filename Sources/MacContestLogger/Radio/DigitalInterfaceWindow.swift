@@ -18,6 +18,8 @@ struct DigitalInterfaceWindowView: View {
                                                      defaultSize: CGSize(width: 680, height: 340))
     @StateObject private var holder = WindowModelHolder<DigitalInterfaceModel>()
     @StateObject private var keys = WindowKeyMonitor()
+    @StateObject private var tx = TxFieldState()
+    @FocusState private var txFocused: Bool
 
     var body: some View {
         Group {
@@ -27,7 +29,14 @@ struct DigitalInterfaceWindowView: View {
                     .modifier(RadioWindowChrome(host: host, app: app, id: Self.id, title: "Digitální rozhraní",
                                                 binder: session.binder))
                     .background(WindowAccessor { window in
-                        keys.handler = { key in Self.handle(key, model: model) }
+                        let tx: TxFieldState = self.tx
+                        keys.handler = { key in
+                            // Enter in the TX window ends its line there (Esc still stops the transmission).
+                            if tx.focused && (key.keyCode == UInt16(kVK_Return) || key.keyCode == UInt16(kVK_ANSI_KeypadEnter)) {
+                                return false
+                            }
+                            return Self.handle(key, model: model)
+                        }
                         keys.install(window: window)
                     })
                     .onAppear { model.open() }
@@ -100,6 +109,8 @@ struct DigitalInterfaceWindowView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             indicators(model, language: language)
+            txArea(app, model, language: language)
+            buttonsGrid(model)
             Text(verbatim: language.tr(
                 "Klik: volačka do pole volačky, jiné podtržené slovo do výměny · Option+klik: do zásobníku · Cmd+klik: slovo do pole s kurzorem · Shift+klik: převod Letters/Figs. Text dekóduje fldigi."))
                 .windowFont(11)
@@ -107,6 +118,69 @@ struct DigitalInterfaceWindowView: View {
         }
         .padding(8)
         .environment(\.windowFontSize, session.fontSize)
+    }
+
+    /// N1MM's TX window: a line for free typing (Ctrl+K / Alt+T start the transmission and focus it), TX and RX.
+    /// While transmitting every typed character goes out at once; otherwise Enter sends the line as a message.
+    private func txArea(_ app: AppModel, _ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
+        let transmitting: Bool = model.transmitting
+        return HStack(spacing: 6) {
+            TextField(language.tr("TX: psaní volného textu (Enter odešle)"), text: Binding(
+                get: { tx.text },
+                set: { newValue in
+                    let old: String = tx.text
+                    tx.text = newValue
+                    if model.transmitting, newValue.hasPrefix(old), newValue.count > old.count {
+                        model.typed(String(newValue.dropFirst(old.count)).uppercased())
+                    }
+                }))
+                .textFieldStyle(.roundedBorder)
+                .windowFont(14, design: .monospaced)
+                .focused($txFocused)
+                .onSubmit {
+                    if model.transmitting {
+                        model.typed("\n")
+                    } else {
+                        model.typed(tx.text.uppercased())
+                    }
+                    tx.text = ""
+                }
+                .onChange(of: txFocused) { tx.focused = txFocused }
+                .onChange(of: app.keyer.digital.txFocusRequest) { txFocused = true }
+                .accessibilityIdentifier("digital.tx")
+            Button {
+                model.toggleTransmit()
+                txFocused = !transmitting
+            } label: {
+                Text(verbatim: transmitting ? "RX" : "TX")
+                    .windowFont(13, weight: .semibold)
+                    .foregroundStyle(transmitting ? Color.red : Color.primary)
+            }
+            .help(language.tr("Vysílání zap / vyp (Alt+T); Esc vysílání přeruší"))
+            .accessibilityIdentifier("digital.txButton")
+        }
+    }
+
+    /// N1MM's extra message buttons (0, 8, 16 or 24; Settings → Digital modes or the Setup menu).
+    @ViewBuilder
+    private func buttonsGrid(_ model: DigitalInterfaceModel) -> some View {
+        let buttons: [FunctionKeyMessage] = model.buttons
+        if !buttons.isEmpty {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 8), spacing: 4) {
+                ForEach(Array(buttons.enumerated()), id: \.offset) { index, button in
+                    Button {
+                        model.pressButton(index)
+                    } label: {
+                        Text(verbatim: button.label.isEmpty ? "DI" + String(index + 1) : button.label)
+                            .windowFont(12)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .disabled(KotlinStrings.isBlank(button.text))
+                    .accessibilityIdentifier("digital.button.\(index + 1)")
+                }
+            }
+        }
     }
 
     /// N1MM's Grab window: the calls heard (the highlighted one is grabbed next by Alt+G, `{GRAB}`, Insert), the
@@ -249,6 +323,8 @@ struct DigitalInterfaceWindowView: View {
             (\.sendSpaceOnClick, "Po kliku na volačku kurzor do výměny (mezera)"),
             (\.scpGarbageSearch, "Hledat volačky z Master.scp i v šumu"),
             (\.highlightBackground, "Barva volačky jako pozadí"),
+            (\.rxOutputToFile, "Ukládat přijatý text do souboru (ExportFiles)"),
+            (\.cwIdEnabled, "CW ID po každém vysílání"),
         ]
         let grabOptions: [(WritableKeyPath<DigitalConfig, Bool>, String)] = [
             (\.grabNoDupes, "Dupy do Grab okna nedávat"),
@@ -267,6 +343,22 @@ struct DigitalInterfaceWindowView: View {
             (.combined, "Obojí, neověřené žlutě"),
         ]
         return Menu {
+            Button(language.tr("Odeslat textový soubor…")) {
+                let panel = NSOpenPanel()
+                panel.allowedContentTypes = [.plainText]
+                panel.allowsMultipleSelection = false
+                if panel.runModal() == .OK, let url = panel.url {
+                    model.sendTextFile(url)
+                }
+            }
+            Menu(language.tr("Tlačítka zpráv")) {
+                ForEach([0, 8, 16, 24], id: \.self) { count in
+                    Button((model.buttons.count == count ? "✓ " : "") + String(count)) {
+                        model.setButtonCount(count)
+                    }
+                }
+            }
+            Divider()
             Button {
                 model.setAutoTrxUpdate(!model.autoTrxUpdate)
             } label: {
@@ -385,4 +477,11 @@ struct DigitalInterfaceWindowView: View {
         }
         return result
     }
+}
+
+/// The TX window's text and whether it has the keyboard (the window's key monitor leaves Enter to it then).
+@MainActor
+final class TxFieldState: ObservableObject {
+    @Published var text: String = ""
+    var focused: Bool = false
 }

@@ -249,7 +249,12 @@ extension EntryModel {
 
     /// The keyer's shortcuts: Ctrl+K opens the CW keyboard window (`EP:916`) once that window exists.
     private func runKeyerShortcut(_ action: ShortcutAction) {
-        if action == .cwKeyboard && WindowsModel.implemented.contains("cwkeyboard") {
+        if action == .cwKeyboard && form.mode.isDigital && digitalReady {
+            // N1MM Ctrl+K in a digital mode: transmit and type in the Digital Interface's TX window.
+            windows.setOpen("digitalinterface", true)
+            digitalKeyer?.startHold()
+            digitalKeyer?.txFocusRequest += 1
+        } else if action == .cwKeyboard && WindowsModel.implemented.contains("cwkeyboard") {
             windows.setOpen("cwkeyboard", true)
         } else {
             unavailable()
@@ -294,6 +299,8 @@ extension EntryModel {
             }
         case .insertGrab:
             insertKey()
+        case .toggleTx:
+            toggleDigitalTx()
         default:
             runOperatingShortcut(action)
         }
@@ -561,6 +568,43 @@ extension EntryModel {
             if operating.isRun {
                 operating.applyCqRepeat(true)
             }
+        case .digitalTx:
+            if form.mode.isDigital && digitalReady {
+                digitalKeyer?.startHold()
+            }
+        case .digitalRx:
+            digitalKeyer?.endHold()
+        case .toggleTx:
+            toggleDigitalTx()
+        case .clearRx:
+            digitalKeyer?.clearRxWindow?()
+        case .clearTx:
+            digitalKeyer?.clearTxBuffer()
+        case .jumpCq:
+            if jumpToCqFrequency() {
+                wipe()
+            }
+        }
+    }
+
+    /// A Digital Interface message button: its text through fldigi, as an F-key message would go.
+    public func sendDigitalButton(_ index: Int) {
+        let buttons: [FunctionKeyMessage] = config.config.digital.diMessages
+        guard index >= 0, index < buttons.count, !KotlinStrings.isBlank(buttons[index].text) else { return }
+        let outcome = FunctionKeyRouter.sendDigitalTemplate(buttons[index].text, context: functionKeyContext())
+        apply(outcome, opposite: false)
+    }
+
+    /// Alt+T / `{ALT-T}` (digital, N1MM): fldigi transmits (the TX window takes the typing) or returns to receive.
+    func toggleDigitalTx() {
+        guard form.mode.isDigital, digitalReady, let digitalKeyer else {
+            unavailable()
+            return
+        }
+        let holding: Bool = digitalKeyer.isHolding
+        digitalKeyer.toggleHold()
+        if !holding {
+            digitalKeyer.txFocusRequest += 1
         }
     }
 
@@ -736,7 +780,7 @@ extension EntryModel {
             roverQth: station.roverQth, countyLine: countyLine, cutStyle: app.cwKeyer.cutStyle, station: data,
             functionKeys: [], now: now(), leftDigitalFrequency: digitalFrequencyText(vfo: 0),
             rightDigitalFrequency: digitalFrequencyText(vfo: 1))
-        return FunctionKeyContext(
+        var context = FunctionKeyContext(
             mode: form.mode, digitalReady: digitalReady, postContest: operating.postContest, run: operating.isRun,
             call: form.call, rstSent: form.rstSent, freqHz: form.freqHz, progress: esmProgress,
             stationCall: station.call,
@@ -745,6 +789,11 @@ extension EntryModel {
             digital: FunctionKeySet(run: app.digital.runMessages, sp: app.digital.spMessages),
             cwBase: base, exchangeValid: exchangeValid, stackNext: operating.isRun ? callStack?.next : nil,
             serialAfterLog: logbook.nextSerial + 1, grabNext: grabList?.highlighted)
+        context.cwBase.hisName = callHistoryName
+        context.cwBase.digitalButtons = app.digital.diMessages.map(\.text)
+        let messagesDir: URL = dataDir.appendingPathComponent("FunctionKeyMessages")
+        context.cwBase.fileText = { name in Self.readMessageFile(messagesDir, name) }
+        return context
     }
 
     /// `{LDIGFQ}` / `{RDIGFQ}`: the transmitted frequency of rig / VFO `vfo` (dial ± fldigi's audio in a sideband
@@ -753,6 +802,20 @@ extension EntryModel {
         guard let rig, let state = rig.snapshot(vfo: vfo).state else { return "" }
         let hz: Int64 = digitalKeyer?.transmitHz(dialHz: state.freqHz, rawMode: state.rawMode) ?? state.freqHz
         return DigitalFrequency.macroText(hz)
+    }
+
+    /// `{NAME}`: the name column of the call history for the typed call (`""` when unknown).
+    var callHistoryName: String {
+        guard let history = callHistory?() else { return "" }
+        return history.lookup(form.call)?["name"] ?? ""
+    }
+
+    /// `{FILE:name}`: a text file in `<data>/FunctionKeyMessages` (at most 64 kB; a path outside it is refused).
+    nonisolated static func readMessageFile(_ dir: URL, _ name: String) -> String? {
+        guard !name.isEmpty, !name.contains(".."), !name.hasPrefix("/") else { return nil }
+        let url: URL = dir.appendingPathComponent(name)
+        guard let data = try? Data(contentsOf: url), data.count <= 65_536 else { return nil }
+        return String(decoding: data, as: UTF8.self)
     }
 
     /// The F-key button label (`*FunctionKeyLabel(i, shiftHeld)`).

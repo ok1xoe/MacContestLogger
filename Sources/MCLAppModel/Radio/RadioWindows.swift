@@ -10,6 +10,8 @@ public enum EntryWindowAction: Equatable, Sendable {
     case enter
     /// Esc: `stopSending()`.
     case stopSending
+    /// A Digital Interface message button (DI1…DI24, index from 0).
+    case digitalButton(Int)
 }
 
 /// What the radio tool windows read from and hand to the entry windows (Kotlin `typedCall`, `prefillCall`,
@@ -75,6 +77,8 @@ extension AppModel {
             }
         case .stopSending:
             _ = target.stopSending()
+        case .digitalButton(let index):
+            target.sendDigitalButton(index)
         }
     }
 

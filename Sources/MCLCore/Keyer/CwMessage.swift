@@ -42,6 +42,16 @@ public struct CwMessage: Equatable, Sendable {
         case grabDeleteSelected = "GRAB_DELETE_SELECTED"
         /// `{SCQ}`: resume calling CQ (the CQ repeat on, in Run).
         case resumeCq = "RESUME_CQ"
+        /// Digital `{TX}` / `{RX}`: transmit on / back to receive (a message keeps fldigi transmitting when it has
+        /// `{TX}` without `{RX}`). Ignored in CW and SSB.
+        case digitalTx = "DIGITAL_TX"
+        case digitalRx = "DIGITAL_RX"
+        /// Digital `{CLRRX}` / `{CLRTX}`: clear the Digital Interface's RX window / fldigi's TX buffer.
+        case clearRx = "CLEAR_RX"
+        case clearTx = "CLEAR_TX"
+        /// `{ALT-T}`: toggle transmit / receive (digital), `{ALT-Q}`: back to the CQ frequency (Alt+Q).
+        case toggleTx = "TOGGLE_TX"
+        case jumpCq = "JUMP_CQ"
     }
 
     /// Message parts in transmission order.
@@ -65,6 +75,16 @@ public struct CwMessage: Equatable, Sendable {
             case .speed: false
             }
         }
+    }
+
+    /// A line break (`{ENTERLF}`, a line of `{FILE:…}`): `.text("\n")`, kept by the digital modes, a space for CW
+    /// (`withoutNewlines`).
+    public static let newline: Part = .text("\n")
+
+    /// The message with the line breaks as spaces (CW keyers).
+    public var withoutNewlines: CwMessage {
+        CwMessage(parts: parts.map { $0 == Self.newline ? .text(" ") : $0 }, actions: actions,
+                  unknownMacros: unknownMacros)
     }
 
     /// The message as plain text — for keyers without prosigns and speed changes (CAT) and for display. A prosign is

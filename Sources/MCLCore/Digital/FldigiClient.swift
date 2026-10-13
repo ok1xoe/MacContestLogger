@@ -80,9 +80,32 @@ public final class FldigiClient: Sendable {
     /// Transmits text: puts it into the TX buffer, turns on transmission and `^r` at the end returns fldigi to receive
     /// after transmitting.
     public func transmit(_ text: String) throws {
-        _ = try call("text.clear_tx")
-        _ = try call("text.add_tx", .string(text + "^r"))
+        try transmit(text, returnToRx: true, clearFirst: true)
+    }
+
+    /// N1MM `{TX}`/`{RX}`: `returnToRx == false` keeps fldigi transmitting after the text (`{TX}` without `{RX}`);
+    /// `clearFirst == false` appends to a transmission already running (the TX buffer is not cleared).
+    public func transmit(_ text: String, returnToRx: Bool, clearFirst: Bool) throws {
+        if clearFirst {
+            _ = try call("text.clear_tx")
+        }
+        _ = try call("text.add_tx", .string(text + (returnToRx ? "^r" : "")))
         _ = try call("main.tx")
+    }
+
+    /// Text appended to the TX buffer (typing in the Digital Interface's TX window, `^r` to end).
+    public func addTx(_ text: String) throws {
+        _ = try call("text.add_tx", .string(text))
+    }
+
+    /// Transmit on (`main.tx`; Alt+T, the TX button).
+    public func txOn() throws {
+        _ = try call("main.tx")
+    }
+
+    /// `{CLRTX}`: the TX buffer cleared.
+    public func clearTx() throws {
+        _ = try call("text.clear_tx")
     }
 
     /// Immediately interrupts transmission and discards the rest of the TX buffer.

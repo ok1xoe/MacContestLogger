@@ -63,10 +63,11 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Alt+R** / **Ctrl+R** | CQ repeat on / off; pause between CQs |
 | **Ctrl+T** | **tune**: continuous carrier (Winkeyer key-down, via CAT PTT in CW). Ctrl+T or Esc ends it, **30 s safety cutoff** |
 | **Alt+K** | Settings → Function Keys |
-| **Ctrl+K** | **keyboard CW** window — typed text is sent word by word or on Enter, Esc stops |
+| **Ctrl+K** | **keyboard CW** window — typed text is sent word by word or on Enter, Esc stops; in a digital mode the Digital Interface's TX window (transmitting) |
 | **Ctrl+Alt+P** | **pass** — hands the callsign from the field to another station of the network log (directly to the only online station, otherwise a choice in the Network status window) |
 | **Ctrl+Alt+G** | the callsign from the field onto the [call stack](call-stacking.md); the fields are wiped for the next call |
 | **Alt+G** / **Ctrl+Alt+K** | the next callsign from the [call stack](call-stacking.md) (own and partner's) into a wiped entry window; Alt+G in a digital mode takes the Digital Interface's [Grab window](digital-modes.md#the-grab-window) callsign first |
+| **Alt+T** | digital: transmit on / back to receive; the Digital Interface's TX window takes the typing |
 | **Insert** (Help) | digital: the Grab window's callsign into an empty field, then F5+F2 (N1MM Insert table) |
 
 ## Rig

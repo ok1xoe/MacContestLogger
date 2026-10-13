@@ -27,8 +27,8 @@ struct LiveKeyer: KeyerPort {
             return nil
         case .voice(let indices, let hisCall, let freqHz, let opposite):
             return model.voice.play(indices, hisCall: hisCall, freqHz: freqHz, opposite: opposite)
-        case .digital(let text, let index):
-            model.digital.send(text, key: index)
+        case .digital(let text, let index, let returnToRx):
+            model.digital.send(text, key: index, returnToRx: returnToRx)
             return nil
         }
     }

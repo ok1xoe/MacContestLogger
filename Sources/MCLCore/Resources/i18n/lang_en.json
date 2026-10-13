@@ -1425,5 +1425,19 @@
  "Po grabu kurzor do výměny (mezera)": "After a grab, cursor to the exchange (space)",
  "Při grabu dát volačku z pole do bandmapy (Alt+O)": "On a grab, store the callsign from the field in the bandmap (Alt+O)",
  "Grab okno": "Grab window",
- "Insert: volačka z Grab okna + F5+F2": "Insert: callsign from the Grab window + F5+F2"
+ "Insert: volačka z Grab okna + F5+F2": "Insert: callsign from the Grab window + F5+F2",
+ "Tlačítka zpráv DI vysílají jen v digitálním módu přes fldigi": "The DI message buttons transmit only in a digital mode through fldigi",
+ "Digi: vysílání zap / vyp (TX okno)": "Digital: transmit on / off (TX window)",
+ "TX: psaní volného textu (Enter odešle)": "TX: free text (Enter sends)",
+ "Vysílání zap / vyp (Alt+T); Esc vysílání přeruší": "Transmit on / off (Alt+T); Esc stops the transmission",
+ "Odeslat textový soubor…": "Send text file…",
+ "Tlačítka zpráv": "Message buttons",
+ "Ukládat přijatý text do souboru (ExportFiles)": "Save the received text to a file (ExportFiles)",
+ "CW ID po každém vysílání": "CW ID after every transmission",
+ "Tlačítka zpráv Digitálního rozhraní": "Digital Interface message buttons",
+ "Texty s makry jako F-klávesy (také {TX}, {RX}, {ENTERLF}, {CLRRX}, {CLRTX}, {FILE:soubor}, {DI1}…{DI24}); tlačítka jsou v okně Digitální rozhraní a makra {DI1}…{DI24} je vloží do jiné zprávy.": "Texts with macros as for the F-keys (also {TX}, {RX}, {ENTERLF}, {CLRRX}, {CLRTX}, {FILE:file}, {DI1}…{DI24}); the buttons are in the Digital Interface window and the {DI1}…{DI24} macros insert them into another message.",
+ "Počet tlačítek": "Number of buttons",
+ "Načíst .mc…": "Load .mc…",
+ "Uložit .mc…": "Save .mc…",
+ "fldigi pošle text v CW a vrátí původní mód; * nebo {MYCALL} = moje volačka.": "fldigi sends the text in CW and returns to the previous mode; * or {MYCALL} = my callsign."
 }

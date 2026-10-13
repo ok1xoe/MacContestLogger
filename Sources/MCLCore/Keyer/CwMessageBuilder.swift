@@ -80,6 +80,12 @@ public enum CwMessageBuilder {
         /// Interface in kHz (`DigitalFrequency.macroText`); `""` = unknown.
         public var leftDigitalFrequency: String = ""
         public var rightDigitalFrequency: String = ""
+        /// `{NAME}`: the other station's name from the call history.
+        public var hisName: String = ""
+        /// `{DI1}`…`{DI24}`: the texts of the Digital Interface's message buttons.
+        public var digitalButtons: [String] = []
+        /// `{FILE:name}`: the text of a file in the messages folder (`nil` = missing).
+        public var fileText: @Sendable (String) -> String? = { _ in nil }
 
         public init(
             myCall: String, hisCall: String, lastLogged: String, serial: Int, rst: String, exchange: String,
@@ -113,7 +119,8 @@ public enum CwMessageBuilder {
         "{CLEARRIT}": .clearRit, "{RITCLEAR}": .clearRit, "{CQFREQ}": .cqFrequency, "{NOSPLIT}": .splitOff,
         "{SOCALLSTACK}": .soCallStack, "{STACKANOTHER}": .stackAnother, "{CLRSTACK}": .clearStack,
         "{GRAB}": .grab, "{DELALL}": .grabDeleteAll, "{DELTOP}": .grabDeleteTop, "{DELSEL}": .grabDeleteSelected,
-        "{SCQ}": .resumeCq,
+        "{SCQ}": .resumeCq, "{TX}": .digitalTx, "{RX}": .digitalRx, "{CLRRX}": .clearRx, "{CLRTX}": .clearTx,
+        "{ALT-T}": .toggleTx, "{ALT-Q}": .jumpCq,
     ]
 
     /// Builds the message (`nil` template = empty message, like Java `null`).
@@ -126,19 +133,26 @@ public enum CwMessageBuilder {
     /// recursively to depth 2; at depth 3 the macro stays in the text (and is then unknown). An empty list
     /// of F-keys = template unchanged.
     static func expandFunctionKeys(_ template: [UInt16], _ ctx: Context, depth: Int) -> [UInt16] {
-        if depth > 2 || ctx.functionKeys.isEmpty {
+        if depth > 2 || (ctx.functionKeys.isEmpty && ctx.digitalButtons.isEmpty) {
             return template
         }
         var out: [UInt16] = []
         var copied = 0
         var index = 0
         while index < template.count {
-            guard let (keyIndex, end) = functionKeyMatch(template, at: index) else {
+            let inner: String
+            let end: Int
+            if !ctx.functionKeys.isEmpty, let (keyIndex, keyEnd) = functionKeyMatch(template, at: index) {
+                inner = keyIndex < ctx.functionKeys.count ? ctx.functionKeys[keyIndex] : ""
+                end = keyEnd
+            } else if !ctx.digitalButtons.isEmpty, let (button, buttonEnd) = digitalButtonMatch(template, at: index) {
+                inner = button < ctx.digitalButtons.count ? ctx.digitalButtons[button] : ""
+                end = buttonEnd
+            } else {
                 index += 1
                 continue
             }
             out.append(contentsOf: template[copied..<index])
-            let inner: String = keyIndex < ctx.functionKeys.count ? ctx.functionKeys[keyIndex] : ""
             out.append(0x20)
             out.append(contentsOf: expandFunctionKeys(Array(inner.utf16), ctx, depth: depth + 1))
             out.append(0x20)
@@ -147,6 +161,20 @@ public enum CwMessageBuilder {
         }
         out.append(contentsOf: template[copied...])
         return out
+    }
+
+    /// Match of `{DI<n>}` (`n` 1…24, ASCII case-insensitive) at `start` → (button index from 0, end of match).
+    private static func digitalButtonMatch(_ units: [UInt16], at start: Int) -> (Int, Int)? {
+        guard start + 4 < units.count, units[start] == 0x7B, units[start + 1] | 0x20 == 0x64,
+              units[start + 2] | 0x20 == 0x69 else { return nil }
+        var end: Int = start + 3
+        var number = 0
+        while end < units.count, end - start < 6, units[end] >= 0x30, units[end] <= 0x39 {
+            number = number * 10 + Int(units[end] - 0x30)
+            end += 1
+        }
+        guard end > start + 3, end < units.count, units[end] == 0x7D, (1...24).contains(number) else { return nil }
+        return (number - 1, end + 1)
     }
 
     /// Match of `{F<n>}` at position `start` → (F-key index from 0, end of match). `(?i)` without `UNICODE_CASE`
@@ -178,8 +206,31 @@ public enum CwMessageBuilder {
                     i += 1
                     continue
                 }
-                let macro = upperRoot(Array(t[i...end]))
+                let raw: [UInt16] = Array(t[i...end])
+                let macro = upperRoot(raw)
                 i = end + 1
+                if macro == "{ENTERLF}" || macro == "{ENTER}" {
+                    flush(&text, &parts)
+                    parts.append(CwMessage.newline)
+                    continue
+                }
+                if macro.hasPrefix("{FILE:") {
+                    let name: String = JavaChar.string(Array(raw[6..<(raw.count - 1)]))
+                    if let content = ctx.fileText(JavaText.trim(name)) {
+                        let lines: [String] = JavaText.split(content.replacingOccurrences(of: "\r\n", with: "\n"),
+                                                             unit: 0x0A)
+                        for (index, line) in lines.enumerated() {
+                            if index > 0 {
+                                flush(&text, &parts)
+                                parts.append(CwMessage.newline)
+                            }
+                            text.append(contentsOf: line.utf16)
+                        }
+                    } else {
+                        unknown.append(macro)
+                    }
+                    continue
+                }
                 if let action = actions[macro] {
                     actionList.append(action)
                     continue
@@ -235,6 +286,7 @@ public enum CwMessageBuilder {
         case "{MYSTATE}": ctx.station.state
         case "{OPERATOR}": ctx.station.operator
         case "{TIME}": time(ctx.now)
+        case "{NAME}": ctx.hisName
         case "{LDIGFQ}": ctx.leftDigitalFrequency
         case "{RDIGFQ}": ctx.rightDigitalFrequency
         default: nil

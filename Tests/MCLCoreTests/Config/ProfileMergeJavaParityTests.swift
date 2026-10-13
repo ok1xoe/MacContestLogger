@@ -299,7 +299,8 @@ import Testing
         }
         #expect(paths.sorted() == [
             "antennas", "bandNotes", "contestSetups", "cwKeyer.runMessages", "cwKeyer.spMessages",
-            "digital.runMessages", "digital.spMessages", "dxCluster.blacklistedCalls", "dxCluster.blacklistedSpotters",
+            "digital.diMessages", "digital.runMessages", "digital.spMessages", "dxCluster.blacklistedCalls",
+            "dxCluster.blacklistedSpotters",
             "dxCluster.callBlacklist",
             "dxCluster.commands", "dxCluster.favorites", "dxCluster.spotFilterHiddenBands",
             "dxCluster.spotFilterHiddenModes", "dxCluster.spotFilterSpotterContinents", "dxCluster.spotterBlacklist",
