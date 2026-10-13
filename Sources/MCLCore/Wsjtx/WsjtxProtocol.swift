@@ -15,4 +15,6 @@ public enum WsjtxProtocol {
     public static let qsoLogged: Int32 = 5
     public static let close: Int32 = 6
     public static let loggedAdif: Int32 = 12
+    /// HighlightCallsign (13): colour a call in WSJT-X's Band Activity (Swift-only, not sent by v1.1.1).
+    public static let highlightCallsign: Int32 = 13
 }

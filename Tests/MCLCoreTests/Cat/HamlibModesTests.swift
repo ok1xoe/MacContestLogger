@@ -65,7 +65,7 @@ import Testing
         for (dataMode, rttyAfsk) in Self.configs {
             let mapping = HamlibModeMapping(dataMode: dataMode, rttyAfsk: rttyAfsk)
             var results: [String] = []
-            for mode in Mode.allCases {
+            for mode in Mode.javaCases {
                 for freq in frequencies {
                     results.append(mapping.toHamlib(mode, freqHz: freq))
                 }

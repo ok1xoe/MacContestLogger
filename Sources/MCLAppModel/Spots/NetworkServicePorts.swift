@@ -34,6 +34,9 @@ public struct UdpPorts: Sendable {
     public var makeAdifListener: @Sendable (_ host: String, _ port: Int, _ handler: @escaping @Sendable (String) -> Void)
         throws -> (any UdpListening)?
     public var makeBroadcaster: @Sendable () throws -> any Broadcaster
+    /// JTDX's TCP logbook receiver (ADIF over TCP); `nil` result = inert.
+    public var makeAdifTcpListener: @Sendable (_ host: String, _ port: Int, _ handler: @escaping @Sendable (String) -> Void)
+        throws -> (any UdpListening)? = { _, _, _ in nil }
 
     public init(
         makeWsjtxListener: @escaping @Sendable (String, Int, WsjtxListener.Handler) throws -> (any WsjtxListening)?,
@@ -41,7 +44,10 @@ public struct UdpPorts: Sendable {
             -> (any UdpListening)?,
         makeAdifListener: @escaping @Sendable (String, Int, @escaping @Sendable (String) -> Void) throws
             -> (any UdpListening)?,
-        makeBroadcaster: @escaping @Sendable () throws -> any Broadcaster) {
+        makeBroadcaster: @escaping @Sendable () throws -> any Broadcaster,
+        makeAdifTcpListener: @escaping @Sendable (String, Int, @escaping @Sendable (String) -> Void) throws
+            -> (any UdpListening)? = { _, _, _ in nil }) {
+        self.makeAdifTcpListener = makeAdifTcpListener
         self.makeWsjtxListener = makeWsjtxListener
         self.makeN1mmListener = makeN1mmListener
         self.makeAdifListener = makeAdifListener
@@ -66,7 +72,10 @@ public struct UdpPorts: Sendable {
         makeAdifListener: { host, port, handler in
             try AdifUdpListener(bindHost: host, bindPort: port, handler: handler)
         },
-        makeBroadcaster: { try UdpBroadcaster() })
+        makeBroadcaster: { try UdpBroadcaster() },
+        makeAdifTcpListener: { host, port, handler in
+            try AdifTcpListener(bindHost: host, bindPort: port, handler: handler)
+        })
 }
 
 /// The broadcaster of `UdpPorts.inert`: sends nothing.
@@ -191,3 +200,5 @@ enum LiveClockProbe {
         try await SNTPClient.query(host: host, port: port, timeoutMs: timeoutMs).offsetMs
     }
 }
+
+extension AdifTcpListener: UdpListening {}

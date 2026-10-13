@@ -80,7 +80,7 @@ public struct EntryGrid: Equatable, Sendable {
         case .CW: return mode == .cw
         case .PH: return mode == .ssb || mode == .fm || mode == .am
         case .RY: return mode == .rtty
-        case .DI: return mode == .psk || mode == .ft8 || mode == .ft4 || mode == .digital
+        case .DI: return mode == .psk || mode == .ft8 || mode == .ft4 || mode == .digital || mode == .q65 || mode == .ft2
         }
     }
 

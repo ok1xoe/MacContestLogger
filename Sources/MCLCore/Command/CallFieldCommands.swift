@@ -57,7 +57,7 @@ public enum CallFieldCommands {
             ("CW", .cw), ("SSB", .ssb), ("USB", .ssb), ("LSB", .ssb), ("AM", .am), ("FM", .fm),
             ("RTTY", .rtty), ("PSK", .psk), ("PSK31", .psk), ("PSK63", .psk), ("PSK125", .psk),
             ("PSK250", .psk), ("FT8", .ft8), ("FT4", .ft4), ("JT65", .jt65), ("DIGITAL", .digital),
-            ("DIGI", .digital),
+            ("DIGI", .digital), ("Q65", .q65), ("FT2", .ft2),
         ]
         return keyed(pairs)
     }()

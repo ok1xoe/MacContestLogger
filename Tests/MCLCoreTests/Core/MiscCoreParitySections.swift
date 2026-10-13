@@ -35,7 +35,7 @@ enum MiscCoreParitySections {
 
     static func runMode(_ path: String, _ f: [String], _ ctx: Ctx) throws -> Rows {
         if path.hasPrefix("tol/") {
-            let mode: Mode? = try element(Mode.allCases, f[0])
+            let mode: Mode? = try element(Mode.javaCases, f[0])
             return [(path, [String(RunModeTracker.toleranceHz(mode))])]
         }
         let script: String = path.split(separator: "/").prefix(2).joined(separator: "/")
@@ -52,7 +52,7 @@ enum MiscCoreParitySections {
             return [(path, [tracker.toggle(current, try X.int(f[2])).rawValue])]
         case "tuned":
             let freq: Int = try X.int(f[1])
-            let mode: Mode? = try element(Mode.allCases, f[2])
+            let mode: Mode? = try element(Mode.javaCases, f[2])
             let current: RunMode = try runMode(f[3])
             let result: RunMode? = tracker.onTuned(freq, mode: mode, current: current, autoSwitch: X.bool(f[4]),
                                                    runOnCqFreq: X.bool(f[5]))

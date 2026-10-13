@@ -12,6 +12,14 @@ public enum Mode: String, CaseIterable, Codable, Sendable {
     case ft4 = "FT4"
     case jt65 = "JT65"
     case digital = "DIGITAL"
+    // Swift-only (after the Java constants, so their order and indices stay): WSJT-X's newer modes.
+    case q65 = "Q65"
+    case ft2 = "FT2"
+
+    /// The modes of v1.1.1 (Java `values()`), for the parity gates.
+    public static var javaCases: [Mode] {
+        allCases.filter { $0 != .q65 && $0 != .ft2 }
+    }
 
     public var adif: String { rawValue }
 
@@ -26,7 +34,7 @@ public enum Mode: String, CaseIterable, Codable, Sendable {
     /// Data (digital) modes.
     public var isDigital: Bool {
         switch self {
-        case .rtty, .psk, .ft8, .ft4, .jt65, .digital: true
+        case .rtty, .psk, .ft8, .ft4, .jt65, .digital, .q65, .ft2: true
         default: false
         }
     }

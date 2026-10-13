@@ -7,6 +7,26 @@ extension AppModel {
     /// check, the plugins) and their hooks: the stored QSO (Club Log, plugins, broadcast, WSJT-X, in Kotlin's order),
     /// an edit and a delete (the broadcast), the activation's plugin event, the spots' plugin event, BCLOG, HODINY and
     /// the Settings ports. The services start in `activateIntegrations` (Kotlin `App.kt:140-143`).
+    /// WSJT-X / JTDX: the DX Call into the entry window of that instance's rig, the decode list opened on a
+    /// launch, and Okno → Spustit WSJT-X / JTDX (rig 2 with `--rig-name`).
+    private static func wireWsjtx(_ model: AppModel) {
+        guard let integrations = model.integrations else { return }
+        integrations.mirrorDxCall = { [weak model] call, vfo in
+            guard let model else { return }
+            let entry: EntryModel = vfo == 1 ? model.vfoB.entry : model.entry
+            entry.mirrorCall(call)
+        }
+        integrations.openDecodeList = { [weak model] in
+            model?.windows.setOpen("wsjtxdecodes", true)
+        }
+        model.extraMenuActions["wsjtx.launch"] = { [weak model] in
+            model?.integrations.launchWsjtx(radio2: false)
+        }
+        model.extraMenuActions["wsjtx.launch2"] = { [weak model] in
+            model?.integrations.launchWsjtx(radio2: true)
+        }
+    }
+
     static func wireIntegrations(_ model: AppModel, environment: Environment) {
         let clock: any RescoreClock = environment.integrationClock ?? MainQueueRescoreClock()
         let plugins = PluginsModel(ports: environment.network.plugins, dataDir: environment.dataDir,
@@ -41,6 +61,7 @@ extension AppModel {
         model.plugins = plugins
         model.pluginWindows = pluginWindows
         model.integrations = integrations
+        wireWsjtx(model)
         model.onlineServices = online
 
         model.logbook.onLiveQso = { [weak integrations, weak online, weak plugins] qso in

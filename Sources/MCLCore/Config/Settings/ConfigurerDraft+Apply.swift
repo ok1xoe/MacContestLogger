@@ -53,6 +53,15 @@ extension ConfigurerDraft {
         config.esm.callStackOrder = CallStack.Order.from(callStackOrder).rawValue
         config.esm.callStackClearOnBandChange = callStackClearOnBandChange
         config.digital.digitalCallStacking = digitalCallStacking
+        config.wsjtx.highlightCalls = highlightCalls
+        config.wsjtx.mirrorDxCall = mirrorDxCall
+        config.wsjtx.clearDecodesOnBandChange = clearDecodesOnBandChange
+        config.wsjtx.jtdxTcpEnabled = jtdxTcpEnabled
+        config.wsjtx.jtdxTcpBind = jtdxTcpBind
+        config.wsjtx.programPath = programPath
+        config.wsjtx.programArgs = programArgs
+        config.wsjtx.radio2Id = radio2Id
+        config.wsjtx.openDecodesOnLaunch = openDecodesOnLaunch
         config.digital.alignRttyHz = DigitalConfig.audioHz(alignRttyHz, fallback: 2210)
         config.digital.alignOtherHz = DigitalConfig.audioHz(alignOtherHz, fallback: 1500)
         config.digital.afcOnCq = afcOnCq

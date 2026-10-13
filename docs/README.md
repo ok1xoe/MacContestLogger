@@ -32,6 +32,7 @@ version looks slightly different, but the controls and their meaning are the sam
 - [CW keyer](cw-keyer.md)
 - [Voice keyer (DVK) for SSB](voice-keyer.md)
 - [Digital modes](digital-modes.md)
+- [WSJT-X and JTDX](wsjtx.md)
 - [SO2V — two entry windows on one rig](so2v.md)
 - [Antennas and band decoder](antennas.md)
 - [Callsign check](call-check.md)

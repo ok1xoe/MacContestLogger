@@ -18,6 +18,50 @@ public struct WsjtxDecodes: Sendable {
         public let freqHz: Int64
         public let dupe: Bool
         public let newMultCount: Int
+        /// The band of `freqHz` (`nil` while the dial is unknown) and the mode (the decode's, else the status's).
+        public var band: Band? {
+            freqHz > 0 ? Band.from(frequencyHz: Int(freqHz)) : nil
+        }
+        public var modeName: String {
+            WsjtxDecodes.modeName(decode.mode, statusMode: nil)
+        }
+    }
+
+    /// The decode list's sort order (Swift-only: N1MM's sortable columns).
+    public enum Sort: String, CaseIterable, Sendable {
+        /// Newest first (the order they arrive in).
+        case time
+        /// The strongest first.
+        case snr
+        /// The lowest audio offset first.
+        case frequency
+        /// By the caller's call.
+        case call
+    }
+
+    /// WSJT-X's one-character mode of a decode (`~` FT8, `+` FT4, `:` Q65 …) as a name; otherwise the status mode.
+    public static func modeName(_ decodeMode: String?, statusMode: String?) -> String {
+        switch decodeMode ?? "" {
+        case "~": "FT8"
+        case "+": "FT4"
+        case ":": "Q65"
+        case "#": "JT65"
+        case "@": "JT9"
+        case "`": "FST4"
+        default: statusMode ?? (decodeMode ?? "")
+        }
+    }
+
+    /// The colours a caller gets in WSJT-X's Band Activity (N1MM uses the bandmap's): background for a multiplier
+    /// (red one, green several), text colour for a new QSO (blue) and a dupe (grey).
+    public static func highlight(dupe: Bool, newMultCount: Int)
+        -> (background: WsjtxMessages.Rgb?, foreground: WsjtxMessages.Rgb?) {
+        switch SpotColorClassifier.classify(dupe: dupe, newMultCount: newMultCount) {
+        case .dupe: (nil, WsjtxMessages.Rgb(0x9E9E9E))
+        case .good: (nil, WsjtxMessages.Rgb(0x1E88E5))
+        case .oneMult: (WsjtxMessages.Rgb(0xE53935), WsjtxMessages.Rgb(0xFFFFFF))
+        case .multiMult: (WsjtxMessages.Rgb(0x43A047), WsjtxMessages.Rgb(0xFFFFFF))
+        }
     }
 
     /// Newest first.
@@ -63,6 +107,30 @@ public struct WsjtxDecodes: Sendable {
         rows.filter { row in
             (!onlyCq || row.parsed.cq) && (!hideDupe || !row.dupe) && (!onlyMult || row.newMultCount > 0)
         }
+    }
+
+    /// The filters with a text filter (any part of the message, case-insensitive; `73` finds the 73s, N1MM) and a
+    /// sort order (stable: equal rows keep newest first).
+    public func filtered(onlyCq: Bool, hideDupe: Bool, onlyMult: Bool, text: String, sort: Sort) -> [Row] {
+        let needle: String = KotlinText.trim(text).uppercased()
+        var out: [Row] = filtered(onlyCq: onlyCq, hideDupe: hideDupe, onlyMult: onlyMult).filter { row in
+            needle.isEmpty || (row.decode.message ?? "").uppercased().contains(needle)
+        }
+        switch sort {
+        case .time:
+            break
+        case .snr:
+            out = out.enumerated().sorted { ($0.element.decode.snr, -$0.offset) > ($1.element.decode.snr, -$1.offset) }
+                .map(\.element)
+        case .frequency:
+            out = out.enumerated().sorted {
+                ($0.element.decode.deltaFrequency, $0.offset) < ($1.element.decode.deltaFrequency, $1.offset)
+            }.map(\.element)
+        case .call:
+            out = out.enumerated().sorted { ($0.element.parsed.caller, $0.offset) < ($1.element.parsed.caller, $1.offset) }
+                .map(\.element)
+        }
+        return out
     }
 
     // MARK: - texts

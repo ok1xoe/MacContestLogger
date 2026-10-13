@@ -28,6 +28,7 @@ extension IntegrationsModel {
     public func startWsjtxIfEnabled() {
         startWsjtxSender()
         startWsjtxReceiver()
+        startJtdxTcpIfEnabled()
     }
 
     private func startWsjtxReceiver() {
@@ -53,7 +54,7 @@ extension IntegrationsModel {
                 MainHop.post { self?.receivedDecode(decode, from: from) }
             },
             onStatus: { [weak self] status in
-                MainHop.post { self?.wsjtxStatus = status }
+                MainHop.post { self?.receivedStatus(status) }
             },
             onClear: { [weak self] _ in
                 MainHop.post { self?.wsjtxDecodes.clear() }
@@ -99,6 +100,7 @@ extension IntegrationsModel {
             retire(listener)
         }
         stopWsjtxSender()
+        stopJtdxTcp()
     }
 
     public func restartWsjtx() {
@@ -115,8 +117,157 @@ extension IntegrationsModel {
         let analyzer: SpotAnalyzer? = deps.analyzer()
         let status: WsjtxMessages.Status? = wsjtxStatus
         var decodes: WsjtxDecodes = wsjtxDecodes
-        decodes.add(decode, from: from, status: status, analyzer: analyzer, isDupe: isDupe)
+        decodes.add(decode, from: from, status: decode.id.flatMap { wsjtxStatuses[$0] } ?? status,
+                    analyzer: analyzer, isDupe: isDupe)
         wsjtxDecodes = decodes
+        if let row = decodes.rows.first {
+            highlight(row)
+        }
+    }
+
+    /// A WSJT-X / JTDX status: kept per instance; a band change clears the decode list (option), a new DX Call goes
+    /// into the entry window of that instance's rig (option; the instance named in `radio2Id` is VFO B / rig 2).
+    func receivedStatus(_ status: WsjtxMessages.Status) {
+        let key: String = status.id ?? ""
+        let previous: WsjtxMessages.Status? = wsjtxStatuses[key]
+        wsjtxStatuses[key] = status
+        wsjtxStatus = status
+        let w: WsjtxConfig = config.wsjtx
+        let oldBand: Band? = previous.flatMap { Band.from(frequencyHz: Int(clamping: $0.dialFrequencyHz)) }
+        let newBand: Band? = Band.from(frequencyHz: Int(clamping: status.dialFrequencyHz))
+        if w.clearDecodesOnBandChange, previous != nil, oldBand != newBand {
+            wsjtxDecodes.clear()
+            highlighted.removeAll()
+        }
+        let call: String = KotlinStrings.uppercase(KotlinStrings.trim(status.dxCall ?? ""))
+        let oldCall: String = KotlinStrings.uppercase(KotlinStrings.trim(previous?.dxCall ?? ""))
+        if w.mirrorDxCall, !call.isEmpty, call != oldCall {
+            mirrorDxCall?(call, Self.isRadio2(id: status.id, radio2Id: w.radio2Id) ? 1 : 0)
+        }
+    }
+
+    /// The instance belongs to rig 2: its Id is the rig name or ends with ` - <rig name>` (WSJT-X `--rig-name`).
+    static func isRadio2(id: String?, radio2Id: String) -> Bool {
+        let name: String = KotlinStrings.trim(radio2Id)
+        guard !name.isEmpty, let id else { return false }
+        return id == name || id.hasSuffix(" - " + name)
+    }
+
+    /// N1MM: the caller coloured in WSJT-X's Band Activity (HighlightCallsign), sent only when its colour changed.
+    private func highlight(_ row: WsjtxDecodes.Row) {
+        let caller: String = row.parsed.caller
+        guard config.wsjtx.highlightCalls, !KotlinStrings.isBlank(caller), row.freqHz > 0,
+              let listener = wsjtxListener else { return }
+        let colors = WsjtxDecodes.highlight(dupe: row.dupe, newMultCount: row.newMultCount)
+        let key: String = (row.decode.id ?? "") + "|" + caller
+        let value: String = String(describing: colors.background) + String(describing: colors.foreground)
+        guard highlighted[key] != value else { return }
+        highlighted[key] = value
+        let packet: [UInt8] = WsjtxMessages.encodeHighlightCallsign(id: row.decode.id, call: caller,
+                                                                    background: colors.background,
+                                                                    foreground: colors.foreground)
+        let from: UdpEndpoint = row.from
+        lane.submit({ () -> Bool in
+            (try? listener.send(packet, to: from)) != nil
+        }, then: { _ in })
+    }
+
+    // MARK: - JTDX TCP logbook
+
+    public func startJtdxTcpIfEnabled() {
+        let w: WsjtxConfig = config.wsjtx
+        guard w.jtdxTcpEnabled, !KotlinStrings.isBlank(w.jtdxTcpBind), jtdxTcpListener == nil, !isClosed else { return }
+        guard !deps.network.isInert else {
+            logInert("jtdx tcp")
+            return
+        }
+        guard let target = Target.parseAll(w.jtdxTcpBind).first else {
+            show(.tr("JTDX TCP: příjem se nespustil (%s)", .string(invalidBind(w.jtdxTcpBind))))
+            return
+        }
+        jtdxTcpGeneration += 1
+        let generation: Int = jtdxTcpGeneration
+        let ports: UdpPorts = deps.network.udp
+        let handler: @Sendable (String) -> Void = { [weak self] adif in
+            MainHop.post { self?.enqueueIngest(.adif(adif, source: "JTDX")) }
+        }
+        lane.submit({ () -> ListenerStart in
+            do {
+                guard let listener = try ports.makeAdifTcpListener(target.host, Int(target.port), handler) else {
+                    return .none
+                }
+                listener.start()
+                return .plain(listener)
+            } catch {
+                return .failed(ErrorText.message(error))
+            }
+        }, then: { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .plain(let listener):
+                if generation != self.jtdxTcpGeneration || self.isClosed {
+                    self.retire(listener)
+                    return
+                }
+                self.jtdxTcpListener = listener
+                self.show(.tr("JTDX TCP: poslouchám na %s:%s", .string(target.host), .int(Int(target.port))))
+            case .failed(let message):
+                self.show(.tr("JTDX TCP: příjem se nespustil (%s)", .string(message)))
+            case .wsjtx, .none:
+                break
+            }
+        })
+    }
+
+    public func stopJtdxTcp() {
+        jtdxTcpGeneration += 1
+        if let listener = jtdxTcpListener {
+            jtdxTcpListener = nil
+            retire(listener)
+        }
+    }
+
+    // MARK: - launching WSJT-X / JTDX
+
+    /// N1MM „Load WSJT/JTDX": the configured program starts (a new instance; for rig 2 with `--rig-name`), the
+    /// decode list opens (option) and the UDP receiver starts.
+    public func launchWsjtx(radio2: Bool) {
+        let w: WsjtxConfig = config.wsjtx
+        let path: String = KotlinStrings.trim(w.programPath)
+        guard !path.isEmpty else {
+            show(.tr("WSJT-X / JTDX: nastav program (Nastavení → WSJT/JTDX)"))
+            return
+        }
+        var arguments: [String] = KotlinStrings.trim(w.programArgs).split(separator: " ").map(String.init)
+        if radio2 {
+            let name: String = KotlinStrings.trim(w.radio2Id)
+            guard !name.isEmpty else {
+                show(.tr("WSJT-X / JTDX: pro rádio 2 nastav jméno instance (Nastavení → WSJT/JTDX)"))
+                return
+            }
+            arguments += ["--rig-name=" + name]
+        }
+        let launch = deps.network.launchApp
+        let args: [String] = arguments
+        lane.submit({ () -> String? in
+            do {
+                try launch(path, args)
+                return nil
+            } catch {
+                return ErrorText.message(error)
+            }
+        }, then: { [weak self] failure in
+            guard let self else { return }
+            if let failure {
+                self.show(.tr("WSJT-X / JTDX se nespustil (%s)", .string(failure)))
+                return
+            }
+            self.show(.tr("Spouštím %s", .string(URL(fileURLWithPath: path).lastPathComponent)))
+            if w.openDecodesOnLaunch {
+                self.openDecodeList?()
+            }
+            self.startWsjtxIfEnabled()
+        })
     }
 
     /// Kotlin `isDupe(caller, band)` — a call worked on the band, whatever the contest's own dupe rule says.

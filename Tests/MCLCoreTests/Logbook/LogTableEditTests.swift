@@ -345,8 +345,9 @@ import Testing
 
     @Test func modesAreKotlinModeValues() {
         // Probe row MODES.
+        // Probe row MODES, then the Swift-only Q65 and FT2.
         #expect(LogTableEdit.modes.map(\.rawValue) == ["CW", "SSB", "FM", "AM", "RTTY", "PSK", "FT8", "FT4", "JT65",
-                                                       "DIGITAL"])
+                                                       "DIGITAL", "Q65", "FT2"])
         #expect(LogTableEdit.pickMode(.ft8, to: Self.base()).mode == .ft8)
     }
 

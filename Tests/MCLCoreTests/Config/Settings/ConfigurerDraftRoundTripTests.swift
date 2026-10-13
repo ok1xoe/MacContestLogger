@@ -123,6 +123,15 @@ import Testing
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
+        expected.wsjtx.highlightCalls = true
+        expected.wsjtx.mirrorDxCall = true
+        expected.wsjtx.clearDecodesOnBandChange = true
+        expected.wsjtx.jtdxTcpEnabled = false
+        expected.wsjtx.jtdxTcpBind = "127.0.0.1:52001"
+        expected.wsjtx.programPath = ""
+        expected.wsjtx.programArgs = ""
+        expected.wsjtx.radio2Id = ""
+        expected.wsjtx.openDecodesOnLaunch = true
         expected.digital.alignRttyHz = 2210
         expected.digital.alignOtherHz = 1500
         expected.digital.afcOnCq = false
@@ -383,6 +392,15 @@ import Testing
         w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
+        w.same(\.highlightCalls, \.wsjtx.highlightCalls, false)
+        w.same(\.mirrorDxCall, \.wsjtx.mirrorDxCall, false)
+        w.same(\.clearDecodesOnBandChange, \.wsjtx.clearDecodesOnBandChange, false)
+        w.same(\.jtdxTcpEnabled, \.wsjtx.jtdxTcpEnabled, true)
+        w.same(\.jtdxTcpBind, \.wsjtx.jtdxTcpBind, "127.0.0.1:52002")
+        w.same(\.programPath, \.wsjtx.programPath, "/Applications/wsjtx.app")
+        w.same(\.programArgs, \.wsjtx.programArgs, "--config-dir x")
+        w.same(\.radio2Id, \.wsjtx.radio2Id, "Radio2")
+        w.same(\.openDecodesOnLaunch, \.wsjtx.openDecodesOnLaunch, false)
         w.same(\.alignRttyHz, \.digital.alignRttyHz, 1500)
         w.same(\.alignOtherHz, \.digital.alignOtherHz, 1000)
         w.same(\.afcOnCq, \.digital.afcOnCq, true)
