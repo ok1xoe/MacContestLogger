@@ -137,6 +137,8 @@ public final class DigitalInterfaceModel {
         var carrier: Int32?
         /// The modem names, read once per session (`nil` = not read in this poll).
         var names: [String]?
+        /// AFC, Lock and Rev, read with the names.
+        var switches: [FldigiClient.Switch: Bool]?
     }
 
     enum PollResult: Sendable {
@@ -273,6 +275,11 @@ public final class DigitalInterfaceModel {
                 poll.carrier = try? client.carrier()
                 if needNames {
                     poll.names = try? client.modemNames()
+                    var switches: [FldigiClient.Switch: Bool] = [:]
+                    for toggle in FldigiClient.Switch.allCases {
+                        switches[toggle] = try? client.isOn(toggle)
+                    }
+                    poll.switches = switches
                 }
                 return .read(poll)
             } catch {
@@ -300,6 +307,9 @@ public final class DigitalInterfaceModel {
             digital.modem = poll.modem
             if let names = poll.names, !names.isEmpty {
                 digital.modemNames = names
+            }
+            if let switches = poll.switches {
+                digital.switches = switches
             }
         case .failed(let message):
             error = RadioWindowTexts.fldigiUnavailable(host: host, port: port, message: message)
@@ -390,6 +400,28 @@ public final class DigitalInterfaceModel {
         guard let data = try? Data(contentsOf: url), !data.isEmpty, data.count <= 65_536 else { return }
         let text: String = String(decoding: data, as: UTF8.self).replacingOccurrences(of: "\r\n", with: "\n")
         digital.send(text, key: -1)
+    }
+
+    // MARK: - fldigi's tuning (N1MM Align, AFC, NET, Rev, Lock)
+
+    /// The switch as last read or set (`nil` = unknown).
+    public func isOn(_ toggle: FldigiClient.Switch) -> Bool? {
+        digital.switches[toggle]
+    }
+
+    /// A switch button pressed.
+    public func toggle(_ toggle: FldigiClient.Switch) {
+        digital.set(toggle, !(digital.switches[toggle] ?? false))
+    }
+
+    /// NET (fldigi: Lock off).
+    public var net: Bool? {
+        digital.switches[.lock].map { !$0 }
+    }
+
+    /// The Align button.
+    public func align() {
+        (app?.activeEntry ?? app?.entry)?.alignDigital()
     }
 
     /// The Grab button: the highlighted call into a wiped entry window.

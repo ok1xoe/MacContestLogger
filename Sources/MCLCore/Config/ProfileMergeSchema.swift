@@ -72,6 +72,12 @@ enum ProfileMergeSchema {
             Property("diButtonCount", .int, .fieldDefault),
             Property("rxOutputToFile", .boolean, .fieldDefault),
             Property("diMessages", .list(.bean("cz.ok1xoe.maccontestlogger.config.FunctionKeyMessage")), .fieldDefault),
+            Property("alignRttyHz", .int, .fieldDefault),
+            Property("alignOtherHz", .int, .fieldDefault),
+            Property("afcOnCq", .boolean, .fieldDefault),
+            Property("netWithRunChange", .boolean, .fieldDefault),
+            Property("shiftCompEnabled", .boolean, .fieldDefault),
+            Property("shiftCompHz", .int, .fieldDefault),
         ],
     ]
 

@@ -53,6 +53,12 @@ extension ConfigurerDraft {
         config.esm.callStackOrder = CallStack.Order.from(callStackOrder).rawValue
         config.esm.callStackClearOnBandChange = callStackClearOnBandChange
         config.digital.digitalCallStacking = digitalCallStacking
+        config.digital.alignRttyHz = DigitalConfig.audioHz(alignRttyHz, fallback: 2210)
+        config.digital.alignOtherHz = DigitalConfig.audioHz(alignOtherHz, fallback: 1500)
+        config.digital.afcOnCq = afcOnCq
+        config.digital.netWithRunChange = netWithRunChange
+        config.digital.shiftCompEnabled = shiftCompEnabled
+        config.digital.shiftCompHz = max(-5000, min(5000, shiftCompHz))
         config.digital.cwIdEnabled = cwIdEnabled
         config.digital.cwIdText = cwIdText
         config.digital.diButtonCount = DigitalConfig.buttonCount(diButtonCount)

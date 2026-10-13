@@ -52,6 +52,13 @@ public struct CwMessage: Equatable, Sendable {
         /// `{ALT-T}`: toggle transmit / receive (digital), `{ALT-Q}`: back to the CQ frequency (Alt+Q).
         case toggleTx = "TOGGLE_TX"
         case jumpCq = "JUMP_CQ"
+        /// Digital `{ALIGN}`: the received signal moved to the alignment frequency (the Align button).
+        case align = "ALIGN"
+        /// Digital `{ENABLEAFC}` / `{DISABLEAFC}`, `{ENABLENET}` / `{DISABLENET}` (fldigi: Lock off / on).
+        case afcOn = "AFC_ON"
+        case afcOff = "AFC_OFF"
+        case netOn = "NET_ON"
+        case netOff = "NET_OFF"
     }
 
     /// Message parts in transmission order.

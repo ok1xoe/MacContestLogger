@@ -41,6 +41,28 @@ repeat work; **Esc** interrupts transmission (`main.abort`).
 - Macros `{LDIGFQ}` and `{RDIGFQ}` send the frequency of the left (VFO A / rig 1) and right (VFO B /
   rig 2) side in kHz with one decimal (dial ± audio as above), e.g. `QSY {LDIGFQ}`.
 
+## Tuning fldigi from the logger (Align, AFC, NET, Rev, Lock)
+
+The buttons next to the TX line (N1MM's fldigi controls):
+
+- **Align** (also `{ALIGN}`) retunes the rig so that the signal under fldigi's cursor lands on the
+  **alignment frequency** — the centre of your filter — and moves fldigi's cursor there
+  (`modem.set_carrier`). Essential for FSK, where the transmit frequency is fixed by the rig. Settings
+  → Digital modes: *RTTY alignment* (default 2210 Hz — fldigi's cursor is the centre, so mark 2125 +
+  85) and *Other alignment* (default 1500 Hz). The direction follows the rig mode: USB/PKTUSB up,
+  LSB/PKTLSB and FSK RTTY down (RTTYR up).
+- **AFC**, **Rev** and **Lock** switch fldigi's AFC, reverse and TX lock (`main.set_afc`,
+  `main.set_reverse`, `main.set_lock`); a bold button is on (read when the window opens).
+- **NET** (MMTTY's "TX follows RX") is fldigi's Lock off: NET on = Lock off.
+- `{ENABLEAFC}` / `{DISABLEAFC}` and `{ENABLENET}` / `{DISABLENET}` in a message do the same.
+- *AFC zapnout s CQ a TU* (N1MM "AFC On/Off with CQ"): the Run CQ (F1) and TU (F3) messages turn AFC
+  on, the S&P messages off.
+- *NET podle Run / S&P* (N1MM "NET On/Off with Run Change"): switching to S&P turns NET on (Lock off),
+  to Run off (Lock on).
+- *Kompenzace posunu FSK* (N1MM Shift Frequency Compensation): in FSK RTTY (rig mode RTTY/RTTYR) the
+  offset (default 170 Hz, may be negative) is added to the logged and shown frequency, for rigs whose
+  dial does not show the mark.
+
 ## The Digital interface window
 
 **"Okna → Digitální rozhraní"** (Windows → Digital interface) — the equivalent of

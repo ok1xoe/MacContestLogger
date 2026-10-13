@@ -216,7 +216,9 @@ public enum FunctionKeyRouter {
             }
         }
         out.actions = digital ? message.actions
-            : message.actions.filter { ![.digitalTx, .digitalRx, .clearTx, .toggleTx].contains($0) }
+            : message.actions.filter {
+                ![.digitalTx, .digitalRx, .clearTx, .toggleTx, .align, .afcOn, .afcOff, .netOn, .netOff].contains($0)
+            }
     }
 
     /// `{LOGTHENPOP}` / `{LOGTHENNEXT}` (N1MM, Run only): the text before the macro goes to the station being logged,

@@ -138,6 +138,31 @@ private struct ModemGroup: View {
                 label: language.tr(
                     "AutoTRXUpdate: s rigem v USB/LSB zapisovat a spotovat frekvenci rig ± audio fldigi (při otevřeném Digitálním rozhraní)"),
                 isOn: $draft.autoTrxUpdate)
+            HStack(alignment: .bottom, spacing: 8) {
+                SettingsField(caption: language.tr("Zarovnání RTTY (Hz)")) {
+                    SettingsTextField(text: Binding(get: { String(draft.alignRttyHz) },
+                                                    set: { draft.alignRttyHz = Int($0) ?? draft.alignRttyHz }),
+                                      filter: .digits(limit: 4))
+                }
+                .frame(width: 140)
+                SettingsField(caption: language.tr("Zarovnání ostatní (Hz)")) {
+                    SettingsTextField(text: Binding(get: { String(draft.alignOtherHz) },
+                                                    set: { draft.alignOtherHz = Int($0) ?? draft.alignOtherHz }),
+                                      filter: .digits(limit: 4))
+                }
+                .frame(width: 140)
+                SettingsCaption(language.tr(
+                    "Tlačítko Align přeladí rig tak, aby signál pod kurzorem fldigi byl na této audio frekvenci (u FSK nutné; fldigi: značka + 85 Hz)."))
+            }
+            SettingsCheckbox(label: language.tr("AFC zapnout s CQ a TU"), isOn: $draft.afcOnCq)
+            SettingsCheckbox(label: language.tr("NET podle Run / S&P"), isOn: $draft.netWithRunChange)
+            HStack(alignment: .center, spacing: 8) {
+                SettingsCheckbox(label: language.tr("Kompenzace posunu FSK (Hz)"), isOn: $draft.shiftCompEnabled)
+                SettingsTextField(text: Binding(get: { String(draft.shiftCompHz) },
+                                                set: { draft.shiftCompHz = Int($0) ?? draft.shiftCompHz }),
+                                  filter: .digitsAnd(extra: "-"))
+                    .frame(width: 80)
+            }
             SettingsCaption(language.tr(
                 "fldigi dělá modem (RTTY, PSK…) a MCL mu posílá zprávy F-kláves (Function Keys → Digi) a čte dekódovaný text do okna Digitální rozhraní. V RTTY/PSK s modemem funguje i ESM. Esc vysílání přeruší."))
         }

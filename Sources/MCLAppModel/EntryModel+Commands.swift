@@ -501,6 +501,7 @@ extension EntryModel {
         var keyerStatus: EntryStatus?
         if let transmission = outcome.transmission {
             keyerStatus = ports.keyer.send(transmission, settings: keyerSettings(opposite: opposite))
+            afcWithCq(transmission)
         }
         if let key = outcome.recordKey, let message = ports.keyer.toggleRecording(key) {
             show(message)
@@ -584,6 +585,16 @@ extension EntryModel {
             if jumpToCqFrequency() {
                 wipe()
             }
+        case .align:
+            alignDigital()
+        case .afcOn:
+            digitalKeyer?.set(.afc, true)
+        case .afcOff:
+            digitalKeyer?.set(.afc, false)
+        case .netOn:
+            digitalKeyer?.setNet(true)
+        case .netOff:
+            digitalKeyer?.setNet(false)
         }
     }
 
@@ -593,6 +604,17 @@ extension EntryModel {
         guard index >= 0, index < buttons.count, !KotlinStrings.isBlank(buttons[index].text) else { return }
         let outcome = FunctionKeyRouter.sendDigitalTemplate(buttons[index].text, context: functionKeyContext())
         apply(outcome, opposite: false)
+    }
+
+    /// N1MM Align (`{ALIGN}`, the Digital Interface's button): the rig moves so the signal under fldigi's cursor is
+    /// on the alignment frequency; the cursor follows.
+    @discardableResult
+    public func alignDigital() -> Bool {
+        guard let digitalKeyer, let state = rig?.activeState else { return false }
+        let rigPort = ports.rig
+        return digitalKeyer.align(dialHz: state.freqHz, rawMode: state.rawMode) { hz in
+            rigPort.qsy(hz: hz)
+        }
     }
 
     /// Alt+T / `{ALT-T}` (digital, N1MM): fldigi transmits (the TX window takes the typing) or returns to receive.
@@ -605,6 +627,16 @@ extension EntryModel {
         digitalKeyer.toggleHold()
         if !holding {
             digitalKeyer.txFocusRequest += 1
+        }
+    }
+
+    /// N1MM „AFC On/Off with CQ": the Run CQ and TU messages turn fldigi's AFC on, the S&P messages off.
+    private func afcWithCq(_ transmission: FunctionKeyTransmission) {
+        guard config.config.digital.afcOnCq, case .digital(_, let index, _) = transmission else { return }
+        if !operating.isRun {
+            digitalKeyer?.set(.afc, false)
+        } else if index == EsmEngine.f1 || index == EsmEngine.f3 {
+            digitalKeyer?.set(.afc, true)
         }
     }
 

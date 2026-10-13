@@ -18,6 +18,32 @@ public enum DigitalFrequency {
         return dialHz + Int64(side * carrierHz)
     }
 
+    /// N1MM Shift Frequency Compensation: the offset for FSK RTTY (rig mode RTTY/RTTYR), 0 otherwise.
+    public static func shiftCompensation(rawMode: String, enabled: Bool, offsetHz: Int) -> Int64 {
+        guard enabled else { return 0 }
+        let mode: String = JavaText.toUpperCase(JavaText.trim(rawMode))
+        return mode == "RTTY" || mode == "RTTYR" ? Int64(offsetHz) : 0
+    }
+
+    /// The side the received audio lies on for Align: USB-like `+1`, LSB-like `-1` (FSK RTTY demodulates as LSB,
+    /// RTTYR as USB), `nil` for other modes.
+    public static func alignSide(rawMode: String) -> Int? {
+        switch JavaText.toUpperCase(JavaText.trim(rawMode)) {
+        case "RTTY": -1
+        case "RTTYR": 1
+        default: sideband(rawMode: rawMode)
+        }
+    }
+
+    /// N1MM Align: the dial that puts a signal now at audio `carrierHz` onto `targetHz` (the filter's centre);
+    /// `nil` when nothing moves or the mode has no audio side.
+    public static func alignedDialHz(dialHz: Int64, rawMode: String, carrierHz: Int, targetHz: Int) -> Int64? {
+        guard dialHz > 0, carrierHz > 0, carrierHz != targetHz, let side = alignSide(rawMode: rawMode) else {
+            return nil
+        }
+        return dialHz + Int64(side * (carrierHz - targetHz))
+    }
+
     /// `{RDIGFQ}` / `{LDIGFQ}`: kHz with one decimal (US decimal point), `""` for an unknown frequency.
     public static func macroText(_ hz: Int64) -> String {
         guard hz > 0 else { return "" }
