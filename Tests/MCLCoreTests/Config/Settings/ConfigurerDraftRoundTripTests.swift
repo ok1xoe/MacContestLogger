@@ -123,6 +123,13 @@ import Testing
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
+        expected.digital.grabOrder = GrabList.Order.lifo.rawValue
+        expected.digital.grabNoDupes = true
+        expected.digital.grabOnlyScp = false
+        expected.digital.grabClearOnQsy = false
+        expected.digital.grabClearOnCq = false
+        expected.digital.grabSendSpace = false
+        expected.digital.grabAddToBandmap = false
         expected.digital.callValidity = DigitalCallValidity.combined.rawValue
         expected.digital.validateScp = true
         expected.digital.validateCallHistory = true
@@ -365,6 +372,13 @@ import Testing
         w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
+        w.same(\.grabOrder, \.digital.grabOrder, "FIFO")
+        w.same(\.grabNoDupes, \.digital.grabNoDupes, false)
+        w.same(\.grabOnlyScp, \.digital.grabOnlyScp, true)
+        w.same(\.grabClearOnQsy, \.digital.grabClearOnQsy, true)
+        w.same(\.grabClearOnCq, \.digital.grabClearOnCq, true)
+        w.same(\.grabSendSpace, \.digital.grabSendSpace, true)
+        w.same(\.grabAddToBandmap, \.digital.grabAddToBandmap, true)
         w.same(\.callValidity, \.digital.callValidity, "RESOURCES")
         w.same(\.validateScp, \.digital.validateScp, false)
         w.same(\.validateCallHistory, \.digital.validateCallHistory, false)

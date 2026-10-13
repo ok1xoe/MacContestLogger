@@ -63,6 +63,9 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case stackCall
     /// N1MM Alt+G: the next call from the call stack into a wiped entry window.
     case grabStack
+    /// N1MM Insert (digital): an empty call field takes the call from the Grab window, then his call + exchange by
+    /// Run/S&P, ESM and the dupe state. The PC Insert key is Help on a Mac.
+    case insertGrab
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -131,11 +134,12 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .dxClusterWindow: Spec(name: "DX_CLUSTER_WINDOW", id: "dx_window", label: "Okno DX clusteru", defaultKeys: "Ctrl+TAB")
         case .stackCall: Spec(name: "STACK_CALL", id: "stack_call", label: "Volačku do zásobníku", defaultKeys: "Ctrl+Alt+G")
         case .grabStack: Spec(name: "GRAB_STACK", id: "grab_stack", label: "Další volačka ze zásobníku", defaultKeys: "Alt+G")
+        case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

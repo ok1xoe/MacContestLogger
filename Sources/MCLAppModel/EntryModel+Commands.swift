@@ -276,9 +276,24 @@ extension EntryModel {
         case .incrementNr:
             incrementNumber()
         case .stackCall:
-            stackAnother(label: "Ctrl+Alt+G", runOnly: false)
+            // Digital Call Stacking: Ctrl+Alt+G moves the Grab window's call onto the stack (N1MM).
+            if form.mode.isDigital, config.config.digital.digitalCallStacking, let grabList,
+               let call = grabList.highlighted {
+                if callStack?.push(call) == true {
+                    grabList.remove(call)
+                }
+            } else {
+                stackAnother(label: "Ctrl+Alt+G", runOnly: false)
+            }
         case .grabStack:
-            grabFromStack()
+            // Alt+G: in a digital mode the Grab window's call (N1MM), otherwise the next stacked call.
+            if form.mode.isDigital, grabList?.highlighted != nil {
+                grabFromList()
+            } else {
+                grabFromStack()
+            }
+        case .insertGrab:
+            insertKey()
         default:
             runOperatingShortcut(action)
         }
@@ -485,13 +500,15 @@ extension EntryModel {
         }
         for action in outcome.actions {
             if action == .logThenPop {
-                logThenPop(next: outcome.stackNextCall, progress: outcome.stackProgress)
+                logThenPop(next: outcome.stackNextCall, progress: outcome.stackProgress,
+                           fromGrab: outcome.nextFromGrab)
             } else {
                 performMacroAction(action)
             }
         }
         if let freqHz = outcome.cqSentFreqHz {
             operating.onCqSent(freqHz)
+            grabList?.cqSent()
         }
         if outcome.refocus {
             focusRequest += 1
@@ -532,7 +549,58 @@ extension EntryModel {
             callStack?.clear()
         case .logThenPop:
             logThenPop(next: callStack?.next, progress: nil)
+        case .grab:
+            grabFromList()
+        case .grabDeleteAll:
+            grabList?.clear()
+        case .grabDeleteTop:
+            grabList?.removeTop()
+        case .grabDeleteSelected:
+            grabList?.removeSelected()
+        case .resumeCq:
+            if operating.isRun {
+                operating.applyCqRepeat(true)
+            }
         }
+    }
+
+    // MARK: - the Grab window (digital, N1MM)
+
+    /// Alt+G / `{GRAB}` / the Grab button: the Grab window's highlighted call into a wiped entry window. Options: the
+    /// call in the field goes into the bandmap first (Alt+O) or — with Digital Call Stacking in Run — onto the call
+    /// stack; the cursor moves on to the exchange (Send Space on Using Grab).
+    public func grabFromList() {
+        guard let grabList, let next = grabList.grab() else { return }
+        let digital: DigitalConfig = config.config.digital
+        let typed: String = CallStack.normalize(form.call)
+        if !typed.isEmpty && typed != next {
+            if digital.grabAddToBandmap {
+                storeCall()
+            }
+            if digital.digitalCallStacking && operating.isRun {
+                callStack?.push(typed)
+            }
+        }
+        wipe()
+        takeStacked(next)
+        if digital.grabSendSpace {
+            jumpToExchange()
+        }
+    }
+
+    /// N1MM Insert (digital; also usable in the other modes): an empty call field grabs the Grab window's call, then
+    /// his call + exchange (or F4 / F6) by Run/S&P, ESM and the dupe state; the cursor goes to the exchange.
+    public func insertKey() {
+        if KotlinStrings.isBlank(form.call), let grabList, let next = grabList.grab() {
+            takeStacked(next)
+        }
+        guard !KotlinStrings.isBlank(form.call) else { return }
+        let keys: [Int] = InsertKey.keys(run: operating.isRun, esm: esmActive, dupe: isDupe,
+                                         workDupes: operating.esmOptions.workDupes, exchangeValid: exchangeValid)
+        if !keys.isEmpty && canTransmit {
+            sendKeys(keys, refocus: false)
+        }
+        exchangeFocusRequest += 1
     }
 
     // MARK: - call stacking (N1MM)
@@ -596,13 +664,18 @@ extension EntryModel {
 
     /// `{LOGTHENPOP}`: the QSO is logged; when it was, the next call comes off the stack into the field and the ESM
     /// progress is what the rest of the message already sent to it.
-    func logThenPop(next: String?, progress: EsmProgress?) {
+    func logThenPop(next: String?, progress: EsmProgress?, fromGrab: Bool = false) {
         let logged: String = form.call
         submit()
         guard KotlinStrings.isBlank(form.call), !KotlinStrings.isBlank(logged) else { return }
         callStack?.remove(logged)
-        guard let next, let callStack else { return }
-        callStack.remove(next)
+        grabList?.remove(logged)
+        guard let next else { return }
+        if fromGrab {
+            grabList?.remove(next)
+        } else {
+            callStack?.remove(next)
+        }
         takeStacked(next)
         if let progress {
             esmProgress = progress
@@ -671,7 +744,7 @@ extension EntryModel {
             cw: FunctionKeySet(run: app.cwKeyer.runMessages, sp: app.cwKeyer.spMessages),
             digital: FunctionKeySet(run: app.digital.runMessages, sp: app.digital.spMessages),
             cwBase: base, exchangeValid: exchangeValid, stackNext: operating.isRun ? callStack?.next : nil,
-            serialAfterLog: logbook.nextSerial + 1)
+            serialAfterLog: logbook.nextSerial + 1, grabNext: grabList?.highlighted)
     }
 
     /// `{LDIGFQ}` / `{RDIGFQ}`: the transmitted frequency of rig / VFO `vfo` (dial ± fldigi's audio in a sideband

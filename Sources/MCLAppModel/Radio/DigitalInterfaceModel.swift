@@ -19,8 +19,6 @@ public final class DigitalInterfaceModel {
     static let pollMs = 300
     /// The wait without a modem (`delay(1000)`).
     static let noModemMs = 1000
-    /// `DIGI_RECENT_CALLS`.
-    static let recentCallCount: Int32 = 8
 
     /// A key of the window forwarded to the entry window (`DIGI_FUNCTION_KEYS`, Enter, Esc).
     public enum Key: Equatable, Sendable {
@@ -79,8 +77,15 @@ public final class DigitalInterfaceModel {
     public private(set) var status: String = ""
     /// The error line (no modem, fldigi not answering).
     public private(set) var error: EntryStatus?
-    /// The last calls heard (at most 8, in order of first appearance).
-    public private(set) var recentCalls: [String] = []
+    /// The Grab window (N1MM): the calls heard, the next to grab first.
+    public var recentCalls: [String] {
+        app?.grabList.shown ?? []
+    }
+
+    /// The highlighted call of the Grab window.
+    public var highlightedCall: String? {
+        app?.grabList.highlighted
+    }
     /// The ranges of `text` received while transmitting.
     public private(set) var transmittedRanges: [Range<Int>] = []
     /// The pause bar (N1MM): the window shows no new text until it is clicked again (fldigi is still read).
@@ -113,6 +118,11 @@ public final class DigitalInterfaceModel {
             lock.withLock { stream.transmitted }
         }
 
+        /// The text, its TX ranges and the units dropped before it, read together.
+        var snapshot: (text: String, transmitted: [Range<Int>], dropped: Int) {
+            lock.withLock { (stream.text, stream.transmitted, stream.dropped) }
+        }
+
         func clear() {
             lock.withLock { stream.clear() }
         }
@@ -135,7 +145,6 @@ public final class DigitalInterfaceModel {
     }
 
     @ObservationIgnored let stream = Stream()
-    @ObservationIgnored private let recent = RecentCalls(max: DigitalInterfaceModel.recentCallCount)
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let contest: ContestModel
     @ObservationIgnored private let digital: DigitalKeyerModel
@@ -150,6 +159,8 @@ public final class DigitalInterfaceModel {
     @ObservationIgnored private var namesRead = false
     /// The call Hover Mode took last (it is not taken again while the pointer stays on it).
     @ObservationIgnored private var hoveredCall: String?
+    /// The position (in all text ever received) up to which calls were offered to the Grab window.
+    @ObservationIgnored private var grabbedUpTo: Int = 0
     @ObservationIgnored private var markKey: String = ""
     @ObservationIgnored private var markCache: [String: CallMark] = [:]
     @ObservationIgnored private var loggedCalls: Set<String>?
@@ -297,19 +308,24 @@ public final class DigitalInterfaceModel {
     /// New text from fldigi: shown unless the window is paused; the calls heard outside the own transmission (and
     /// shown by the validity routines) go to the recent calls.
     private func received() {
-        let full: String = stream.text
-        let tx: [Range<Int>] = stream.transmitted
+        let (full, tx, dropped) = stream.snapshot
         if !isPaused {
             text = full
             transmittedRanges = tx
         }
+        // Only calls new since the last poll and already followed by more text (a call at the very end may still
+        // grow) go to the Grab window — a cleared Grab window does not fill again with old text.
         let own: String = myCall
         let validity: DigitalCallValidity = DigitalCallValidity.from(config.config.digital.callValidity)
-        for hit in callHits(full) where hit.call != own && !tx.contains(where: { $0.contains(hit.start) }) {
-            guard validity.highlight(verified: isVerified(hit.call)) != nil else { continue }
-            recent.offer(hit.call)
+        let length: Int = full.utf16.count
+        var seen: Int = grabbedUpTo
+        for hit in callHits(full) where hit.end < length && dropped + hit.end > grabbedUpTo {
+            seen = max(seen, dropped + hit.end)
+            guard hit.call != own, !tx.contains(where: { $0.contains(hit.start) }),
+                  validity.highlight(verified: isVerified(hit.call)) != nil else { continue }
+            app?.grabList.offer(hit.call)
         }
-        recentCalls = recent.calls
+        grabbedUpTo = seen
     }
 
     // MARK: - the window's actions
@@ -317,10 +333,14 @@ public final class DigitalInterfaceModel {
     /// „Vymazat": the text and the recent calls (fldigi's position stays, the old text is not read again).
     public func clear() {
         stream.clear()
-        recent.clear()
+        app?.grabList.clear()
         text = ""
         transmittedRanges = []
-        recentCalls = []
+    }
+
+    /// The Grab button: the highlighted call into a wiped entry window.
+    public func grab() {
+        (app?.activeEntry ?? app?.entry)?.grabFromList()
     }
 
     /// The window shows no new text (the pause bar or the pointer over a call).
@@ -548,6 +568,8 @@ public final class DigitalInterfaceModel {
     /// (N1MM): FIFO the clicked call, LIFO the call in the field (the clicked one goes into the field).
     public func take(_ call: String, click: Click = .plain) {
         guard let app else { return }
+        // N1MM: a call taken from the text leaves the Grab window.
+        app.grabList.remove(call)
         if click == .stack {
             app.callStack?.push(call)
             return

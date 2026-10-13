@@ -120,6 +120,35 @@ line reaches the bottom the window turns a page so the newest line is at the top
 line is underlined) and *V titulku frekvence rigu, ne přesná* (the caption and `{LDIGFQ}`/`{RDIGFQ}`
 show the dial instead of dial ± audio).
 
+## The Grab window
+
+The row above the text is N1MM's **Grab window**: the last 10 callsigns recognised in the received
+text, the one to be grabbed next highlighted. Not added: your own callsign, the callsign already in
+the callsign field, text received while you transmit, and (options in **Nastavení → Grab okno**)
+dupes (*Dupy do Grab okna nedávat*, on by default) or callsigns missing from Master.scp. A callsign
+taken from the text by a click leaves the list. Only callsigns new since the last read and already
+followed by more text are added, so a cleared list does not fill again from old text.
+
+| Key / control | Action |
+|---|---|
+| **Grab** button, **Alt+G**, `{GRAB}` | the highlighted callsign into a wiped entry window (it leaves the list). In CW/SSB, or with an empty list, Alt+G takes the next callsign of the [call stack](call-stacking.md) instead |
+| a click on a callsign in the row | that callsign into the callsign field |
+| **CLR** | clears the list |
+| right click on a callsign | select it, delete it, clear the list, sort order **LIFO** (newest first, default) or **FIFO** |
+| **Insert** (the Help key on a Mac keyboard; also remappable) | with an empty callsign field grabs the highlighted callsign, then sends his call + exchange (F5+F2); with ESM in S&P first F4 until the exchange is entered; a dupe sends F6 in Run (or F5+F2 with *Work dupes*) and nothing without ESM — N1MM's Insert table; the cursor goes to the exchange |
+| `{LOGTHENGRAB}` (Run only) | as [`{LOGTHENPOP}`](call-stacking.md#logthenpop-log-and-go-on), with the next callsign taken from the Grab window: `! {LOGTHENGRAB} TU {F5}{F2}`. With an empty list the QSO is logged and the TU message is sent. ESM never chooses this key by itself — use it on its own key (N1MM: do not put it into the TU or Next Call key) |
+| `{DELALL}` / `{DELTOP}` / `{DELSEL}` | delete the whole list / its top / the highlighted callsign |
+| `{SCQ}` | resume CQ: turns the CQ repeat on (Run) — place it at the end of the TU message |
+
+More options in **Nastavení → Grab okno**: *QSY vymaže Grab okno* (a frequency change of more than
+500 Hz clears the list), *CQ vymaže Grab okno* (sending F1 clears it), *Po grabu kurzor do výměny*
+(N1MM "Send Space on Using Grab") and *Při grabu dát volačku z pole do bandmapy* (the callsign that a
+grab replaces is stored in the bandmap first, as Alt+O).
+
+With Digital Call Stacking on (Run), Alt+G also puts the callsign that was in the field onto the call
+stack, and **Ctrl+Alt+G** moves the highlighted Grab callsign onto the stack without touching the
+field.
+
 ## Call stacking
 
 **Option+click** (N1MM Alt+click) on a callsign, in the text or in the callsign list, puts it on the

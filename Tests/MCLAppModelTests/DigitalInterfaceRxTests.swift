@@ -94,7 +94,7 @@ import Testing
         fldigi.receive("K1ZZ ")
         await Self.poll(app)
         #expect(digital.text == "DL1ABC ")
-        #expect(digital.recentCalls == ["DL1ABC", "K1ZZ"], "the calls are still collected")
+        #expect(digital.recentCalls == ["K1ZZ", "DL1ABC"], "the calls are still collected")
         digital.togglePause()
         #expect(digital.text == "DL1ABC K1ZZ ")
         digital.close()

@@ -60,6 +60,13 @@ enum ProfileMergeSchema {
             Property("rightClickReturn", .boolean, .fieldDefault),
             Property("sendSpaceOnClick", .boolean, .fieldDefault),
             Property("captionRadioFrequency", .boolean, .fieldDefault),
+            Property("grabOrder", .string, .fieldDefault),
+            Property("grabNoDupes", .boolean, .fieldDefault),
+            Property("grabOnlyScp", .boolean, .fieldDefault),
+            Property("grabClearOnQsy", .boolean, .fieldDefault),
+            Property("grabClearOnCq", .boolean, .fieldDefault),
+            Property("grabSendSpace", .boolean, .fieldDefault),
+            Property("grabAddToBandmap", .boolean, .fieldDefault),
         ],
     ]
 

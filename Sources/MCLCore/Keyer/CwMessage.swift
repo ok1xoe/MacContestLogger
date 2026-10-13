@@ -34,6 +34,14 @@ public struct CwMessage: Equatable, Sendable {
         /// `{LOGTHENPOP}` / `{LOGTHENNEXT}`: log the QSO, then the next call from the stack into the call field. Never
         /// produced by `CwMessageBuilder` — `FunctionKeyRouter` splits the message at the macro.
         case logThenPop = "LOG_THEN_POP"
+        /// `{GRAB}`: the highlighted call of the Digital Interface's Grab window into the call field.
+        case grab = "GRAB"
+        /// `{DELALL}` / `{DELTOP}` / `{DELSEL}`: delete the Grab window / its top / its highlighted call.
+        case grabDeleteAll = "GRAB_DELETE_ALL"
+        case grabDeleteTop = "GRAB_DELETE_TOP"
+        case grabDeleteSelected = "GRAB_DELETE_SELECTED"
+        /// `{SCQ}`: resume calling CQ (the CQ repeat on, in Run).
+        case resumeCq = "RESUME_CQ"
     }
 
     /// Message parts in transmission order.

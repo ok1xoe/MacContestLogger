@@ -237,6 +237,8 @@ public final class AppModel {
     @ObservationIgnored public internal(set) var qtcSending: QtcSending!
     /// The station's call stack (own and partner entries).
     @ObservationIgnored public internal(set) var callStack: CallStackModel!
+    /// The Digital Interface's Grab window.
+    @ObservationIgnored public internal(set) var grabList: GrabListModel!
     /// The CQ repeat loop of the main entry window.
     @ObservationIgnored var cqRepeatRunner: CqRepeatRunner?
     /// The VFO B / rig 2 entry window (`entry-vfob`, SO2V/SO2R).
@@ -964,6 +966,17 @@ public final class AppModel {
         callStack.currentBand = { [weak model] in
             (model?.activeEntry ?? model?.entry)?.band?.adif ?? ""
         }
+        let grabList = GrabListModel(config: model.config)
+        model.grabList = grabList
+        grabList.isDupe = { [weak callStack] call in
+            callStack?.evaluate(call).dupe ?? false
+        }
+        grabList.inScp = { [weak model] call in
+            model?.callData.scp.contains(call) ?? false
+        }
+        grabList.typedCall = { [weak model] in
+            model?.typedCall ?? ""
+        }
         model.network.stackReceived = { [weak callStack] call in
             callStack?.push(call, source: .partner, quiet: true)
         }
@@ -971,6 +984,7 @@ public final class AppModel {
             panel.entry.network = model.network
             panel.entry.cluster = cluster
             panel.entry.callStack = callStack
+            panel.entry.grabList = grabList
             panel.entry.digitalKeyer = model.keyer.digital
         }
         let config: ConfigModel = model.config

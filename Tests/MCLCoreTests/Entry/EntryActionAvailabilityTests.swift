@@ -1,7 +1,7 @@
 import Testing
 @testable import MCLCore
 
-/// Every one of the 57 shortcut actions (55 of v1.1.1 + 2 Swift-only) and the 34 command kinds is assigned an area.
+/// Every one of the 58 shortcut actions (55 of v1.1.1 + 3 Swift-only) and the 34 command kinds is assigned an area.
 @Suite struct EntryActionAvailabilityTests {
 
     /// The `when` branches of `runShortcut` (`EP:873-938`) in source order — the same 55 constants as the enum.
@@ -15,7 +15,7 @@ import Testing
         "NEXT_MULT_UP", "NEXT_MULT_DOWN", "NEXT_SELF_UP", "NEXT_SELF_DOWN", "SPOT_IT", "SPOT_WITH_COMMENT", "STORE",
         "MARK", "REMOVE_SPOT", "REMOVE_SPOT_BLACKLIST", "DX_CLUSTER_WINDOW",
         // Swift-only (call stacking).
-        "STACK_CALL", "GRAB_STACK",
+        "STACK_CALL", "GRAB_STACK", "INSERT_GRAB",
     ]
 
     private static let expected: [String: EntryArea] = [
@@ -31,13 +31,13 @@ import Testing
         "NEXT_SPOT_UP": .spots, "NEXT_SPOT_DOWN": .spots, "NEXT_MULT_UP": .spots, "NEXT_MULT_DOWN": .spots,
         "NEXT_SELF_UP": .spots, "NEXT_SELF_DOWN": .spots, "SPOT_IT": .spots, "SPOT_WITH_COMMENT": .spots,
         "STORE": .spots, "MARK": .spots, "REMOVE_SPOT": .spots, "REMOVE_SPOT_BLACKLIST": .spots,
-        "DX_CLUSTER_WINDOW": .spots, "STACK_CALL": .local, "GRAB_STACK": .local,
+        "DX_CLUSTER_WINDOW": .spots, "STACK_CALL": .local, "GRAB_STACK": .local, "INSERT_GRAB": .local,
     ]
 
     @Test func everyShortcutActionHasAnArea() {
-        #expect(ShortcutAction.allCases.count == 57)
+        #expect(ShortcutAction.allCases.count == 58)
         #expect(Set(ShortcutAction.allCases.map(\.name)) == Set(Self.runShortcutOrder))
-        #expect(Self.runShortcutOrder.count == 57)
+        #expect(Self.runShortcutOrder.count == 58)
         for action in ShortcutAction.allCases {
             #expect(EntryActionAvailability.area(of: action) == Self.expected[action.name], "\(action.name)")
         }

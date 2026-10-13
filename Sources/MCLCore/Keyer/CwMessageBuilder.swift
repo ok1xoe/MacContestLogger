@@ -112,6 +112,8 @@ public enum CwMessageBuilder {
         "{LOG}": .log, "{WIPE}": .wipe, "{RUN}": .run, "{S&P}": .searchAndPounce,
         "{CLEARRIT}": .clearRit, "{RITCLEAR}": .clearRit, "{CQFREQ}": .cqFrequency, "{NOSPLIT}": .splitOff,
         "{SOCALLSTACK}": .soCallStack, "{STACKANOTHER}": .stackAnother, "{CLRSTACK}": .clearStack,
+        "{GRAB}": .grab, "{DELALL}": .grabDeleteAll, "{DELTOP}": .grabDeleteTop, "{DELSEL}": .grabDeleteSelected,
+        "{SCQ}": .resumeCq,
     ]
 
     /// Builds the message (`nil` template = empty message, like Java `null`).

@@ -134,6 +134,8 @@ public final class EntryModel {
     @ObservationIgnored weak var network: NetworkModel?
     /// The station's call stack (Ctrl+Alt+G, Alt+G, `{SOCALLSTACK}`, `{LOGTHENPOP}`…); wired by the app.
     @ObservationIgnored weak var callStack: CallStackModel?
+    /// The Digital Interface's Grab window (Alt+G, `{GRAB}`, `{LOGTHENGRAB}`, Insert); wired by the app.
+    @ObservationIgnored weak var grabList: GrabListModel?
     /// fldigi (AutoTRXUpdate's audio frequency, the modem switch of RTTY / PSK); wired by the app.
     @ObservationIgnored weak var digitalKeyer: DigitalKeyerModel?
     /// Opens the documentation page (Alt+H); wired by the app to the callbook's browser lane.
@@ -334,6 +336,9 @@ public final class EntryModel {
     func updatePreview() {
         if isActivePanel, let callStack {
             callStack.noteBand(band?.adif ?? "")
+        }
+        if isActivePanel {
+            grabList?.noteFrequency(form.freqHz)
         }
         if contest.isActive, !KotlinStrings.isBlank(form.call) {
             contest.preview(call: form.call, band: band?.adif ?? "", mode: form.mode.rawValue,

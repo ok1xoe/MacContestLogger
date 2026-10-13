@@ -53,6 +53,13 @@ extension ConfigurerDraft {
         config.esm.callStackOrder = CallStack.Order.from(callStackOrder).rawValue
         config.esm.callStackClearOnBandChange = callStackClearOnBandChange
         config.digital.digitalCallStacking = digitalCallStacking
+        config.digital.grabOrder = GrabList.Order.from(grabOrder).rawValue
+        config.digital.grabNoDupes = grabNoDupes
+        config.digital.grabOnlyScp = grabOnlyScp
+        config.digital.grabClearOnQsy = grabClearOnQsy
+        config.digital.grabClearOnCq = grabClearOnCq
+        config.digital.grabSendSpace = grabSendSpace
+        config.digital.grabAddToBandmap = grabAddToBandmap
         config.digital.callValidity = DigitalCallValidity.from(callValidity).rawValue
         config.digital.validateScp = validateScp
         config.digital.validateCallHistory = validateCallHistory

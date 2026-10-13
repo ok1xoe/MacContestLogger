@@ -174,12 +174,17 @@ public enum CallStackMacro {
 
     public static let logThenPop = "{LOGTHENPOP}"
     public static let logThenNext = "{LOGTHENNEXT}"
+    /// `{LOGTHENGRAB}`: the same, with the next call from the Digital Interface's Grab window.
+    public static let logThenGrab = "{LOGTHENGRAB}"
     public static let soCallStack = "{SOCALLSTACK}"
     public static let stackAnother = "{STACKANOTHER}"
     public static let clearStack = "{CLRSTACK}"
 
     /// The macros an SSB message performs before it is played (`VoiceMessagePlanner` skips them).
     public static let handledBeforeVoice: Set<String> = [logThenPop, logThenNext, soCallStack, stackAnother, clearStack]
+
+    /// The Grab window macros (digital): `{GRAB}`, `{DELALL}`, `{DELTOP}`, `{DELSEL}`, `{SCQ}`.
+    public static let grab = "{GRAB}"
 
     /// The stack macros of a voice message, in order (comma-separated items, ASCII case-insensitive).
     public static func voiceMacros(_ text: String) -> [String] {
@@ -194,24 +199,26 @@ public enum CallStackMacro {
         public let suffix: String
         /// `{LOGTHENNEXT}`: the same, but ESM never picks the key on its own.
         public let next: Bool
+        /// `{LOGTHENGRAB}`: the next call comes from the Grab window.
+        public var grab: Bool = false
     }
 
     /// `nil` when the text has neither macro.
     public static func split(_ text: String) -> Split? {
         let upper: String = JavaText.toUpperCase(text)
         let units: [UInt16] = Array(upper.utf16)
-        var best: (index: Int, length: Int, next: Bool)?
-        for (macro, next) in [(logThenPop, false), (logThenNext, true)] {
+        var best: (index: Int, length: Int, next: Bool, grab: Bool)?
+        for (macro, next, grab) in [(logThenPop, false, false), (logThenNext, true, false), (logThenGrab, true, true)] {
             let index: Int = JavaText.indexOf(units, Array(macro.utf16))
             if index >= 0, best == nil || index < best!.index {
-                best = (index, macro.utf16.count, next)
+                best = (index, macro.utf16.count, next, grab)
             }
         }
         guard let best else { return nil }
         let all: [UInt16] = Array(text.utf16)
         let prefix: String = String(decoding: all[0..<best.index], as: UTF16.self)
         let suffix: String = String(decoding: all[(best.index + best.length)...], as: UTF16.self)
-        return Split(prefix: prefix, suffix: suffix, next: best.next)
+        return Split(prefix: prefix, suffix: suffix, next: best.next, grab: best.grab)
     }
 
     /// The text holds `{LOGTHENPOP}` (the key ESM may send as the Next Call key; `{LOGTHENNEXT}` does not count).

@@ -41,13 +41,16 @@ public struct FunctionKeyContext: Sendable {
     public var exchangeValid: Bool
     /// The call that would come off the call stack now (`{LOGTHENPOP}`), `nil` = an empty stack.
     public var stackNext: String?
+    /// The call `{GRAB}` / `{LOGTHENGRAB}` would take from the Grab window now, `nil` = an empty list.
+    public var grabNext: String?
     /// The serial number of the QSO after the one being logged (`#` after `{LOGTHENPOP}`); `nil` = `serial + 1`.
     public var serialAfterLog: Int?
 
     public init(mode: Mode, digitalReady: Bool, postContest: Bool, run: Bool, call: String, rstSent: String,
                 freqHz: Int64, progress: EsmProgress, stationCall: String, voice: FunctionKeySet, cw: FunctionKeySet,
                 digital: FunctionKeySet, cwBase: CwMessageBuilder.Context, exchangeValid: Bool = false,
-                stackNext: String? = nil, serialAfterLog: Int? = nil) {
+                stackNext: String? = nil, serialAfterLog: Int? = nil, grabNext: String? = nil) {
+        self.grabNext = grabNext
         self.exchangeValid = exchangeValid
         self.stackNext = stackNext
         self.serialAfterLog = serialAfterLog
@@ -104,6 +107,8 @@ public struct FunctionKeyOutcome: Equatable, Sendable {
     public var stackNextCall: String?
     /// `{LOGTHENPOP}`: the ESM progress of the next QSO (what the rest of the message sent to the next call).
     public var stackProgress: EsmProgress?
+    /// `{LOGTHENGRAB}`: the next call comes from the Grab window, not the call stack.
+    public var nextFromGrab: Bool = false
 
     public init() {}
 }
@@ -228,7 +233,8 @@ public enum FunctionKeyRouter {
         next.lastLogged = ctx.hisCall
         next.serial = context.serialAfterLog ?? (ctx.serial &+ 1)
         let second: CwMessage
-        if let call = context.stackNext {
+        out.nextFromGrab = split.grab
+        if let call = split.grab ? context.grabNext : context.stackNext {
             next.hisCall = call
             second = CwMessageBuilder.build(split.suffix, next)
             out.stackNextCall = call
