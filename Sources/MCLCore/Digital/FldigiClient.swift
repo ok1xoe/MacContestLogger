@@ -109,6 +109,12 @@ public final class FldigiClient: Sendable {
         try Self.intValue(try call("modem.get_carrier"))
     }
 
+    /// The names of fldigi's modems (`modem.get_names`, N1MM's Op Mode menu).
+    public func modemNames() throws -> [String] {
+        let body: String = try exchange(XmlRpc.call("modem.get_names", params: []))
+        return try XmlRpc.parseStringArray(body) ?? []
+    }
+
     // MARK: - Calls
 
     func call(_ method: String, _ params: XmlRpc.Param...) throws -> XmlRpc.Value? {

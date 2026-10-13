@@ -44,6 +44,9 @@ enum ProfileMergeSchema {
         ],
         "cz.ok1xoe.maccontestlogger.config.DigitalConfig": [
             Property("digitalCallStacking", .boolean, .fieldDefault),
+            Property("autoTrxUpdate", .boolean, .fieldDefault),
+            Property("rttyModem", .string, .fieldDefault),
+            Property("pskModem", .string, .fieldDefault),
         ],
     ]
 

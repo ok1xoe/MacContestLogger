@@ -76,13 +76,19 @@ public enum CwMessageBuilder {
         public var functionKeys: [String]
         /// Moment for `{TIME}` (`nil` → "").
         public var now: Date?
+        /// `{LDIGFQ}` / `{RDIGFQ}`: the frequency of the left (VFO A / radio 1) and right (VFO B / radio 2) Digital
+        /// Interface in kHz (`DigitalFrequency.macroText`); `""` = unknown.
+        public var leftDigitalFrequency: String = ""
+        public var rightDigitalFrequency: String = ""
 
         public init(
             myCall: String, hisCall: String, lastLogged: String, serial: Int, rst: String, exchange: String,
             cutNumbers: Bool, leadingZeros: Bool, roverQth: String = "", countyLine: [String] = [],
             cutStyle: CutStyle = .tn, station: StationData = .empty, functionKeys: [String] = [],
-            now: Date? = Date()
+            now: Date? = Date(), leftDigitalFrequency: String = "", rightDigitalFrequency: String = ""
         ) {
+            self.leftDigitalFrequency = leftDigitalFrequency
+            self.rightDigitalFrequency = rightDigitalFrequency
             self.myCall = myCall
             self.hisCall = hisCall
             self.lastLogged = lastLogged
@@ -227,6 +233,8 @@ public enum CwMessageBuilder {
         case "{MYSTATE}": ctx.station.state
         case "{OPERATOR}": ctx.station.operator
         case "{TIME}": time(ctx.now)
+        case "{LDIGFQ}": ctx.leftDigitalFrequency
+        case "{RDIGFQ}": ctx.rightDigitalFrequency
         default: nil
         }
     }

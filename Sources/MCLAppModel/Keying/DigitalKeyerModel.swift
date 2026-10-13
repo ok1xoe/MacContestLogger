@@ -23,6 +23,46 @@ public final class DigitalKeyerModel {
         self.clock = clock
     }
 
+    /// fldigi's audio frequency (Hz) while the Digital Interface window polls it, `nil` otherwise — N1MM applies
+    /// AutoTRXUpdate only while the window is open.
+    public internal(set) var carrierHz: Int?
+    /// fldigi's current modem (the Digital Interface's poll).
+    public internal(set) var modem: String = ""
+    /// fldigi's modems (`modem.get_names`, read once per Digital Interface session) for the Op Mode menu.
+    public internal(set) var modemNames: [String] = []
+
+    /// The frequency the digital signal is on: the dial ± the audio frequency in a sideband mode
+    /// (`autoTrxUpdate`), the dial otherwise.
+    public func transmitHz(dialHz: Int64, rawMode: String?) -> Int64 {
+        guard config.config.digital.autoTrxUpdate, let rawMode else { return dialHz }
+        return DigitalFrequency.transmitHz(dialHz: dialHz, rawMode: rawMode, carrierHz: carrierHz)
+    }
+
+    /// Switches fldigi's modem (N1MM Op Mode, typing RTTY/PSK in the call field); a failure goes to the status line.
+    public func setModem(_ name: String) {
+        guard ready, !closed else { return }
+        let host: String = config.config.digital.fldigiHost
+        let port: Int = config.config.digital.fldigiPort
+        let lane: KeyerLane = self.lane
+        lane.run({ devices -> String?? in
+            do {
+                try lane.fldigi(devices, host: host, port: port).setModem(name)
+                return .none
+            } catch {
+                return .some(KeyingErrors.javaMessage(error))
+            }
+        }, then: { [weak self] failure in
+            guard let self else { return }
+            if case .some(let message) = failure {
+                let text: EntryStatus = KeyerTexts.fldigiFailure(message, host: host, port: port)
+                self.status.showJoined(text.parts, separator: "")
+                return
+            }
+            self.modem = name
+            self.status.show(DigitalTexts.modemSetKey, .string(name))
+        })
+    }
+
     /// Kotlin `digitalReady`: a digital modem is configured.
     public var ready: Bool {
         config.config.digital.engine != .none

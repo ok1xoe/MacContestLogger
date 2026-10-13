@@ -95,6 +95,10 @@ public final class DigitalInterfaceModel {
         let chunk: String?
         let modem: String
         let trx: String
+        /// The modem's audio frequency (`nil` when fldigi does not answer `modem.get_carrier`).
+        var carrier: Int32?
+        /// The modem names, read once per session (`nil` = not read in this poll).
+        var names: [String]?
     }
 
     enum PollResult: Sendable {
@@ -114,6 +118,8 @@ public final class DigitalInterfaceModel {
     @ObservationIgnored private var isOpen = false
     @ObservationIgnored private(set) var generation = 0
     @ObservationIgnored private var loopKey: String?
+    /// fldigi's modem names were asked for in this loop (once per open / address).
+    @ObservationIgnored private var namesRead = false
     /// One observation of the configuration at a time (a reopened model does not stack another).
     @ObservationIgnored private var observing = false
 
@@ -154,9 +160,12 @@ public final class DigitalInterfaceModel {
         generation += 1
         timer?.cancel()
         timer = nil
+        // N1MM applies AutoTRXUpdate only while the window is open.
+        digital.carrierHz = nil
     }
 
     private func restart() {
+        namesRead = false
         generation += 1
         loopKey = currentKey
         timer?.cancel()
@@ -195,6 +204,8 @@ public final class DigitalInterfaceModel {
         let port: Int = config.config.digital.fldigiPort
         let lane: KeyerLane = self.lane
         let stream: Stream = self.stream
+        let needNames: Bool = !namesRead
+        namesRead = true
         lane.run({ devices -> PollResult in
             do {
                 let client: any FldigiPort = try lane.fldigi(devices, host: host, port: port)
@@ -205,7 +216,12 @@ public final class DigitalInterfaceModel {
                     stream.append(read)
                     chunk = read
                 }
-                return .read(Poll(chunk: chunk, modem: try client.modemName(), trx: try client.trxState()))
+                var poll = Poll(chunk: chunk, modem: try client.modemName(), trx: try client.trxState())
+                poll.carrier = try? client.carrier()
+                if needNames {
+                    poll.names = try? client.modemNames()
+                }
+                return .read(poll)
             } catch {
                 return .failed(KeyingErrors.javaMessage(error))
             }
@@ -229,6 +245,11 @@ public final class DigitalInterfaceModel {
             }
             status = RadioWindowTexts.digitalStatus(modem: poll.modem, trx: poll.trx)
             error = nil
+            digital.carrierHz = poll.carrier.map { Int($0) }
+            digital.modem = poll.modem
+            if let names = poll.names, !names.isEmpty {
+                digital.modemNames = names
+            }
         case .failed(let message):
             error = RadioWindowTexts.fldigiUnavailable(host: host, port: port, message: message)
             status = ""
@@ -339,12 +360,59 @@ public final class DigitalInterfaceModel {
         }
     }
 
+    // MARK: - frequency and modem
+
+    /// The caption's frequency (N1MM shows the exact frequency): the transmitted frequency (dial ± audio in a
+    /// sideband mode with AutoTRXUpdate) and the audio frequency; `""` without a rig frequency.
+    public var frequencyCaption: String {
+        guard let app else { return "" }
+        let state: RigState? = app.rig.activeState
+        let dial: Int64 = state?.freqHz ?? (app.activeEntry ?? app.entry).form.freqHz
+        let transmit: Int64 = digital.transmitHz(dialHz: dial, rawMode: state?.rawMode)
+        return DigitalTexts.frequencyCaption(transmitHz: transmit, carrierHz: digital.carrierHz)
+    }
+
+    /// The modems of the Op Mode menu: the contest ones first (RTTY, PSK, CW as fldigi names them), then the rest.
+    public var opModes: (common: [String], other: [String]) {
+        let names: [String] = digital.modemNames
+        let preferred: [String] = ["RTTY", "BPSK31", "BPSK63", "BPSK125", "QPSK31", "QPSK63", "CW"]
+        let common: [String] = names.isEmpty ? preferred : preferred.filter { names.contains($0) }
+        return (common, names.filter { !common.contains($0) })
+    }
+
+    /// The current modem (fldigi's answer).
+    public var currentModem: String {
+        digital.modem
+    }
+
+    /// N1MM Op Mode: switches fldigi's modem; RTTY/PSK modems put the active entry window into that mode too.
+    public func selectModem(_ name: String) {
+        digital.setModem(name)
+        guard let entry = app?.activeEntry ?? app?.entry, !entry.modeLocked else { return }
+        let upper: String = KotlinStrings.uppercase(name)
+        if upper.hasPrefix("RTTY") && entry.form.mode != .rtty {
+            entry.setMode(.rtty)
+        } else if upper.contains("PSK") && entry.form.mode != .psk {
+            entry.setMode(.psk)
+        }
+    }
+
     // MARK: - Setup menu
 
     /// N1MM Setup → Digital Call Stacking: `nil` = disabled, else the order calls come off the stack (shared with
     /// the CW/SSB stack, Settings → Function Keys).
     public var digitalCallStacking: CallStack.Order? {
         config.config.digital.digitalCallStacking ? CallStack.Order.from(config.config.esm.callStackOrder) : nil
+    }
+
+    /// N1MM Setup → Turn AutoTRXUpdate On/Off.
+    public var autoTrxUpdate: Bool {
+        config.config.digital.autoTrxUpdate
+    }
+
+    public func setAutoTrxUpdate(_ on: Bool) {
+        config.config.digital.autoTrxUpdate = on
+        config.saveSilently()
     }
 
     /// Chooses Digital Call Stacking (`nil` = disable); saved at once.

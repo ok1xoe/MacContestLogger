@@ -44,8 +44,16 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// Alt+click always stacks. Swift-only key.
     public var digitalCallStacking: Bool = false
 
+    /// N1MM AutoTRXUpdate: with the rig in USB/LSB (AFSK, PSK) the logged and spotted frequency is the dial ± fldigi's audio frequency (FSK RTTY: the dial already is the mark). Swift-only key.
+    public var autoTrxUpdate: Bool = true
+    /// fldigi's modem for RTTY (typing RTTY in the call field, the Op Mode default). Swift-only key.
+    public var rttyModem: String = "RTTY"
+    /// fldigi's modem for PSK (typing PSK in the call field). Swift-only key.
+    public var pskModem: String = "BPSK31"
+
     enum CodingKeys: String, CodingKey {
         case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
+        case autoTrxUpdate, rttyModem, pskModem
     }
 
     public init() {}
@@ -60,6 +68,23 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         runMessages = DigitalConfig.normalized(c.value(.runMessages, default: d.runMessages))
         spMessages = DigitalConfig.normalized(c.value(.spMessages, default: d.spMessages))
         digitalCallStacking = c.value(.digitalCallStacking, default: d.digitalCallStacking)
+        autoTrxUpdate = c.value(.autoTrxUpdate, default: d.autoTrxUpdate)
+        rttyModem = DigitalConfig.modemName(c.value(.rttyModem, default: d.rttyModem), fallback: d.rttyModem)
+        pskModem = DigitalConfig.modemName(c.value(.pskModem, default: d.pskModem), fallback: d.pskModem)
+    }
+
+    /// A modem name as fldigi knows it: trimmed; blank → `fallback`.
+    public static func modemName(_ value: String, fallback: String) -> String {
+        JavaText.isBlank(value) ? fallback : JavaText.trim(value)
+    }
+
+    /// The fldigi modem for an entry-window mode: RTTY and PSK by the configuration, `nil` for other modes.
+    public func modem(for mode: Mode) -> String? {
+        switch mode {
+        case .rtty: rttyModem
+        case .psk: pskModem
+        default: nil
+        }
     }
 
     private static func normalizedHost(_ v: String) -> String {

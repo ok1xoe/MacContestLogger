@@ -20,6 +20,27 @@ In RTTY/PSK/... mode the F-keys then transmit through fldigi (text into the TX
 buffer, TX on, and after sending fldigi switches to receive by itself). ESM and CQ
 repeat work; **Esc** interrupts transmission (`main.abort`).
 
+## Frequency and mode (fldigi)
+
+- **AutoTRXUpdate** (N1MM; Settings → Digital modes, or the window's **Nastavení** menu; on by default):
+  with the rig in a sideband mode (USB/LSB, PKTUSB/PKTLSB, DATA-U/L) the dial shows the suppressed
+  carrier, so the QSO is **logged and spotted** on the dial ± fldigi's audio frequency (USB adds,
+  LSB subtracts; read with `modem.get_carrier`). In FSK RTTY (rig mode RTTY/RTTYR) the dial already
+  is the mark frequency and nothing is added. As in N1MM it applies only while the Digital interface
+  window is open (that is when the audio frequency is polled) and only in a digital mode; a
+  frequency typed into the field that differs from the dial is logged as typed. The entry window's
+  frequency field keeps showing the dial.
+- The window's top bar shows the **exact frequency** (dial ± audio) and the audio frequency, e.g.
+  `14082.13 kHz · 2125 Hz`.
+- **Mód** (N1MM *Op Mode*) lists fldigi's modems (`modem.get_names`; RTTY, BPSK31/63/125, QPSK and CW
+  first, the rest under *Další módy*). Choosing one switches fldigi (`modem.set_by_name`); an RTTY or
+  PSK modem also puts the entry window into RTTY or PSK.
+- Typing **RTTY** or **PSK** (PSK31, PSK63…) into the callsign field switches the logger **and fldigi**:
+  to the modems set in **Settings → Digital modes → fldigi mode for RTTY / PSK** (default `RTTY` and
+  `BPSK31`).
+- Macros `{LDIGFQ}` and `{RDIGFQ}` send the frequency of the left (VFO A / rig 1) and right (VFO B /
+  rig 2) side in kHz with one decimal (dial ± audio as above), e.g. `QSY {LDIGFQ}`.
+
 ## The Digital interface window
 
 **"Okna → Digitální rozhraní"** (Windows → Digital interface) — the equivalent of

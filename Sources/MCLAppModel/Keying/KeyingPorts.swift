@@ -25,6 +25,12 @@ public protocol FldigiPort: AnyObject, Sendable {
     func rxLength() throws -> Int32
     func rxText(start: Int32, length: Int32) throws -> String
     func modemName() throws -> String
+    /// The audio frequency of the modem's cursor (Hz, `modem.get_carrier`).
+    func carrier() throws -> Int32
+    /// fldigi's modems (`modem.get_names`).
+    func modemNames() throws -> [String]
+    /// Switches the modem (`modem.set_by_name`).
+    func setModem(_ name: String) throws
 }
 
 extension FldigiClient: FldigiPort {}
