@@ -64,6 +64,8 @@ public final class DxClusterSession: @unchecked Sendable {
         /// Last WWV message from the node (solar and geomagnetic indices for the Info window).
         public var lastWwv: WwvMessage?
         public var currentFavorite: DxClusterFavorite?
+        /// The node software its greeting named (`ClusterSoftware.detect`); `nil` until a line names it.
+        public var software: ClusterSoftware?
 
         public init() {}
     }
@@ -291,6 +293,7 @@ public final class DxClusterSession: @unchecked Sendable {
         current.loggedIn = false
         awaitingLogin = false
         current.currentFavorite = nil
+        current.software = nil
         current.status = message
         onChange(current)
         try log.info(message)
@@ -385,6 +388,17 @@ public final class DxClusterSession: @unchecked Sendable {
             lock.unlock()
         }
         maybeConfirmLogin(line)
+        maybeDetectSoftware(line)
+    }
+
+    /// The node's software from its greeting (the first non-spot line that names one wins until the next connection).
+    private func maybeDetectSoftware(_ line: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard current.connected, current.software == nil, DxSpotParser.parse(line) == nil,
+              let software = ClusterSoftware.detect(line) else { return }
+        current.software = software
+        onChange(current)
     }
 
     /// Detection of a successful login: the cluster repeats our callsign in its response (greeting/prompt).

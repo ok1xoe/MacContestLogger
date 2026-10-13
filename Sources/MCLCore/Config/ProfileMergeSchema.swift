@@ -21,7 +21,8 @@ enum ProfileMergeSchema {
     /// the unmatched call mark (`showUnmatchedCallMark`), Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX
     /// cluster Bands/Modes spot filter (`dxCluster.spotFilter*`), the band map options (`dxCluster.bandmap*`), the band map US licence
     /// lines (`dxCluster.showUsLicenseLines`), the band map's call-frame, tuning tolerances and packet spot mode
-    /// (`dxCluster.callFrame`, `dxCluster.tuningTolerance*Hz`, `dxCluster.spotModeOnTune`), the call stack
+    /// (`dxCluster.callFrame`, `dxCluster.tuningTolerance*Hz`, `dxCluster.spotModeOnTune`), the Telnet window options
+    /// (`dxCluster.clusterSoftware`, `autoLogon`, `showButtons`, `showDxCount`), the call stack
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
     /// switches and extra
     /// files (`callHistory*`) and a contest's own call history file (`contestSetups.*.callHistoryFile`).
@@ -71,6 +72,10 @@ enum ProfileMergeSchema {
             Property("filterSsbNarrowHz", .int, .fieldDefault),
             Property("filterDigiWideHz", .int, .fieldDefault),
             Property("filterDigiNarrowHz", .int, .fieldDefault),
+            Property("clusterSoftware", .string, .fieldDefault),
+            Property("autoLogon", .boolean, .fieldDefault),
+            Property("showButtons", .boolean, .fieldDefault),
+            Property("showDxCount", .int, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
             Property("ctyEnabled", .boolean, .fieldDefault),

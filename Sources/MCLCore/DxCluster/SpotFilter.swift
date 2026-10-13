@@ -167,9 +167,15 @@ public struct SpotFilter: Equatable, Sendable {
         }
     }
 
-    /// The spot a console line carries, or `nil` for any other text.
+    /// The spot a console line carries, or `nil` for any other text. The traffic log's own `HH:mm:ss` time in front
+    /// of the line and the `[tag] ` of a parallel connection are skipped.
     public static func spot(inLine line: String) -> DxSpot? {
         var text: Substring = line[...]
+        let head: [Character] = Array(text.prefix(9))
+        if head.count == 9, head[2] == ":", head[5] == ":", head[8] == " ",
+           [0, 1, 3, 4, 6, 7].allSatisfy({ head[$0].isASCII && head[$0].isNumber }) {
+            text = text.dropFirst(9).drop(while: { $0 == " " })
+        }
         if text.hasPrefix("["), let close = text.firstIndex(of: "]") {
             text = text[text.index(after: close)...].drop(while: { $0 == " " })
         }

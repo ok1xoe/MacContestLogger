@@ -123,6 +123,19 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var bandmapLowestAtBottom: Bool = false
     /// Band map: the mouse wheel neither tunes nor zooms (N1MM „Disable Mouse Wheel"; Swift-only key).
     public var bandmapWheelDisabled: Bool = false
+    /// The node software for the commands MCL builds (`ClusterSoftware` raw value; `auto` = from the greeting).
+    public var clusterSoftware: String = ClusterSoftware.auto.rawValue
+    /// N1MM „automatically log on to the selected cluster whenever the Telnet window is open".
+    public var autoLogon: Bool = false
+    /// N1MM „Show Telnet Buttons".
+    public var showButtons: Bool = true
+    /// How many spots the band map's SH/DX asks for.
+    public var showDxCount: Int = ClusterCommandFormat.defaultShowDxCount {
+        didSet {
+            let normalized = ClusterCommandFormat.clampedCount(showDxCount)
+            if normalized != showDxCount { showDxCount = normalized }
+        }
+    }
 
     /// The filter as a value (see `SpotFilter`); setting it rewrites the three keys.
     public var spotFilter: SpotFilter {
@@ -154,6 +167,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case bandmapLowestAtBottom, bandmapWheelDisabled
         case bandmapButtons, filterCwWideHz, filterCwNarrowHz, filterSsbWideHz, filterSsbNarrowHz, filterDigiWideHz
         case filterDigiNarrowHz
+        case clusterSoftware, autoLogon, showButtons, showDxCount
     }
 
     public init() {}
@@ -202,6 +216,10 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         filterSsbNarrowHz = Self.clampedWidth(c.value(.filterSsbNarrowHz, default: d.filterSsbNarrowHz))
         filterDigiWideHz = Self.clampedWidth(c.value(.filterDigiWideHz, default: d.filterDigiWideHz))
         filterDigiNarrowHz = Self.clampedWidth(c.value(.filterDigiNarrowHz, default: d.filterDigiNarrowHz))
+        clusterSoftware = c.value(.clusterSoftware, default: d.clusterSoftware)
+        autoLogon = c.value(.autoLogon, default: d.autoLogon)
+        showButtons = c.value(.showButtons, default: d.showButtons)
+        showDxCount = ClusterCommandFormat.clampedCount(c.value(.showDxCount, default: d.showDxCount))
     }
 
     /// N1MM's band map has at most 36 programmable buttons.

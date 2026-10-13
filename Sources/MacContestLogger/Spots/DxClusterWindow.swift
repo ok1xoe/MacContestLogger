@@ -3,22 +3,44 @@ import MCLAppModel
 import MCLCore
 import SwiftUI
 
-/// The raw telnet console of the DX Cluster window (an AppKit island, `NSTextView`): the traffic log's
-/// lines in a fixed 12 pt monospaced font (Kotlin `fontSize = 12.sp`, not scaled by the stepper), selectable and
-/// scrolled to the last line whenever they change. A change that only appends lines (and drops the oldest at the
-/// log's cap) edits the text storage by range (`ConsoleDiff`); only a clear or an unrelated log rebuilds it.
+/// The raw telnet console of the DX Cluster window (an AppKit island, `NSTextView`, N1MM+ Telnet window text pane):
+/// the traffic log's lines in a monospaced font that follows the window's font stepper, spot lines colour-coded by
+/// mode (CW blue, digital magenta, phone in the text colour) and the spots the filter hides greyed out. A click in the
+/// text pauses the scrolling until the pointer leaves the pane. A change that only appends lines (and drops the oldest
+/// at the log's cap) edits the text storage by range (`ConsoleDiff`); a clear, a restyle or a new font rebuilds it.
 struct DxClusterConsole: NSViewRepresentable {
-    let lines: [String]
+    let lines: [ConsoleLine]
+    let fontSize: CGFloat
+    let label: String
 
-    private static let attributes: [NSAttributedString.Key: Any] = {
+    static func color(_ tint: ConsoleLine.Tint) -> NSColor {
+        switch tint {
+        case .plain, .phone: .labelColor
+        case .cw: .systemBlue
+        case .digi: .systemPurple
+        case .filtered: .tertiaryLabelColor
+        }
+    }
+
+    private func attributes(_ tint: ConsoleLine.Tint) -> [NSAttributedString.Key: Any] {
         let paragraph = NSMutableParagraphStyle()
         paragraph.paragraphSpacing = 2
-        return [.font: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular),
-                .foregroundColor: NSColor.labelColor, .paragraphStyle: paragraph]
-    }()
+        return [.font: NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular),
+                .foregroundColor: Self.color(tint), .paragraphStyle: paragraph]
+    }
+
+    private func text(_ lines: ArraySlice<ConsoleLine>, leadingBreak: Bool) -> NSAttributedString {
+        let out = NSMutableAttributedString()
+        for (offset, line) in lines.enumerated() {
+            let separator: String = (offset > 0 || leadingBreak) ? "\n" : ""
+            out.append(NSAttributedString(string: separator + line.text, attributes: attributes(line.tint)))
+        }
+        return out
+    }
 
     final class Coordinator {
-        var shown: [String] = []
+        var shown: [ConsoleLine] = []
+        var fontSize: CGFloat = 0
     }
 
     func makeCoordinator() -> Coordinator {
@@ -31,7 +53,7 @@ struct DxClusterConsole: NSViewRepresentable {
         scroll.autohidesScrollers = true
         scroll.drawsBackground = false
         scroll.borderType = .noBorder
-        let textView = NSTextView()
+        let textView = PausingConsoleTextView()
         textView.isEditable = false
         textView.isSelectable = true
         textView.drawsBackground = false
@@ -43,14 +65,18 @@ struct DxClusterConsole: NSViewRepresentable {
         textView.textContainer?.containerSize = NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude)
         textView.minSize = NSSize(width: 0, height: 0)
         textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        textView.setAccessibilityLabel(label)
         scroll.documentView = textView
         return scroll
     }
 
     func updateNSView(_ scroll: NSScrollView, context: Context) {
-        guard let textView = scroll.documentView as? NSTextView, let storage = textView.textStorage else { return }
+        guard let textView = scroll.documentView as? PausingConsoleTextView,
+              let storage = textView.textStorage else { return }
         let coordinator: Coordinator = context.coordinator
-        switch ConsoleDiff.plan(old: coordinator.shown, new: lines) {
+        let plan: ConsoleDiff.LineEdit<ConsoleLine> = coordinator.fontSize == fontSize
+            ? ConsoleDiff.plan(old: coordinator.shown, new: lines, text: \.text) : .rebuild
+        switch plan {
         case .none:
             return
         case .update(let deleteUTF16, let append):
@@ -58,14 +84,44 @@ struct DxClusterConsole: NSViewRepresentable {
                 storage.deleteCharacters(in: NSRange(location: 0, length: deleteUTF16))
             }
             if !append.isEmpty {
-                storage.append(NSAttributedString(string: append, attributes: Self.attributes))
+                storage.append(text(append[...], leadingBreak: storage.length > 0))
             }
         case .rebuild:
-            storage.setAttributedString(NSAttributedString(string: lines.joined(separator: "\n"),
-                                                           attributes: Self.attributes))
+            storage.setAttributedString(text(lines[...], leadingBreak: false))
         }
         coordinator.shown = lines
-        textView.scrollToEndOfDocument(nil)
+        coordinator.fontSize = fontSize
+        if !textView.scrollPaused {
+            textView.scrollToEndOfDocument(nil)
+        }
+    }
+}
+
+/// The console's text view: a click pauses the automatic scrolling (N1MM: „Click in the text pane to temporarily halt
+/// scrolling; move the mouse cursor out of the text pane to restart it").
+final class PausingConsoleTextView: NSTextView {
+    private(set) var scrollPaused = false
+    private var tracking: NSTrackingArea?
+
+    override func mouseDown(with event: NSEvent) {
+        scrollPaused = true
+        super.mouseDown(with: event)
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let tracking { removeTrackingArea(tracking) }
+        let area = NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect],
+                                  owner: self, userInfo: nil)
+        addTrackingArea(area)
+        tracking = area
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        guard scrollPaused else { return }
+        scrollPaused = false
+        scrollToEndOfDocument(nil)
     }
 }
 
@@ -83,6 +139,7 @@ final class DxClusterWindowState: ObservableObject {
     @Published var editCommand: String = ""
     @Published var sheetFontSize: Int = WindowFont.defaultSize
     @Published var showFilter: Bool = false
+    @Published var showOptions: Bool = false
 }
 
 /// Kotlin `DxClusterWindow` (`dxCluster` 760×560, `DxClusterWindow.kt:77-278`): the favourite, connect / log in, the
@@ -102,7 +159,10 @@ struct DxClusterWindowView: View {
                 content(app)
                     .modifier(RadioWindowChrome(host: host, app: app, id: Self.id, title: "DX Cluster",
                                                 binder: session.binder))
-                    .onAppear { app.dxCluster.resetSelection() }
+                    .onAppear {
+                        app.dxCluster.resetSelection()
+                        app.dxCluster.windowOpened()
+                    }
             } else {
                 Color.clear
             }
@@ -113,7 +173,7 @@ struct DxClusterWindowView: View {
     private func content(_ app: AppModel) -> some View {
         let language: LanguageModel = app.language
         let cluster: DxClusterModel = app.dxCluster
-        let lines: [String] = consoleLines(app)
+        let lines: [ConsoleLine] = consoleLines(app)
         return VStack(alignment: .leading, spacing: 0) {
             WindowTopBar(size: $session.fontSize, language: language)
                 .padding(.horizontal, 8)
@@ -126,15 +186,18 @@ struct DxClusterWindowView: View {
                 .accessibilityIdentifier("dxcluster.status")
             parallelRow(app)
             Divider().padding(.top, 8)
-            macroButtons(app)
-            Text(verbatim: language.tr("Tip: pravým tlačítkem myši nad tlačítkem změníš jeho popisek a příkaz."))
-                .windowFont(10)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 12)
-            Divider().padding(.top, 8)
+            if cluster.showButtons {
+                macroButtons(app)
+                Text(verbatim: language.tr("Tip: pravým tlačítkem myši nad tlačítkem změníš jeho popisek a příkaz."))
+                    .windowFont(10)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 12)
+                Divider().padding(.top, 8)
+            }
             commandLine(app)
             Divider()
-            DxClusterConsole(lines: lines)
+            DxClusterConsole(lines: lines, fontSize: CGFloat(WindowFont.size(12, windowSize: session.fontSize)),
+                             label: language.tr("Výpis DX clusteru"))
         }
         .environment(\.windowFontSize, session.fontSize)
         .sheet(item: Binding(get: { state.edit }, set: { state.edit = $0 })) { edit in
@@ -144,24 +207,28 @@ struct DxClusterWindowView: View {
             SpotFilterSheet(app: app, fontSize: Binding(get: { state.sheetFontSize }, set: { state.sheetFontSize = $0 }),
                             close: { state.showFilter = false })
         }
+        .sheet(isPresented: Binding(get: { state.showOptions }, set: { state.showOptions = $0 })) {
+            TelnetOptionsSheet(app: app,
+                               fontSize: Binding(get: { state.sheetFontSize }, set: { state.sheetFontSize = $0 }),
+                               close: { state.showOptions = false })
+        }
     }
 
-    /// The traffic log as of the last revision (the model coalesces the log's listener into `logRevision`).
-    /// Spot lines pass the Bands/Modes and origin filter; every other line (command replies, WWV, prompts) stays.
-    private func consoleLines(_ app: AppModel) -> [String] {
+    /// The traffic log as of the last revision (the model coalesces the log's listener into `logRevision`): spot
+    /// lines tinted by mode and greyed when the spot filter hides them; every other line (command replies, WWV,
+    /// prompts) plain.
+    private func consoleLines(_ app: AppModel) -> [ConsoleLine] {
         let cluster: DxClusterModel = app.dxCluster
         _ = cluster.logRevision
-        _ = app.spotAnalysis.revision
-        let filter: SpotFilter = cluster.spotFilter
-        let all: [String] = cluster.log.snapshot()
-        guard !filter.isDefault else { return all }
-        return filter.applyToConsole(all, analyzer: app.spotAnalysis.current())
+        _ = cluster.spotFilter
+        let revision: Int = app.spotAnalysis.revision
+        return cluster.consoleLines(analyzer: app.spotAnalysis.current(), analysisRevision: revision)
     }
 
     // MARK: - header
 
     /// The favourite, Připojit / Odpojit, Přihlásit / Odhlásit, then Kopírovat and Vymazat.
-    private func header(app: AppModel, lines: [String]) -> some View {
+    private func header(app: AppModel, lines: [ConsoleLine]) -> some View {
         let language: LanguageModel = app.language
         let cluster: DxClusterModel = app.dxCluster
         let selected: DxClusterFavorite? = cluster.selectedFavorite
@@ -190,6 +257,13 @@ struct DxClusterWindowView: View {
             Spacer(minLength: 0)
             Button {
                 state.sheetFontSize = session.fontSize
+                state.showOptions = true
+            } label: {
+                Text(verbatim: language.tr("Možnosti…")).windowFont(13)
+            }
+            .accessibilityIdentifier("dxcluster.options")
+            Button {
+                state.sheetFontSize = session.fontSize
                 state.showFilter = true
             } label: {
                 Text(verbatim: language.tr("Filtr spotů") + (cluster.spotFilter.isDefault ? "" : " •"))
@@ -201,7 +275,7 @@ struct DxClusterWindowView: View {
             Button {
                 let board = NSPasteboard.general
                 board.clearContents()
-                board.setString(lines.joined(separator: "\n"), forType: .string)
+                board.setString(lines.map(\.text).joined(separator: "\n"), forType: .string)
             } label: {
                 Text(verbatim: language.tr("Kopírovat")).windowFont(13)
             }
@@ -277,7 +351,7 @@ struct DxClusterWindowView: View {
             ForEach(Array(macros.enumerated()), id: \.offset) { index, macro in
                 let label: String = ClusterTexts.macroLabel(macro, translator: language.translator)
                 Button {
-                    cluster.send(macro.command)
+                    cluster.runButton(macro.command)
                 } label: {
                     Text(verbatim: label).windowFont(13).lineLimit(1)
                 }

@@ -93,6 +93,35 @@ is turned on (transmitting on VFO B):
 - It can be turned off in **"Nastavení → DX Cluster → Automatický split z komentáře
   spotu"** (Settings → DX Cluster → Automatic split from the spot comment).
 
+## DX Cluster window (the N1MM Telnet window)
+
+Modelled on the N1MM Logger+ [Telnet window](https://n1mmwp.hamdocs.com/manual-windows/telnet-window/).
+
+**Text pane.** The cluster's lines in a monospaced font that follows the window's font stepper (top right). Spot
+lines are colour-coded by mode as in N1MM — CW blue, digital magenta, phone in the text colour (the mode the band
+map infers: the comment, the digital frequencies, the band plan). A spot the [spot filter](#spot-filter-bands-modes-spotter-origin-workable)
+hides elsewhere stays in the pane **greyed out**. A click in the text pauses the scrolling (to read or copy a line);
+moving the pointer out of the pane resumes it.
+
+**Buttons.** Ten programmable buttons (right click edits one). A button can contain the N1MM packet/telnet macros:
+
+| Macro | Meaning |
+|---|---|
+| `{WAIT}` | waits 5 seconds before the rest of the button is sent (`SH/WWV{WAIT}SH/WCY`) |
+| `{CONN} name` | connects to the cluster `name` of the list (its name, host or `host:port`) and logs in with its login; the current connection is closed first (`{CONN} RBN`) |
+
+Presses wait behind a button that is still in its `{WAIT}`.
+
+**Možnosti… (Options) → Clustery** (the N1MM Clusters tab); every change applies and is saved at once:
+
+| Option | Meaning |
+|---|---|
+| Při otevření okna se připojit a přihlásit… | N1MM auto logon: when the window opens and nothing is connected, it connects to the selected cluster and logs in (off by default) |
+| Software clusteru | DXSpider, AR-Cluster, CC Cluster, or **Rozpoznat automaticky** (detect): the node's greeting is recognised (`running DXSpider`, `AR-Cluster`, `CC Cluster`); until then DXSpider is assumed. It formats the commands MCL builds itself: DXSpider `SH/DX 30`, AR-Cluster and CC Cluster `SH/DX/30` (N1MM's "DXSpider cluster" checkbox) |
+| Počet spotů pro SH/DX z bandmapy | how many spots the band map's **SH/DX** button asks for (1–100, default 30) |
+| Zobrazit tlačítka příkazů | N1MM "Show Telnet Buttons": hides the buttons to save space |
+| Uložit / Načíst tlačítka… | saves the ten buttons into a text file (`label,command` per line, `#` comments) and loads such a set back; a shorter file keeps the default buttons for the rest |
+
 ## Spots in the bandmap: clicks, call-frame, marks
 
 Modelled on the N1MM Logger+ [Bandmap window](https://n1mmwp.hamdocs.com/manual-windows/bandmap-window/).
@@ -148,7 +177,7 @@ Below the tuned frequency the band map has a row of controls:
 
 | Control | Action |
 |---|---|
-| **SH/DX** | sends `SH/DX` to the connected DX cluster (the answer shows in the DX Cluster window) |
+| **SH/DX** | sends `SH/DX 30` (the count and format of the DX Cluster window's options) to the connected DX cluster (the answer shows in the DX Cluster window) |
 | **Wide / Narrow** | switches the radio's filter between the wide and narrow width of its mode; the label shows the current one (with CAT; "Wide/Narrow" without it) |
 | **CQ** | back to your last CQ frequency on the band (Run), like a click on the CQ marker |
 | **RIT +120** | the RIT offset; a click clears it |
@@ -316,7 +345,7 @@ cluster node(s) / RBN / shared by a master station
   spot buffer  --->  plugin spot-received events, network sharing   (never filtered)
         |
         |  spot filter (bands, modes, contest, origin, workable) applied when the spots are read
-        +--> DX Cluster window: `DX de` / `SH/DX` lines  (command replies and other text always shown)
+        +--> DX Cluster window: `DX de` / `SH/DX` lines greyed  (command replies and other text always shown)
         +--> band map
         +--> Available Mults (then its own band / mode filter on top)
         +--> spot jumps (Ctrl/Alt + Up/Down)
