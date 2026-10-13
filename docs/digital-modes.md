@@ -79,6 +79,47 @@ N1MM *Digital Interface*. MCL pulls the decoded text from fldigi and draws it
   Focus stays in the window, so from one place you can pick a callsign, send the
   exchange and log the QSO.
 
+## The receive window (N1MM Digital Interface)
+
+**Mouse** (macOS keys for N1MM's — Ctrl+click is the system's secondary click):
+
+| Mouse | Action |
+|---|---|
+| click on a callsign | into the callsign field (an exchange word into its field, as above) |
+| **Option+click** | the callsign onto the [call stack](call-stacking.md) (N1MM Alt+click) |
+| **Cmd+click** | the word under the pointer into the entry field that has the typing cursor, whatever it is (N1MM Ctrl+click) |
+| **Shift+click** | the word converted Letters ↔ Figures (RTTY: `TOO` → `599`, `UE` → `73`), then into the callsign field (a callsign), its exchange field, or the field with the cursor |
+| **right click** (or Ctrl+click) | with *Pravý klik = Enter (ESM)* it is Enter — a whole QSO can be run with the mouse (N1MM "Rt Click = Return NOT menu"); otherwise the text's menu |
+
+Below the text the **Pod myší** (MouseOver) and **Letters/Figs** indicators show the word under the
+pointer and its other-shift reading.
+
+**Colours.** Callsigns are coloured like in the bandmap: by dupe and the number of new multipliers at
+the active entry window's frequency and mode. *Ověřování volaček* (N1MM Callsign Validity) in the
+**Nastavení** menu chooses: *Vše, co vypadá jako volačka* (generic), *Jen volačky ze zdrojů* (only
+calls found in the chosen resources are highlighted and clickable) or *Obojí, neověřené žlutě*
+(default: generic, and a callsign that none of the resources knows gets a **yellow** background).
+The resources are Master.scp, the call history, the spots of the DX cluster and the callsigns in the
+log. *Barva volačky jako pozadí* puts the colour behind the callsign (the unverified mark then
+becomes yellow text). *Hledat volačky z Master.scp i v šumu* also finds a known callsign inside a
+word that is not a callsign itself (`EEEEW1AWEEEE`); of several, the last one wins.
+
+**Your own transmission.** Text that fldigi returns while it transmits (the echo of your message) is
+shown dimmed, and its callsigns never go to the callsign list (N1MM: calls are not grabbed during
+transmission).
+
+**Pause.** The green bar left of the text pauses the window (it turns yellow): new text is held back
+— fldigi is still read and the callsign list still fills — until the bar is clicked again, so you
+can scroll back and click calmly. With *Pozastavit příjem nad volačkou* the pointer over a callsign
+pauses the window by itself while the callsign field is empty (N1MM pause routines).
+
+**More options** in **Nastavení**: *Hover* (a callsign under the pointer goes into the callsign field
+without a click), *Po kliku na volačku kurzor do výměny* (N1MM "Send Space on Callsign Mouse Click"),
+*Neposuvné okno příjmu* (N1MM non-scrolling window: the text on screen never moves; when the incoming
+line reaches the bottom the window turns a page so the newest line is at the top, and the incoming
+line is underlined) and *V titulku frekvence rigu, ne přesná* (the caption and `{LDIGFQ}`/`{RDIGFQ}`
+show the dial instead of dial ± audio).
+
 ## Call stacking
 
 **Option+click** (N1MM Alt+click) on a callsign, in the text or in the callsign list, puts it on the

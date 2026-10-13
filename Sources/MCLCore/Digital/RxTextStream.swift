@@ -22,6 +22,9 @@ public final class RxTextStream {
 
     private let maxChars: Int32
     public private(set) var textUnits: [UInt16] = []
+    /// The ranges of the text (UTF-16 offsets into `textUnits`) that arrived while the own station transmitted
+    /// (fldigi's echo): their calls are not grabbed (N1MM). A Swift-only addition.
+    public private(set) var transmitted: [Range<Int>] = []
     private var nextOffset: Int32 = 0
 
     public init(maxChars: Int32) {
@@ -42,12 +45,26 @@ public final class RxTextStream {
 
     /// Adds a fetched block. The offset advances by its actual length, so a shorter fldigi response is
     /// completed next time. Control characters are not let into the window.
-    public func append(_ chunk: String?) {
+    public func append(_ chunk: String?, transmitting: Bool = false) {
         guard let chunk, !chunk.isEmpty else { return }
         let units = Array(chunk.utf16)
         nextOffset &+= Int32(truncatingIfNeeded: units.count)
+        let before: Int = textUnits.count
         textUnits.append(contentsOf: units.filter { $0 == 0x0A || $0 >= 0x20 })
+        if transmitting && textUnits.count > before {
+            if let last = transmitted.last, last.upperBound == before {
+                transmitted[transmitted.count - 1] = last.lowerBound..<textUnits.count
+            } else {
+                transmitted.append(before..<textUnits.count)
+            }
+        }
         if textUnits.count > Int(maxChars) {
+            let cut: Int = Swift.min(textUnits.count, textUnits.count - Int(maxChars))
+            transmitted = transmitted.compactMap { range in
+                let lower: Int = Swift.max(range.lowerBound - cut, 0)
+                let upper: Int = range.upperBound - cut
+                return upper > lower ? lower..<upper : nil
+            }
             // Java `delete(0, length − max)`: the end beyond the length is clipped, a negative `max` deletes everything. The difference is
             // computed in `Int`, Java in `int`: for `maxChars` near `Int32.min` Java overflows and `delete` throws,
             // here everything is deleted (unreachable from the UI — a positive constant).
@@ -63,5 +80,11 @@ public final class RxTextStream {
     /// Clears the window; the position in fldigi does not change, so the text does not start being read again.
     public func clear() {
         textUnits.removeAll()
+        transmitted.removeAll()
+    }
+
+    /// `true` when the offset lies in text received while transmitting.
+    public func isTransmitted(_ offset: Int) -> Bool {
+        transmitted.contains { $0.contains(offset) }
     }
 }

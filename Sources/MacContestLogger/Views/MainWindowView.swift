@@ -155,6 +155,10 @@ struct EntryFocusFollower: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .onAppear {
+                // The Digital Interface's Cmd+click fills the field that has the typing cursor.
+                entry.focusedField = { [weak focus] in focus?.focusedKey() }
+            }
             .onChange(of: entry.exchangeFocusRequest) {
                 focus.focus(order.exchangeTarget)
             }
