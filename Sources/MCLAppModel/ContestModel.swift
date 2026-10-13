@@ -124,8 +124,16 @@ public final class ContestModel {
         let cache = ClubLogCtyCache(dataDir: dataDir)
         let loaded: ContestEnvironment? = try? await BlockingQueue.run {
             overrides?.load()
-            return ContestEnvironment.load(dataRoot: contestDataDir, dxccDir: dxcc, fallbackDataRoot: fallback,
-                                           clubLog: clubLogDxcc ? cache.load() : nil, overrides: overrides)
+            let clubLog: ClubLogCtyData? = clubLogDxcc ? cache.load() : nil
+            var environment = ContestEnvironment.load(dataRoot: contestDataDir, dxccDir: dxcc,
+                                                      fallbackDataRoot: fallback, clubLog: clubLog,
+                                                      overrides: overrides)
+            if environment.dxcc != nil {
+                environment.dxccStamp = DxccDataStamp.current(
+                    clubLogInUse: clubLog != nil, clubLogState: clubLog != nil ? cache.readState() : nil,
+                    clubLogDir: cache.directory, dxccDir: dxcc.map { URL(fileURLWithPath: $0) })
+            }
+            return environment
         }
         return loaded ?? ContestEnvironment.load(dataRoot: nil, dxccDir: nil, fallbackDataRoot: "/nonexistent")
     }

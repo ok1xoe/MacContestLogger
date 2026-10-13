@@ -99,6 +99,7 @@ extension DataToolsModel {
                             + "\(summary.prefixes) prefixes")
             if config.config.clubLog.ctyEnabled {
                 await contest.reloadContestData()
+                await checkDxccStamp(warn: false)
             }
             report(ContestMessage("DXCC z Club Logu aktualizováno: %s entit, %s výjimek, %s prefixů",
                                   .int(summary.entities), .int(summary.exceptions), .int(summary.prefixes)),

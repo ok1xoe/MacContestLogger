@@ -635,6 +635,35 @@ public final class LogbookModel {
         }.value
     }
 
+    // MARK: - DXCC data stamp
+
+    /// The open database's DXCC data stamp against `current` (`DxccDataStamp.decide`): a `.store` decision is written
+    /// in the same job. One job on the handle's serial queue, chained behind the other mutations. `nil` = the handle
+    /// is closed or the database could not be read.
+    public func checkDxccStamp(_ current: DxccDataStamp?) async -> DxccDataStamp.Decision? {
+        await enqueue { () -> DxccDataStamp.Decision? in
+            try? await self.database.handle.run { access in
+                let stored: String? = try access.repository.metaGet(DxccDataStamp.metaKey)
+                let hasQsos: Bool = try access.repository.count() > 0
+                let decision = DxccDataStamp.decide(stored: stored, current: current, hasQsos: hasQsos)
+                if case .store(let stamp) = decision {
+                    try access.repository.metaSet(DxccDataStamp.metaKey, stamp.encoded)
+                }
+                return decision
+            }
+        }.value
+    }
+
+    /// Records that the log was filled with `stamp` (after „Přepočítat DXCC v deníku…"). `false` = not written.
+    @discardableResult
+    public func storeDxccStamp(_ stamp: DxccDataStamp) async -> Bool {
+        await enqueue { () -> Bool in
+            (try? await self.database.handle.run { access in
+                try access.repository.metaSet(DxccDataStamp.metaKey, stamp.encoded)
+            }) != nil
+        }.value
+    }
+
     private struct RefillJob: Sendable {
         let total: Int
         let changed: Int

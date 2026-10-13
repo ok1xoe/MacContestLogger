@@ -118,6 +118,7 @@ import Testing
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
         expected.preferredCallbook = "hamqth"
+        expected.dupesheetSortBySuffix = true
         expected.clubLog.ctyEnabled = true
         expected.esm.nextCallKey = -1
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
@@ -306,6 +307,7 @@ import Testing
         w.same(\.scpSuggestionsEnabled, \.scpSuggestionsEnabled, false)
         w.same(\.nPlusOneEnabled, \.nPlusOneEnabled, false)
         w.same(\.preferredCallbook, \.preferredCallbook, "qrz")
+        w.same(\.dupesheetSortBySuffix, \.dupesheetSortBySuffix, false)
         w.same(\.callHistoryFile, \.callHistoryFile, "/data/history.txt")
         w.same(\.clEnabled, \.clubLog.enabled, true)
         w.same(\.clEmail, \.clubLog.email, "cl@example.org")

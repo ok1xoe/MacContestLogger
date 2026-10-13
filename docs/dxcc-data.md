@@ -17,6 +17,28 @@ and the spot analysis.
 The data folder is `~/Library/Application Support/MacContestLogger` (or the folder in `MCL_DATA_DIR`).
 Without any of them the contest engine is not available (see [Getting started](zaciname.md)).
 
+## Warning: the log was filled with an older country table
+
+Equivalent of N1MM's warning when a database whose country table is older than the
+downloaded country file is opened.
+
+- Every database remembers **which DXCC data its QSOs were filled with**: the source
+  (Club Log `cty.xml`, `cty.dat` or `dxcc.json`) and its date — the last successful
+  Club Log download, otherwise the modification date of the data file. Your own
+  assignments (`dxcc-overrides.json`) are not part of it.
+- The stamp is written when a **new or empty database** is opened (also at start-up
+  and after a Club Log download while the log is still empty) and after
+  **Nástroje → Přepočítat DXCC v deníku…**.
+- When a database is opened (also at start-up) and its stamp is **older** than the
+  current data, the status line and the Info window's messages say so, for example
+  *Deník byl vyplněn starší tabulkou zemí (cty.dat, 2026-03-01) než je aktuální
+  (clublog, 2026-10-12) — použij Nástroje → Přepočítat DXCC v deníku…*. The warning
+  comes back on every opening until the log is refilled.
+- A database with QSOs but **no stamp** (created by an earlier version) gets the
+  current stamp silently, without a warning — which data filled it cannot be known.
+- The stamp belongs to the whole database, while the refill recomputes the QSOs of
+  the open contest; with several contests in one database, refill each of them.
+
 ## Assign a call to a country
 
 Equivalent of N1MM **Add call to country**. **"Nástroje → Přiřadit volačku k zemi…"** (Tools → Assign call to

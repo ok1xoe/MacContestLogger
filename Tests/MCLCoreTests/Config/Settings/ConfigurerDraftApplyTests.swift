@@ -295,7 +295,8 @@ import Testing
         let after = try ProfileMerge.fields(of: out)
         #expect(Set(after.keys) == Set(before.keys))
         let extra = ProfileMergeSchema.swiftOnlyProperties.values.flatMap { $0.map(\.name) }
-        #expect(Set(extra) == ["scpSuggestionsEnabled", "nPlusOneEnabled", "preferredCallbook", "ctyEnabled",
+        #expect(Set(extra) == ["scpSuggestionsEnabled", "nPlusOneEnabled", "preferredCallbook", "dupesheetSortBySuffix",
+                               "ctyEnabled",
                                "spotFilterHiddenBands", "spotFilterHiddenModes", "spotFilterContest",
                                "spotFilterSpotterContinents", "spotFilterSpotterOwnCountry",
                                "spotFilterHideNonWorkable", "nextCallKey", "callStackOrder",
