@@ -278,6 +278,77 @@ public final class SpotBuffer: Sendable {
         }
     }
 
+    /// A buffer entry as it is saved across a restart (N1MM „Save Spots").
+    public struct Stored: Codable, Equatable, Sendable {
+        public let spotter: String
+        public let freqHz: Int
+        public let dxCall: String
+        public let comment: String
+        public let selfSpotted: Bool
+        /// When the spot arrived (seconds since 1970).
+        public let at: Double
+        /// A fixed end of validity (beacons), seconds since 1970.
+        public let until: Double?
+        public let skimmers: [String]
+        public let count: Int
+
+        public init(spot: DxSpot, at: Date, until: Date?, skimmers: [String], count: Int) {
+            spotter = spot.spotter
+            freqHz = spot.freqHz
+            dxCall = spot.dxCall
+            comment = spot.comment
+            selfSpotted = spot.selfSpotted
+            self.at = at.timeIntervalSince1970
+            self.until = until?.timeIntervalSince1970
+            self.skimmers = skimmers
+            self.count = count
+        }
+
+        public var spot: DxSpot {
+            DxSpot(spotter: spotter, freqHz: freqHz, dxCall: dxCall, comment: comment, selfSpotted: selfSpotted)
+        }
+    }
+
+    /// The live entries in insertion order (whatever the skimmer filter), to save them across a restart.
+    public func exportEntries() -> [Stored] {
+        state.withLock { s in
+            let now = clock()
+            return s.keys.compactMap { key -> Stored? in
+                guard let entry = s.entries[key], entry.alive(now, s.maxAgeSeconds) else { return nil }
+                return Stored(spot: entry.spot, at: entry.at, until: entry.until,
+                              skimmers: entry.skimmers.compactMap(\.text).sorted(), count: entry.count)
+            }
+        }
+    }
+
+    /// Restores saved entries with their original times, in order: an entry no longer alive (its age against the
+    /// buffer's timeout, or its fixed end), a blacklisted one and a station already in the buffer are skipped.
+    /// Returns how many were restored.
+    @discardableResult
+    public func importEntries(_ stored: [Stored]) -> Int {
+        let restored: Int = state.withLock { s in
+            let now = clock()
+            var added = 0
+            for item in stored {
+                let spot: DxSpot = item.spot
+                let key = JavaStringKey(spot.dxCall.uppercased())
+                guard s.entries[key] == nil, !s.isBlacklisted(spot) else { continue }
+                var entry = Entry(spot: spot, at: Date(timeIntervalSince1970: item.at),
+                                  until: item.until.map { Date(timeIntervalSince1970: $0) },
+                                  skimmers: Set(item.skimmers.map { JavaStringKey($0) }))
+                entry.count = max(1, item.count)
+                guard entry.alive(now, s.maxAgeSeconds) else { continue }
+                s.put(key, entry)
+                added += 1
+            }
+            return added
+        }
+        if restored > 0 {
+            notifyListeners()
+        }
+        return restored
+    }
+
     /// Manually notifies listeners (e.g. after grids are looked up) without a content change.
     public func touch() {
         notifyListeners()

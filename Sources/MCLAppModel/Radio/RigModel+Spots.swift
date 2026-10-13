@@ -15,6 +15,8 @@ struct SpotSources {
     var predictExchange: @MainActor (DxSpot) -> JavaLinkedMap<String> = { _ in JavaLinkedMap() }
     /// N1MM „Always use packet spot mode": the spot's mode by the analysis (`nil` = unknown).
     var spotMode: @MainActor (DxSpot) -> Mode? = { _ in nil }
+    /// A random integer in the range (N1MM „Randomize incoming spot frequencies"; tests inject their own).
+    var draw: @MainActor (ClosedRange<Int>) -> Int = { Int.random(in: $0) }
 }
 
 /// Tuning to a spot (`AS:552-581`): the band map, the available multipliers and the spot navigation.
@@ -26,12 +28,13 @@ extension RigModel {
     ///
     /// `fillCall: false` (a single click in the band map with the N1MM call-frame on) tunes without touching the
     /// entry fields: the call shows in the call-frame. With „Always use packet spot mode" the spot's mode is set on
-    /// the rig and in the active entry window too.
+    /// the rig and in the active entry window too. With „Randomize incoming spot frequencies" the radio lands a small
+    /// random offset off a cluster spot (`SpotFrequencyJitter`; own spots are exact).
     public func tuneToSpot(_ spot: DxSpot, fillCall: Bool = true) {
         let prefill: SpotPrefill? = fillCall
             ? SpotPrefill(call: spot.dxCall, exchange: spotSources.predictExchange(spot)) : nil
         let mode: Mode? = config.config.dxCluster.spotModeOnTune ? spotSources.spotMode(spot) : nil
-        qsy(Int64(spot.freqHz), mode: mode, prefill: prefill)
+        qsy(Int64(spot.freqHz) + Int64(jitterHz(spot)), mode: mode, prefill: prefill)
         if let mode {
             notifyEntries { entry in
                 if entry.isActivePanel {
@@ -40,6 +43,15 @@ extension RigModel {
             }
         }
         applySplitFromSpot(spot)
+    }
+
+    /// The random offset of tuning to `spot` (0 when the option is off or for an own spot).
+    func jitterHz(_ spot: DxSpot) -> Int {
+        guard config.config.dxCluster.randomizeSpotFrequencies, !spot.selfSpotted else { return 0 }
+        let mode: Mode? = spotSources.spotMode(spot)
+        let commentMode: String = SpotModeParser.fromComment(spot.comment) ?? ""
+        let phone: Bool = mode == .ssb || mode == .am || mode == .fm || ["SSB", "USB", "LSB", "PH"].contains(commentMode)
+        return SpotFrequencyJitter.offsetHz(phone: phone, draw: spotSources.draw)
     }
 
     /// The predicted exchange of a spot (the call-frame taken with the space bar).

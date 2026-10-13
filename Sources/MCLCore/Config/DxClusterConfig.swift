@@ -119,6 +119,18 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var spotFilterSpotterContinents: [String] = []
     public var spotFilterSpotterOwnCountry: Bool = false
     public var spotFilterHideNonWorkable: Bool = false
+    /// Spotter prefixes and call areas of the origin filter, call history / worked, beacons, busted spots and the
+    /// preferred spotters (see `SpotFilter`).
+    public var spotFilterSpotterPrefixes: [String] = []
+    public var spotFilterSpotterCallAreas: [String] = []
+    public var spotFilterOnlyCallHistory: Bool = false
+    public var spotFilterOnlyWorked: Bool = false
+    public var spotFilterHideBeacons: Bool = false
+    public var spotFilterRemoveBusted: Bool = false
+    public var spotFilterBustedTwoChars: Bool = false
+    public var spotFilterPreferredSpotters: [String] = []
+    /// The blacklists apply (N1MM's enable checkbox); off keeps the lists but the buffer drops nothing.
+    public var blacklistEnabled: Bool = true
     /// Band map: the lowest frequency at the bottom (N1MM „Show Lowest Freq at Bottom"; Swift-only key).
     public var bandmapLowestAtBottom: Bool = false
     /// Band map: the mouse wheel neither tunes nor zooms (N1MM „Disable Mouse Wheel"; Swift-only key).
@@ -129,6 +141,14 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var autoLogon: Bool = false
     /// N1MM „Show Telnet Buttons".
     public var showButtons: Bool = true
+    /// N1MM „Comment For All Spots": the comment of every spot MCL makes, with `SpotComment` macros.
+    public var spotComment: String = ""
+    /// N1MM Config → „Spot all S&P QSOs": every S&P QSO not yet in the band map is spotted to the cluster (opt-in).
+    public var spotAllSpQsos: Bool = false
+    /// N1MM Special Calls: spots of these calls get a heart in the band map and the Available window.
+    public var specialCalls: [String] = []
+    /// The active contest's bonus stations (BONUS) count as special calls.
+    public var specialCallsIncludeBonus: Bool = true
     /// How many spots the band map's SH/DX asks for.
     public var showDxCount: Int = ClusterCommandFormat.defaultShowDxCount {
         didSet {
@@ -136,15 +156,28 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
             if normalized != showDxCount { showDxCount = normalized }
         }
     }
+    /// N1MM „Save Spots": the spot buffer is saved at quit and restored at start (within its timeout).
+    public var saveSpots: Bool = false
+    /// N1MM „Randomize incoming spot frequencies": tuning to a spot lands a little off it.
+    public var randomizeSpotFrequencies: Bool = false
 
     /// The filter as a value (see `SpotFilter`); setting it rewrites the three keys.
     public var spotFilter: SpotFilter {
         get {
-            SpotFilter(hiddenBands: Set(spotFilterHiddenBands.compactMap { Band.from(adif: $0) }),
-                               hiddenModes: Set(spotFilterHiddenModes), contestOnly: spotFilterContest,
-                          spotterContinents: Set(spotFilterSpotterContinents),
-                          spotterOwnCountry: spotFilterSpotterOwnCountry,
-                          hideNonWorkable: spotFilterHideNonWorkable)
+            var filter = SpotFilter(hiddenBands: Set(spotFilterHiddenBands.compactMap { Band.from(adif: $0) }),
+                                    hiddenModes: Set(spotFilterHiddenModes), contestOnly: spotFilterContest,
+                                    spotterContinents: Set(spotFilterSpotterContinents),
+                                    spotterOwnCountry: spotFilterSpotterOwnCountry,
+                                    hideNonWorkable: spotFilterHideNonWorkable)
+            filter.spotterPrefixes = SpotFilter.normalizedCalls(spotFilterSpotterPrefixes)
+            filter.spotterCallAreas = Set(spotFilterSpotterCallAreas).intersection(SpotFilter.callAreas)
+            filter.onlyCallHistory = spotFilterOnlyCallHistory
+            filter.onlyWorked = spotFilterOnlyWorked
+            filter.hideBeacons = spotFilterHideBeacons
+            filter.removeBusted = spotFilterRemoveBusted
+            filter.bustedTwoChars = spotFilterBustedTwoChars
+            filter.preferredSpotters = spotFilterPreferredSpotters
+            return filter
         }
         set {
             spotFilterHiddenBands = Band.allCases.filter { newValue.hiddenBands.contains($0) }.map(\.adif)
@@ -153,6 +186,14 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
             spotFilterSpotterContinents = SpotFilter.continents.filter { newValue.spotterContinents.contains($0) }
             spotFilterSpotterOwnCountry = newValue.spotterOwnCountry
             spotFilterHideNonWorkable = newValue.hideNonWorkable
+            spotFilterSpotterPrefixes = newValue.spotterPrefixes
+            spotFilterSpotterCallAreas = SpotFilter.callAreas.filter { newValue.spotterCallAreas.contains($0) }
+            spotFilterOnlyCallHistory = newValue.onlyCallHistory
+            spotFilterOnlyWorked = newValue.onlyWorked
+            spotFilterHideBeacons = newValue.hideBeacons
+            spotFilterRemoveBusted = newValue.removeBusted
+            spotFilterBustedTwoChars = newValue.bustedTwoChars
+            spotFilterPreferredSpotters = newValue.preferredSpotters
         }
     }
 
@@ -168,6 +209,11 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case bandmapButtons, filterCwWideHz, filterCwNarrowHz, filterSsbWideHz, filterSsbNarrowHz, filterDigiWideHz
         case filterDigiNarrowHz
         case clusterSoftware, autoLogon, showButtons, showDxCount
+        case saveSpots, randomizeSpotFrequencies
+        case spotFilterSpotterPrefixes, spotFilterSpotterCallAreas, spotFilterOnlyCallHistory, spotFilterOnlyWorked
+        case spotFilterHideBeacons, spotFilterRemoveBusted, spotFilterBustedTwoChars, spotFilterPreferredSpotters
+        case blacklistEnabled
+        case spotComment, spotAllSpQsos, specialCalls, specialCallsIncludeBonus
     }
 
     public init() {}
@@ -220,6 +266,21 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         autoLogon = c.value(.autoLogon, default: d.autoLogon)
         showButtons = c.value(.showButtons, default: d.showButtons)
         showDxCount = ClusterCommandFormat.clampedCount(c.value(.showDxCount, default: d.showDxCount))
+        saveSpots = c.value(.saveSpots, default: d.saveSpots)
+        randomizeSpotFrequencies = c.value(.randomizeSpotFrequencies, default: d.randomizeSpotFrequencies)
+        spotFilterSpotterPrefixes = c.value(.spotFilterSpotterPrefixes, default: d.spotFilterSpotterPrefixes)
+        spotFilterSpotterCallAreas = c.value(.spotFilterSpotterCallAreas, default: d.spotFilterSpotterCallAreas)
+        spotFilterOnlyCallHistory = c.value(.spotFilterOnlyCallHistory, default: d.spotFilterOnlyCallHistory)
+        spotFilterOnlyWorked = c.value(.spotFilterOnlyWorked, default: d.spotFilterOnlyWorked)
+        spotFilterHideBeacons = c.value(.spotFilterHideBeacons, default: d.spotFilterHideBeacons)
+        spotFilterRemoveBusted = c.value(.spotFilterRemoveBusted, default: d.spotFilterRemoveBusted)
+        spotFilterBustedTwoChars = c.value(.spotFilterBustedTwoChars, default: d.spotFilterBustedTwoChars)
+        spotFilterPreferredSpotters = c.value(.spotFilterPreferredSpotters, default: d.spotFilterPreferredSpotters)
+        blacklistEnabled = c.value(.blacklistEnabled, default: d.blacklistEnabled)
+        spotComment = c.value(.spotComment, default: d.spotComment)
+        spotAllSpQsos = c.value(.spotAllSpQsos, default: d.spotAllSpQsos)
+        specialCalls = c.value(.specialCalls, default: d.specialCalls)
+        specialCallsIncludeBonus = c.value(.specialCallsIncludeBonus, default: d.specialCallsIncludeBonus)
     }
 
     /// N1MM's band map has at most 36 programmable buttons.

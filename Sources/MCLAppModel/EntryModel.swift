@@ -459,6 +459,9 @@ public final class EntryModel {
         /// `lastPaperTime` and the unwipe memory before the submission (given back when the form is restored).
         let previousPaperTime: Date?
         let previousWipeMemory: WipeMemory
+        /// The call was a dupe and the expanded spot comment (for „Spot all S&P QSOs").
+        var dupe: Bool = false
+        var spotComment: String = ""
     }
 
     /// The synchronous part of `logQso`: command, paper time, checks, assembly and wipe. `nil` = nothing to log.
@@ -509,12 +512,14 @@ public final class EntryModel {
             let qso = QsoAssembly.free(form: logged, serial: serial, runMode: runMode, note: note, at: at)
             copies = [(qth: nil, qso: qso)]
         }
-        let work = Submission(copies: copies, call: form.call, band: bandAdif, mode: form.mode,
+        var work = Submission(copies: copies, call: form.call, band: bandAdif, mode: form.mode,
                               exchange: form.contestExchange, contestPath: contestPath,
                               activeContestId: logbook.activeContestId, sessionId: contest.activeId,
                               dxcc: contest.runtime.dxccLookup, form: form, at: at,
                               consumedNote: comment == nil ? pendingNote : nil, previousPaperTime: lastPaperTime,
                               previousWipeMemory: wipeMemory)
+        work.dupe = isDupe
+        work.spotComment = spotComment(form)
         if let at {
             lastPaperTime = at
         }
@@ -638,6 +643,9 @@ public final class EntryModel {
                 if case .status(let key) = effect {
                     status.show(key)
                 }
+            }
+            if index == 0 {
+                autoSpotLogged(work, qso: prepared)
             }
             // Into the live session only while it is still the submitted contest's (a later activation replays it).
             guard effects.contains(.contestLog), contest.activeId == work.sessionId else { continue }

@@ -9,8 +9,9 @@ import Observation
 /// the status line.
 ///
 /// Safety: nothing here keys a transmitter. Tuning goes through `RigModel.tuneToSpot` (CAT frequency, mode and split
-/// only); a spot reaches the cluster only from an explicit user action (Spot It, Ctrl+P, SPOTME) through
-/// `DxClusterModel.send` — the model's own connection, inert without the network.
+/// only); a spot reaches the cluster only from an explicit user action (Spot It, Ctrl+P, SPOTME, `{SPOTME}`) or the
+/// opt-in „Spot all S&P QSOs" (off by default, never for the simulator) through `DxClusterModel.send` — the model's own
+/// connection, inert without the network.
 @MainActor
 public final class SpotNavigation {
 
@@ -163,19 +164,36 @@ public final class SpotNavigation {
     }
 
     /// Spot It (Alt+P, the button, `EP:806-812`): the call of the field at its frequency, otherwise the last logged
-    /// QSO.
-    public func spotIt(call: String, isCommand: Bool, fieldFreqHz: Int64, lastQso: Qso?) {
+    /// QSO; with the spot comment of the one that is spotted (`fieldComment` / `lastQsoComment`, the expanded
+    /// „Comment For All Spots").
+    public func spotIt(call: String, isCommand: Bool, fieldFreqHz: Int64, lastQso: Qso?, fieldComment: String = "",
+                       lastQsoComment: String = "") {
         let last: (call: String?, freqHz: Int64)? = lastQso.map { (call: $0.call, freqHz: Int64($0.freqHz)) }
+        let fromField: Bool = !KotlinStrings.isBlank(call) && !isCommand
         switch SpotActions.spotItTarget(call: call, isCommand: isCommand, fieldFreqHz: fieldFreqHz, lastQso: last) {
         case .rejected(let message):
             show(message)
         case .accepted(let target):
-            spotToCluster(call: target.call, freqHz: target.freqHz, comment: "")
+            spotToCluster(call: target.call, freqHz: target.freqHz, comment: fromField ? fieldComment : lastQsoComment)
         }
     }
 
-    /// Kotlin `promptSpotWithComment(call, freqHz)` (Ctrl+P): the prompt `"Spot <call>"` (not translated); OK sends.
-    public func spotWithComment(call: String, freqHz: Int64) {
+    /// N1MM Config → „Spot all S&P QSOs": a logged S&P QSO goes to the cluster with the spot comment unless its call is
+    /// already in the band map near the QSO's frequency. Silent: nothing happens (and nothing is said) while the main
+    /// connection is down. The caller checks the option, the S&P mode, dupes and the simulator. `true` = sent.
+    @discardableResult
+    public func autoSpot(call: String, freqHz: Int64, comment: String) -> Bool {
+        guard dxCluster.connected, freqHz > 0, !KotlinStrings.isBlank(call) else { return false }
+        if let spotted = buffer.find(call),
+           abs(Int64(spotted.spot.freqHz) - freqHz) <= Int64(SpotActions.autoSpotToleranceHz) {
+            return false
+        }
+        return spotToCluster(call: call, freqHz: freqHz, comment: comment)
+    }
+
+    /// Kotlin `promptSpotWithComment(call, freqHz)` (Ctrl+P): the prompt `"Spot <call>"` (not translated), prefilled
+    /// with the spot comment; OK sends.
+    public func spotWithComment(call: String, freqHz: Int64, initial: String = "") {
         guard let title = SpotActions.commentTitle(call: call) else {
             status.show(ContestMessage(SpotActions.commentNoCall))
             return
@@ -184,7 +202,7 @@ public final class SpotNavigation {
             show(.tr(SpotActions.noFrequency))
             return
         }
-        dialogs.prompt(title: .verbatim(title), hint: ContestMessage(SpotActions.commentHint), initial: "") {
+        dialogs.prompt(title: .verbatim(title), hint: ContestMessage(SpotActions.commentHint), initial: initial) {
             [weak self] comment in
             self?.spotToCluster(call: call, freqHz: freqHz, comment: comment)
         }

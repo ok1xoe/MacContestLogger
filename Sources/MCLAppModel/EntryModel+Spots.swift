@@ -155,7 +155,8 @@ extension EntryModel {
         case .nextSelfUp: spots.jump(direction: 1, onlySelf: true)
         case .nextSelfDown: spots.jump(direction: -1, onlySelf: true)
         case .spotIt: spotIt()
-        case .spotWithComment: spots.spotWithComment(call: KotlinStrings.trim(form.call), freqHz: form.freqHz)
+        case .spotWithComment:
+            spots.spotWithComment(call: KotlinStrings.trim(form.call), freqHz: form.freqHz, initial: spotComment(form))
         case .store: storeCall()
         case .mark: spots.mark(freqHz: form.freqHz)
         case .removeSpot:
@@ -187,7 +188,8 @@ extension EntryModel {
             return
         }
         let lastQso: Qso? = logbook.lastRow
-        spots.spotIt(call: form.call, isCommand: hasCommand, fieldFreqHz: loggedFreqHz, lastQso: lastQso)
+        spots.spotIt(call: form.call, isCommand: hasCommand, fieldFreqHz: loggedFreqHz, lastQso: lastQso,
+                     fieldComment: spotComment(form), lastQsoComment: lastQso.map(spotComment(of:)) ?? "")
         focusRequest += 1
     }
 
@@ -219,6 +221,41 @@ extension EntryModel {
         }
         spots.mark(freqHz: form.freqHz)
         focusRequest += 1
+    }
+
+    // MARK: - the spot comment (N1MM „Comment For All Spots")
+
+    /// The spot comment of the QSO in `form`: the template with the exchange fields of the entry window.
+    func spotComment(_ form: EntryForm) -> String {
+        let template: String = config.config.dxCluster.spotComment
+        guard !KotlinStrings.isBlank(template) else { return "" }
+        let values = SpotComment.fields(received: contest.isActive ? contest.exchangeFields(call: form.call) : [],
+                                        mode: form.mode.rawValue, value: { form.contestExchange[$0] })
+        return SpotComment.expand(template, values)
+    }
+
+    /// The spot comment of a logged QSO (its stored exchange).
+    func spotComment(of qso: Qso) -> String {
+        let template: String = config.config.dxCluster.spotComment
+        guard !KotlinStrings.isBlank(template) else { return "" }
+        let fields = contest.isActive ? contest.exchangeFields(call: qso.call) : []
+        return SpotComment.expand(template, SpotComment.fields(received: fields, qso: qso))
+    }
+
+    /// N1MM Config → „Spot all S&P QSOs" (opt-in): a live S&P QSO that is not a dupe, not entered after the contest
+    /// and not the simulator's goes to the cluster unless its call is already in the band map.
+    func autoSpotLogged(_ work: Submission, qso: Qso) {
+        guard config.config.dxCluster.spotAllSpQsos, qso.runMode == .searchAndPounce, !work.dupe, work.at == nil,
+              !logbook.simulatorActive(), logbook.outwardGate(qso), let spots = spotNavigation else { return }
+        spots.autoSpot(call: qso.call, freqHz: Int64(qso.freqHz), comment: work.spotComment)
+    }
+
+    /// `{SPOTME}` (N1MM function-key macro): my own station spotted on this entry window's frequency with the spot
+    /// comment (its mode only; „CQ" when the comment is blank).
+    func spotMeMacro() {
+        let template: String = config.config.dxCluster.spotComment
+        let comment: String = SpotComment.expand(template, SpotComment.Fields(mode: form.mode.rawValue))
+        spotMe(freqHz: loggedFreqHz, comment: comment)
     }
 
     /// SPOTME (`EP:432`).

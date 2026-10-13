@@ -50,6 +50,7 @@ struct BlacklistWindowView: View {
                 .padding(.top, 4)
             tabs(language)
             summary(language: language, count: entries.count, isCall: isCall)
+            tools(language: language, model: model, isCall: isCall)
             Divider()
             header(language: language, isCall: isCall)
             Divider()
@@ -99,6 +100,62 @@ struct BlacklistWindowView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
+    }
+
+    /// N1MM's blacklist controls: the switch, Import, Export and Clear of the shown list.
+    private func tools(language: LanguageModel, model: BlacklistModel, isCall: Bool) -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            Toggle(isOn: Binding(get: { model.enabled }, set: { model.setEnabled($0) })) {
+                Text(verbatim: language.tr("Blacklist zapnutý")).windowFont(12)
+            }
+            .toggleStyle(.checkbox)
+            .accessibilityIdentifier("blacklist.enabled")
+            Spacer(minLength: 0)
+            Button {
+                importList(language: language, model: model, isCall: isCall)
+            } label: {
+                Text(verbatim: language.tr("Importovat…")).windowFont(12)
+            }
+            .accessibilityIdentifier("blacklist.import")
+            Button {
+                exportList(model: model, isCall: isCall)
+            } label: {
+                Text(verbatim: language.tr("Exportovat…")).windowFont(12)
+            }
+            .accessibilityIdentifier("blacklist.export")
+            Button {
+                clearList(language: language, model: model, isCall: isCall)
+            } label: {
+                Text(verbatim: language.tr("Vymazat seznam")).windowFont(12)
+            }
+            .accessibilityIdentifier("blacklist.clear")
+        }
+        .padding(.horizontal, 8)
+        .padding(.bottom, 4)
+    }
+
+    private func importList(language: LanguageModel, model: BlacklistModel, isCall: Bool) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url, let data = try? Data(contentsOf: url) else { return }
+        model.importText(isCall: isCall, String(decoding: data, as: UTF8.self))
+    }
+
+    private func exportList(model: BlacklistModel, isCall: Bool) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = isCall ? "blacklist-calls.txt" : "blacklist-spotters.txt"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        try? Data(model.exportText(isCall: isCall).utf8).write(to: url)
+    }
+
+    private func clearList(language: LanguageModel, model: BlacklistModel, isCall: Bool) {
+        let alert = NSAlert()
+        alert.messageText = language.tr("Vymazat celý seznam?")
+        alert.addButton(withTitle: language.tr("Vymazat seznam"))
+        alert.addButton(withTitle: language.tr("Zrušit"))
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        model.clear(isCall: isCall)
     }
 
     private func header(language: LanguageModel, isCall: Bool) -> some View {

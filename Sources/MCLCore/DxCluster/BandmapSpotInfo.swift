@@ -79,11 +79,14 @@ public enum BandmapSpotInfo {
         return false
     }
 
-    /// The label as drawn: v1.1.1's `labelText` (call, azimuth, skimmer count) with the skimmer mark and `¤` right
-    /// after the call, then `QSX 027` and `NEW`.
+    /// The label as drawn: v1.1.1's `labelText` (call, azimuth, skimmer count) with the special-call heart, the
+    /// skimmer mark and `¤` right after the call, then `QSX 027` and `NEW`.
     public static func label(call: String, azimuth: Int?, skimmers: Int, skimmerMark: String?, grayLine: Bool,
-                             qsxHz: Int?, isNew: Bool) -> String {
+                             qsxHz: Int?, isNew: Bool, special: Bool = false) -> String {
         var head: String = call
+        if special {
+            head += SpecialCalls.mark
+        }
         if let skimmerMark {
             head += skimmerMark
         }

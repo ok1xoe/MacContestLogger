@@ -8,9 +8,9 @@
 ///   assembled from recorded letters and digits in the letters directory, a recorded snippet (`DL1.wav`) takes precedence;
 /// - `[text]` (longer than 2 characters) is spoken by speech synthesis;
 /// - control macros are performed, not played (same set and meaning as in CW, `CwMessageBuilder`): `{LOG}`, `{WIPE}`,
-///   `{RUN}`, `{S&P}`, `{CLEARRIT}`/`{RITCLEAR}`, `{CQFREQ}`, `{NOSPLIT}`; `{F1}`…`{F12}` insert another F-key's
-///   message (at most 3 levels); `{END}` ends the message (the rest is ignored); any other `{…}` item is reported
-///   in `unknownMacros` and never looked up as a file. An action runs in message order: after the audio before it.
+///   `{RUN}`, `{S&P}`, `{CLEARRIT}`/`{RITCLEAR}`, `{CQFREQ}`, `{NOSPLIT}`, `{SPOTME}`; `{F1}`…`{F12}` insert
+///   another F-key's message (at most 3 levels); `{END}` ends the message (the rest is ignored); any other `{…}`
+///   item is reported in `unknownMacros` and never looked up as a file. An action runs in message order: after the audio before it.
 ///
 /// Paths are Java `Path` (`JavaPath`): `resolve` + `normalize` (`../../cq3.wav` over `/wav` →
 /// `/cq3.wav`), a missing message file is reported relative to wav (`a//b.wav` → `a/b.wav`), a missing
@@ -81,6 +81,7 @@ public enum VoiceMessagePlanner {
     private static let actions: [String: CwMessage.Action] = [
         "{LOG}": .log, "{WIPE}": .wipe, "{RUN}": .run, "{S&P}": .searchAndPounce,
         "{CLEARRIT}": .clearRit, "{RITCLEAR}": .clearRit, "{CQFREQ}": .cqFrequency, "{NOSPLIT}": .splitOff,
+        "{SPOTME}": .spotMe,
     ]
 
     /// Items of a message with `{F1}`…`{F12}` replaced by the items of that key (depth ≤ 2 as in CW; deeper stays
@@ -309,7 +310,8 @@ public enum VoiceMessagePlanner {
     static func isControlMacro(_ item: String) -> Bool {
         let name = item.uppercased()
         switch name {
-        case "{LOG}", "{WIPE}", "{RUN}", "{S&P}", "{END}", "{CLEARRIT}", "{RITCLEAR}", "{CQFREQ}", "{NOSPLIT}":
+        case "{LOG}", "{WIPE}", "{RUN}", "{S&P}", "{END}", "{CLEARRIT}", "{RITCLEAR}", "{CQFREQ}", "{NOSPLIT}",
+             "{SPOTME}":
             return true
         default:
             guard name.hasPrefix("{F"), name.hasSuffix("}"), let number = Int(name.dropFirst(2).dropLast()) else {

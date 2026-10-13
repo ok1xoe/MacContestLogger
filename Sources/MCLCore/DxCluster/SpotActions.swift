@@ -26,6 +26,8 @@ public enum SpotActions {
     public static let commentNoCall = "Ctrl+P: zadej volačku ke spotu"
     /// Mark, Store, Spot It and Ctrl+P with an empty (or zero) frequency field: nothing is spotted at 0 Hz.
     public static let noFrequency = "Není zadaný kmitočet — připoj rádio nebo ho zadej do pole kmitočtu"
+    /// „Spot all S&P QSOs": a spot of the call this close to the QSO's frequency means it is already in the band map.
+    public static let autoSpotToleranceHz = 1_000
     /// Ctrl+P prompt hint.
     public static let commentHint = "Komentář ke spotu"
 
