@@ -93,6 +93,44 @@ is turned on (transmitting on VFO B):
 - It can be turned off in **"Nastavení → DX Cluster → Automatický split z komentáře
   spotu"** (Settings → DX Cluster → Automatic split from the spot comment).
 
+## Band map top bar and user buttons
+
+Modelled on the top of the N1MM Logger+ [Bandmap window](https://n1mmwp.hamdocs.com/manual-windows/bandmap-window/).
+Below the tuned frequency the band map has a row of controls:
+
+| Control | Action |
+|---|---|
+| **SH/DX** | sends `SH/DX` to the connected DX cluster (the answer shows in the DX Cluster window) |
+| **Wide / Narrow** | switches the radio's filter between the wide and narrow width of its mode; the label shows the current one (with CAT; "Wide/Narrow" without it) |
+| **CQ** | back to your last CQ frequency on the band (Run), like a click on the CQ marker |
+| **RIT +120** | the RIT offset; a click clears it |
+| mode (**CW**, **USB**…) | the radio's mode; a click offers CW, USB, LSB, RTTY, PSK, FT8, FT4, AM, FM (the same as typing the mode into the call field) |
+| slider icon | opens the user buttons' editor |
+
+The filter widths ("Set Transceiver Filter Codes" in N1MM) are in **Settings → DX Cluster**: CW, SSB
+and digital, wide and narrow, in Hz (0 = the radio's default width). Hamlib sets the passband with the
+mode (`M CW 250`), so no radio-specific filter codes are needed.
+
+**User buttons.** Up to 36 programmable buttons in rows of four (N1MM "radio control buttons"). Right
+click on a button → "Upravit tlačítka…" (Edit buttons), or the slider icon, or right click in the band map
+→ "Uživatelská tlačítka…" (User buttons). Each button has a label and a command; `|` separates states
+that the button toggles through on each click (`Wide|Narrow` with `{CAT M CW 500}|{CAT M CW 250}`). A
+command can contain:
+
+| Part | Meaning |
+|---|---|
+| `{CAT …}` | a raw rigctld command, e.g. `{CAT L AF 0.3}`, `{CAT M USB 2400}`, `{CAT Y 2 0}`; checked like a plugin's raw CAT (no PTT, no transmit, no frequency outside the bands) |
+| `{RUN}`, `{S&P}`, `{WIPE}`, `{CLEARRIT}`, `{CQFREQ}`, `{ALT-Q}`, `{NOSPLIT}`, `{CLRSTACK}` | the control macros of the function keys |
+| other text | call field text commands separated by `;` — `14025;CW`, `SPLIT`, `+2`, `RIT 100`, `/14030` (see [text commands](text-commands.md)); the call field keeps its call |
+
+A button never transmits: message macros (`{F1}`, `{TX}`, `{LOG}`…) are refused with a status message.
+**⌘⌥⇧0 … ⌘⌥⇧9, ⌘⌥⇧A … ⌘⌥⇧Z** press buttons 1–36 while the Bandmap window is active (N1MM
+Ctrl+Alt+Shift+0…Z).
+
+**Telnet filters.** Right click in the band map → "Telnet pásma/módy…" and "Telnet filtry…" (N1MM
+Telnet Bands/Modes, Telnet Filters) open the [spot filter](#spot-filter-bands-modes-spotter-origin-workable)
+sheet; both parts of the filter are in one sheet.
+
 ## Band plan in the bandmap
 
 Equivalent of N1MM **Display of Band Plans in Background of Bandmap Frequency Scale**

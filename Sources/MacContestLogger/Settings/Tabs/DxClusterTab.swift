@@ -26,6 +26,7 @@ struct DxClusterTab: View {
             }
             SettingsButton(language.tr("Přidat cluster")) { draft.addDxFavorite() }
             parameters
+            filterWidths
             SettingsCheckbox(label: language.tr("Automatický split z komentáře spotu („UP 5“, „QSX 14025“)"),
                              isOn: $draft.autoSplit)
             SettingsCaption(language.tr(
@@ -44,6 +45,28 @@ struct DxClusterTab: View {
             BlacklistEditor(language: language, title: language.tr("Blacklist spotterů"),
                             items: $draft.blacklistedSpotters)
         }
+    }
+
+    /// N1MM „Set Transceiver Filter Codes": the passbands of the band map's Wide/Narrow button.
+    private var filterWidths: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            FlowLayout(spacing: 8) {
+                widthField(language.tr("CW široký (Hz)"), $draft.filterCwWideHz)
+                widthField(language.tr("CW úzký (Hz)"), $draft.filterCwNarrowHz)
+                widthField(language.tr("SSB široký (Hz)"), $draft.filterSsbWideHz)
+                widthField(language.tr("SSB úzký (Hz)"), $draft.filterSsbNarrowHz)
+                widthField(language.tr("Digi široký (Hz)"), $draft.filterDigiWideHz)
+                widthField(language.tr("Digi úzký (Hz)"), $draft.filterDigiNarrowHz)
+            }
+            SettingsCaption(language.tr("Šířky filtru pro tlačítko Wide/Narrow v bandmapě (0 = výchozí šířka rigu)."))
+        }
+    }
+
+    private func widthField(_ caption: String, _ text: Binding<String>) -> some View {
+        SettingsField(caption: caption) {
+            SettingsTextField(text: text, filter: .digits(limit: 5))
+        }
+        .frame(width: 130)
     }
 
     private var parameters: some View {

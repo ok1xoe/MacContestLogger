@@ -115,6 +115,12 @@ import Testing
         // to its defaults).
         var expected = Self.fullConfig()
         expected.dxCluster.spotFilter = .default
+        expected.dxCluster.filterCwWideHz = 500
+        expected.dxCluster.filterCwNarrowHz = 250
+        expected.dxCluster.filterSsbWideHz = 2_400
+        expected.dxCluster.filterSsbNarrowHz = 1_800
+        expected.dxCluster.filterDigiWideHz = 500
+        expected.dxCluster.filterDigiNarrowHz = 250
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
         expected.callHistoryExtraFiles = []
@@ -284,6 +290,12 @@ import Testing
         w.number(\.minSkimmers, \.dxCluster.minSkimmers, 3)
         w.same(\.autoSplit, \.dxCluster.autoSplit, false)
         w.same(\.showBandPlan, \.dxCluster.showBandPlan, false)
+        w.number(\.filterCwWideHz, \.dxCluster.filterCwWideHz, 600)
+        w.number(\.filterCwNarrowHz, \.dxCluster.filterCwNarrowHz, 220)
+        w.number(\.filterSsbWideHz, \.dxCluster.filterSsbWideHz, 2_700)
+        w.number(\.filterSsbNarrowHz, \.dxCluster.filterSsbNarrowHz, 2_100)
+        w.number(\.filterDigiWideHz, \.dxCluster.filterDigiWideHz, 3_100)
+        w.number(\.filterDigiNarrowHz, \.dxCluster.filterDigiNarrowHz, 350)
         w.same(\.spotFilter, \.dxCluster.spotFilter,
                SpotFilter(hiddenBands: [.m160, .cm9], hiddenModes: ["DIGI"], contestOnly: true,
                          spotterContinents: ["EU", "NA"], spotterOwnCountry: true, hideNonWorkable: true))

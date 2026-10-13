@@ -300,7 +300,8 @@ import Testing
         #expect(paths.sorted() == [
             "antennas", "bandNotes", "callHistoryExtraFiles", "checkHiddenPanes", "checkPaneWeights", "checkYankOrder",
             "contestSetups", "cwKeyer.runMessages", "cwKeyer.spMessages",
-            "digital.diMessages", "digital.runMessages", "digital.spMessages", "dxCluster.blacklistedCalls",
+            "digital.diMessages", "digital.runMessages", "digital.spMessages", "dxCluster.bandmapButtons",
+            "dxCluster.blacklistedCalls",
             "dxCluster.blacklistedSpotters",
             "dxCluster.callBlacklist",
             "dxCluster.commands", "dxCluster.favorites", "dxCluster.spotFilterHiddenBands",

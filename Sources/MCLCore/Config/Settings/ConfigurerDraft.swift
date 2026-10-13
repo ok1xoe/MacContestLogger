@@ -78,6 +78,12 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var minSkimmers: String = ""
     public var autoSplit: Bool = false
     public var showBandPlan: Bool = false
+    public var filterCwWideHz: String = ""
+    public var filterCwNarrowHz: String = ""
+    public var filterSsbWideHz: String = ""
+    public var filterSsbNarrowHz: String = ""
+    public var filterDigiWideHz: String = ""
+    public var filterDigiNarrowHz: String = ""
     public var spotFilter: SpotFilter = .default
 
     // MARK: HamQTH and QRZ.com — `CD:105-117`
@@ -400,6 +406,12 @@ extension ConfigurerDraft {
         minSkimmers = String(dx.minSkimmers)
         autoSplit = dx.autoSplit
         showBandPlan = dx.showBandPlan
+        filterCwWideHz = String(dx.filterCwWideHz)
+        filterCwNarrowHz = String(dx.filterCwNarrowHz)
+        filterSsbWideHz = String(dx.filterSsbWideHz)
+        filterSsbNarrowHz = String(dx.filterSsbNarrowHz)
+        filterDigiWideHz = String(dx.filterDigiWideHz)
+        filterDigiNarrowHz = String(dx.filterDigiNarrowHz)
         spotFilter = dx.spotFilter
     }
 

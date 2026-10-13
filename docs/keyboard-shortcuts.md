@@ -104,6 +104,9 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 
 Alt+M, Alt+D and Alt+Shift+D also work while the Bandmap window is the active window, with your own key assignments. In the Bandmap window Alt+D removes the spot under the mouse pointer; with the pointer elsewhere it acts as in the entry window.
 
+In the Bandmap window **⌘⌥⇧0 … ⌘⌥⇧9, ⌘⌥⇧A … ⌘⌥⇧Z** press the band map's user buttons 1–36 (N1MM
+Ctrl+Alt+Shift+0…Z), see [DX cluster → Band map top bar](dx-cluster.md#band-map-top-bar-and-user-buttons).
+
 ## Rotator and antennas
 
 | Key | Action |

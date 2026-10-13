@@ -58,6 +58,22 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
             if normalized != selfSpotThresholdHz { selfSpotThresholdHz = normalized }
         }
     }
+    /// The band map's programmable buttons (N1MM: up to 36, rows of four); see `BandmapButtonCommand`.
+    public var bandmapButtons: [DxClusterCommand] = [] {
+        didSet {
+            if bandmapButtons.count > DxClusterConfig.bandmapButtonLimit {
+                bandmapButtons = Array(bandmapButtons.prefix(DxClusterConfig.bandmapButtonLimit))
+            }
+        }
+    }
+    /// The filter widths of the band map's Wide/Narrow button (Hz, hamlib passband; N1MM "Transceiver Filter
+    /// Codes").
+    public var filterCwWideHz: Int = 500 { didSet { clampWidth(\.filterCwWideHz) } }
+    public var filterCwNarrowHz: Int = 250 { didSet { clampWidth(\.filterCwNarrowHz) } }
+    public var filterSsbWideHz: Int = 2_400 { didSet { clampWidth(\.filterSsbWideHz) } }
+    public var filterSsbNarrowHz: Int = 1_800 { didSet { clampWidth(\.filterSsbNarrowHz) } }
+    public var filterDigiWideHz: Int = 500 { didSet { clampWidth(\.filterDigiWideHz) } }
+    public var filterDigiNarrowHz: Int = 250 { didSet { clampWidth(\.filterDigiNarrowHz) } }
     /// Old blacklist format (strings only) — kept for migration to
     /// `callBlacklist`/`spotterBlacklist`. Emptied after migration.
     public var blacklistedCalls: [String] = []
@@ -100,6 +116,8 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case blacklistedCalls, blacklistedSpotters, callBlacklist, spotterBlacklist
         case spotFilterHiddenBands, spotFilterHiddenModes, spotFilterContest
         case spotFilterSpotterContinents, spotFilterSpotterOwnCountry, spotFilterHideNonWorkable
+        case bandmapButtons, filterCwWideHz, filterCwNarrowHz, filterSsbWideHz, filterSsbNarrowHz, filterDigiWideHz
+        case filterDigiNarrowHz
     }
 
     public init() {}
@@ -130,6 +148,37 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         spotFilterSpotterContinents = c.value(.spotFilterSpotterContinents, default: d.spotFilterSpotterContinents)
         spotFilterSpotterOwnCountry = c.value(.spotFilterSpotterOwnCountry, default: d.spotFilterSpotterOwnCountry)
         spotFilterHideNonWorkable = c.value(.spotFilterHideNonWorkable, default: d.spotFilterHideNonWorkable)
+        bandmapButtons = Array(c.value(.bandmapButtons, default: d.bandmapButtons).prefix(Self.bandmapButtonLimit))
+        filterCwWideHz = Self.clampedWidth(c.value(.filterCwWideHz, default: d.filterCwWideHz))
+        filterCwNarrowHz = Self.clampedWidth(c.value(.filterCwNarrowHz, default: d.filterCwNarrowHz))
+        filterSsbWideHz = Self.clampedWidth(c.value(.filterSsbWideHz, default: d.filterSsbWideHz))
+        filterSsbNarrowHz = Self.clampedWidth(c.value(.filterSsbNarrowHz, default: d.filterSsbNarrowHz))
+        filterDigiWideHz = Self.clampedWidth(c.value(.filterDigiWideHz, default: d.filterDigiWideHz))
+        filterDigiNarrowHz = Self.clampedWidth(c.value(.filterDigiNarrowHz, default: d.filterDigiNarrowHz))
+    }
+
+    /// N1MM's band map has at most 36 programmable buttons.
+    public static let bandmapButtonLimit = 36
+    /// The passband a rigctld `M` command accepts (`PluginCatPolicy`).
+    public static let filterWidthRange: ClosedRange<Int> = 0...20_000
+
+    /// The wide and narrow filter of `mode` (CW, phone, digital).
+    public func filterWidths(_ mode: Mode) -> (wide: Int, narrow: Int) {
+        switch mode {
+        case .cw: return (filterCwWideHz, filterCwNarrowHz)
+        case .ssb, .am, .fm: return (filterSsbWideHz, filterSsbNarrowHz)
+        default: return (filterDigiWideHz, filterDigiNarrowHz)
+        }
+    }
+
+    private mutating func clampWidth(_ field: WritableKeyPath<DxClusterConfig, Int>) {
+        let value: Int = self[keyPath: field]
+        let clamped: Int = Self.clampedWidth(value)
+        if clamped != value { self[keyPath: field] = clamped }
+    }
+
+    static func clampedWidth(_ value: Int) -> Int {
+        Swift.min(Swift.max(value, filterWidthRange.lowerBound), filterWidthRange.upperBound)
     }
 
     /// Default set of `commandCount` commands (common DXSpider commands).

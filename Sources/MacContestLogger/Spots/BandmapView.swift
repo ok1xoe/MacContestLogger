@@ -417,6 +417,11 @@ final class BandmapCanvas: NSView {
         addItem(menu, state.showPlan ? language.tr("Skrýt bandplán") : language.tr("Zobrazit bandplán")) {
             model.toggleBandPlan()
         }
+        menu.addItem(.separator())
+        // N1MM „Telnet Bands/Modes" and „Telnet Filters": one sheet holds both parts of the spot filter.
+        addItem(menu, language.tr("Telnet pásma/módy…")) { model.openSpotFilter() }
+        addItem(menu, language.tr("Telnet filtry…")) { model.openSpotFilter() }
+        addItem(menu, language.tr("Uživatelská tlačítka…")) { model.editButtons() }
         menu.popUp(positioning: nil, at: point, in: self)
     }
 
