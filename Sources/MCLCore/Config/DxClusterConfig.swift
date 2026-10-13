@@ -148,6 +148,10 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
             if normalized != showDxCount { showDxCount = normalized }
         }
     }
+    /// N1MM „Save Spots": the spot buffer is saved at quit and restored at start (within its timeout).
+    public var saveSpots: Bool = false
+    /// N1MM „Randomize incoming spot frequencies": tuning to a spot lands a little off it.
+    public var randomizeSpotFrequencies: Bool = false
 
     /// The filter as a value (see `SpotFilter`); setting it rewrites the three keys.
     public var spotFilter: SpotFilter {
@@ -197,6 +201,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case bandmapButtons, filterCwWideHz, filterCwNarrowHz, filterSsbWideHz, filterSsbNarrowHz, filterDigiWideHz
         case filterDigiNarrowHz
         case clusterSoftware, autoLogon, showButtons, showDxCount
+        case saveSpots, randomizeSpotFrequencies
         case spotFilterSpotterPrefixes, spotFilterSpotterCallAreas, spotFilterOnlyCallHistory, spotFilterOnlyWorked
         case spotFilterHideBeacons, spotFilterRemoveBusted, spotFilterBustedTwoChars, spotFilterPreferredSpotters
         case blacklistEnabled
@@ -252,6 +257,8 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         autoLogon = c.value(.autoLogon, default: d.autoLogon)
         showButtons = c.value(.showButtons, default: d.showButtons)
         showDxCount = ClusterCommandFormat.clampedCount(c.value(.showDxCount, default: d.showDxCount))
+        saveSpots = c.value(.saveSpots, default: d.saveSpots)
+        randomizeSpotFrequencies = c.value(.randomizeSpotFrequencies, default: d.randomizeSpotFrequencies)
         spotFilterSpotterPrefixes = c.value(.spotFilterSpotterPrefixes, default: d.spotFilterSpotterPrefixes)
         spotFilterSpotterCallAreas = c.value(.spotFilterSpotterCallAreas, default: d.spotFilterSpotterCallAreas)
         spotFilterOnlyCallHistory = c.value(.spotFilterOnlyCallHistory, default: d.spotFilterOnlyCallHistory)

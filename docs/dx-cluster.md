@@ -122,6 +122,21 @@ Presses wait behind a button that is still in its `{WAIT}`.
 | Zobrazit tlačítka příkazů | N1MM "Show Telnet Buttons": hides the buttons to save space |
 | Uložit / Načíst tlačítka… | saves the ten buttons into a text file (`label,command` per line, `#` comments) and loads such a set back; a shorter file keeps the default buttons for the rest |
 
+### Cluster list, saved spots, randomized frequencies
+
+- **Settings → DX Cluster → Importovat / Exportovat seznam…** (N1MM's cluster list import/export): a text file with one
+  cluster per line, `name,host:port[,login]`, `#` starts a comment. Passwords are never exported. An import adds only
+  the clusters whose `host:port` is not in the list yet; like every Settings change it applies with Save. N1MM's
+  *live* cluster list is not offered: it comes from N1MM's own reporting server, there is no public list to read.
+- **Možnosti… → Uchovat spoty přes restart programu** (N1MM "Save Spots", off by default): at quit the spot buffer is
+  written to `spots.json` in the data directory; after the start the spots still within the *Buffer spotů (min)*
+  timeout come back with their original times (blacklisted calls stay out). With the option off the file is removed
+  at quit.
+- **Možnosti… → Náhodně posunout kmitočet při naladění spotu** (N1MM "Randomize incoming spot frequencies", off by
+  default): tuning to a cluster spot (a click, the spot jumps) lands 50–150 Hz (phone 100–250 Hz) above or below it,
+  so the operators who click the same spot do not all call on exactly the same frequency. Own spots (Mark, Store)
+  are tuned exactly; the split from the spot comment is unchanged.
+
 ## Spots in the bandmap: clicks, call-frame, marks
 
 Modelled on the N1MM Logger+ [Bandmap window](https://n1mmwp.hamdocs.com/manual-windows/bandmap-window/).

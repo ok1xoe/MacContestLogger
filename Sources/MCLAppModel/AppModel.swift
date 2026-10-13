@@ -529,6 +529,7 @@ public final class AppModel {
             feed?.stop()
             callbook?.closeLane()
             await dxCluster?.shutdown()
+            dxCluster?.persistSpots()
         }
         model.shutdownServices.cluster = { [weak cluster = net.cluster] in
             await cluster?.shutdown()
@@ -540,6 +541,7 @@ public final class AppModel {
         Self.wireSimulator(model, environment: environment)
         environment.catLog.setFile(dataDir.appendingPathComponent("cat.log"))
         ClubLogTrafficLog.shared.setFile(dataDir.appendingPathComponent("clublog.log"))
+        spots.dxCluster.savedSpotsFile = dataDir.appendingPathComponent(SavedSpotsFile.fileName)
         Self.startSpots(spots)
         Self.startRadio(radio)
         runner.start()
@@ -865,6 +867,7 @@ public final class AppModel {
     private static func startSpots(_ spots: Spots) {
         spots.blacklist.migrateLegacy()
         spots.blacklist.apply()
+        spots.dxCluster.restoreSpots()
         spots.feed.start()
         spots.feed.addObserver { [weak callbook = spots.callbook] in
             callbook?.prefetch()

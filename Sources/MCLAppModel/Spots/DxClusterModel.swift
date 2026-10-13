@@ -63,6 +63,8 @@ public final class DxClusterModel {
     @ObservationIgnored var buttonTask: Task<Void, Never>?
     /// Presses still queued behind a `{WAIT}`.
     @ObservationIgnored var buttonsQueued: Int = 0
+    /// Where the spots are saved across a restart (`SavedSpotsFile`; set by the app, `nil` = never saved).
+    @ObservationIgnored public var savedSpotsFile: URL?
     /// The console lines already styled, by log line (rebuilt when the filter or the analysis changes).
     @ObservationIgnored var consoleCache: (key: ConsoleCacheKey, lines: [String: ConsoleLine])?
 
