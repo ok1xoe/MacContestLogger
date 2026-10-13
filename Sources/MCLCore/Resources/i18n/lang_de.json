@@ -1660,5 +1660,16 @@
  "Bonusové stanice, členové klubu, přátelé: jejich spoty mají v bandmapě a v okně Dostupné srdce ♥. Jedna volačka na řádek.": "Bonusstationen, Clubmitglieder, Freunde: ihre Spots bekommen in der Bandmap und im Fenster Verfügbar ein Herz ♥. Ein Rufzeichen pro Zeile.",
  "Automaticky zahrnout bonusové stanice závodu": "Bonusstationen des Contests automatisch einbeziehen",
  "Zvláštní volačky: přidáno %s": "Besondere Rufzeichen: %s hinzugefügt",
- "zvláštní volačka": "besonderes Rufzeichen"
+ "zvláštní volačka": "besonderes Rufzeichen",
+ "Posledních 10 spotů (SH/DX)": "Letzte 10 Spots (SH/DX)",
+ "Stanice (SH/STATION)": "Station (SH/STATION)",
+ "QSL informace (SH/QSL)": "QSL-Informationen (SH/QSL)",
+ "Východ a západ slunce (SH/SUN)": "Sonnenauf- und -untergang (SH/SUN)",
+ "Callbook clusteru (SH/QRZ)": "Cluster-Callbook (SH/QRZ)",
+ "Dotaz na DX cluster": "DX-Cluster abfragen",
+ "Historie spotů %s": "Spot-Verlauf von %s",
+ "Historie spotů mé značky": "Spot-Verlauf meines Rufzeichens",
+ "Žádný spot této volačky v tomto sezení.": "Kein Spot dieses Rufzeichens in dieser Sitzung.",
+ "Naladit na tento spot": "Zu diesem Spot springen",
+ "Není zadaná vlastní značka (Nastavení → Stanice)": "Eigenes Rufzeichen nicht eingestellt (Einstellungen → Station)"
 }

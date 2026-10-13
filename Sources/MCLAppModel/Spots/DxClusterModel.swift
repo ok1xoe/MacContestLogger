@@ -31,6 +31,9 @@ public final class DxClusterModel {
     @ObservationIgnored public let spots: SpotBuffer
     /// The shared traffic log (Kotlin `dxCluster.log`).
     @ObservationIgnored public let log: DxClusterTrafficLog
+    /// Every received spot of every connection (N1MM „Show Telnet history", „My call spot history").
+    @ObservationIgnored public let spotHistory = SpotHistory()
+    @ObservationIgnored let now: @Sendable () -> Date
 
     @ObservationIgnored let config: ConfigModel
     @ObservationIgnored let status: StatusModel
@@ -75,6 +78,7 @@ public final class DxClusterModel {
         self.language = language
         self.messages = messages
         self.network = network
+        self.now = now
         spots = SpotBuffer(maxAgeMinutes: 90, clock: now)
         log = DxClusterTrafficLog()
         translator = TranslatorBox(translator: language.translator, decimalSeparator: language.decimalSeparator)
@@ -307,7 +311,10 @@ public final class DxClusterModel {
             onUnexpectedError: { error in sink.unexpected(error) })
         let session: any ClusterSessionPort = network.makeSession(hooks)
         let spotHooks: SpotHooks = self.hooks
+        let history: SpotHistory = spotHistory
+        let clock: @Sendable () -> Date = now
         session.onSpot = { spot in
+            history.add(spot, at: clock(), source: tag)
             spotHooks.plugin(spot)
             spotHooks.share(spot)
         }

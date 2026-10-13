@@ -47,6 +47,8 @@ public final class BandmapModel {
     public var showSpotFilter = false
     /// The programmable buttons' editor sheet; the index of the button to start on.
     public var editingButtons: Int?
+    /// The spot history sheet of the band map window (N1MM „Show Telnet history" / „My call spot history"): the call.
+    public var historyCall: String?
     /// Where the mouse last was over the map, in the canvas' coordinates; `nil` = outside.
     @ObservationIgnored private var pointer: Pointer?
 

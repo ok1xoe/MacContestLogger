@@ -148,10 +148,11 @@ import Testing
         // 17 keys of the DX Cluster window's options, button macros and button sets and
         // 7 keys of the cluster list import and export, saved spots and randomized spot frequencies and
         // 16 keys of the spot filter's spotter prefixes and call areas, call history / worked, beacon and busted spot options, preferred spotters and the blacklist switch, import and clear and
-        // 10 keys of the spot comment, Spot all S&P QSOs and special calls.
-        #expect(map.count == 1_662)
+        // 10 keys of the spot comment, Spot all S&P QSOs and special calls and
+        // 11 keys of the cluster queries about a station and the spot history.
+        #expect(map.count == 1_673)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_662)
+        #expect(german.count == 1_673)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

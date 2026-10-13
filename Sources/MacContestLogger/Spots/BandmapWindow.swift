@@ -126,6 +126,10 @@ struct BandmapWindowView: View {
                                     set: { if !$0 { model.editingButtons = nil } })) {
             BandmapButtonsEditor(model: model, language: language, fontSize: $sheets.fontSize)
         }
+        .sheet(isPresented: Binding(get: { model.historyCall != nil }, set: { if !$0 { model.historyCall = nil } })) {
+            SpotHistorySheet(app: app, call: model.historyCall ?? "", fontSize: $sheets.fontSize,
+                             close: { model.historyCall = nil })
+        }
     }
 
     /// The control row: the radio (N1MM: the rig, its VFO), the tuned frequency and the transmit frequency while

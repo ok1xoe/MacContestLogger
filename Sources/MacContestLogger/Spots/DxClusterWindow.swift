@@ -12,6 +12,8 @@ struct DxClusterConsole: NSViewRepresentable {
     let lines: [ConsoleLine]
     let fontSize: CGFloat
     let label: String
+    /// The right-click items of a line (its spot, `nil` for other text), in front of the text view's own items.
+    var menuItems: (DxSpot?) -> [ConsoleMenuItem] = { _ in [] }
 
     static func color(_ tint: ConsoleLine.Tint) -> NSColor {
         switch tint {
@@ -80,6 +82,8 @@ struct DxClusterConsole: NSViewRepresentable {
         guard let textView = scroll.documentView as? PausingConsoleTextView,
               let storage = textView.textStorage else { return }
         let coordinator: Coordinator = context.coordinator
+        textView.lines = lines
+        textView.menuItems = menuItems
         let plan: ConsoleDiff.LineEdit<ConsoleLine> = coordinator.fontSize == fontSize
             ? ConsoleDiff.plan(old: coordinator.shown, new: lines, text: \.text) : .rebuild
         switch plan {
@@ -108,6 +112,57 @@ struct DxClusterConsole: NSViewRepresentable {
 final class PausingConsoleTextView: NSTextView {
     private(set) var scrollPaused = false
     private var tracking: NSTrackingArea?
+    /// The lines shown (the text is these joined by `"\n"`).
+    var lines: [ConsoleLine] = []
+    var menuItems: (DxSpot?) -> [ConsoleMenuItem] = { _ in [] }
+    private var menuTargets: [ConsoleMenuTarget] = []
+
+    /// N1MM: a right click on a spot line offers „Jump to this spot" and the queries about its call; the text view's
+    /// own items (Copy…) follow.
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let base: NSMenu = super.menu(for: event) ?? NSMenu()
+        let point: NSPoint = convert(event.locationInWindow, from: nil)
+        let index: Int = characterIndexForInsertion(at: point)
+        let items: [ConsoleMenuItem] = menuItems(spot(atCharacter: index))
+        guard !items.isEmpty else { return base }
+        let menu = NSMenu()
+        menuTargets = []
+        for entry in items {
+            if entry.title.isEmpty {
+                menu.addItem(.separator())
+                continue
+            }
+            let target = ConsoleMenuTarget(entry.action)
+            menuTargets.append(target)
+            let item = NSMenuItem(title: entry.title, action: #selector(ConsoleMenuTarget.fire), keyEquivalent: "")
+            item.target = target
+            menu.addItem(item)
+        }
+        if !base.items.isEmpty {
+            menu.addItem(.separator())
+            for item in base.items {
+                base.removeItem(item)
+                menu.addItem(item)
+            }
+        }
+        return menu
+    }
+
+    /// The spot of the line holding the UTF-16 offset `index`.
+    private func spot(atCharacter index: Int) -> DxSpot? {
+        let text: NSString = string as NSString
+        guard text.length > 0, index >= 0 else { return nil }
+        let end: Int = Swift.min(index, text.length)
+        var line = 0
+        var position = 0
+        while position < end {
+            let range: NSRange = text.range(of: "\n", range: NSRange(location: position, length: end - position))
+            if range.location == NSNotFound { break }
+            line += 1
+            position = range.location + 1
+        }
+        return lines.indices.contains(line) ? lines[line].spot : nil
+    }
 
     override func mouseDown(with event: NSEvent) {
         scrollPaused = true
@@ -131,6 +186,28 @@ final class PausingConsoleTextView: NSTextView {
     }
 }
 
+/// One item of the console's right-click menu (an empty title is a separator).
+struct ConsoleMenuItem {
+    let title: String
+    let action: @MainActor () -> Void
+
+    static let separator = ConsoleMenuItem(title: "", action: {})
+}
+
+/// The target of a console menu item.
+@MainActor
+final class ConsoleMenuTarget: NSObject {
+    private let run: @MainActor () -> Void
+
+    init(_ run: @escaping @MainActor () -> Void) {
+        self.run = run
+    }
+
+    @objc func fire() {
+        run()
+    }
+}
+
 /// A button being edited (Kotlin `editIndex`).
 struct MacroEdit: Identifiable, Equatable {
     let id: Int
@@ -146,6 +223,8 @@ final class DxClusterWindowState: ObservableObject {
     @Published var sheetFontSize: Int = WindowFont.defaultSize
     @Published var showFilter: Bool = false
     @Published var showOptions: Bool = false
+    /// The spot history sheet's call (N1MM „Show Telnet history").
+    @Published var historyCall: String?
 }
 
 /// Kotlin `DxClusterWindow` (`dxCluster` 760×560, `DxClusterWindow.kt:77-278`): the favourite, connect / log in, the
@@ -203,7 +282,7 @@ struct DxClusterWindowView: View {
             commandLine(app)
             Divider()
             DxClusterConsole(lines: lines, fontSize: CGFloat(WindowFont.size(12, windowSize: session.fontSize)),
-                             label: language.tr("Výpis DX clusteru"))
+                             label: language.tr("Výpis DX clusteru"), menuItems: { consoleMenu(app, spot: $0) })
         }
         .environment(\.windowFontSize, session.fontSize)
         .sheet(item: Binding(get: { state.edit }, set: { state.edit = $0 })) { edit in
@@ -212,6 +291,11 @@ struct DxClusterWindowView: View {
         .sheet(isPresented: Binding(get: { state.showFilter }, set: { state.showFilter = $0 })) {
             SpotFilterSheet(app: app, fontSize: Binding(get: { state.sheetFontSize }, set: { state.sheetFontSize = $0 }),
                             close: { state.showFilter = false })
+        }
+        .sheet(isPresented: Binding(get: { state.historyCall != nil }, set: { if !$0 { state.historyCall = nil } })) {
+            SpotHistorySheet(app: app, call: state.historyCall ?? "",
+                             fontSize: Binding(get: { state.sheetFontSize }, set: { state.sheetFontSize = $0 }),
+                             close: { state.historyCall = nil })
         }
         .sheet(isPresented: Binding(get: { state.showOptions }, set: { state.showOptions = $0 })) {
             TelnetOptionsSheet(app: app,
@@ -232,6 +316,36 @@ struct DxClusterWindowView: View {
         let feedRevision: Int = filter.needsContext ? app.spotFeed.revision : 0
         return cluster.consoleLines(analyzer: app.spotAnalysis.current(), analysisRevision: revision,
                                     context: app.spotFeed.context(for: filter), contextRevision: feedRevision)
+    }
+
+    /// The console's right click: on a spot line N1MM's „Jump to this spot", the cluster queries about its call and its
+    /// spot history; always my own call's spot history.
+    private func consoleMenu(_ app: AppModel, spot: DxSpot?) -> [ConsoleMenuItem] {
+        let language: LanguageModel = app.language
+        let state: DxClusterWindowState = self.state
+        let fontSize: Int = session.fontSize
+        var items: [ConsoleMenuItem] = []
+        if let spot {
+            items.append(ConsoleMenuItem(title: language.tr("Naladit na tento spot")) { app.bandmap.jumpToSpot(spot) })
+            items.append(.separator)
+            for query in ClusterCallQuery.allCases {
+                items.append(ConsoleMenuItem(title: language.tr(query.titleKey) + " " + spot.dxCall) {
+                    app.dxCluster.query(query, call: spot.dxCall)
+                })
+            }
+            items.append(ConsoleMenuItem(title: language.tr("Historie spotů %s", .string(spot.dxCall))) {
+                state.sheetFontSize = fontSize
+                state.historyCall = spot.dxCall
+            })
+        }
+        let mine: String = app.dxCluster.myCall
+        if !KotlinStrings.isBlank(mine) {
+            items.append(ConsoleMenuItem(title: language.tr("Historie spotů mé značky")) {
+                state.sheetFontSize = fontSize
+                state.historyCall = KotlinStrings.trim(mine).uppercased()
+            })
+        }
+        return items
     }
 
     // MARK: - header
