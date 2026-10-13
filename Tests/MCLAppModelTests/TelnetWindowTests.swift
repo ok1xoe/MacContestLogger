@@ -51,7 +51,10 @@ final class ButtonWaitGate: Sendable {
         await eventually("waiting 5 s") { gate.requests == [5_000] }
         #expect(spot.server.lines(0) == ["SH/WWV"])
         gate.release()
-        await eventually("the rest and the next press") { spot.server.lines(0) == ["SH/WWV", "SH/WCY", "SH/USERS"] }
+        // The commands after the wait go out on their own send threads: compare without their order.
+        await eventually("the rest and the next press") {
+            spot.server.lines(0).first == "SH/WWV" && Set(spot.server.lines(0)) == ["SH/WWV", "SH/WCY", "SH/USERS"]
+        }
         await spot.settle()
         spot.dx.runButton("BYE")
         await eventually("an ordinary button at once") { spot.server.lines(0).last == "BYE" }
@@ -165,13 +168,14 @@ final class ButtonWaitGate: Sendable {
         await spot.connectMain(spot.server.favorite(name: "Fake"))
         spot.model.bandmap.query(.lastSpots, call: "ok1abc")
         spot.dx.query(.sun, call: "VK9X")
-        await eventually("queries sent") { spot.server.lines(0) == ["SH/DX 10 OK1ABC", "SH/SUN VK9X"] }
+        // Each command goes out on its own send thread: compare without the order.
+        await eventually("queries sent") { Set(spot.server.lines(0)) == ["SH/DX 10 OK1ABC", "SH/SUN VK9X"] }
         spot.dx.setSoftware(.arCluster)
         spot.dx.query(.lastSpots, call: "OK1ABC")
         spot.dx.query(.qrz, call: "not a call")
         spot.dx.query(.qsl, call: "OK1ABC")
         await eventually("AR-Cluster format") {
-            spot.server.lines(0).suffix(2) == ["SH/DX/10 OK1ABC", "SH/QSL OK1ABC"]
+            Set(spot.server.lines(0)) == ["SH/DX 10 OK1ABC", "SH/SUN VK9X", "SH/DX/10 OK1ABC", "SH/QSL OK1ABC"]
         }
     }
 
