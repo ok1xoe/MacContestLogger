@@ -89,7 +89,7 @@ import Testing
         app.radioClock.advance(by: 300)
         await app.settle()
         #expect(digital.text.hasSuffix("TU OK2XYZ "))
-        #expect(digital.recentCalls == ["DL1ABC", "OK2XYZ"])
+        #expect(digital.recentCalls == ["OK2XYZ", "DL1ABC"], "the Grab window shows the newest first (LIFO)")
         app.radioClock.advance(by: 300)
         await app.settle()
         // Nothing new: no `text.get_rx`.

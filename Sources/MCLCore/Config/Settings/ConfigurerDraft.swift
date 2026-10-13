@@ -203,6 +203,13 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var callStackOrder: String = CallStack.Order.multsFirst.rawValue
     public var callStackClearOnBandChange: Bool = true
     public var digitalCallStacking: Bool = false
+    public var grabOrder: String = GrabList.Order.lifo.rawValue
+    public var grabNoDupes: Bool = true
+    public var grabOnlyScp: Bool = false
+    public var grabClearOnQsy: Bool = false
+    public var grabClearOnCq: Bool = false
+    public var grabSendSpace: Bool = false
+    public var grabAddToBandmap: Bool = false
     public var callValidity: String = DigitalCallValidity.combined.rawValue
     public var validateScp: Bool = true
     public var validateCallHistory: Bool = true
@@ -471,6 +478,13 @@ extension ConfigurerDraft {
         callStackOrder = config.esm.callStackOrder
         callStackClearOnBandChange = config.esm.callStackClearOnBandChange
         digitalCallStacking = config.digital.digitalCallStacking
+        grabOrder = config.digital.grabOrder
+        grabNoDupes = config.digital.grabNoDupes
+        grabOnlyScp = config.digital.grabOnlyScp
+        grabClearOnQsy = config.digital.grabClearOnQsy
+        grabClearOnCq = config.digital.grabClearOnCq
+        grabSendSpace = config.digital.grabSendSpace
+        grabAddToBandmap = config.digital.grabAddToBandmap
         callValidity = config.digital.callValidity
         validateScp = config.digital.validateScp
         validateCallHistory = config.digital.validateCallHistory

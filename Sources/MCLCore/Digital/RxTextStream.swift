@@ -25,6 +25,9 @@ public final class RxTextStream {
     /// The ranges of the text (UTF-16 offsets into `textUnits`) that arrived while the own station transmitted
     /// (fldigi's echo): their calls are not grabbed (N1MM). A Swift-only addition.
     public private(set) var transmitted: [Range<Int>] = []
+    /// UTF-16 units dropped from the front so far (the trim and `clear`): `dropped + offset` is a position in all text
+    /// ever received, so new text can be told from text already seen. A Swift-only addition.
+    public private(set) var dropped: Int = 0
     private var nextOffset: Int32 = 0
 
     public init(maxChars: Int32) {
@@ -68,6 +71,7 @@ public final class RxTextStream {
             // Java `delete(0, length − max)`: the end beyond the length is clipped, a negative `max` deletes everything. The difference is
             // computed in `Int`, Java in `int`: for `maxChars` near `Int32.min` Java overflows and `delete` throws,
             // here everything is deleted (unreachable from the UI — a positive constant).
+            dropped += cut
             textUnits.removeFirst(Swift.min(textUnits.count, textUnits.count - Int(maxChars)))
         }
     }
@@ -79,6 +83,7 @@ public final class RxTextStream {
 
     /// Clears the window; the position in fldigi does not change, so the text does not start being read again.
     public func clear() {
+        dropped += textUnits.count
         textUnits.removeAll()
         transmitted.removeAll()
     }

@@ -88,13 +88,7 @@ struct DigitalInterfaceWindowView: View {
                     .windowFont(14)
                     .foregroundStyle(Color(domain: DomainColors.dupe))
             }
-            HStack(spacing: 6) {
-                ForEach(model.recentCalls, id: \.self) { call in
-                    SettingsChip(label: call, selected: false) {
-                        model.take(call, click: NSEvent.modifierFlags.contains(.option) ? .stack : .plain)
-                    }
-                }
-            }
+            grabRow(app, model, language: language)
             HStack(alignment: .top, spacing: 4) {
                 pauseBar(model, language: language)
                 DigitalRxTextView(text: Self.annotated(model, size: session.fontSize),
@@ -113,6 +107,51 @@ struct DigitalInterfaceWindowView: View {
         }
         .padding(8)
         .environment(\.windowFontSize, session.fontSize)
+    }
+
+    /// N1MM's Grab window: the calls heard (the highlighted one is grabbed next by Alt+G, `{GRAB}`, Insert), the
+    /// Grab and CLR buttons; the right-click menu clears the list or the selected call and sets the sort order.
+    private func grabRow(_ app: AppModel, _ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
+        let grabList: GrabListModel = app.grabList
+        let highlighted: String? = model.highlightedCall
+        return HStack(spacing: 6) {
+            Button {
+                model.grab()
+            } label: {
+                Text(verbatim: "Grab").windowFont(13)
+            }
+            .disabled(highlighted == nil)
+            .help(language.tr("Volačka z Grab okna do pole volačky (Alt+G)"))
+            .accessibilityIdentifier("digital.grab")
+            Button {
+                grabList.clear()
+            } label: {
+                Text(verbatim: "CLR").windowFont(13)
+            }
+            .disabled(model.recentCalls.isEmpty)
+            .help(language.tr("Vymazat Grab okno"))
+            .accessibilityIdentifier("digital.grabClear")
+            ForEach(model.recentCalls, id: \.self) { call in
+                SettingsChip(label: call, selected: call == highlighted) {
+                    model.take(call, click: NSEvent.modifierFlags.contains(.option) ? .stack : .plain)
+                }
+                .contextMenu {
+                    Button(language.tr("Vybrat")) { grabList.select(call) }
+                    Button(language.tr("Smazat vybranou volačku")) {
+                        grabList.select(call)
+                        grabList.removeSelected()
+                    }
+                    Button(language.tr("Vymazat seznam")) { grabList.clear() }
+                    Divider()
+                    Button((grabList.order == .lifo ? "✓ " : "") + language.tr("Pořadí: nejnovější první (LIFO)")) {
+                        grabList.setOrder(.lifo)
+                    }
+                    Button((grabList.order == .fifo ? "✓ " : "") + language.tr("Pořadí: nejstarší první (FIFO)")) {
+                        grabList.setOrder(.fifo)
+                    }
+                }
+            }
+        }
     }
 
     /// macOS modifiers → N1MM's clicks: Option = Alt (stack), Cmd = Ctrl (into the focused field; Ctrl+click is the
@@ -211,6 +250,14 @@ struct DigitalInterfaceWindowView: View {
             (\.scpGarbageSearch, "Hledat volačky z Master.scp i v šumu"),
             (\.highlightBackground, "Barva volačky jako pozadí"),
         ]
+        let grabOptions: [(WritableKeyPath<DigitalConfig, Bool>, String)] = [
+            (\.grabNoDupes, "Dupy do Grab okna nedávat"),
+            (\.grabOnlyScp, "Do Grab okna jen volačky z Master.scp"),
+            (\.grabClearOnQsy, "QSY vymaže Grab okno"),
+            (\.grabClearOnCq, "CQ vymaže Grab okno"),
+            (\.grabSendSpace, "Po grabu kurzor do výměny (mezera)"),
+            (\.grabAddToBandmap, "Při grabu dát volačku z pole do bandmapy (Alt+O)"),
+        ]
         let resources: [(WritableKeyPath<DigitalConfig, Bool>, String)] = [
             (\.validateScp, "Master.scp"), (\.validateCallHistory, "Call history"),
             (\.validateSpotted, "Spoty z clusteru"), (\.validateLogged, "Volačky v deníku"),
@@ -230,6 +277,15 @@ struct DigitalInterfaceWindowView: View {
                     model.setOption(toggle.0, !model.option(toggle.0))
                 } label: {
                     Text(verbatim: (model.option(toggle.0) ? "✓ " : "") + language.tr(toggle.1))
+                }
+            }
+            Menu(language.tr("Grab okno")) {
+                ForEach(Array(grabOptions.enumerated()), id: \.offset) { _, item in
+                    Button {
+                        model.setOption(item.0, !model.option(item.0))
+                    } label: {
+                        Text(verbatim: (model.option(item.0) ? "✓ " : "") + language.tr(item.1))
+                    }
                 }
             }
             Menu(language.tr("Ověřování volaček")) {

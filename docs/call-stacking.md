@@ -38,6 +38,7 @@ next call is taken, so it follows the QSOs logged in the meantime.
 | **Ctrl+Alt+G** or `{STACKANOTHER}` | the call from the call field goes on the stack and the entry window is wiped for the next call (`{STACKANOTHER}` only in Run) |
 | `{SOCALLSTACK}` (Run only) | a single-level stack: with an empty stack the call is stacked and the field cleared; with a stacked call the field and the stack are **exchanged**; with an empty field the stacked call comes back. With an empty stack a dupe does nothing. |
 | **Option+click** on a call in the Digital Interface | the clicked call goes on the stack, the call field stays (N1MM Alt+click) |
+| **Ctrl+Alt+G** in a digital mode with Digital Call Stacking | the Grab window's highlighted call goes on the stack, the call field stays |
 | a partner's **Do zásobníku** | see [Multi-op and the network](multi-op.md#partner-and-call-stacking) |
 
 ## Taking calls off the stack

@@ -78,10 +78,26 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// N1MM „Display Radio Freq and not Exact Freq in DI Caption" (also `{LDIGFQ}`/`{RDIGFQ}`). Swift-only key.
     public var captionRadioFrequency: Bool = false
 
+    /// The Grab window's sort order (N1MM right-click → Sort Order): `LIFO` (the newest call first) or `FIFO`. Swift-only key.
+    public var grabOrder: String = GrabList.Order.lifo.rawValue
+    /// N1MM „Do Not add Dupes to Grab Window". Swift-only key.
+    public var grabNoDupes: Bool = true
+    /// N1MM „Only Grab Master.scp Calls". Swift-only key.
+    public var grabOnlyScp: Bool = false
+    /// N1MM „QSY will clear Grab Window" (a frequency change of more than 500 Hz). Swift-only key.
+    public var grabClearOnQsy: Bool = false
+    /// N1MM „Clear Grab Window On CQ" (F1 sent). Swift-only key.
+    public var grabClearOnCq: Bool = false
+    /// N1MM „Send Space on Using Grab": after a grab the cursor moves on to the exchange. Swift-only key.
+    public var grabSendSpace: Bool = false
+    /// N1MM „Add Callsign to Bandmap on Alt+G": the call in the field is stored in the bandmap (Alt+O) before a grab replaces it. Swift-only key.
+    public var grabAddToBandmap: Bool = false
+
     enum CodingKeys: String, CodingKey {
         case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
         case autoTrxUpdate, rttyModem, pskModem
         case callValidity, validateScp, validateCallHistory, validateSpotted, validateLogged, scpGarbageSearch, highlightBackground, nonScrollingRx, pauseOnCallHover, hoverMode, rightClickReturn, sendSpaceOnClick, captionRadioFrequency
+        case grabOrder, grabNoDupes, grabOnlyScp, grabClearOnQsy, grabClearOnCq, grabSendSpace, grabAddToBandmap
     }
 
     public init() {}
@@ -112,6 +128,13 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         rightClickReturn = c.value(.rightClickReturn, default: d.rightClickReturn)
         sendSpaceOnClick = c.value(.sendSpaceOnClick, default: d.sendSpaceOnClick)
         captionRadioFrequency = c.value(.captionRadioFrequency, default: d.captionRadioFrequency)
+        grabOrder = GrabList.Order.from(c.value(.grabOrder, default: d.grabOrder)).rawValue
+        grabNoDupes = c.value(.grabNoDupes, default: d.grabNoDupes)
+        grabOnlyScp = c.value(.grabOnlyScp, default: d.grabOnlyScp)
+        grabClearOnQsy = c.value(.grabClearOnQsy, default: d.grabClearOnQsy)
+        grabClearOnCq = c.value(.grabClearOnCq, default: d.grabClearOnCq)
+        grabSendSpace = c.value(.grabSendSpace, default: d.grabSendSpace)
+        grabAddToBandmap = c.value(.grabAddToBandmap, default: d.grabAddToBandmap)
     }
 
     /// A modem name as fldigi knows it: trimmed; blank → `fallback`.
