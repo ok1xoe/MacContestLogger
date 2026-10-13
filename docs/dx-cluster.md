@@ -125,6 +125,50 @@ operation with a strip right of the frequency axis, with a vertical label inside
   Podbarvit úseky v bandmapě"** (Settings → Band plan → Shade segments in the
   bandmap). The choice is saved in the configuration.
 
+### Adjusting the band plan from the bandmap
+
+As in N1MM, the plan can be changed where you see it: **right click in the bandmap → "Bandplán zde (… kHz)"**
+(Band plan here) at the frequency under the mouse, then one of
+
+| Item | Effect |
+|---|---|
+| Začátek / Konec CW zde | the lower / upper edge of the band's CW segment moves to the frequency |
+| Začátek / Konec Digi zde | the same for the digital segment |
+| Začátek / Konec fonie zde | the same for the phone segment |
+| Odebrat úsek zde | the segment under the frequency is removed |
+
+- Only my region (the one the bandmap draws) changes. The frequency is rounded to 0.1 kHz.
+- A neighbouring segment that the new edge would overlap is shortened to touch it, or removed when it is covered
+  completely, so the plan never overlaps (the rule of Settings → Band plan).
+- The change is written to `bandplan.yaml` in the contest data directory and applied at once, exactly like Save in
+  Settings → Band plan. Without the file the built-in plan is the starting point; a region without rows of its own
+  starts as a copy of R1 (what the bandmap showed for it before).
+- The status line says why nothing changed: a frequency outside the bands, no such segment on the band, or an edge
+  that would leave the segment empty.
+
+### US license class lines
+
+**Right click → "Zobrazit / Skrýt čáry licenčních tříd USA"** (Show / Hide US license class lines), or **Settings →
+Band plan**, draws short red lines across the scale at the US Extra / Advanced / General sub-band edges of
+47 CFR §97.301: CW 3525, 7025, 14025, 21025 kHz; phone 3600, 3700, 3800, 7125, 7175, 14150, 14175, 14225, 21200,
+21225, 21275 kHz. It is meant for US operators and is off by default. N1MM+ draws a similar set of lines from an older
+list of edges; MCL uses the current rule.
+
+## Removing spots
+
+The bandmap's right-click menu has N1MM's removal items (the spot under the mouse has its own *Odebrat spot*):
+
+| Item | N1MM | Removes |
+|---|---|---|
+| Smazat spoty, jen toto pásmo, ponechat vlastní | Remove Spots, This Band Only, Leave Self Spots | the spots of the bandmap's band except my own |
+| Smazat spoty, jen toto pásmo | Remove Spots, This Band Only | every spot of the bandmap's band |
+| Smazat spoty, všechna pásma, ponechat vlastní | Remove Spots, ALL Bands, Leave Self Spots | every spot except my own |
+| Smazat všechny spoty | Remove Spots, ALL BANDS | every spot |
+
+My own spots are the self spots: *Mark*, *Store* and the calls stored when tuning away (drawn bold). The removal
+clears the spot buffer, so the spots disappear from the Available Mults window and the spot jumps too; a new spot of
+the same station from the cluster shows again.
+
 ## Spot filter (bands, modes, spotter origin, workable)
 
 Modelled on N1MM+'s Telnet window (the *Bands/Modes* and *Filters* tabs). Open it with the **Filtr spotů** button in

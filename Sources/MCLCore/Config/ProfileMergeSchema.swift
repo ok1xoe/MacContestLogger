@@ -19,7 +19,8 @@ enum ProfileMergeSchema {
     /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`), the preferred online callbook
     /// (`preferredCallbook`), the Dupesheet's suffix order (`dupesheetSortBySuffix`), the Check window (`check*`) and
     /// the unmatched call mark (`showUnmatchedCallMark`), Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX
-    /// cluster Bands/Modes spot filter (`dxCluster.spotFilter*`), the call stack (`esm.nextCallKey`,
+    /// cluster Bands/Modes spot filter (`dxCluster.spotFilter*`), the band map US licence lines
+    /// (`dxCluster.showUsLicenseLines`), the call stack (`esm.nextCallKey`,
     /// `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history switches and extra
     /// files (`callHistory*`) and a contest's own call history file (`contestSetups.*.callHistoryFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
@@ -52,6 +53,7 @@ enum ProfileMergeSchema {
             Property("spotFilterSpotterContinents", .list(.string), .fieldDefault),
             Property("spotFilterSpotterOwnCountry", .boolean, .fieldDefault),
             Property("spotFilterHideNonWorkable", .boolean, .fieldDefault),
+            Property("showUsLicenseLines", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
             Property("ctyEnabled", .boolean, .fieldDefault),

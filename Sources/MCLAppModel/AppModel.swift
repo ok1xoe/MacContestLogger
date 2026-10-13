@@ -790,7 +790,7 @@ public final class AppModel {
             rig: radio.rig, status: status, config: config, language: language, dialogs: dialogs, now: environment.now))
         let bandmap = BandmapModel(BandmapModel.Dependencies(
             feed: spots.feed, analysis: spots.analysis, contest: contest, config: config, operating: operating,
-            blacklist: spots.blacklist, callbook: spots.callbook, rig: radio.rig))
+            blacklist: spots.blacklist, callbook: spots.callbook, rig: radio.rig, status: status))
         let availMult = AvailMultModel(AvailMultModel.Dependencies(
             feed: spots.feed, analysis: spots.analysis, contest: contest, blacklist: spots.blacklist,
             callbook: spots.callbook, rig: radio.rig))

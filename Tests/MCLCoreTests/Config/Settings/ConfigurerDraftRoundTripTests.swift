@@ -110,11 +110,12 @@ import Testing
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Fixtures/jvm-probes/full-config.json")
         let decoded = try JSONDecoder().decode(AppConfig.self, from: try Data(contentsOf: url))
-        // The two SCP / N+1 switches, the preferred callbook, Club Log's DXCC switch and the DX cluster spot filter
-        // are Swift-only keys (v1.1.1 would reject them), so the probe file has none of them (the filter decodes
-        // to its defaults).
+        // The two SCP / N+1 switches, the preferred callbook, Club Log's DXCC switch, the DX cluster spot filter and
+        // the band map's US licence lines are Swift-only keys (v1.1.1 would reject them), so the probe file has none
+        // of them (they decode to their defaults).
         var expected = Self.fullConfig()
         expected.dxCluster.spotFilter = .default
+        expected.dxCluster.showUsLicenseLines = false
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
         expected.callHistoryExtraFiles = []
@@ -284,6 +285,7 @@ import Testing
         w.number(\.minSkimmers, \.dxCluster.minSkimmers, 3)
         w.same(\.autoSplit, \.dxCluster.autoSplit, false)
         w.same(\.showBandPlan, \.dxCluster.showBandPlan, false)
+        w.same(\.showUsLicenseLines, \.dxCluster.showUsLicenseLines, true)
         w.same(\.spotFilter, \.dxCluster.spotFilter,
                SpotFilter(hiddenBands: [.m160, .cm9], hiddenModes: ["DIGI"], contestOnly: true,
                          spotterContinents: ["EU", "NA"], spotterOwnCountry: true, hideNonWorkable: true))

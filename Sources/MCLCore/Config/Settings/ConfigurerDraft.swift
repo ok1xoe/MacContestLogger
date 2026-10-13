@@ -78,6 +78,7 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var minSkimmers: String = ""
     public var autoSplit: Bool = false
     public var showBandPlan: Bool = false
+    public var showUsLicenseLines: Bool = false
     public var spotFilter: SpotFilter = .default
 
     // MARK: HamQTH and QRZ.com — `CD:105-117`
@@ -400,6 +401,7 @@ extension ConfigurerDraft {
         minSkimmers = String(dx.minSkimmers)
         autoSplit = dx.autoSplit
         showBandPlan = dx.showBandPlan
+        showUsLicenseLines = dx.showUsLicenseLines
         spotFilter = dx.spotFilter
     }
 

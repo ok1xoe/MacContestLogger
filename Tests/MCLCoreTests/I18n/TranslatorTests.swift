@@ -140,10 +140,11 @@ import Testing
         // 38 keys of recording, playing, choosing and deleting SSB voice messages in Settings and
         // 4 keys of the VFO A/B dupesheets, their suffix order and the outdated country table warning and
         // 26 keys of the N1MM call history features and
-        // 20 keys of the Check window, its right-click menu, the call field's mark and the View menu.
-        #expect(map.count == 1_544)
+        // 20 keys of the Check window, its right-click menu, the call field's mark and the View menu and
+        // 19 keys of the band map's spot removal, band plan editing and US licence class lines.
+        #expect(map.count == 1_563)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_544)
+        #expect(german.count == 1_563)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

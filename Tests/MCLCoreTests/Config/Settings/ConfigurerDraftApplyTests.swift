@@ -304,7 +304,7 @@ import Testing
                                "checkReverseThreshold", "checkReverseFromStart", "showUnmatchedCallMark",
                                "spotFilterHiddenBands", "spotFilterHiddenModes", "spotFilterContest",
                                "spotFilterSpotterContinents", "spotFilterSpotterOwnCountry",
-                               "spotFilterHideNonWorkable", "nextCallKey", "callStackOrder",
+                               "spotFilterHideNonWorkable", "showUsLicenseLines", "nextCallKey", "callStackOrder",
                                "callStackClearOnBandChange", "digitalCallStacking",
                                "rttyInterface",
                                "tncType",

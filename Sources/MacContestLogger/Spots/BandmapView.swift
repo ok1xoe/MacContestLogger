@@ -13,6 +13,7 @@ struct BandmapDrawState {
     let cqHz: Int64?
     let notes: [BandNote]
     let showPlan: Bool
+    let licenseLines: [Int64]
     let spotFont: Int
     let viewport: BandmapViewport
 
@@ -27,6 +28,7 @@ struct BandmapDrawState {
         cqHz = model.cqHz
         notes = model.notes
         showPlan = model.showPlan
+        licenseLines = model.licenseLines
         spotFont = model.spotFont
         viewport = model.viewport
     }
@@ -134,6 +136,7 @@ final class BandmapCanvas: NSView {
         }
         drawPlan(model: model, state: state, axisX: axisX, yAt: yAt, metrics: metrics, context: context)
         drawAxis(viewport: viewport, axisX: axisX, yAt: yAt, metrics: metrics)
+        drawLicenseLines(state: state, axisX: axisX, yAt: yAt)
         drawSpots(model: model, state: state, axisX: axisX, height: height, metrics: metrics)
         drawNotes(state: state, viewport: viewport, axisX: axisX, width: width, yAt: yAt)
         drawCq(state: state, viewport: viewport, axisX: axisX, width: width, yAt: yAt, metrics: metrics)
@@ -203,6 +206,15 @@ final class BandmapCanvas: NSView {
             let measured: NSSize = size(label, font: metrics.axisFont)
             text(label, at: NSPoint(x: axisX - 8 - measured.width, y: y - measured.height / 2),
                  font: metrics.axisFont, color: .labelColor)
+        }
+    }
+
+    /// The US licence class edges (N1MM's red lines): a short red line across the scale at each edge.
+    private func drawLicenseLines(state: BandmapDrawState, axisX: CGFloat, yAt: (Int64) -> CGFloat) {
+        for hz in state.licenseLines {
+            let y: CGFloat = yAt(hz)
+            line(from: NSPoint(x: axisX - 10, y: y), to: NSPoint(x: axisX + 1 + Self.planWidth, y: y),
+                 color: .systemRed, width: 1.5)
         }
     }
 
@@ -413,11 +425,51 @@ final class BandmapCanvas: NSView {
             }
             menu.addItem(.separator())
         }
+        addItem(menu, language.tr("Smazat spoty, jen toto pásmo, ponechat vlastní")) {
+            model.removeSpots(thisBand: true, keepSelf: true)
+        }
+        addItem(menu, language.tr("Smazat spoty, jen toto pásmo")) { model.removeSpots(thisBand: true, keepSelf: false) }
+        addItem(menu, language.tr("Smazat spoty, všechna pásma, ponechat vlastní")) {
+            model.removeSpots(thisBand: false, keepSelf: true)
+        }
         addItem(menu, language.tr("Smazat všechny spoty")) { model.clearSpots() }
+        menu.addItem(.separator())
         addItem(menu, state.showPlan ? language.tr("Skrýt bandplán") : language.tr("Zobrazit bandplán")) {
             model.toggleBandPlan()
         }
+        let freqHz: Int64 = state.viewport.freqAt(Float(point.y), height: Float(bounds.height))
+        menu.addItem(bandPlanItem(model: model, language: language, freqHz: freqHz))
+        addItem(menu, !model.showLicenseLines
+                    ? language.tr("Zobrazit čáry licenčních tříd USA")
+                    : language.tr("Skrýt čáry licenčních tříd USA")) {
+            model.toggleLicenseLines()
+        }
         menu.popUp(positioning: nil, at: point, in: self)
+    }
+
+    /// „Bandplán zde (… kHz)": the sub-band edges set at the clicked frequency, or the sub-band under it removed
+    /// (N1MM's band plan adjustment by a right click on the frequency).
+    private func bandPlanItem(model: BandmapModel, language: LanguageModel, freqHz: Int64) -> NSMenuItem {
+        let item = NSMenuItem(title: language.tr("Bandplán zde (%s kHz)", .string(FrequencyText.formatHz(freqHz))),
+                              action: nil, keyEquivalent: "")
+        let submenu = NSMenu()
+        let edits: [(String, BandPlanEdit.Action)] = [
+            ("Začátek CW zde", .setLow(mode: "CW")), ("Konec CW zde", .setHigh(mode: "CW")),
+            ("Začátek Digi zde", .setLow(mode: "DIGI")), ("Konec Digi zde", .setHigh(mode: "DIGI")),
+            ("Začátek fonie zde", .setLow(mode: "PHONE")), ("Konec fonie zde", .setHigh(mode: "PHONE")),
+            ("Odebrat úsek zde", .remove),
+        ]
+        for (index, edit) in edits.enumerated() {
+            if index == edits.count - 1 {
+                submenu.addItem(.separator())
+            }
+            let action: BandPlanEdit.Action = edit.1
+            addItem(submenu, language.tr(edit.0)) {
+                Task { await model.editBandPlan(action, atHz: freqHz) }
+            }
+        }
+        item.submenu = submenu
+        return item
     }
 
     private func addItem(_ menu: NSMenu, _ title: String, enabled: Bool = true,
