@@ -451,6 +451,10 @@ public final class AppModel {
         let infoStrip = InfoStripModel(contest: contest, config: config, language: language, now: environment.now)
         let spots: Spots = Self.makeSpots(environment, config: config, status: status, language: language,
                                           messages: messages, contest: contest)
+        let filterContext = SpotFilterContextSource(
+            buffer: spots.dxCluster.spots, config: config, analysis: spots.analysis, logbook: logbook,
+            callData: callData, revision: { [weak feed = spots.feed] in feed?.revision ?? 0 })
+        spots.feed.filterContext = { filter in filterContext.context(filter) }
         let net: NetModels = Self.makeNet(environment, config: config, status: status, language: language,
                                           database: database, logbook: logbook, contest: contest, spots: spots)
         wire(entry: entry, operating: operating, callData: callData, suggestions: suggestions, infoStrip: infoStrip)

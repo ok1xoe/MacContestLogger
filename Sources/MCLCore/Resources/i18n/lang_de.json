@@ -1634,5 +1634,21 @@
  "Uchovat spoty přes restart programu": "Spots über einen Neustart behalten",
  "Při ukončení se spoty uloží a po startu se vrátí ty, které jsou ještě v časovém limitu.": "Beim Beenden werden die Spots gespeichert; nach dem Start kommen die noch gültigen zurück.",
  "Náhodně posunout kmitočet při naladění spotu": "Frequenz beim Abstimmen auf einen Spot zufällig versetzen",
- "Naladí 50–150 Hz (fonie 100–250 Hz) vedle spotu, aby všichni nevolali přesně na stejném kmitočtu.": "Stimmt 50–150 Hz (Fonie 100–250 Hz) neben den Spot ab, damit nicht alle genau auf derselben Frequenz rufen."
+ "Naladí 50–150 Hz (fonie 100–250 Hz) vedle spotu, aby všichni nevolali přesně na stejném kmitočtu.": "Stimmt 50–150 Hz (Fonie 100–250 Hz) neben den Spot ab, damit nicht alle genau auf derselben Frequenz rufen.",
+ "Blacklist zapnutý": "Blacklist ein",
+ "Importovat…": "Importieren…",
+ "Vymazat celý seznam?": "Die ganze Liste löschen?",
+ "Prefixy spotterů": "Spotter-Präfixe",
+ "Call oblasti vlastní země": "Rufzeichengebiete des eigenen Landes",
+ "Call oblast %s": "Rufzeichengebiet %s",
+ "Projde spotter, který odpovídá čemukoli zadanému: kontinent, vlastní země, začátek značky nebo call oblast.": "Ein Spotter passiert, wenn er irgendetwas Eingestelltem entspricht: Kontinent, eigenes Land, Rufzeichenanfang oder Rufzeichengebiet.",
+ "Jen spoty stanic z call history": "Nur Spots von Stationen aus der Call History",
+ "Jen spoty stanic, které už jsou v deníku": "Nur Spots von Stationen, die schon im Log sind",
+ "Skrýt spoty majáků NCDXF/IARU": "Spots der NCDXF/IARU-Baken ausblenden",
+ "Odstranit chybné (busted) spoty": "Fehlerhafte (busted) Spots entfernen",
+ "I chyby ve dvou znacích": "Auch Fehler in zwei Zeichen",
+ "Chybný spot = značka lišící se o jeden (dva) znaky od jiné značky na stejném kmitočtu (tolerance ladění); skryje se ta hlášená méněkrát.": "Fehlerhafter Spot = ein Rufzeichen, das sich um ein (zwei) Zeichen von einem anderen auf derselben Frequenz (Abstimmtoleranz) unterscheidet; das seltener gemeldete wird ausgeblendet.",
+ "Preferovaní spotteři": "Bevorzugte Spotter",
+ "Až 3 značky (typicky vlastní skimmer); jejich spoty jsou zvýrazněné a označené ★. OK1ABC platí i pro OK1ABC-2, OK1ABC-# a OK1ABC/3.": "Bis zu 3 Rufzeichen (typischerweise der eigene Skimmer); ihre Spots werden hervorgehoben und mit ★ markiert. OK1ABC gilt auch für OK1ABC-2, OK1ABC-# und OK1ABC/3.",
+ "preferovaný spotter": "bevorzugter Spotter"
 }
