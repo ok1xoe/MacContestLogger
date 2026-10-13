@@ -115,15 +115,17 @@ struct SpotFilterEditor: View {
     }
 }
 
-/// The DX Cluster window's "Filtr spotů" sheet; every change applies and is saved at once.
+/// The "Filtr spotů" sheet of the DX Cluster window and the band map (N1MM „Telnet Bands/Modes", „Telnet
+/// Filters"); every change applies and is saved at once.
 struct SpotFilterSheet: View {
     let app: AppModel
-    @ObservedObject var state: DxClusterWindowState
+    @Binding var fontSize: Int
+    let close: () -> Void
 
     var body: some View {
         let language: LanguageModel = app.language
         VStack(alignment: .leading, spacing: 8) {
-            WindowTopBar(size: $state.sheetFontSize, language: language) {
+            WindowTopBar(size: $fontSize, language: language) {
                 Text(verbatim: language.tr("Filtr spotů")).windowFont(15, weight: .semibold)
             }
             ScrollView {
@@ -133,12 +135,12 @@ struct SpotFilterSheet: View {
                     .padding(.vertical, 4)
             }
             DialogButtonRow {
-                Button(language.tr("Zavřít")) { state.showFilter = false }
+                Button(language.tr("Zavřít")) { close() }
                     .keyboardShortcut(.defaultAction)
             }
         }
         .padding(16)
         .frame(width: 560, height: 520)
-        .environment(\.windowFontSize, state.sheetFontSize)
+        .environment(\.windowFontSize, fontSize)
     }
 }

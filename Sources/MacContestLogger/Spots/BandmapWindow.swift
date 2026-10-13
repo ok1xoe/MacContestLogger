@@ -10,6 +10,12 @@ final class BandmapFontField: ObservableObject {
     @Published var text: String = String(BandmapViewport.defaultSpotFont)
 }
 
+/// The font size of the band map's sheets (the spot filter, the buttons' editor).
+@MainActor
+final class BandmapSheetState: ObservableObject {
+    @Published var fontSize: Int = WindowFont.defaultSize
+}
+
 /// The Bandmap window's spot keys (Alt+M, Alt+D, Alt+Shift+D): a local `NSEvent` monitor — the application's own
 /// events only — that hands key presses and releases to `BandmapModel.handleKey` while the Bandmap window is the key
 /// window. Other keys pass on untouched. Removed when the window closes.
@@ -55,7 +61,7 @@ final class BandmapKeyMonitor: ObservableObject {
         guard let window, window.isKeyWindow, window.windowNumber == snapshot.windowNumber, let model else {
             return false
         }
-        return model.handleKey(snapshot.event)
+        return model.handleButtonKey(snapshot.event) || model.handleKey(snapshot.event)
     }
 }
 
@@ -72,6 +78,7 @@ struct BandmapWindowView: View {
                                                      defaultSize: CGSize(width: 460, height: 640))
     @StateObject private var font = BandmapFontField()
     @StateObject private var keyMonitor = BandmapKeyMonitor()
+    @StateObject private var sheets = BandmapSheetState()
 
     var body: some View {
         Group {
@@ -100,6 +107,8 @@ struct BandmapWindowView: View {
                 .padding(.top, 4)
             if let drawState {
                 controls(model: model, language: language)
+                BandmapTopBar(model: model, language: language)
+                BandmapButtonGrid(model: model, language: language)
                 BandmapView(model: model, language: language, state: drawState)
             } else {
                 Text(verbatim: language.tr("Bandmapa — nalaď pásmo"))
@@ -110,6 +119,13 @@ struct BandmapWindowView: View {
             }
         }
         .environment(\.windowFontSize, session.fontSize)
+        .sheet(isPresented: Binding(get: { model.showSpotFilter }, set: { model.showSpotFilter = $0 })) {
+            SpotFilterSheet(app: app, fontSize: $sheets.fontSize, close: { model.showSpotFilter = false })
+        }
+        .sheet(isPresented: Binding(get: { model.editingButtons != nil },
+                                    set: { if !$0 { model.editingButtons = nil } })) {
+            BandmapButtonsEditor(model: model, language: language, fontSize: $sheets.fontSize)
+        }
     }
 
     /// The control row: the radio (N1MM: the rig, its VFO), the tuned frequency and the transmit frequency while

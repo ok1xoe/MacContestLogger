@@ -84,6 +84,12 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var tuningToleranceSsbHz: String = ""
     public var tuningToleranceDigiHz: String = ""
     public var spotModeOnTune: Bool = false
+    public var filterCwWideHz: String = ""
+    public var filterCwNarrowHz: String = ""
+    public var filterSsbWideHz: String = ""
+    public var filterSsbNarrowHz: String = ""
+    public var filterDigiWideHz: String = ""
+    public var filterDigiNarrowHz: String = ""
     public var spotFilter: SpotFilter = .default
 
     // MARK: HamQTH and QRZ.com — `CD:105-117`
@@ -412,6 +418,12 @@ extension ConfigurerDraft {
         tuningToleranceSsbHz = String(dx.tuningToleranceSsbHz)
         tuningToleranceDigiHz = String(dx.tuningToleranceDigiHz)
         spotModeOnTune = dx.spotModeOnTune
+        filterCwWideHz = String(dx.filterCwWideHz)
+        filterCwNarrowHz = String(dx.filterCwNarrowHz)
+        filterSsbWideHz = String(dx.filterSsbWideHz)
+        filterSsbNarrowHz = String(dx.filterSsbNarrowHz)
+        filterDigiWideHz = String(dx.filterDigiWideHz)
+        filterDigiNarrowHz = String(dx.filterDigiNarrowHz)
         spotFilter = dx.spotFilter
     }
 

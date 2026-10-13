@@ -141,7 +141,8 @@ struct DxClusterWindowView: View {
             MacroEditSheet(app: app, state: state, index: edit.id)
         }
         .sheet(isPresented: Binding(get: { state.showFilter }, set: { state.showFilter = $0 })) {
-            SpotFilterSheet(app: app, state: state)
+            SpotFilterSheet(app: app, fontSize: Binding(get: { state.sheetFontSize }, set: { state.sheetFontSize = $0 }),
+                            close: { state.showFilter = false })
         }
     }
 

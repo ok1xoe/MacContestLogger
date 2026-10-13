@@ -121,6 +121,12 @@ import Testing
         expected.dxCluster.tuningToleranceSsbHz = DxClusterConfig.defaultTuningToleranceHz
         expected.dxCluster.tuningToleranceDigiHz = DxClusterConfig.defaultTuningToleranceHz
         expected.dxCluster.spotModeOnTune = false
+        expected.dxCluster.filterCwWideHz = 500
+        expected.dxCluster.filterCwNarrowHz = 250
+        expected.dxCluster.filterSsbWideHz = 2_400
+        expected.dxCluster.filterSsbNarrowHz = 1_800
+        expected.dxCluster.filterDigiWideHz = 500
+        expected.dxCluster.filterDigiNarrowHz = 250
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
         expected.callHistoryExtraFiles = []
@@ -296,6 +302,12 @@ import Testing
         w.number(\.tuningToleranceSsbHz, \.dxCluster.tuningToleranceSsbHz, 900)
         w.number(\.tuningToleranceDigiHz, \.dxCluster.tuningToleranceDigiHz, 60)
         w.same(\.spotModeOnTune, \.dxCluster.spotModeOnTune, true)
+        w.number(\.filterCwWideHz, \.dxCluster.filterCwWideHz, 600)
+        w.number(\.filterCwNarrowHz, \.dxCluster.filterCwNarrowHz, 220)
+        w.number(\.filterSsbWideHz, \.dxCluster.filterSsbWideHz, 2_700)
+        w.number(\.filterSsbNarrowHz, \.dxCluster.filterSsbNarrowHz, 2_100)
+        w.number(\.filterDigiWideHz, \.dxCluster.filterDigiWideHz, 3_100)
+        w.number(\.filterDigiNarrowHz, \.dxCluster.filterDigiNarrowHz, 350)
         w.same(\.spotFilter, \.dxCluster.spotFilter,
                SpotFilter(hiddenBands: [.m160, .cm9], hiddenModes: ["DIGI"], contestOnly: true,
                          spotterContinents: ["EU", "NA"], spotterOwnCountry: true, hideNonWorkable: true))

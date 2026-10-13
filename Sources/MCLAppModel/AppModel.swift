@@ -836,6 +836,15 @@ public final class AppModel {
         }
         wireCheck(model, buffer: buffer)
         model.bandmap.spotNavigation = model.spotNavigation
+        model.bandmap.dxCluster = model.dxCluster
+        model.bandmap.statusLine = model.status
+        model.bandmap.catContext = { [weak model] in
+            guard let model else { return PluginCatPolicy.Context(transmitting: true, transverter: true) }
+            let transmitting: Bool = model.keyer.isSending || model.keyer.isTuning || model.rig.pluginPttRig != nil
+                || model.rig.footswitchPttRig != nil
+            return PluginCatPolicy.Context(transmitting: transmitting,
+                                           transverter: !model.config.config.transverters.isEmpty)
+        }
         model.bandmap.keyEntry = { [weak model] in
             guard let model else { return nil }
             return model.vfoB.entry.isActivePanel ? model.vfoB.entry : model.entry

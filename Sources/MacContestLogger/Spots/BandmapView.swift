@@ -534,6 +534,11 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
             model.toggleLicenseLines()
         }
         addItem(menu, language.tr("Najít volačku…")) { model.promptFind() }
+        menu.addItem(.separator())
+        // N1MM „Telnet Bands/Modes" and „Telnet Filters": one sheet holds both parts of the spot filter.
+        addItem(menu, language.tr("Telnet pásma/módy…")) { model.openSpotFilter() }
+        addItem(menu, language.tr("Telnet filtry…")) { model.openSpotFilter() }
+        addItem(menu, language.tr("Uživatelská tlačítka…")) { model.editButtons() }
         addItem(menu, language.tr("Nejnižší kmitočet dole"), checked: model.lowestAtBottom) {
             model.toggleLowestAtBottom()
         }

@@ -238,6 +238,13 @@ extension ConfigurerDraft {
         dx.tuningToleranceSsbHz = ConfigurerRows.toIntOrNull(tuningToleranceSsbHz) ?? tolerance
         dx.tuningToleranceDigiHz = ConfigurerRows.toIntOrNull(tuningToleranceDigiHz) ?? tolerance
         dx.spotModeOnTune = spotModeOnTune
+        let widths = DxClusterConfig()
+        dx.filterCwWideHz = ConfigurerRows.toIntOrNull(filterCwWideHz) ?? widths.filterCwWideHz
+        dx.filterCwNarrowHz = ConfigurerRows.toIntOrNull(filterCwNarrowHz) ?? widths.filterCwNarrowHz
+        dx.filterSsbWideHz = ConfigurerRows.toIntOrNull(filterSsbWideHz) ?? widths.filterSsbWideHz
+        dx.filterSsbNarrowHz = ConfigurerRows.toIntOrNull(filterSsbNarrowHz) ?? widths.filterSsbNarrowHz
+        dx.filterDigiWideHz = ConfigurerRows.toIntOrNull(filterDigiWideHz) ?? widths.filterDigiWideHz
+        dx.filterDigiNarrowHz = ConfigurerRows.toIntOrNull(filterDigiNarrowHz) ?? widths.filterDigiNarrowHz
         dx.spotFilter = spotFilter
         let stamp: String = now.toString()
         BlacklistService.sync(&dx.callBlacklist, blacklistedCalls, nowUtc: stamp)

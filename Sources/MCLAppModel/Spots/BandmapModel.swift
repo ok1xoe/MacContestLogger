@@ -22,11 +22,11 @@ public final class BandmapModel {
     @ObservationIgnored private let feed: SpotFeed
     @ObservationIgnored private let analysis: SpotAnalysisModel
     @ObservationIgnored private let contest: ContestModel
-    @ObservationIgnored private let config: ConfigModel
-    @ObservationIgnored private let operating: OperatingModel
+    @ObservationIgnored let config: ConfigModel
+    @ObservationIgnored let operating: OperatingModel
     @ObservationIgnored private let blacklist: BlacklistModel
     @ObservationIgnored private let callbook: CallbookModel
-    @ObservationIgnored private let rig: RigModel
+    @ObservationIgnored let rig: RigModel
     @ObservationIgnored private let status: StatusModel
     @ObservationIgnored private let language: LanguageModel
     @ObservationIgnored private let dialogs: DialogsModel
@@ -35,6 +35,18 @@ public final class BandmapModel {
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
     /// The entry window the spot keys act for (the active one); wired by `AppModel`.
     @ObservationIgnored var keyEntry: (@MainActor () -> EntryModel?)?
+    /// The top bar's and the programmable buttons' collaborators (`BandmapModel+TopBar`); wired by `AppModel`.
+    @ObservationIgnored weak var dxCluster: DxClusterModel?
+    @ObservationIgnored weak var statusLine: StatusModel?
+    @ObservationIgnored var catContext: @MainActor () -> PluginCatPolicy.Context = {
+        PluginCatPolicy.Context(transmitting: true)
+    }
+    /// The current toggle state of each programmable button (index → state).
+    public internal(set) var buttonStates: [Int: Int] = [:]
+    /// The spot filter sheet of the band map window (N1MM „Telnet Bands/Modes", „Telnet Filters").
+    public var showSpotFilter = false
+    /// The programmable buttons' editor sheet; the index of the button to start on.
+    public var editingButtons: Int?
     /// Where the mouse last was over the map, in the canvas' coordinates; `nil` = outside.
     @ObservationIgnored private var pointer: Pointer?
 

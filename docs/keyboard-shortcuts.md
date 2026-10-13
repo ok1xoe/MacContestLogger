@@ -106,6 +106,9 @@ Alt+M, Alt+D and Alt+Shift+D also work while the Bandmap window is the active wi
 
 In the Bandmap window **Cmd+=** / **Cmd+-** (or keypad **+** / **−**) zoom the bandmap in and out.
 
+In the Bandmap window **⌘⌥⇧0 … ⌘⌥⇧9, ⌘⌥⇧A … ⌘⌥⇧Z** press the band map's user buttons 1–36 (N1MM
+Ctrl+Alt+Shift+0…Z), see [DX cluster → Band map top bar](dx-cluster.md#band-map-top-bar-and-user-buttons).
+
 ## Rotator and antennas
 
 | Key | Action |
