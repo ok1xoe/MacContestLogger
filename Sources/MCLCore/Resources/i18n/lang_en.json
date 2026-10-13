@@ -1627,5 +1627,16 @@
  "zatím nerozpoznán": "not detected yet",
  "Rozpoznaný software: %s · příkazy se formátují pro %s": "Detected software: %s · commands are formatted for %s",
  "{CONN}: cluster %s není v seznamu": "{CONN}: cluster %s is not in the list",
- "Soubor neobsahuje žádné tlačítko": "The file contains no button"
+ "Soubor neobsahuje žádné tlačítko": "The file contains no button",
+ "Posledních 10 spotů (SH/DX)": "Last 10 spots (SH/DX)",
+ "Stanice (SH/STATION)": "Station (SH/STATION)",
+ "QSL informace (SH/QSL)": "QSL information (SH/QSL)",
+ "Východ a západ slunce (SH/SUN)": "Sunrise and sunset (SH/SUN)",
+ "Callbook clusteru (SH/QRZ)": "Cluster callbook (SH/QRZ)",
+ "Dotaz na DX cluster": "Ask the DX cluster",
+ "Historie spotů %s": "Spot history of %s",
+ "Historie spotů mé značky": "My call's spot history",
+ "Žádný spot této volačky v tomto sezení.": "No spot of this call in this session.",
+ "Naladit na tento spot": "Jump to this spot",
+ "Není zadaná vlastní značka (Nastavení → Stanice)": "Your own call is not set (Settings → Station)"
 }

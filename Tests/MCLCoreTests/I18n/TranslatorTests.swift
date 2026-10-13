@@ -145,10 +145,11 @@ import Testing
         // 19 keys of the band map's spot removal, band plan editing and US licence class lines and
         // 18 keys of the band map's call-frame, spot tooltip, tuning tolerances and callsign search and
         // 27 keys of the band map's top bar, programmable buttons, filter widths and Telnet filter items and
-        // 17 keys of the DX Cluster window's options, button macros and button sets.
-        #expect(map.count == 1_629)
+        // 17 keys of the DX Cluster window's options, button macros and button sets and
+        // 11 keys of the cluster queries about a station and the spot history.
+        #expect(map.count == 1_640)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_629)
+        #expect(german.count == 1_640)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

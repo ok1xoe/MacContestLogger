@@ -153,3 +153,58 @@ final class ButtonWaitGate: Sendable {
         #expect(after.count == before.count)
     }
 }
+
+/// The band map's and the console's spot menus: N1MM's cluster queries about a station, the spot history and
+/// „Jump to this spot". Fake node on `127.0.0.1` only.
+@MainActor @Suite struct TelnetSpotMenuTests {
+
+    @Test func queriesNeedTheClusterAndFollowItsSoftware() async throws {
+        let spot = try await SpotApp.make()
+        spot.model.bandmap.query(.station, call: "OK1ABC")
+        #expect(spot.model.status.message == "DX Cluster není připojen")
+        await spot.connectMain(spot.server.favorite(name: "Fake"))
+        spot.model.bandmap.query(.lastSpots, call: "ok1abc")
+        spot.dx.query(.sun, call: "VK9X")
+        await eventually("queries sent") { spot.server.lines(0) == ["SH/DX 10 OK1ABC", "SH/SUN VK9X"] }
+        spot.dx.setSoftware(.arCluster)
+        spot.dx.query(.lastSpots, call: "OK1ABC")
+        spot.dx.query(.qrz, call: "not a call")
+        spot.dx.query(.qsl, call: "OK1ABC")
+        await eventually("AR-Cluster format") {
+            spot.server.lines(0).suffix(2) == ["SH/DX/10 OK1ABC", "SH/QSL OK1ABC"]
+        }
+    }
+
+    @Test func receivedSpotsGoToTheHistory() async throws {
+        let spot = try await SpotApp.make(configure: { config, _ in config.station.call = "OK1XOE" })
+        await spot.connectMain(spot.server.favorite(name: "Fake"))
+        spot.server.push("DX de DL1XX:     14025.0  OK1ABC       CW                             1200Z")
+        spot.server.push("DX de DL2XX:     14025.1  OK1ABC       CW                             1201Z")
+        spot.server.push("DX de DL1ABC-#:  14030.0  OK1XOE       CW 21 dB 25 WPM CQ             1202Z")
+        await eventually("three in the history") { spot.dx.spotHistory.count == 3 }
+        #expect(spot.dx.history(of: "OK1ABC").map(\.spot.spotter) == ["DL1XX", "DL2XX"])
+        // The buffer keeps one spot per call; the history keeps each report.
+        #expect(spot.dx.spots.snapshot().filter { $0.dxCall == "OK1ABC" }.count == 1)
+
+        let bandmap: BandmapModel = spot.model.bandmap
+        bandmap.showHistory(of: " ok1abc ")
+        #expect(bandmap.historyCall == "OK1ABC")
+        bandmap.showMyHistory()
+        #expect(bandmap.historyCall == "OK1XOE")
+        #expect(spot.dx.history(of: bandmap.historyCall ?? "").map(\.spot.spotter) == ["DL1ABC-#"])
+    }
+
+    @Test func myHistoryNeedsMyCall() async throws {
+        let spot = try await SpotApp.make(configure: { config, _ in config.station.call = "" })
+        spot.model.bandmap.showMyHistory()
+        #expect(spot.model.bandmap.historyCall == nil)
+        #expect(spot.model.status.message == "Není zadaná vlastní značka (Nastavení → Stanice)")
+    }
+
+    @Test func jumpToThisSpotTunesTheRadio() async throws {
+        let spot = try await SpotApp.make()
+        spot.model.rig.qsy(14_010_000)
+        spot.model.bandmap.jumpToSpot(DxSpot(spotter: "DL1XX", freqHz: 14_025_300, dxCall: "OK1ABC", comment: "CW"))
+        #expect(spot.model.rig.tuning.tunedFreqHz == 14_025_300)
+    }
+}

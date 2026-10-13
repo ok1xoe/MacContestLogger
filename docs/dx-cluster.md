@@ -170,6 +170,29 @@ as the spot's help.
 next spot above the tuned frequency that contains it is tuned to (it wraps around to the lowest one), so
 using it again finds the next instance. Alt+F8 returns to where you were.
 
+### Cluster queries and spot history
+
+N1MM's queries about one station (its View menu's *Show Last 10 Spots*, *Show Station*, *Show QSL*, *Show
+Sunrise/Sunset*) are in the band map's spot menu (**right click on a spot → Dotaz na DX cluster**) and in the DX
+Cluster window's right click on a spot line. They go to the main connection, formatted for the node's software; the
+answer shows in the DX Cluster window.
+
+| Item | Command (DXSpider / AR-Cluster, CC Cluster) |
+|---|---|
+| Posledních 10 spotů | `SH/DX 10 CALL` / `SH/DX/10 CALL` |
+| Stanice | `SH/STATION CALL` |
+| QSL informace | `SH/QSL CALL` |
+| Východ a západ slunce | `SH/SUN CALL` |
+| Callbook clusteru | `SH/QRZ CALL` |
+
+**Historie spotů CALL** (N1MM *Show Telnet history*) lists every spot of the station received in this session from
+every connection — newest first, with the UTC time, frequency, spotter, comment and the parallel connection it came
+from — also after the spot left the band map. **Historie spotů mé značky** (*My call spot history*) does the same for
+your own call (who spotted you, RBN included). The history keeps the last 20,000 spots and is not saved.
+
+**Naladit na tento spot** (N1MM *Jump to this spot*, the DX Cluster window's right click on a spot line) tunes the
+active radio to the spot like a click on it in the band map.
+
 ## Band map top bar and user buttons
 
 Modelled on the top of the N1MM Logger+ [Bandmap window](https://n1mmwp.hamdocs.com/manual-windows/bandmap-window/).

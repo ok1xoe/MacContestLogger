@@ -503,6 +503,9 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
             addItem(menu, language.tr("Dohledat na %s", .string(CallbookService.qrz.displayName))) {
                 model.openQrz(spot)
             }
+            // N1MM's cluster queries about the station (View menu) and its Telnet history.
+            menu.addItem(queryItem(model: model, language: language, call: spot.dxCall))
+            addItem(menu, language.tr("Historie spotů %s", .string(spot.dxCall))) { model.showHistory(of: spot.dxCall) }
             menu.addItem(.separator())
         }
         // N1MM's order: Zoom In, Zoom Out, Disable Mouse Wheel, Go to Bottom / Top Of Band.
@@ -534,6 +537,7 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
             model.toggleLicenseLines()
         }
         addItem(menu, language.tr("Najít volačku…")) { model.promptFind() }
+        addItem(menu, language.tr("Historie spotů mé značky")) { model.showMyHistory() }
         menu.addItem(.separator())
         // N1MM „Telnet Bands/Modes" and „Telnet Filters": one sheet holds both parts of the spot filter.
         addItem(menu, language.tr("Telnet pásma/módy…")) { model.openSpotFilter() }
@@ -565,6 +569,17 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
             addItem(submenu, language.tr(edit.0)) {
                 Task { await model.editBandPlan(action, atHz: freqHz) }
             }
+        }
+        item.submenu = submenu
+        return item
+    }
+
+    /// „Dotaz na DX cluster": the N1MM queries about `call` (last 10 spots, station, QSL, sunrise/sunset, callbook).
+    private func queryItem(model: BandmapModel, language: LanguageModel, call: String) -> NSMenuItem {
+        let item = NSMenuItem(title: language.tr("Dotaz na DX cluster"), action: nil, keyEquivalent: "")
+        let submenu = NSMenu()
+        for query in ClusterCallQuery.allCases {
+            addItem(submenu, language.tr(query.titleKey)) { model.query(query, call: call) }
         }
         item.submenu = submenu
         return item

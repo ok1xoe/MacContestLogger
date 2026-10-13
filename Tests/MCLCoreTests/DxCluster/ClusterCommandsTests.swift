@@ -130,3 +130,34 @@ import Testing
         #expect(filtered.map(\.text) == log)
     }
 }
+
+/// N1MM's queries about one station and the session's spot history.
+@Suite struct ClusterCallQueryTests {
+
+    @Test func queriesAreFormattedForTheNode() {
+        #expect(ClusterCallQuery.lastSpots.command(call: "ok1abc", software: .dxSpider) == "SH/DX 10 OK1ABC")
+        #expect(ClusterCallQuery.lastSpots.command(call: "OK1ABC", software: .arCluster) == "SH/DX/10 OK1ABC")
+        #expect(ClusterCallQuery.station.command(call: "OK1ABC", software: .dxSpider) == "SH/STATION OK1ABC")
+        #expect(ClusterCallQuery.qsl.command(call: "3B8/OK1ABC", software: .dxSpider) == "SH/QSL 3B8/OK1ABC")
+        #expect(ClusterCallQuery.sun.command(call: "VK9X", software: .ccCluster) == "SH/SUN VK9X")
+        #expect(ClusterCallQuery.qrz.command(call: "OK1ABC", software: .dxSpider) == "SH/QRZ OK1ABC")
+        #expect(ClusterCallQuery.qrz.command(call: "OK1ABC BYE", software: .dxSpider) == nil)
+        #expect(ClusterCallQuery.allCases.count == 5)
+    }
+
+    @Test func theHistoryKeepsTheNewestSpotsOfACall() {
+        let history = SpotHistory(capacity: 3)
+        let at = Date(timeIntervalSince1970: 1_000)
+        history.add(DxSpot(spotter: "DL1XX", freqHz: 14_025_000, dxCall: "OK1ABC", comment: "CW"), at: at, source: "")
+        history.add(DxSpot(spotter: "W3LPL", freqHz: 7_025_000, dxCall: "K1ABC", comment: ""), at: at, source: "RBN")
+        history.add(DxSpot(spotter: "DL2XX", freqHz: 14_026_000, dxCall: "ok1abc", comment: ""), at: at, source: "RBN")
+        #expect(history.entries(of: " OK1ABC ").map(\.spot.spotter) == ["DL1XX", "DL2XX"])
+        #expect(history.entries(of: "OK1ABC").last?.source == "RBN")
+        history.add(DxSpot(spotter: "DL3XX", freqHz: 14_027_000, dxCall: "OK1ABC", comment: ""), at: at, source: "")
+        #expect(history.count == 3)
+        #expect(history.entries(of: "OK1ABC").map(\.spot.spotter) == ["DL2XX", "DL3XX"])
+        #expect(history.entries(of: "  ").isEmpty)
+        history.clear()
+        #expect(history.count == 0)
+    }
+}

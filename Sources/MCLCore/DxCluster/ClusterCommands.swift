@@ -167,3 +167,38 @@ public enum ClusterButtonFile {
         }
     }
 }
+
+/// N1MM's cluster queries about one station (its View menu's „Show Last 10 Spots", „Show Station", „Show QSL",
+/// „Show Sunrise/Sunset" and the callbook): the command for the node, `nil` for a text that is no callsign.
+public enum ClusterCallQuery: CaseIterable, Sendable {
+    case lastSpots
+    case station
+    case qsl
+    case sun
+    case qrz
+
+    /// N1MM „Show Last 10 Spots".
+    public static let lastSpotsCount = 10
+
+    public func command(call: String, software: ClusterSoftware) -> String? {
+        guard let call = ClusterCommandFormat.cleanCall(call) else { return nil }
+        switch self {
+        case .lastSpots: return ClusterCommandFormat.showDx(count: Self.lastSpotsCount, call: call, software: software)
+        case .station: return "SH/STATION " + call
+        case .qsl: return "SH/QSL " + call
+        case .sun: return "SH/SUN " + call
+        case .qrz: return "SH/QRZ " + call
+        }
+    }
+
+    /// The menu item's Czech key (`tr`).
+    public var titleKey: String {
+        switch self {
+        case .lastSpots: "Posledních 10 spotů (SH/DX)"
+        case .station: "Stanice (SH/STATION)"
+        case .qsl: "QSL informace (SH/QSL)"
+        case .sun: "Východ a západ slunce (SH/SUN)"
+        case .qrz: "Callbook clusteru (SH/QRZ)"
+        }
+    }
+}
