@@ -197,6 +197,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var preferredCallbook = CallbookService.hamQth.rawValue
     /// The Dupesheet windows sort each column by suffix (N1MM), otherwise by the whole call (v1.1.1). Swift-only key.
     public var dupesheetSortBySuffix = true
+    /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
+    public var resetRxAfterRunQso: Bool = false
 
     /// The Check window (N1MM right-click menu, see `CheckSettings`). Swift-only keys.
     public var checkHiddenPanes: [String] = []
@@ -249,6 +251,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
+        case resetRxAfterRunQso
         case checkHiddenPanes, checkPaneWeights, checkYankOrder, checkYankAllowDupes, checkFavorEndDifferences
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
@@ -365,6 +368,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         checkReverseFromStart = c.value(.checkReverseFromStart, default: d.checkReverseFromStart)
         showUnmatchedCallMark = c.value(.showUnmatchedCallMark, default: d.showUnmatchedCallMark)
         dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
+        resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
         callHistoryLookupEnabled = c.value(.callHistoryLookupEnabled, default: d.callHistoryLookupEnabled)
         callHistoryExtraFiles = c.value(.callHistoryExtraFiles, default: d.callHistoryExtraFiles)

@@ -82,7 +82,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Ctrl+PgUp / PgDn** | one band up / down. Returns to the last frequency on the band, otherwise to the start of the mode segment. In a contest only its bands, WARC is skipped |
 | **Alt+F8** | back to the previous frequency (after a jump to a spot, Alt+Q...) |
 | **Alt+U / Alt+Q / Alt+F11** | Run/S&P, back to the CQ frequency, Run/S&P automation — [run-sp.md](run-sp.md) |
-| **Ctrl+S** | turns on split (transmit on VFO B) |
+| **Ctrl+S** | turns on split (transmit on VFO B); with split on, listens on the transmit frequency, again back on the receive one |
+| **Alt+S** | in split, puts the receiver back on the transmit frequency (optionally after every Run QSO: Settings → Other) |
 | **Ctrl+Alt+S** | toggles split on / off |
 | **Alt+F7** | split to the entered frequency or offset (`+2`); empty = turn split off |
 | **Ctrl+Enter** | frequency in the callsign field = transmit (split) frequency |

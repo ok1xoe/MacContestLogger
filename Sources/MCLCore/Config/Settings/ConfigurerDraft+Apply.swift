@@ -277,6 +277,7 @@ extension ConfigurerDraft {
         config.nPlusOneEnabled = nPlusOneEnabled
         config.preferredCallbook = CallbookService(configValue: preferredCallbook).rawValue
         config.dupesheetSortBySuffix = dupesheetSortBySuffix
+        config.resetRxAfterRunQso = resetRxAfterRunQso
         config.clubLog.enabled = clEnabled
         config.clubLog.email = Self.trim(clEmail)
         config.clubLog.appPassword = clPassword

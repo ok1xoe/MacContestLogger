@@ -71,6 +71,43 @@ extension RigModel {
         }
     }
 
+    /// N1MM Ctrl+S: with split off it turns split on; with split on (and a known transmit frequency) the receiver
+    /// goes to the transmit frequency, the next Ctrl+S back to the receive one. Transmitting stays on VFO B.
+    public func splitListenToggle() {
+        guard let state = activeState, state.split, state.txFreqHz > 0 else {
+            splitListenReturnHz = nil
+            setSplit(0)
+            return
+        }
+        if let back = splitListenReturnHz {
+            splitListenReturnHz = nil
+            qsy(back)
+            show(.tr("Split: poslech na RX %s", .string(CatStatusLine.khz(back))))
+        } else {
+            splitListenReturnHz = state.freqHz
+            qsy(state.txFreqHz)
+            show(.tr("Split: poslech na TX %s", .string(CatStatusLine.khz(state.txFreqHz))))
+        }
+    }
+
+    /// N1MM Alt+S (and „Reset RX freq when running split" after a Run QSO): in split the receive frequency goes to
+    /// the transmit one. `quiet` (after logging) says nothing when split is off.
+    public func resetRxToTx(quiet: Bool = false) {
+        guard let state = activeState, state.split, state.txFreqHz > 0 else {
+            if !quiet {
+                show(.tr("Split není zapnutý"))
+            }
+            return
+        }
+        splitListenReturnHz = nil
+        if state.freqHz != state.txFreqHz {
+            qsy(state.txFreqHz)
+        }
+        if !quiet {
+            show(.tr("Split: RX na TX %s", .string(CatStatusLine.khz(state.txFreqHz))))
+        }
+    }
+
     /// Alt+F7 (`AS:965-981`): a prompt for the transmit frequency or an offset; blank = split off.
     public func promptSplit(currentFreqHz: Int64) {
         let otherHz: Int64 = activeState?.txFreqHz ?? 0

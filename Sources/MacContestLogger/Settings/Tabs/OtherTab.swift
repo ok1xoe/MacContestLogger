@@ -20,6 +20,8 @@ struct OtherTab: View {
             AppearanceGroup(language: language, draft: $draft)
             SettingsGroup(title: "Volby") {
                 SettingsCheckbox(label: language.tr("Po zapsání QSO vynulovat RIT"), isOn: $draft.ritClearAfterLog)
+                SettingsCheckbox(label: language.tr("Ve splitu po zapsání Run QSO vrátit RX na TX frekvenci (Alt+S)"),
+                                 isOn: $draft.resetRxAfterRunQso)
                 SettingsCheckbox(label: language.tr("Pípnout, když je volačka dupe"), isOn: $draft.beepOnDupe)
             }
             MenuFileGroup(app: app)

@@ -1,7 +1,7 @@
 import Testing
 @testable import MCLCore
 
-/// Every one of the 64 shortcut actions (55 of v1.1.1 + 9 Swift-only) and the 34 command kinds is assigned an area.
+/// Every one of the 65 shortcut actions (55 of v1.1.1 + 10 Swift-only) and the 34 command kinds is assigned an area.
 @Suite struct EntryActionAvailabilityTests {
 
     /// The `when` branches of `runShortcut` (`EP:873-938`) in source order — the same 55 constants as the enum.
@@ -15,7 +15,7 @@ import Testing
         "NEXT_MULT_UP", "NEXT_MULT_DOWN", "NEXT_SELF_UP", "NEXT_SELF_DOWN", "SPOT_IT", "SPOT_WITH_COMMENT", "STORE",
         "MARK", "REMOVE_SPOT", "REMOVE_SPOT_BLACKLIST", "DX_CLUSTER_WINDOW",
         // Swift-only (call stacking).
-        "STACK_CALL", "GRAB_STACK", "INSERT_GRAB", "TOGGLE_TX", "DIGITAL_LEFT", "DIGITAL_RIGHT", "EDIT_LAST", "QUICK_EDIT_BACK", "QUICK_EDIT_FORWARD",
+        "STACK_CALL", "GRAB_STACK", "INSERT_GRAB", "TOGGLE_TX", "DIGITAL_LEFT", "DIGITAL_RIGHT", "EDIT_LAST", "QUICK_EDIT_BACK", "QUICK_EDIT_FORWARD", "RESET_RX",
     ]
 
     private static let expected: [String: EntryArea] = [
@@ -31,13 +31,13 @@ import Testing
         "NEXT_SPOT_UP": .spots, "NEXT_SPOT_DOWN": .spots, "NEXT_MULT_UP": .spots, "NEXT_MULT_DOWN": .spots,
         "NEXT_SELF_UP": .spots, "NEXT_SELF_DOWN": .spots, "SPOT_IT": .spots, "SPOT_WITH_COMMENT": .spots,
         "STORE": .spots, "MARK": .spots, "REMOVE_SPOT": .spots, "REMOVE_SPOT_BLACKLIST": .spots,
-        "DX_CLUSTER_WINDOW": .spots, "STACK_CALL": .local, "GRAB_STACK": .local, "INSERT_GRAB": .local, "TOGGLE_TX": .local, "DIGITAL_LEFT": .local, "DIGITAL_RIGHT": .local, "EDIT_LAST": .local, "QUICK_EDIT_BACK": .local, "QUICK_EDIT_FORWARD": .local,
+        "DX_CLUSTER_WINDOW": .spots, "STACK_CALL": .local, "GRAB_STACK": .local, "INSERT_GRAB": .local, "TOGGLE_TX": .local, "DIGITAL_LEFT": .local, "DIGITAL_RIGHT": .local, "EDIT_LAST": .local, "QUICK_EDIT_BACK": .local, "QUICK_EDIT_FORWARD": .local, "RESET_RX": .radio,
     ]
 
     @Test func everyShortcutActionHasAnArea() {
-        #expect(ShortcutAction.allCases.count == 64)
+        #expect(ShortcutAction.allCases.count == 65)
         #expect(Set(ShortcutAction.allCases.map(\.name)) == Set(Self.runShortcutOrder))
-        #expect(Self.runShortcutOrder.count == 64)
+        #expect(Self.runShortcutOrder.count == 65)
         for action in ShortcutAction.allCases {
             #expect(EntryActionAvailability.area(of: action) == Self.expected[action.name], "\(action.name)")
         }

@@ -44,6 +44,7 @@ enum ProfileMergeSchema {
             Property("checkReverseFromStart", .boolean, .fieldDefault),
             Property("showUnmatchedCallMark", .boolean, .fieldDefault),
             Property("dupesheetSortBySuffix", .boolean, .fieldDefault),
+            Property("resetRxAfterRunQso", .boolean, .fieldDefault),
             Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
             Property("callHistoryExtraFiles", .list(.string), .fieldDefault),
             Property("callHistoryShowUserInfo", .boolean, .fieldDefault),

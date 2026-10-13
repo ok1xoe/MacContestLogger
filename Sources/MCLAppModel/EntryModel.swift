@@ -657,6 +657,10 @@ public final class EntryModel {
             }
             if index == 0 {
                 autoSpotLogged(work, qso: prepared)
+                // N1MM „Reset RX freq when running split": a live Run QSO puts the receiver back on the TX frequency.
+                if config.config.resetRxAfterRunQso, prepared.runMode == .run, work.at == nil, isActivePanel {
+                    rig?.resetRxToTx(quiet: true)
+                }
             }
             // Into the live session only while it is still the submitted contest's (a later activation replays it).
             guard effects.contains(.contestLog), contest.activeId == work.sessionId else { continue }
