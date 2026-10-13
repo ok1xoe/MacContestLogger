@@ -16,13 +16,14 @@ extension BandmapModel {
 
     // MARK: - SH/DX, CQ, RIT, mode
 
-    /// „SH/DX" to the main cluster connection (status when it is not connected).
+    /// „SH/DX" with the Telnet window's spot count, formatted for the node, to the main cluster connection (status when
+    /// it is not connected).
     public func showDx() {
         guard let cluster = dxCluster, cluster.connected else {
             statusLine?.show(ContestMessage("DX Cluster není připojen"))
             return
         }
-        cluster.send("SH/DX")
+        cluster.send(cluster.showDxCommand())
     }
 
     /// The CQ button is active with a CQ frequency on this band.

@@ -1610,5 +1610,22 @@
  "SSB úzký (Hz)": "SSB narrow (Hz)",
  "Digi široký (Hz)": "Digi wide (Hz)",
  "Digi úzký (Hz)": "Digi narrow (Hz)",
- "Šířky filtru pro tlačítko Wide/Narrow v bandmapě (0 = výchozí šířka rigu).": "Filter widths of the band map's Wide/Narrow button (0 = the rig's default width)."
+ "Šířky filtru pro tlačítko Wide/Narrow v bandmapě (0 = výchozí šířka rigu).": "Filter widths of the band map's Wide/Narrow button (0 = the rig's default width).",
+ "Výpis DX clusteru": "DX cluster output",
+ "Možnosti…": "Options…",
+ "Možnosti DX clusteru": "DX cluster options",
+ "Clustery": "Clusters",
+ "Při otevření okna se připojit a přihlásit k vybranému clusteru": "Connect and log on to the selected cluster when the window opens",
+ "Software clusteru": "Cluster software",
+ "Rozpoznat automaticky": "Detect automatically",
+ "Počet spotů pro SH/DX z bandmapy": "Number of spots for SH/DX from the band map",
+ "Bandmapa pošle %s.": "The band map sends %s.",
+ "Zobrazit tlačítka příkazů": "Show the command buttons",
+ "Uložit tlačítka…": "Save buttons…",
+ "Načíst tlačítka…": "Load buttons…",
+ "Makra tlačítek: {WAIT} počká 5 s, {CONN} název připojí cluster ze seznamu (např. „{CONN} RBN“).": "Button macros: {WAIT} waits 5 s, {CONN} name connects a cluster of the list (e.g. “{CONN} RBN”).",
+ "zatím nerozpoznán": "not detected yet",
+ "Rozpoznaný software: %s · příkazy se formátují pro %s": "Detected software: %s · commands are formatted for %s",
+ "{CONN}: cluster %s není v seznamu": "{CONN}: cluster %s is not in the list",
+ "Soubor neobsahuje žádné tlačítko": "The file contains no button"
 }

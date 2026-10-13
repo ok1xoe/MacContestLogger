@@ -1610,5 +1610,22 @@
  "SSB úzký (Hz)": "SSB schmal (Hz)",
  "Digi široký (Hz)": "Digi breit (Hz)",
  "Digi úzký (Hz)": "Digi schmal (Hz)",
- "Šířky filtru pro tlačítko Wide/Narrow v bandmapě (0 = výchozí šířka rigu).": "Filterbreiten der Wide/Narrow-Taste der Bandmap (0 = Standardbreite des Geräts)."
+ "Šířky filtru pro tlačítko Wide/Narrow v bandmapě (0 = výchozí šířka rigu).": "Filterbreiten der Wide/Narrow-Taste der Bandmap (0 = Standardbreite des Geräts).",
+ "Výpis DX clusteru": "DX-Cluster-Ausgabe",
+ "Možnosti…": "Optionen…",
+ "Možnosti DX clusteru": "DX-Cluster-Optionen",
+ "Clustery": "Cluster",
+ "Při otevření okna se připojit a přihlásit k vybranému clusteru": "Beim Öffnen des Fensters mit dem gewählten Cluster verbinden und anmelden",
+ "Software clusteru": "Cluster-Software",
+ "Rozpoznat automaticky": "Automatisch erkennen",
+ "Počet spotů pro SH/DX z bandmapy": "Anzahl Spots für SH/DX aus der Bandmap",
+ "Bandmapa pošle %s.": "Die Bandmap sendet %s.",
+ "Zobrazit tlačítka příkazů": "Befehlstasten anzeigen",
+ "Uložit tlačítka…": "Tasten speichern…",
+ "Načíst tlačítka…": "Tasten laden…",
+ "Makra tlačítek: {WAIT} počká 5 s, {CONN} název připojí cluster ze seznamu (např. „{CONN} RBN“).": "Tastenmakros: {WAIT} wartet 5 s, {CONN} Name verbindet einen Cluster der Liste (z. B. „{CONN} RBN“).",
+ "zatím nerozpoznán": "noch nicht erkannt",
+ "Rozpoznaný software: %s · příkazy se formátují pro %s": "Erkannte Software: %s · Befehle werden für %s formatiert",
+ "{CONN}: cluster %s není v seznamu": "{CONN}: Cluster %s ist nicht in der Liste",
+ "Soubor neobsahuje žádné tlačítko": "Die Datei enthält keine Taste"
 }

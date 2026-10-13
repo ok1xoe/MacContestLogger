@@ -33,7 +33,7 @@ public final class DxClusterModel {
     @ObservationIgnored public let log: DxClusterTrafficLog
 
     @ObservationIgnored let config: ConfigModel
-    @ObservationIgnored private let status: StatusModel
+    @ObservationIgnored let status: StatusModel
     @ObservationIgnored let language: LanguageModel
     @ObservationIgnored private let messages: MessagesModel
     @ObservationIgnored private let network: NetworkPorts
@@ -55,6 +55,16 @@ public final class DxClusterModel {
     /// Set by the quit's `shutdown()`: from then on the window's actions (connect, login, logout, send, the parallel
     /// plan) do nothing, so no session opens or sends during the rest of the quit.
     @ObservationIgnored private(set) var closed = false
+    /// The wait of a button's `{WAIT}` (milliseconds; tests replace it).
+    @ObservationIgnored public var buttonWait: @Sendable (Int) async -> Void = { ms in
+        try? await Task.sleep(nanoseconds: UInt64(max(ms, 0)) * 1_000_000)
+    }
+    /// The buttons being run (their `{WAIT}` steps), in order.
+    @ObservationIgnored var buttonTask: Task<Void, Never>?
+    /// Presses still queued behind a `{WAIT}`.
+    @ObservationIgnored var buttonsQueued: Int = 0
+    /// The console lines already styled, by log line (rebuilt when the filter or the analysis changes).
+    @ObservationIgnored var consoleCache: (key: ConsoleCacheKey, lines: [String: ConsoleLine])?
 
     init(config: ConfigModel, status: StatusModel, language: LanguageModel, messages: MessagesModel,
          network: NetworkPorts, now: @escaping @Sendable () -> Date) {
@@ -108,10 +118,10 @@ public final class DxClusterModel {
         mainLane.run { session in try session.toggle(fav) }
     }
 
-    /// Kotlin `conn.connect(fav)` (no auto-login).
-    public func connect(_ fav: DxClusterFavorite) {
+    /// Kotlin `conn.connect(fav)` (no auto-login unless asked: the window's auto logon and `{CONN}` log in).
+    public func connect(_ fav: DxClusterFavorite, autoLogin: Bool = false) {
         guard !closed else { return }
-        mainLane.run { session in try session.connect(fav, autoLogin: false) }
+        mainLane.run { session in try session.connect(fav, autoLogin: autoLogin) }
     }
 
     /// Kotlin `conn.login(fav)` („Přihlásit").
@@ -230,6 +240,7 @@ public final class DxClusterModel {
     /// Waits until every lane's queued work and the session threads have finished, then lets the posted state hops
     /// run (tests).
     func settle() async {
+        await buttonTask?.value
         await mainLane.idle()
         for entry in parallelLanes.values {
             await entry.lane.idle()
@@ -255,6 +266,7 @@ public final class DxClusterModel {
     /// adopted, no auto-login. The log listener is removed; the window's actions do nothing from now on (`closed`).
     func shutdown() async {
         closed = true
+        buttonTask?.cancel()
         let message: String = language.tr("ukončeno")
         let lanes: [ClusterLane] = allLanes
         for lane in lanes {
