@@ -203,6 +203,10 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var callStackOrder: String = CallStack.Order.multsFirst.rawValue
     public var callStackClearOnBandChange: Bool = true
     public var digitalCallStacking: Bool = false
+    public var fldigi2Host: String = "127.0.0.1"
+    public var fldigi2Port: Int = 0
+    public var extraRx: String = ""
+    public var extraRxToGrab: Bool = true
     public var highlightCalls: Bool = true
     public var mirrorDxCall: Bool = true
     public var clearDecodesOnBandChange: Bool = true
@@ -498,6 +502,10 @@ extension ConfigurerDraft {
         callStackOrder = config.esm.callStackOrder
         callStackClearOnBandChange = config.esm.callStackClearOnBandChange
         digitalCallStacking = config.digital.digitalCallStacking
+        fldigi2Host = config.digital.fldigi2Host
+        fldigi2Port = config.digital.fldigi2Port
+        extraRx = config.digital.extraRx
+        extraRxToGrab = config.digital.extraRxToGrab
         highlightCalls = config.wsjtx.highlightCalls
         mirrorDxCall = config.wsjtx.mirrorDxCall
         clearDecodesOnBandChange = config.wsjtx.clearDecodesOnBandChange

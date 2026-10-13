@@ -154,6 +154,26 @@ private struct ModemGroup: View {
                 SettingsCaption(language.tr(
                     "Tlačítko Align přeladí rig tak, aby signál pod kurzorem fldigi byl na této audio frekvenci (u FSK nutné; fldigi: značka + 85 Hz)."))
             }
+            HStack(alignment: .bottom, spacing: 8) {
+                SettingsField(caption: language.tr("Druhé fldigi (SO2V/SO2R) — adresa")) {
+                    SettingsTextField(text: $draft.fldigi2Host)
+                }
+                .frame(width: 200)
+                SettingsField(caption: language.tr("Port (0 = žádné)")) {
+                    SettingsTextField(text: Binding(get: { String(draft.fldigi2Port) },
+                                                    set: { draft.fldigi2Port = Int($0) ?? 0 }),
+                                      filter: .digits(limit: 5))
+                }
+                .frame(width: 120)
+                SettingsCaption(language.tr(
+                    "Okno → Digitální rozhraní 2 patří k VFO B / rigu 2; Cmd+Alt+←/→ přepíná rozhraní (N1MM Ctrl+←/→)."))
+            }
+            HStack(alignment: .bottom, spacing: 8) {
+                SettingsField(caption: language.tr("Další příjmová okna (host:port, mezerou, max. 4)")) {
+                    SettingsTextField(text: $draft.extraRx)
+                }
+                SettingsCheckbox(label: language.tr("Volačky z nich do Grab okna"), isOn: $draft.extraRxToGrab)
+            }
             SettingsCheckbox(label: language.tr("AFC zapnout s CQ a TU"), isOn: $draft.afcOnCq)
             SettingsCheckbox(label: language.tr("NET podle Run / S&P"), isOn: $draft.netWithRunChange)
             HStack(alignment: .center, spacing: 8) {

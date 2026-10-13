@@ -78,6 +78,10 @@ enum ProfileMergeSchema {
             Property("netWithRunChange", .boolean, .fieldDefault),
             Property("shiftCompEnabled", .boolean, .fieldDefault),
             Property("shiftCompHz", .int, .fieldDefault),
+            Property("fldigi2Host", .string, .fieldDefault),
+            Property("fldigi2Port", .int, .fieldDefault),
+            Property("extraRx", .string, .fieldDefault),
+            Property("extraRxToGrab", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.WsjtxConfig": [
             Property("highlightCalls", .boolean, .fieldDefault),

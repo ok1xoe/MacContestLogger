@@ -195,7 +195,8 @@ public final class EntryModel {
         guard form.mode.isDigital, let digitalKeyer, let state = rig?.activeState, state.freqHz == field else {
             return field
         }
-        return digitalKeyer.transmitHz(dialHz: field, rawMode: state.rawMode)
+        let side: Int = vfo == 1 && config.config.digital.hasSecondFldigi ? 1 : 0
+        return digitalKeyer.transmitHz(dialHz: field, rawMode: state.rawMode, side: side)
     }
 
     /// Band of the typed frequency (Kotlin `Band.fromFrequencyHz(parseFreqHz(freqKHz))`).

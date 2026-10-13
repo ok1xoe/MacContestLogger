@@ -228,6 +228,32 @@ by that fraction of a second.
 Who decodes does not change: the modem is still fldigi. MCL has its own RTTY
 decoder only in the separate proof of concept `digimode-poc`.
 
+## SO2V / SO2R: two Digital Interfaces
+
+As in N1MM, each entry window can have its own Digital Interface: **Okno → Digitální rozhraní** (DI1)
+belongs to VFO A / rig 1, **Okno → Digitální rozhraní 2** (DI2) to VFO B / rig 2. Run a second fldigi
+(another XML-RPC port, e.g. `fldigi --xmlrpc-server-port 7363`) and set it in **Settings → Digital modes
+→ Second fldigi**; port 0 means no second fldigi (DI2 then shows DI1's fldigi).
+
+- A click in DI2 fills the VFO B window; its keys, Enter and buttons act on the VFO B window.
+- While the VFO B / rig 2 window is active, the F-keys and macros transmit through the second fldigi;
+  the window that has the transmit focus shows a red **TX** in its top bar.
+- **Cmd+Alt+←** / **Cmd+Alt+→** (N1MM Ctrl+←/→, which macOS uses for Spaces) activates VFO A / rig 1
+  or VFO B / rig 2 and brings its Digital Interface up.
+- Both windows share one Grab window and one call stack.
+
+### Additional RX windows
+
+N1MM can decode the same audio with more decoders. Here every additional decoder is another fldigi
+instance listening to the same sound card: list them in **Settings → Digital modes → Additional RX
+windows** (`host:port`, up to four). Their text appears attached above DI1's text (N1MM "Enable Attached
+RX Windows"), and with *Volačky z nich do Grab okna* (N1MM "RX Windows add to Grab window") their
+callsigns join the Grab window. Clicking in them is not possible — they are for reading.
+
+A multi-channel PSK browser (MMVARI multi-channel, fldigi's signal browser) is **not available**: fldigi's
+XML-RPC interface does not expose its browser channels. Several fldigi instances as additional RX windows
+are the workaround.
+
 ## Sharing CAT with fldigi
 
 When MCL controls the rig, its `rigctld` holds the serial port and fldigi **will

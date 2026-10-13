@@ -251,7 +251,7 @@ MULT_KINDS = ["dxcc", "grid", "itu", "cq", "districts", "other", "sections"]
 # Every id the app persists in `config.openWindows` (WindowsModel.implemented without `notPersisted`; the world map
 # is one window with the two ids, the DXCC one is saved when it was opened in that mode).
 ALL_WINDOWS = [
-    "log", "defeditor", "catLog", "rotator", "cwkeyboard", "cwreader", "digitalinterface", "waterfall",
+    "log", "defeditor", "catLog", "rotator", "cwkeyboard", "cwreader", "digitalinterface", "digitalinterface2", "waterfall",
     "dxCluster", "bandmap", "availMult", "blacklist", "netstatus", "chat", "partner", "wsjtxdecodes", "hamqthLog",
     "rate", "statistics", "score", "dupesheet", "skeds", "qtc", "bandnotes", "movemults", "propagation",
     "worldmap-dxcc",

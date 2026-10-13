@@ -40,3 +40,6 @@ Box+, microHAM in OTRSP mode). To turn it on: **"Nastavení → Hardware → SO2
 | **`** | SO2R stereo listening on / off |
 
 Both keys can be remapped in "Nastavení → Klávesy" (Settings → Keys).
+
+In digital modes each entry window can have its own Digital Interface and fldigi — see
+[Digital modes → SO2V / SO2R](digital-modes.md#so2v--so2r-two-digital-interfaces).

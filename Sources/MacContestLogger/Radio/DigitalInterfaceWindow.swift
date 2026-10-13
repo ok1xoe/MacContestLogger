@@ -11,11 +11,23 @@ import SwiftUI
 /// (the focus stays here).
 struct DigitalInterfaceWindowView: View {
     static let id = "digitalinterface"
+    /// N1MM's Digital Interface 2 (VFO B / rig 2).
+    static let id2 = "digitalinterface2"
 
     let host: AppHost
+    /// 0 = DI1, 1 = DI2.
+    let index: Int
 
-    @StateObject private var session = WindowSession(id: DigitalInterfaceWindowView.id, persistSize: true,
-                                                     defaultSize: CGSize(width: 680, height: 340))
+    @StateObject private var session: WindowSession
+
+    init(host: AppHost, index: Int = 0) {
+        self.host = host
+        self.index = index
+        _session = StateObject(wrappedValue: WindowSession(id: index == 1 ? Self.id2 : Self.id, persistSize: true,
+                                                           defaultSize: CGSize(width: 680, height: 340)))
+    }
+
+    private var windowId: String { index == 1 ? Self.id2 : Self.id }
     @StateObject private var holder = WindowModelHolder<DigitalInterfaceModel>()
     @StateObject private var keys = WindowKeyMonitor()
     @StateObject private var tx = TxFieldState()
@@ -24,9 +36,10 @@ struct DigitalInterfaceWindowView: View {
     var body: some View {
         Group {
             if let app = host.model {
-                let model: DigitalInterfaceModel = holder.model { app.makeDigitalInterface() }
+                let model: DigitalInterfaceModel = holder.model { app.makeDigitalInterface(index: index) }
                 content(app, model)
-                    .modifier(RadioWindowChrome(host: host, app: app, id: Self.id, title: "Digitální rozhraní",
+                    .modifier(RadioWindowChrome(host: host, app: app, id: windowId,
+                                                title: index == 1 ? "Digitální rozhraní 2" : "Digitální rozhraní",
                                                 binder: session.binder))
                     .background(WindowAccessor { window in
                         let tx: TxFieldState = self.tx
@@ -73,6 +86,12 @@ struct DigitalInterfaceWindowView: View {
         return VStack(alignment: .leading, spacing: 6) {
             WindowTopBar(size: $session.fontSize, language: language) {
                 HStack(alignment: .center, spacing: 8) {
+                    if model.hasTransmitFocus {
+                        Text(verbatim: "TX")
+                            .windowFont(12, weight: .bold)
+                            .foregroundStyle(Color.red)
+                            .accessibilityLabel(language.tr("Toto rozhraní má vysílání"))
+                    }
                     Text(verbatim: model.status.isEmpty ? "—" : model.status)
                         .windowFont(16)
                     let frequency: String = model.frequencyCaption
@@ -98,6 +117,7 @@ struct DigitalInterfaceWindowView: View {
                     .foregroundStyle(Color(domain: DomainColors.dupe))
             }
             grabRow(app, model, language: language)
+            attachedRx(model, language: language)
             HStack(alignment: .top, spacing: 4) {
                 pauseBar(model, language: language)
                 DigitalRxTextView(text: Self.annotated(model, size: session.fontSize),
@@ -271,6 +291,19 @@ struct DigitalInterfaceWindowView: View {
             return .lettersFigures
         }
         return .plain
+    }
+
+    /// N1MM's attached additional RX windows: the text of further fldigi instances decoding the same audio.
+    @ViewBuilder
+    private func attachedRx(_ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
+        ForEach(Array(model.extraTexts.enumerated()), id: \.offset) { slot, text in
+            DigitalRxTextView(text: NSAttributedString(string: text, attributes: [
+                .font: NSFont.monospacedSystemFont(ofSize: WindowFont.size(13, windowSize: session.fontSize),
+                                                   weight: .regular),
+                .foregroundColor: NSColor.secondaryLabelColor,
+            ]), accessibilityText: language.tr("Další příjem") + " " + String(slot + 1))
+            .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 60)
+        }
     }
 
     /// N1MM's pause bar left of the received text: green = live, yellow = paused (click to switch).

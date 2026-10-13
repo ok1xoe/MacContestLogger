@@ -1469,5 +1469,15 @@
  "WSJT-X / JTDX se nespustil (%s)": "WSJT-X / JTDX wurde nicht gestartet (%s)",
  "Spouštím %s": "Starte %s",
  "Spustit WSJT-X / JTDX": "WSJT-X / JTDX starten",
- "Spustit WSJT-X / JTDX (rádio 2)": "WSJT-X / JTDX starten (Radio 2)"
+ "Spustit WSJT-X / JTDX (rádio 2)": "WSJT-X / JTDX starten (Radio 2)",
+ "Toto rozhraní má vysílání": "Dieses Interface hat den Sendefokus",
+ "Další příjem": "Zusätzlicher Empfang",
+ "Digitální rozhraní 2": "Digital-Interface 2",
+ "Druhé fldigi (SO2V/SO2R) — adresa": "Zweites fldigi (SO2V/SO2R) — Adresse",
+ "Port (0 = žádné)": "Port (0 = keines)",
+ "Okno → Digitální rozhraní 2 patří k VFO B / rigu 2; Cmd+Alt+←/→ přepíná rozhraní (N1MM Ctrl+←/→).": "Fenster → Digital-Interface 2 gehört zu VFO B / Rig 2; Cmd+Alt+←/→ wechselt die Interfaces (N1MM Strg+←/→).",
+ "Další příjmová okna (host:port, mezerou, max. 4)": "Zusätzliche Empfangsfenster (host:port, durch Leerzeichen, max. 4)",
+ "Volačky z nich do Grab okna": "Deren Rufzeichen ins Grab-Fenster",
+ "Digi: rozhraní 1 (VFO A / rig 1)": "Digital: Interface 1 (VFO A / Rig 1)",
+ "Digi: rozhraní 2 (VFO B / rig 2)": "Digital: Interface 2 (VFO B / Rig 2)"
 }

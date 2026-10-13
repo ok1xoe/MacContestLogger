@@ -1469,5 +1469,15 @@
  "WSJT-X / JTDX se nespustil (%s)": "WSJT-X / JTDX did not start (%s)",
  "Spouštím %s": "Launching %s",
  "Spustit WSJT-X / JTDX": "Launch WSJT-X / JTDX",
- "Spustit WSJT-X / JTDX (rádio 2)": "Launch WSJT-X / JTDX (radio 2)"
+ "Spustit WSJT-X / JTDX (rádio 2)": "Launch WSJT-X / JTDX (radio 2)",
+ "Toto rozhraní má vysílání": "This interface has the transmit focus",
+ "Další příjem": "Additional RX",
+ "Digitální rozhraní 2": "Digital Interface 2",
+ "Druhé fldigi (SO2V/SO2R) — adresa": "Second fldigi (SO2V/SO2R) — address",
+ "Port (0 = žádné)": "Port (0 = none)",
+ "Okno → Digitální rozhraní 2 patří k VFO B / rigu 2; Cmd+Alt+←/→ přepíná rozhraní (N1MM Ctrl+←/→).": "Window → Digital Interface 2 belongs to VFO B / rig 2; Cmd+Alt+←/→ switches the interfaces (N1MM Ctrl+←/→).",
+ "Další příjmová okna (host:port, mezerou, max. 4)": "Additional RX windows (host:port, space-separated, at most 4)",
+ "Volačky z nich do Grab okna": "Their callsigns into the Grab window",
+ "Digi: rozhraní 1 (VFO A / rig 1)": "Digital: interface 1 (VFO A / rig 1)",
+ "Digi: rozhraní 2 (VFO B / rig 2)": "Digital: interface 2 (VFO B / rig 2)"
 }

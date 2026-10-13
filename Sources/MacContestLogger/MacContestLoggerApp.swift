@@ -80,6 +80,9 @@ struct MacContestLoggerApp: App {
         toolWindow("Digitální rozhraní", id: DigitalInterfaceWindowView.id, size: CGSize(width: 680, height: 340)) {
             DigitalInterfaceWindowView(host: host)
         }
+        toolWindow("Digitální rozhraní 2", id: DigitalInterfaceWindowView.id2, size: CGSize(width: 680, height: 340)) {
+            DigitalInterfaceWindowView(host: host, index: 1)
+        }
         toolWindow("Vodopád", id: WaterfallWindowView.id, size: CGSize(width: 760, height: 380)) {
             WaterfallWindowView(host: host)
         }

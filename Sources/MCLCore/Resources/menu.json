@@ -135,6 +135,7 @@
         { "id": "window.cwkeyboard", "label": "CW z klávesnice", "state": "enable" },
         { "id": "window.cwreader",  "label": "CW Reader",       "state": "enable" },
         { "id": "window.digitalinterface", "label": "Digitální rozhraní", "state": "enable" },
+        { "id": "window.digitalinterface2", "label": "Digitální rozhraní 2", "state": "enable" },
         { "id": "window.simulator", "label": "Simulátor pileupu", "state": "enable" },
         { "id": "window.wsjtxdecodes", "label": "WSJT-X dekódy", "state": "enable" },
         { "id": "wsjtx.launch", "label": "Spustit WSJT-X / JTDX", "state": "enable" },

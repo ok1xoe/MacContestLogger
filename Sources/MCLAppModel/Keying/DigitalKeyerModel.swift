@@ -23,21 +23,60 @@ public final class DigitalKeyerModel {
         self.clock = clock
     }
 
-    /// fldigi's audio frequency (Hz) while the Digital Interface window polls it, `nil` otherwise — N1MM applies
-    /// AutoTRXUpdate only while the window is open.
-    public internal(set) var carrierHz: Int?
-    /// fldigi's current modem (the Digital Interface's poll).
-    public internal(set) var modem: String = ""
-    /// fldigi's modems (`modem.get_names`, read once per Digital Interface session) for the Op Mode menu.
-    public internal(set) var modemNames: [String] = []
+    /// What the Digital Interface of one side (DI1 = VFO A / rig 1, DI2 = VFO B / rig 2) knows about its fldigi.
+    public struct Side: Equatable, Sendable {
+        /// fldigi's audio frequency (Hz) while the window polls it, `nil` otherwise — N1MM applies AutoTRXUpdate only
+        /// while the window is open.
+        public var carrierHz: Int?
+        /// fldigi's current modem (the poll).
+        public var modem: String = ""
+        /// fldigi's modems (`modem.get_names`, once per window session) for the Op Mode menu.
+        public var modemNames: [String] = []
+        /// AFC, Lock and Rev as last read or set; `nil` = not known.
+        public var switches: [FldigiClient.Switch: Bool] = [:]
+    }
+
+    /// DI1 and DI2.
+    public internal(set) var sides: [Side] = [Side(), Side()]
+    /// The side the F-keys and the macros act on now (wired by the app: DI2 while the VFO B / rig 2 entry window is
+    /// active and a second fldigi is configured).
+    @ObservationIgnored var activeSide: @MainActor () -> Int = { 0 }
+    /// The side the running transmission went to (Esc, the TX window, the end of a held transmission).
+    @ObservationIgnored private var txSide: Int = 0
+
+    var current: Int {
+        min(max(activeSide(), 0), 1)
+    }
+
+    /// fldigi's endpoint of a side (DI2 falls back to DI1's when no second fldigi is configured).
+    func endpoint(_ side: Int) -> (host: String, port: Int) {
+        config.config.digital.endpoint(side)
+    }
+
+    /// The active side's audio frequency (see `Side`).
+    public internal(set) var carrierHz: Int? {
+        get { sides[current].carrierHz }
+        set { sides[current].carrierHz = newValue }
+    }
+
+    public internal(set) var modem: String {
+        get { sides[current].modem }
+        set { sides[current].modem = newValue }
+    }
+
+    public internal(set) var modemNames: [String] {
+        get { sides[current].modemNames }
+        set { sides[current].modemNames = newValue }
+    }
 
     /// The frequency the digital signal is on: the dial ± the audio frequency in a sideband mode
     /// (`autoTrxUpdate`), the dial otherwise.
-    public func transmitHz(dialHz: Int64, rawMode: String?) -> Int64 {
+    public func transmitHz(dialHz: Int64, rawMode: String?, side: Int? = nil) -> Int64 {
         guard let rawMode else { return dialHz }
         let digital: DigitalConfig = config.config.digital
+        let carrier: Int? = sides[min(max(side ?? current, 0), 1)].carrierHz
         var hz: Int64 = digital.autoTrxUpdate
-            ? DigitalFrequency.transmitHz(dialHz: dialHz, rawMode: rawMode, carrierHz: carrierHz) : dialHz
+            ? DigitalFrequency.transmitHz(dialHz: dialHz, rawMode: rawMode, carrierHz: carrier) : dialHz
         if dialHz > 0 {
             hz += DigitalFrequency.shiftCompensation(rawMode: rawMode, enabled: digital.shiftCompEnabled,
                                                      offsetHz: digital.shiftCompHz)
@@ -45,16 +84,19 @@ public final class DigitalKeyerModel {
         return hz
     }
 
-    /// fldigi's AFC, Lock and Rev as last read or set (N1MM's buttons); `nil` = not known.
-    public internal(set) var switches: [FldigiClient.Switch: Bool] = [:]
+    /// The active side's AFC, Lock and Rev as last read or set (N1MM's buttons); `nil` = not known.
+    public internal(set) var switches: [FldigiClient.Switch: Bool] {
+        get { sides[current].switches }
+        set { sides[current].switches = newValue }
+    }
 
     /// AFC / Lock / Rev on or off (the buttons, `{ENABLEAFC}`, `{DISABLEAFC}`, `{ENABLENET}`, `{DISABLENET}`, AFC with
     /// CQ, NET with the Run change).
-    public func set(_ toggle: FldigiClient.Switch, _ on: Bool) {
+    public func set(_ toggle: FldigiClient.Switch, _ on: Bool, side: Int? = nil) {
         guard ready, !closed else { return }
-        switches[toggle] = on
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        let index: Int = min(max(side ?? current, 0), 1)
+        sides[index].switches[toggle] = on
+        let (host, port): (String, Int) = endpoint(index)
         let lane: KeyerLane = self.lane
         lane.run { devices in
             try? lane.fldigi(devices, host: host, port: port).set(toggle, on)
@@ -76,8 +118,7 @@ public final class DigitalKeyerModel {
                                                         targetHz: target) else { return false }
         qsy(dial)
         carrierHz = target
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        let (host, port): (String, Int) = endpoint(current)
         let lane: KeyerLane = self.lane
         lane.run { devices in
             try? lane.fldigi(devices, host: host, port: port).setCarrier(target)
@@ -86,10 +127,10 @@ public final class DigitalKeyerModel {
     }
 
     /// Switches fldigi's modem (N1MM Op Mode, typing RTTY/PSK in the call field); a failure goes to the status line.
-    public func setModem(_ name: String) {
+    public func setModem(_ name: String, side: Int? = nil) {
         guard ready, !closed else { return }
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        let index: Int = min(max(side ?? current, 0), 1)
+        let (host, port): (String, Int) = endpoint(index)
         let lane: KeyerLane = self.lane
         lane.run({ devices -> String?? in
             do {
@@ -105,7 +146,7 @@ public final class DigitalKeyerModel {
                 self.status.showJoined(text.parts, separator: "")
                 return
             }
-            self.modem = name
+            self.sides[index].modem = name
             self.status.show(DigitalTexts.modemSetKey, .string(name))
         })
     }
@@ -147,8 +188,10 @@ public final class DigitalKeyerModel {
         if appending {
             heldToken = token
         }
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        if !isHolding {
+            txSide = current
+        }
+        let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run({ devices -> String?? in
             do {
@@ -187,8 +230,10 @@ public final class DigitalKeyerModel {
         keyer.tx.announceTx()
         let token: Int64 = keyer.beginDigital(key: -1)
         heldToken = token
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        if !isHolding {
+            txSide = current
+        }
+        let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run({ devices -> String?? in
             do {
@@ -211,8 +256,7 @@ public final class DigitalKeyerModel {
     /// Text typed in the TX window while a transmission is held.
     public func typeHeld(_ text: String) {
         guard isHolding, !text.isEmpty else { return }
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run { devices in
             try? lane.fldigi(devices, host: host, port: port).addTx(text)
@@ -223,8 +267,7 @@ public final class DigitalKeyerModel {
     public func endHold() {
         guard isHolding, let token = heldToken else { return }
         heldToken = nil
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run({ devices -> Bool in
             (try? lane.fldigi(devices, host: host, port: port).addTx("^r")) != nil
@@ -244,8 +287,7 @@ public final class DigitalKeyerModel {
 
     /// `{CLRTX}`: fldigi's TX buffer cleared.
     public func clearTxBuffer() {
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run { devices in
             try? lane.fldigi(devices, host: host, port: port).clearTx()
@@ -337,8 +379,7 @@ public final class DigitalKeyerModel {
         heldToken = nil
         let restore: String? = cwIdRestore
         cwIdRestore = nil
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run { devices in
             guard let client = try? lane.fldigi(devices, host: host, port: port) else { return }

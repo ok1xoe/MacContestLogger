@@ -59,6 +59,16 @@ extension AppModel {
     /// Kotlin `entryAction = …` (`EP:839-850`): the active window runs it without taking the focus. Esc always
     /// stops: without an active window it runs the global `stopSending()` (a safety rule; Kotlin waits for an active
     /// panel).
+    /// `perform` on a given entry window (the Digital Interface 2 works with the VFO B / rig 2 window); `nil` = the
+    /// active one.
+    public func perform(_ action: EntryWindowAction, on entry: EntryModel?) {
+        guard let entry else {
+            perform(action)
+            return
+        }
+        run(action, on: entry)
+    }
+
     public func perform(_ action: EntryWindowAction) {
         guard let target = activeEntry else {
             if action == .stopSending {
@@ -66,6 +76,10 @@ extension AppModel {
             }
             return
         }
+        run(action, on: target)
+    }
+
+    private func run(_ action: EntryWindowAction, on target: EntryModel) {
         switch action {
         case .functionKey(let index, let opposite):
             target.sendKeys([index], opposite: opposite, refocus: false)
@@ -106,9 +120,9 @@ extension AppModel {
     }
 
     /// The Digital Interface window's model (`digitalinterface`).
-    public func makeDigitalInterface() -> DigitalInterfaceModel {
+    public func makeDigitalInterface(index: Int = 0) -> DigitalInterfaceModel {
         DigitalInterfaceModel(DigitalInterfaceModel.Dependencies(
-            config: config, contest: contest, digital: keyer.digital, lane: keyer.lane, clock: radioWindowClock,
+            index: index, config: config, contest: contest, digital: keyer.digital, lane: keyer.lane, clock: radioWindowClock,
             app: self))
     }
 }

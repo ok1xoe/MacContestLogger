@@ -63,6 +63,8 @@ public final class DigitalInterfaceModel {
     }
 
     struct Dependencies {
+        /// 0 = DI1 (VFO A / rig 1), 1 = DI2 (VFO B / rig 2).
+        var index: Int = 0
         let config: ConfigModel
         let contest: ContestModel
         let digital: DigitalKeyerModel
@@ -139,6 +141,8 @@ public final class DigitalInterfaceModel {
         var names: [String]?
         /// AFC, Lock and Rev, read with the names.
         var switches: [FldigiClient.Switch: Bool]?
+        /// The new text of every additional RX window (`nil` = nothing new or not answering).
+        var extra: [String?] = []
     }
 
     enum PollResult: Sendable {
@@ -147,6 +151,12 @@ public final class DigitalInterfaceModel {
     }
 
     @ObservationIgnored let stream = Stream()
+    /// 0 = DI1 (VFO A / rig 1), 1 = DI2 (VFO B / rig 2).
+    public let index: Int
+    /// The additional RX windows' streams (DI1 only, up to 4).
+    @ObservationIgnored let extraStreams: [Stream] = (0..<4).map { _ in Stream() }
+    /// The additional RX windows' text (DI1; one per configured endpoint).
+    public private(set) var extraTexts: [String] = []
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let contest: ContestModel
     @ObservationIgnored private let digital: DigitalKeyerModel
@@ -172,6 +182,7 @@ public final class DigitalInterfaceModel {
     @ObservationIgnored private var observing = false
 
     init(_ dependencies: Dependencies) {
+        index = dependencies.index
         config = dependencies.config
         contest = dependencies.contest
         digital = dependencies.digital
@@ -188,7 +199,44 @@ public final class DigitalInterfaceModel {
     /// The loop's key: engine, host and port.
     private var currentKey: String {
         let digi: DigitalConfig = config.config.digital
-        return digi.engine.rawValue + "|" + digi.fldigiHost + "|" + String(digi.fldigiPort)
+        let endpoint = digi.endpoint(index)
+        return digi.engine.rawValue + "|" + endpoint.host + "|" + String(endpoint.port) + "|" + extraEndpoints
+            .map { $0.host + ":" + String($0.port) }.joined(separator: ",")
+    }
+
+    /// The entry window this Digital Interface works with: DI2 the VFO B / rig 2 window, DI1 the main window when
+    /// two entry windows are shown, otherwise the active one (N1MM: DI1 follows VFO A / radio 1, DI2 VFO B / radio 2).
+    var targetEntry: EntryModel? {
+        guard let app else { return nil }
+        if index == 1 {
+            return app.vfoB.entry
+        }
+        return app.rig.vfo.twoEntryWindows ? app.entry : (app.activeEntry ?? app.entry)
+    }
+
+    /// N1MM's TX indicator: with two Digital Interfaces, this one has the transmit focus (its rig is active).
+    public var hasTransmitFocus: Bool {
+        guard let app, app.rig.vfo.twoEntryWindows else { return index == 0 }
+        return app.rig.vfo.activeVfo == index
+    }
+
+    /// This window's fldigi state.
+    var side: DigitalKeyerModel.Side {
+        digital.sides[min(max(index, 0), 1)]
+    }
+
+    /// The additional RX windows' endpoints (DI1 only, at most 4).
+    var extraEndpoints: [(host: String, port: Int)] {
+        guard index == 0 else { return [] }
+        return Target.parseAll(config.config.digital.extraRx).prefix(4).map { ($0.host, Int($0.port)) }
+    }
+
+    private func prefillExchange(_ values: [(id: String?, value: String)]) {
+        var map = JavaLinkedMap<String>()
+        for item in values {
+            map.put(item.id, item.value)
+        }
+        targetEntry?.prefillExchange(map)
     }
 
     // MARK: - the loop
@@ -197,8 +245,10 @@ public final class DigitalInterfaceModel {
     public func open() {
         guard !isOpen else { return }
         isOpen = true
-        // `{CLRRX}` clears this window.
-        digital.clearRxWindow = { [weak self] in self?.clear() }
+        // `{CLRRX}` clears this window (DI1).
+        if index == 0 {
+            digital.clearRxWindow = { [weak self] in self?.clear() }
+        }
         observeConfig()
         restart()
     }
@@ -211,12 +261,15 @@ public final class DigitalInterfaceModel {
         timer?.cancel()
         timer = nil
         // N1MM applies AutoTRXUpdate only while the window is open.
-        digital.carrierHz = nil
-        digital.clearRxWindow = nil
+        digital.sides[index].carrierHz = nil
+        if index == 0 {
+            digital.clearRxWindow = nil
+        }
     }
 
     private func restart() {
         namesRead = false
+        extraTexts = Array(repeating: "", count: extraEndpoints.count)
         generation += 1
         loopKey = currentKey
         timer?.cancel()
@@ -251,10 +304,11 @@ public final class DigitalInterfaceModel {
             schedule(Self.noModemMs, started)
             return
         }
-        let host: String = config.config.digital.fldigiHost
-        let port: Int = config.config.digital.fldigiPort
+        let (host, port): (String, Int) = config.config.digital.endpoint(index)
         let lane: KeyerLane = self.lane
         let stream: Stream = self.stream
+        let extras: [(host: String, port: Int)] = extraEndpoints
+        let extraStreams: [Stream] = self.extraStreams
         let needNames: Bool = !namesRead
         namesRead = true
         lane.run({ devices -> PollResult in
@@ -272,6 +326,19 @@ public final class DigitalInterfaceModel {
                     stream.append(chunk, transmitting: trx == "TX")
                 }
                 var poll = Poll(chunk: chunk, modem: modem, trx: trx)
+                // N1MM's additional RX windows: more fldigi instances decoding the same audio (a failing one is
+                // skipped, it never stops the main window).
+                for (slot, extra) in extras.enumerated() where slot < extraStreams.count {
+                    guard let other = try? lane.fldigi(devices, host: extra.host, port: extra.port),
+                          let length = try? other.rxLength(),
+                          let span = extraStreams[slot].pending(length),
+                          let read = try? other.rxText(start: span.start, length: span.length) else {
+                        poll.extra.append(nil)
+                        continue
+                    }
+                    extraStreams[slot].append(read, transmitting: trx == "TX")
+                    poll.extra.append(read)
+                }
                 poll.carrier = try? client.carrier()
                 if needNames {
                     poll.names = try? client.modemNames()
@@ -303,13 +370,21 @@ public final class DigitalInterfaceModel {
             }
             status = RadioWindowTexts.digitalStatus(modem: poll.modem, trx: poll.trx)
             error = nil
-            digital.carrierHz = poll.carrier.map { Int($0) }
-            digital.modem = poll.modem
+            digital.sides[index].carrierHz = poll.carrier.map { Int($0) }
+            digital.sides[index].modem = poll.modem
             if let names = poll.names, !names.isEmpty {
-                digital.modemNames = names
+                digital.sides[index].modemNames = names
             }
             if let switches = poll.switches {
-                digital.switches = switches
+                digital.sides[index].switches = switches
+            }
+            for (slot, extra) in poll.extra.enumerated() where slot < extraTexts.count {
+                if let chunk = extra {
+                    extraTexts[slot] = extraStreams[slot].text
+                    if config.config.digital.extraRxToGrab {
+                        offerCalls(in: extraStreams[slot].text, chunk: chunk)
+                    }
+                }
             }
         case .failed(let message):
             error = RadioWindowTexts.fldigiUnavailable(host: host, port: port, message: message)
@@ -344,6 +419,15 @@ public final class DigitalInterfaceModel {
             app?.grabList.offer(hit.call)
         }
         grabbedUpTo = seen
+    }
+
+    /// The calls of an additional RX window's new text go to the Grab window (N1MM „RX Windows add to Grab window").
+    private func offerCalls(in text: String, chunk: String) {
+        let own: String = myCall
+        let length: Int = chunk.utf16.count
+        for hit in CallsignScanner.scan(chunk) where hit.end < length && hit.call != own {
+            app?.grabList.offer(hit.call)
+        }
     }
 
     // MARK: - the window's actions
@@ -387,7 +471,7 @@ public final class DigitalInterfaceModel {
 
     /// A message button pressed: sent from the active entry window (macros, `{LOGTHENPOP}`, the lamp, Esc).
     public func pressButton(_ index: Int) {
-        app?.perform(.digitalButton(index))
+        app?.perform(.digitalButton(index), on: targetEntry)
     }
 
     public func setButtonCount(_ count: Int) {
@@ -406,27 +490,27 @@ public final class DigitalInterfaceModel {
 
     /// The switch as last read or set (`nil` = unknown).
     public func isOn(_ toggle: FldigiClient.Switch) -> Bool? {
-        digital.switches[toggle]
+        side.switches[toggle]
     }
 
     /// A switch button pressed.
     public func toggle(_ toggle: FldigiClient.Switch) {
-        digital.set(toggle, !(digital.switches[toggle] ?? false))
+        digital.set(toggle, !(side.switches[toggle] ?? false), side: index)
     }
 
     /// NET (fldigi: Lock off).
     public var net: Bool? {
-        digital.switches[.lock].map { !$0 }
+        side.switches[.lock].map { !$0 }
     }
 
     /// The Align button.
     public func align() {
-        (app?.activeEntry ?? app?.entry)?.alignDigital()
+        targetEntry?.alignDigital()
     }
 
     /// The Grab button: the highlighted call into a wiped entry window.
     public func grab() {
-        (app?.activeEntry ?? app?.entry)?.grabFromList()
+        targetEntry?.grabFromList()
     }
 
     /// The window shows no new text (the pause bar or the pointer over a call).
@@ -455,7 +539,7 @@ public final class DigitalInterfaceModel {
         lettersFigs = word.map { LettersFigures.convert($0.word) } ?? ""
         let call: String? = offset.flatMap { callAt($0) }
         let digi: DigitalConfig = config.config.digital
-        let fieldEmpty: Bool = KotlinStrings.isBlank(app?.typedCall ?? "")
+        let fieldEmpty: Bool = KotlinStrings.isBlank(targetEntry?.form.call ?? "")
         let pause: Bool = digi.pauseOnCallHover && call != nil && fieldEmpty
         if pause != hoverPaused {
             hoverPaused = pause
@@ -473,7 +557,7 @@ public final class DigitalInterfaceModel {
     @discardableResult
     public func rightClick() -> Bool {
         guard config.config.digital.rightClickReturn else { return false }
-        app?.perform(.enter)
+        app?.perform(.enter, on: targetEntry)
         return true
     }
 
@@ -523,7 +607,7 @@ public final class DigitalInterfaceModel {
         }
         var color: SpotColorClassifier.SpotColorKey = .good
         if let app {
-            let entry: EntryModel = app.activeEntry ?? app.entry
+            let entry: EntryModel = targetEntry ?? app.entry
             let status: SpotStatus = app.spotAnalysis.current().callStatus(
                 call: call, freqHz: Int(clamping: entry.form.freqHz), mode: entry.form.mode.rawValue)
             color = SpotColorClassifier.classify(dupe: status.dupe, newMultCount: status.newMultCount)
@@ -537,7 +621,7 @@ public final class DigitalInterfaceModel {
     /// What invalidates the cached marks.
     private var markEpoch: String {
         guard let app else { return "" }
-        let entry: EntryModel = app.activeEntry ?? app.entry
+        let entry: EntryModel = targetEntry ?? app.entry
         return [String(app.logbook.rows.count), String(app.spotAnalysis.revision), String(app.callData.scpRevision),
                 String(app.callData.callHistoryRevision), entry.band?.adif ?? "", entry.form.mode.rawValue,
                 config.config.digital.callValidity].joined(separator: "|")
@@ -582,8 +666,8 @@ public final class DigitalInterfaceModel {
                                transmitted: tx.contains { $0.contains(hit.start) }))
             taken.append(hit.start..<hit.end)
         }
-        let current: JavaLinkedMap<String> = app?.currentExchange ?? JavaLinkedMap()
-        let typed: String = app?.typedCall ?? ""
+        let current: JavaLinkedMap<String> = targetEntry?.form.contestExchange ?? JavaLinkedMap()
+        let typed: String = targetEntry?.form.call ?? ""
         for line in TextTokens.byLine(text) {
             let lineCall: String = Self.lineCall(line, own: own) ?? typed
             let fields: [ContestDefinition.ExchangeField] = contest.exchangeFields(call: lineCall)
@@ -622,7 +706,7 @@ public final class DigitalInterfaceModel {
         switch click {
         case .force:
             if let word = wordAt(offset) {
-                (app?.activeEntry ?? app?.entry)?.insertIntoFocusedField(word.word)
+                targetEntry?.insertIntoFocusedField(word.word)
             }
             return
         case .lettersFigures:
@@ -643,7 +727,7 @@ public final class DigitalInterfaceModel {
         }
         for span in all where hit(span) {
             if case .exchange(let fieldId, let value) = span.kind {
-                app?.prefillExchange([(id: fieldId, value: value)])
+                prefillExchange([(id: fieldId, value: value)])
                 return
             }
         }
@@ -653,7 +737,7 @@ public final class DigitalInterfaceModel {
     /// in Run, a plain click while the call field holds another call stacks one of them instead of replacing it
     /// (N1MM): FIFO the clicked call, LIFO the call in the field (the clicked one goes into the field).
     public func take(_ call: String, click: Click = .plain) {
-        guard let app else { return }
+        guard let app, let target = targetEntry else { return }
         // N1MM: a call taken from the text leaves the Grab window.
         app.grabList.remove(call)
         if click == .stack {
@@ -662,19 +746,19 @@ public final class DigitalInterfaceModel {
         }
         defer {
             // N1MM „Send Space on Callsign Mouse Click": the cursor moves on to the exchange.
-            if config.config.digital.sendSpaceOnClick, CallStack.normalize(app.typedCall) == CallStack.normalize(call) {
-                (app.activeEntry ?? app.entry).jumpToExchange()
+            if config.config.digital.sendSpaceOnClick, CallStack.normalize(target.form.call) == CallStack.normalize(call) {
+                target.jumpToExchange()
             }
         }
-        let typed: String = CallStack.normalize(app.typedCall)
+        let typed: String = CallStack.normalize(target.form.call)
         let stacking: Bool = config.config.digital.digitalCallStacking && app.operating.isRun
         guard stacking, !typed.isEmpty, typed != CallStack.normalize(call), let stack = app.callStack else {
-            app.prefillCall(call)
+            target.prefillCall(call)
             return
         }
         if CallStack.Order.from(config.config.esm.callStackOrder) == .lifo {
             if stack.push(typed) {
-                app.prefillCall(call)
+                target.prefillCall(call)
             }
         } else {
             stack.push(call)
@@ -684,17 +768,17 @@ public final class DigitalInterfaceModel {
     /// A Shift+clicked word after the Letters/Figures conversion: a call into the call field, an exchange word into
     /// its field, anything else into the field with the typing cursor.
     private func takeConverted(_ word: String) {
-        guard let app else { return }
+        guard let target = targetEntry else { return }
         if let call = CallsignScanner.scan(word).first?.call, call.utf16.count == word.utf16.count {
             take(call)
             return
         }
-        let fields: [ContestDefinition.ExchangeField] = contest.exchangeFields(call: app.typedCall)
-        if let grab = try? ExchangeGrab.route(fields, app.currentExchange, word) {
-            app.prefillExchange([(id: grab.fieldId, value: grab.value)])
+        let fields: [ContestDefinition.ExchangeField] = contest.exchangeFields(call: target.form.call)
+        if let grab = try? ExchangeGrab.route(fields, target.form.contestExchange, word) {
+            prefillExchange([(id: grab.fieldId, value: grab.value)])
             return
         }
-        (app.activeEntry ?? app.entry).insertIntoFocusedField(word)
+        target.insertIntoFocusedField(word)
     }
 
     // MARK: - frequency and modem
@@ -702,18 +786,18 @@ public final class DigitalInterfaceModel {
     /// The caption's frequency (N1MM shows the exact frequency): the transmitted frequency (dial ± audio in a
     /// sideband mode with AutoTRXUpdate) and the audio frequency; `""` without a rig frequency.
     public var frequencyCaption: String {
-        guard let app else { return "" }
-        let state: RigState? = app.rig.activeState
-        let dial: Int64 = state?.freqHz ?? (app.activeEntry ?? app.entry).form.freqHz
+        guard let app, let target = targetEntry else { return "" }
+        let state: RigState? = app.rig.vfo.twoEntryWindows ? app.rig.snapshot(vfo: index).state : app.rig.activeState
+        let dial: Int64 = state?.freqHz ?? target.form.freqHz
         // N1MM „Display Radio Freq and not Exact Freq in DI Caption".
         let transmit: Int64 = config.config.digital.captionRadioFrequency
-            ? dial : digital.transmitHz(dialHz: dial, rawMode: state?.rawMode)
-        return DigitalTexts.frequencyCaption(transmitHz: transmit, carrierHz: digital.carrierHz)
+            ? dial : digital.transmitHz(dialHz: dial, rawMode: state?.rawMode, side: index)
+        return DigitalTexts.frequencyCaption(transmitHz: transmit, carrierHz: side.carrierHz)
     }
 
     /// The modems of the Op Mode menu: the contest ones first (RTTY, PSK, CW as fldigi names them), then the rest.
     public var opModes: (common: [String], other: [String]) {
-        let names: [String] = digital.modemNames
+        let names: [String] = side.modemNames
         let preferred: [String] = ["RTTY", "BPSK31", "BPSK63", "BPSK125", "QPSK31", "QPSK63", "CW"]
         let common: [String] = names.isEmpty ? preferred : preferred.filter { names.contains($0) }
         return (common, names.filter { !common.contains($0) })
@@ -721,13 +805,13 @@ public final class DigitalInterfaceModel {
 
     /// The current modem (fldigi's answer).
     public var currentModem: String {
-        digital.modem
+        side.modem
     }
 
     /// N1MM Op Mode: switches fldigi's modem; RTTY/PSK modems put the active entry window into that mode too.
     public func selectModem(_ name: String) {
-        digital.setModem(name)
-        guard let entry = app?.activeEntry ?? app?.entry, !entry.modeLocked else { return }
+        digital.setModem(name, side: index)
+        guard let entry = targetEntry, !entry.modeLocked else { return }
         let upper: String = KotlinStrings.uppercase(name)
         if upper.hasPrefix("RTTY") && entry.form.mode != .rtty {
             entry.setMode(.rtty)
@@ -793,15 +877,15 @@ public final class DigitalInterfaceModel {
         switch key {
         case .function(let index):
             if down {
-                app?.perform(.functionKey(index, opposite: shift))
+                app?.perform(.functionKey(index, opposite: shift), on: targetEntry)
             }
         case .enter:
             if !down {
-                app?.perform(.enter)
+                app?.perform(.enter, on: targetEntry)
             }
         case .escape:
             if !down {
-                app?.perform(.stopSending)
+                app?.perform(.stopSending, on: targetEntry)
             }
         }
         return true
