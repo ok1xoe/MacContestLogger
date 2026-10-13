@@ -155,8 +155,9 @@ import Testing
         }
         app.model.callData.adoptCallHistory(CallHistory.parse(["!!Order!!,Call,Name", "DL1ABC,HANS"]), path: "")
         let digital: DigitalInterfaceModel = app.model.makeDigitalInterface()
-        digital.open()
+        // The text is there before the window's first poll (no race with the poll on a slow runner).
         fldigi.receive("CQ DE DL1ABC ")
+        digital.open()
         await app.settle()
         #expect(!digital.text.isEmpty)
         #expect(digital.buttons.count == 8)
@@ -182,9 +183,10 @@ import Testing
             config.digital.rxOutputToFile = true
         }
         let digital: DigitalInterfaceModel = app.model.makeDigitalInterface()
-        digital.open()
         fldigi.receive("CQ DE DL1ABC ")
+        digital.open()
         await app.settle()
+        #expect(digital.text == "CQ DE DL1ABC ")
         let log: DigitalRxLog = try #require(digital.rxLog)
         await log.flush()
         let written: String = try String(contentsOf: log.file(for: Date()), encoding: .utf8)
