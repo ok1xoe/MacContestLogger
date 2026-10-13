@@ -83,7 +83,8 @@ import Testing
         #expect(digital.error == nil)
         #expect(digital.recentCalls == ["DL1ABC"])
         let firstPoll: [String] = ["text.get_rx_length", "text.get_rx", "modem.get_name", "main.get_trx_state",
-                                   "modem.get_carrier", "modem.get_names"]
+                                   "modem.get_carrier", "modem.get_names", "main.get_afc", "main.get_lock",
+                                   "main.get_reverse"]
         #expect(server.methods == firstPoll)
         buffer.receive("TU OK2XYZ ")
         app.radioClock.advance(by: 300)
@@ -176,7 +177,7 @@ import Testing
         app.radioClock.advance(by: 300)
         await app.settle()
         #expect(first.methods.count == polled)
-        #expect(second.methods.count == 10, "6 in the first poll (carrier and modem names too), 4 in the next")
+        #expect(second.methods.count == 13, "9 in the first poll (carrier, modem names, AFC/Lock/Rev), 4 in the next")
         // Another change that keeps engine, host and port does not restart.
         app.model.config.config.cwPitchHz = 650
         await runMainQueue()

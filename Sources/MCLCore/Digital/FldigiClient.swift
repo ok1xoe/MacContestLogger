@@ -103,6 +103,29 @@ public final class FldigiClient: Sendable {
         _ = try call("main.tx")
     }
 
+    /// fldigi's switches of the Digital Interface (N1MM AFC, Lock, Rev).
+    public enum Switch: String, CaseIterable, Sendable {
+        case afc
+        case lock
+        case reverse
+    }
+
+    /// `main.get_afc` / `main.get_lock` / `main.get_reverse`.
+    public func isOn(_ toggle: Switch) throws -> Bool {
+        let value: String = Self.valueOf(try call("main.get_" + toggle.rawValue))
+        return value == "true" || value == "1"
+    }
+
+    /// `main.set_afc` / `main.set_lock` / `main.set_reverse`.
+    public func set(_ toggle: Switch, _ on: Bool) throws {
+        _ = try call("main.set_" + toggle.rawValue, .bool(on))
+    }
+
+    /// `modem.set_carrier`: the cursor's audio frequency (Hz).
+    public func setCarrier(_ hz: Int) throws {
+        _ = try call("modem.set_carrier", .int(Int64(hz)))
+    }
+
     /// `{CLRTX}`: the TX buffer cleared.
     public func clearTx() throws {
         _ = try call("text.clear_tx")

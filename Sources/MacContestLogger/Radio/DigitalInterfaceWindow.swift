@@ -158,7 +158,37 @@ struct DigitalInterfaceWindowView: View {
             }
             .help(language.tr("Vysílání zap / vyp (Alt+T); Esc vysílání přeruší"))
             .accessibilityIdentifier("digital.txButton")
+            tuningButtons(model, language: language)
         }
+    }
+
+    /// N1MM's fldigi controls: Align (the signal under the cursor to the alignment frequency), AFC, NET (Lock off),
+    /// Rev and Lock; a lit button is on.
+    private func tuningButtons(_ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
+        HStack(spacing: 4) {
+            Button {
+                model.align()
+            } label: {
+                Text(verbatim: "Align").windowFont(12)
+            }
+            .help(language.tr("Přeladit rig, aby signál pod kurzorem byl na frekvenci zarovnání"))
+            .accessibilityIdentifier("digital.align")
+            switchButton("AFC", on: model.isOn(.afc), identifier: "afc") { model.toggle(.afc) }
+            switchButton("NET", on: model.net, identifier: "net") { model.toggle(.lock) }
+            switchButton("Rev", on: model.isOn(.reverse), identifier: "rev") { model.toggle(.reverse) }
+            switchButton("Lock", on: model.isOn(.lock), identifier: "lock") { model.toggle(.lock) }
+        }
+    }
+
+    private func switchButton(_ title: String, on: Bool?, identifier: String,
+                              action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(verbatim: title)
+                .windowFont(12, weight: on == true ? .bold : .regular)
+                .foregroundStyle(on == true ? Color.accentColor : Color.primary)
+        }
+        .accessibilityValue(Text(verbatim: on == true ? "1" : "0"))
+        .accessibilityIdentifier("digital." + identifier)
     }
 
     /// N1MM's extra message buttons (0, 8, 16 or 24; Settings → Digital modes or the Setup menu).
@@ -325,6 +355,8 @@ struct DigitalInterfaceWindowView: View {
             (\.highlightBackground, "Barva volačky jako pozadí"),
             (\.rxOutputToFile, "Ukládat přijatý text do souboru (ExportFiles)"),
             (\.cwIdEnabled, "CW ID po každém vysílání"),
+            (\.afcOnCq, "AFC zapnout s CQ a TU"),
+            (\.netWithRunChange, "NET podle Run / S&P"),
         ]
         let grabOptions: [(WritableKeyPath<DigitalConfig, Bool>, String)] = [
             (\.grabNoDupes, "Dupy do Grab okna nedávat"),

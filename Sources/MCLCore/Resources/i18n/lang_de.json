@@ -1439,5 +1439,12 @@
  "Počet tlačítek": "Anzahl der Tasten",
  "Načíst .mc…": ".mc laden…",
  "Uložit .mc…": ".mc speichern…",
- "fldigi pošle text v CW a vrátí původní mód; * nebo {MYCALL} = moje volačka.": "fldigi sendet den Text in CW und kehrt zum vorherigen Modus zurück; * oder {MYCALL} = mein Rufzeichen."
+ "fldigi pošle text v CW a vrátí původní mód; * nebo {MYCALL} = moje volačka.": "fldigi sendet den Text in CW und kehrt zum vorherigen Modus zurück; * oder {MYCALL} = mein Rufzeichen.",
+ "Přeladit rig, aby signál pod kurzorem byl na frekvenci zarovnání": "Rig so verstimmen, dass das Signal unter dem Cursor auf der Ausrichtungsfrequenz liegt",
+ "AFC zapnout s CQ a TU": "AFC mit CQ und TU einschalten",
+ "NET podle Run / S&P": "NET nach Run / S&P",
+ "Zarovnání RTTY (Hz)": "RTTY-Ausrichtung (Hz)",
+ "Zarovnání ostatní (Hz)": "Andere Ausrichtung (Hz)",
+ "Tlačítko Align přeladí rig tak, aby signál pod kurzorem fldigi byl na této audio frekvenci (u FSK nutné; fldigi: značka + 85 Hz).": "Die Align-Taste verstimmt das Rig so, dass das Signal unter dem fldigi-Cursor auf dieser Audiofrequenz liegt (bei FSK nötig; fldigi: Mark + 85 Hz).",
+ "Kompenzace posunu FSK (Hz)": "FSK-Shift-Frequenzkompensation (Hz)"
 }

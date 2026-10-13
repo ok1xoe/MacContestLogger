@@ -123,6 +123,12 @@ import Testing
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
+        expected.digital.alignRttyHz = 2210
+        expected.digital.alignOtherHz = 1500
+        expected.digital.afcOnCq = false
+        expected.digital.netWithRunChange = false
+        expected.digital.shiftCompEnabled = false
+        expected.digital.shiftCompHz = 170
         expected.digital.cwIdEnabled = false
         expected.digital.cwIdText = "DE {MYCALL}"
         expected.digital.diButtonCount = 0
@@ -377,6 +383,12 @@ import Testing
         w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
+        w.same(\.alignRttyHz, \.digital.alignRttyHz, 1500)
+        w.same(\.alignOtherHz, \.digital.alignOtherHz, 1000)
+        w.same(\.afcOnCq, \.digital.afcOnCq, true)
+        w.same(\.netWithRunChange, \.digital.netWithRunChange, true)
+        w.same(\.shiftCompEnabled, \.digital.shiftCompEnabled, true)
+        w.same(\.shiftCompHz, \.digital.shiftCompHz, -170)
         w.same(\.cwIdEnabled, \.digital.cwIdEnabled, true)
         w.same(\.cwIdText, \.digital.cwIdText, "{MYCALL}")
         w.same(\.diButtonCount, \.digital.diButtonCount, 16)

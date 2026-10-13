@@ -34,8 +34,55 @@ public final class DigitalKeyerModel {
     /// The frequency the digital signal is on: the dial ± the audio frequency in a sideband mode
     /// (`autoTrxUpdate`), the dial otherwise.
     public func transmitHz(dialHz: Int64, rawMode: String?) -> Int64 {
-        guard config.config.digital.autoTrxUpdate, let rawMode else { return dialHz }
-        return DigitalFrequency.transmitHz(dialHz: dialHz, rawMode: rawMode, carrierHz: carrierHz)
+        guard let rawMode else { return dialHz }
+        let digital: DigitalConfig = config.config.digital
+        var hz: Int64 = digital.autoTrxUpdate
+            ? DigitalFrequency.transmitHz(dialHz: dialHz, rawMode: rawMode, carrierHz: carrierHz) : dialHz
+        if dialHz > 0 {
+            hz += DigitalFrequency.shiftCompensation(rawMode: rawMode, enabled: digital.shiftCompEnabled,
+                                                     offsetHz: digital.shiftCompHz)
+        }
+        return hz
+    }
+
+    /// fldigi's AFC, Lock and Rev as last read or set (N1MM's buttons); `nil` = not known.
+    public internal(set) var switches: [FldigiClient.Switch: Bool] = [:]
+
+    /// AFC / Lock / Rev on or off (the buttons, `{ENABLEAFC}`, `{DISABLEAFC}`, `{ENABLENET}`, `{DISABLENET}`, AFC with
+    /// CQ, NET with the Run change).
+    public func set(_ toggle: FldigiClient.Switch, _ on: Bool) {
+        guard ready, !closed else { return }
+        switches[toggle] = on
+        let host: String = config.config.digital.fldigiHost
+        let port: Int = config.config.digital.fldigiPort
+        let lane: KeyerLane = self.lane
+        lane.run { devices in
+            try? lane.fldigi(devices, host: host, port: port).set(toggle, on)
+        }
+    }
+
+    /// N1MM NET (MMTTY: the TX frequency follows the RX one): fldigi's Lock off. NET off = Lock on.
+    public func setNet(_ on: Bool) {
+        set(.lock, !on)
+    }
+
+    /// N1MM Align: the rig moves so that the signal under fldigi's cursor lands on the alignment frequency, and the
+    /// cursor moves there too. `qsy` retunes the rig (the entry window's rig port); `false` = nothing to align.
+    @discardableResult
+    public func align(dialHz: Int64, rawMode: String?, qsy: (Int64) -> Void) -> Bool {
+        guard ready, let rawMode, let carrier = carrierHz else { return false }
+        let target: Int = config.config.digital.alignHz(modem: modem)
+        guard let dial = DigitalFrequency.alignedDialHz(dialHz: dialHz, rawMode: rawMode, carrierHz: carrier,
+                                                        targetHz: target) else { return false }
+        qsy(dial)
+        carrierHz = target
+        let host: String = config.config.digital.fldigiHost
+        let port: Int = config.config.digital.fldigiPort
+        let lane: KeyerLane = self.lane
+        lane.run { devices in
+            try? lane.fldigi(devices, host: host, port: port).setCarrier(target)
+        }
+        return true
     }
 
     /// Switches fldigi's modem (N1MM Op Mode, typing RTTY/PSK in the call field); a failure goes to the status line.

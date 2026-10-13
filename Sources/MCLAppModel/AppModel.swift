@@ -996,6 +996,26 @@ public final class AppModel {
         model.infoStrip.sources.stackedCalls = { [weak callStack] in
             callStack?.calls ?? []
         }
+        followRunModeForNet(operating: model.operating, digital: model.keyer.digital, config: model.config,
+                            last: model.operating.runMode)
+    }
+
+    /// N1MM „NET On/Off with Run Change": a switch to S&P turns NET on (fldigi's Lock off), to Run off — only in a
+    /// digital mode with fldigi, and only with the option on.
+    private static func followRunModeForNet(operating: OperatingModel, digital: DigitalKeyerModel, config: ConfigModel,
+                                            last: RunMode) {
+        withObservationTracking {
+            _ = operating.runMode
+        } onChange: { [weak operating, weak digital, weak config] in
+            MainHop.post {
+                guard let operating, let digital, let config else { return }
+                let mode: RunMode = operating.runMode
+                if mode != last && config.config.digital.netWithRunChange && digital.ready {
+                    digital.setNet(mode == .searchAndPounce)
+                }
+                followRunModeForNet(operating: operating, digital: digital, config: config, last: mode)
+            }
+        }
     }
 
     /// The Settings port of the network services: a saved cluster change stops and starts the session again. An injected port

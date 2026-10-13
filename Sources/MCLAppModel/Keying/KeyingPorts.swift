@@ -35,6 +35,9 @@ public protocol FldigiPort: AnyObject, Sendable {
     func addTx(_ text: String) throws
     func txOn() throws
     func clearTx() throws
+    func isOn(_ toggle: FldigiClient.Switch) throws -> Bool
+    func set(_ toggle: FldigiClient.Switch, _ on: Bool) throws
+    func setCarrier(_ hz: Int) throws
 }
 
 extension FldigiClient: FldigiPort {}

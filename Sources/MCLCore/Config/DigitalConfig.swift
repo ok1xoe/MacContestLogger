@@ -109,12 +109,26 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// N1MM „Output Main RX Window to Text File": received text appended to `ExportFiles/<MMddyyyy>DigitalInterface1Output.txt`. Swift-only key.
     public var rxOutputToFile: Bool = false
 
+    /// N1MM Alignment Frequency for RTTY in fldigi (fldigi's cursor is the centre: mark 2125 + 85). Swift-only key.
+    public var alignRttyHz: Int = 2210
+    /// N1MM Alignment Frequency for the other modes (PSK…). Swift-only key.
+    public var alignOtherHz: Int = 1500
+    /// N1MM „AFC On/Off with CQ": the CQ and TU messages turn fldigi's AFC on (to tune in off-frequency callers). Swift-only key.
+    public var afcOnCq: Bool = false
+    /// N1MM „NET On/Off with Run Change": NET (fldigi: Lock off) in S&P, NET off (Lock on) in Run. Swift-only key.
+    public var netWithRunChange: Bool = false
+    /// N1MM Shift Frequency Compensation: in FSK RTTY (rig mode RTTY/RTTYR) the offset is added to the logged and shown frequency. Swift-only key.
+    public var shiftCompEnabled: Bool = false
+    /// The compensation offset (Hz, may be negative). Swift-only key.
+    public var shiftCompHz: Int = 170
+
     enum CodingKeys: String, CodingKey {
         case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
         case autoTrxUpdate, rttyModem, pskModem
         case callValidity, validateScp, validateCallHistory, validateSpotted, validateLogged, scpGarbageSearch, highlightBackground, nonScrollingRx, pauseOnCallHover, hoverMode, rightClickReturn, sendSpaceOnClick, captionRadioFrequency
         case grabOrder, grabNoDupes, grabOnlyScp, grabClearOnQsy, grabClearOnCq, grabSendSpace, grabAddToBandmap
         case cwIdEnabled, cwIdText, diButtonCount, rxOutputToFile, diMessages
+        case alignRttyHz, alignOtherHz, afcOnCq, netWithRunChange, shiftCompEnabled, shiftCompHz
     }
 
     public init() {}
@@ -157,6 +171,22 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         diButtonCount = DigitalConfig.buttonCount(c.value(.diButtonCount, default: d.diButtonCount))
         diMessages = DigitalConfig.buttons(c.value(.diMessages, default: d.diMessages))
         rxOutputToFile = c.value(.rxOutputToFile, default: d.rxOutputToFile)
+        alignRttyHz = DigitalConfig.audioHz(c.value(.alignRttyHz, default: d.alignRttyHz), fallback: d.alignRttyHz)
+        alignOtherHz = DigitalConfig.audioHz(c.value(.alignOtherHz, default: d.alignOtherHz), fallback: d.alignOtherHz)
+        afcOnCq = c.value(.afcOnCq, default: d.afcOnCq)
+        netWithRunChange = c.value(.netWithRunChange, default: d.netWithRunChange)
+        shiftCompEnabled = c.value(.shiftCompEnabled, default: d.shiftCompEnabled)
+        shiftCompHz = max(-5000, min(5000, c.value(.shiftCompHz, default: d.shiftCompHz)))
+    }
+
+    /// An audio frequency for fldigi's cursor (100…4000 Hz), else `fallback`.
+    public static func audioHz(_ value: Int, fallback: Int) -> Int {
+        (100...4000).contains(value) ? value : fallback
+    }
+
+    /// The Align target for a modem (RTTY or the others).
+    public func alignHz(modem: String) -> Int {
+        KotlinStrings.uppercase(modem).hasPrefix("RTTY") ? alignRttyHz : alignOtherHz
     }
 
     public static let buttonSlots = 24

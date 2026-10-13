@@ -120,7 +120,8 @@ public enum CwMessageBuilder {
         "{SOCALLSTACK}": .soCallStack, "{STACKANOTHER}": .stackAnother, "{CLRSTACK}": .clearStack,
         "{GRAB}": .grab, "{DELALL}": .grabDeleteAll, "{DELTOP}": .grabDeleteTop, "{DELSEL}": .grabDeleteSelected,
         "{SCQ}": .resumeCq, "{TX}": .digitalTx, "{RX}": .digitalRx, "{CLRRX}": .clearRx, "{CLRTX}": .clearTx,
-        "{ALT-T}": .toggleTx, "{ALT-Q}": .jumpCq,
+        "{ALT-T}": .toggleTx, "{ALT-Q}": .jumpCq, "{ALIGN}": .align, "{ENABLEAFC}": .afcOn, "{DISABLEAFC}": .afcOff,
+        "{ENABLENET}": .netOn, "{DISABLENET}": .netOff,
     ]
 
     /// Builds the message (`nil` template = empty message, like Java `null`).

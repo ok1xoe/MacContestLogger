@@ -203,6 +203,12 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var callStackOrder: String = CallStack.Order.multsFirst.rawValue
     public var callStackClearOnBandChange: Bool = true
     public var digitalCallStacking: Bool = false
+    public var alignRttyHz: Int = 2210
+    public var alignOtherHz: Int = 1500
+    public var afcOnCq: Bool = false
+    public var netWithRunChange: Bool = false
+    public var shiftCompEnabled: Bool = false
+    public var shiftCompHz: Int = 170
     public var cwIdEnabled: Bool = false
     public var cwIdText: String = "DE {MYCALL}"
     public var diButtonCount: Int = 0
@@ -483,6 +489,12 @@ extension ConfigurerDraft {
         callStackOrder = config.esm.callStackOrder
         callStackClearOnBandChange = config.esm.callStackClearOnBandChange
         digitalCallStacking = config.digital.digitalCallStacking
+        alignRttyHz = config.digital.alignRttyHz
+        alignOtherHz = config.digital.alignOtherHz
+        afcOnCq = config.digital.afcOnCq
+        netWithRunChange = config.digital.netWithRunChange
+        shiftCompEnabled = config.digital.shiftCompEnabled
+        shiftCompHz = config.digital.shiftCompHz
         cwIdEnabled = config.digital.cwIdEnabled
         cwIdText = config.digital.cwIdText
         diButtonCount = config.digital.diButtonCount
