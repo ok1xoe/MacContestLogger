@@ -33,7 +33,7 @@ public final class WindowsModel {
     /// DXCC mode) and one window per multiplier kind (`mult:<kind>`).
     public static let infoToolWindows: Set<String> = Set([
         "rate", "goals", "goals-from-log", "statistics", "score", "dupesheet", "dupesheet2", "skeds", "qtc", "simulator",
-        "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc",
+        "check", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc",
     ]).union(multWindowIds)
 
     /// `mult:<kind>` for every kind of the multiplier grids (Kotlin `openMultWindows`).
@@ -58,7 +58,8 @@ public final class WindowsModel {
         "window.blacklist": "blacklist", "window.netstatus": "netstatus", "window.chat": "chat",
         "window.partner": "partner", "window.wsjtxdecodes": "wsjtxdecodes", "window.hamqthlog": "hamqthLog",
         "window.rate": "rate", "window.skeds": "skeds", "window.score": "score", "window.movemults": "movemults",
-        "window.dupesheet": "dupesheet", "window.dupesheet2": "dupesheet2", "window.statistics": "statistics", "window.qtc": "qtc",
+        "window.dupesheet": "dupesheet", "window.dupesheet2": "dupesheet2", "window.check": "check",
+        "window.statistics": "statistics", "window.qtc": "qtc",
         "window.propagation": "propagation", "window.bandnotes": "bandnotes", "window.simulator": "simulator",
         "mult.dxcc": "mult:dxcc", "mult.grid": "mult:grid", "mult.itu": "mult:itu", "mult.cq": "mult:cq",
         "mult.districts": "mult:districts", "mult.other": "mult:other", "mult.sections": "mult:sections",

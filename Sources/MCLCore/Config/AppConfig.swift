@@ -240,6 +240,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
+        case checkHiddenPanes, checkPaneWeights, checkYankOrder, checkYankAllowDupes, checkFavorEndDifferences
+        case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
+        case showUnmatchedCallMark
         case callHistoryFile, databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -341,6 +344,16 @@ public struct AppConfig: Codable, Equatable, Sendable {
         nPlusOneEnabled = c.value(.nPlusOneEnabled, default: d.nPlusOneEnabled)
         preferredCallbook = CallbookService(configValue: c.value(.preferredCallbook, default: d.preferredCallbook))
             .rawValue
+        checkHiddenPanes = c.value(.checkHiddenPanes, default: d.checkHiddenPanes)
+        checkPaneWeights = c.value(.checkPaneWeights, default: d.checkPaneWeights)
+        checkYankOrder = c.value(.checkYankOrder, default: d.checkYankOrder)
+        checkYankAllowDupes = c.value(.checkYankAllowDupes, default: d.checkYankAllowDupes)
+        checkFavorEndDifferences = c.value(.checkFavorEndDifferences, default: d.checkFavorEndDifferences)
+        checkTelnetMinSpots = c.value(.checkTelnetMinSpots, default: d.checkTelnetMinSpots)
+        checkReverseEnabled = c.value(.checkReverseEnabled, default: d.checkReverseEnabled)
+        checkReverseThreshold = c.value(.checkReverseThreshold, default: d.checkReverseThreshold)
+        checkReverseFromStart = c.value(.checkReverseFromStart, default: d.checkReverseFromStart)
+        showUnmatchedCallMark = c.value(.showUnmatchedCallMark, default: d.showUnmatchedCallMark)
         dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
 

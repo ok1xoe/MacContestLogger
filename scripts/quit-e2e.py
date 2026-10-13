@@ -253,8 +253,8 @@ MULT_KINDS = ["dxcc", "grid", "itu", "cq", "districts", "other", "sections"]
 ALL_WINDOWS = [
     "log", "defeditor", "catLog", "rotator", "cwkeyboard", "cwreader", "digitalinterface", "digitalinterface2", "waterfall",
     "dxCluster", "bandmap", "availMult", "blacklist", "netstatus", "chat", "partner", "wsjtxdecodes", "hamqthLog",
-    "rate", "statistics", "score", "dupesheet", "check", "skeds", "qtc", "bandnotes", "movemults", "propagation",
-    "rate", "statistics", "score", "dupesheet", "dupesheet2", "skeds", "qtc", "bandnotes", "movemults", "propagation",
+    "rate", "statistics", "score", "dupesheet", "dupesheet2", "check", "skeds", "qtc", "bandnotes", "movemults",
+    "propagation",
     "worldmap-dxcc",
 ] + ["mult:" + kind for kind in MULT_KINDS] + [
     # A plugin window: inert, so its plugin never starts (and this one is not installed); the id must survive the quit.
