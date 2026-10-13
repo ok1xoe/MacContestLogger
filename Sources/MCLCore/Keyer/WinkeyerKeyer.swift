@@ -172,6 +172,11 @@ public final class WinkeyerKeyer: CwKeyer, @unchecked Sendable {
     public func send(_ message: CwMessage, wpm: Int) throws {
         monitor.lock()
         defer { monitor.unlock() }
+        if rttyOn {
+            // CW is ignored while the FSK mode is on.
+            try write(WinkeyerRtty.mode(nil))
+            rttyOn = false
+        }
         let base = Int32(truncatingIfNeeded: wpm)
         var buf: [UInt8] = []
         var delta: Int32 = 0
@@ -208,6 +213,32 @@ public final class WinkeyerKeyer: CwKeyer, @unchecked Sendable {
     public func abort() throws {
         try write([Self.clearBuffer])
         setBusy(false)
+    }
+
+    /// RTTY mode on (WinKeyer 3.1 FSK, Swift-only): the next CW message switches it off first.
+    private var rttyOn = false
+
+    /// WinKeyer 3.1 FSK RTTY: the mode command, then the text in brackets (`WinkeyerRtty`).
+    public func sendRtty(_ text: String, settings: WinkeyerRtty.Settings) throws {
+        monitor.lock()
+        defer { monitor.unlock() }
+        setBusy(true)
+        try write(WinkeyerRtty.mode(settings) + WinkeyerRtty.frame(text))
+        rttyOn = true
+    }
+
+    public func abortRtty() throws {
+        try write(WinkeyerRtty.abort)
+        setBusy(false)
+    }
+
+    public func sendRawRtty(_ bytes: [UInt8]) throws {
+        monitor.lock()
+        defer { monitor.unlock() }
+        if bytes.starts(with: [0x00, 0x13]) {
+            rttyOn = true
+        }
+        try write(bytes)
     }
 
     /// Key immediate (0B 01 / 0B 00): continuous carrier for tuning.
@@ -284,3 +315,5 @@ public final class WinkeyerKeyer: CwKeyer, @unchecked Sendable {
         }
     }
 }
+
+extension WinkeyerKeyer: RttyKeyer {}

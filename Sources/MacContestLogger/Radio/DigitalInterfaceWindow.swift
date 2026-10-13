@@ -127,6 +127,7 @@ struct DigitalInterfaceWindowView: View {
                                   onHover: { offset in model.hover(offset: offset) },
                                   onRightClick: { model.rightClick() })
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Self.color(hex: model.appearance.background).map { Color(nsColor: $0) } ?? Color.clear)
             }
             indicators(model, language: language)
             txArea(app, model, language: language)
@@ -486,6 +487,18 @@ struct DigitalInterfaceWindowView: View {
     static func annotated(_ model: DigitalInterfaceModel, size: Int) -> NSAttributedString {
         let text: String = model.text
         let result = NSMutableAttributedString(attributedString: annotated(text, spans: model.spans, size: size))
+        // N1MM Skins, Colors and Fonts: the window's own font and text colour.
+        let appearance = model.appearance
+        if let font = NSFont(name: appearance.font, size: WindowFont.size(16, windowSize: size)) {
+            result.addAttribute(.font, value: font, range: NSRange(location: 0, length: result.length))
+        }
+        if let color = Self.color(hex: appearance.text) {
+            result.enumerateAttribute(.foregroundColor, in: NSRange(location: 0, length: result.length)) { value, range, _ in
+                if (value as? NSColor) == NSColor.labelColor {
+                    result.addAttribute(.foregroundColor, value: color, range: range)
+                }
+            }
+        }
         let length: Int = result.length
         let background: Bool = model.option(\.highlightBackground)
         for range in model.transmittedRanges where range.lowerBound >= 0 && range.upperBound <= length {
@@ -519,6 +532,17 @@ struct DigitalInterfaceWindowView: View {
             }
         }
         return result
+    }
+
+    /// `#RRGGBB` → a colour, `nil` for an empty or invalid text.
+    static func color(hex: String) -> NSColor? {
+        var text: String = hex.trimmingCharacters(in: .whitespaces)
+        if text.hasPrefix("#") {
+            text.removeFirst()
+        }
+        guard text.count == 6, let value = UInt32(text, radix: 16) else { return nil }
+        return NSColor(srgbRed: CGFloat((value >> 16) & 0xFF) / 255, green: CGFloat((value >> 8) & 0xFF) / 255,
+                       blue: CGFloat(value & 0xFF) / 255, alpha: 1)
     }
 
     /// The text in the window's monospaced body size with the calls (primary) and exchange words (tertiary)

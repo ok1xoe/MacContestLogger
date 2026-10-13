@@ -23,7 +23,9 @@ struct DigitalModesTab: View {
                     "Např. FT8, když datovým režimem rigu děláš jen FT8. QSO z WSJT-X / JTDX si mód nesou sama (záložka WSJT/JTDX)."))
             }
             ModemGroup(app: app, draft: $draft)
+            RttyHardwareGroup(language: language, draft: $draft)
             ButtonsGroup(language: language, draft: $draft)
+            AppearanceGroup(language: language, draft: $draft)
         }
     }
 }
@@ -185,6 +187,115 @@ private struct ModemGroup: View {
             }
             SettingsCaption(language.tr(
                 "fldigi dělá modem (RTTY, PSK…) a MCL mu posílá zprávy F-kláves (Function Keys → Digi) a čte dekódovaný text do okna Digitální rozhraní. V RTTY/PSK s modemem funguje i ESM. Esc vysílání přeruší."))
+        }
+    }
+}
+
+/// N1MM „Default RTTY Interface" and the hardware: an external TU/TNC, TinyFSK, WinKeyer 3.1 FSK. PSK always goes
+/// through fldigi.
+private struct RttyHardwareGroup: View {
+    let language: LanguageModel
+    @Binding var draft: ConfigurerDraft
+
+    private static let interfaces: [(RttyInterface, String)] = [
+        (.fldigi, "fldigi"), (.tnc, "TU / TNC"), (.tinyFsk, "TinyFSK"), (.winkeyer, "WinKeyer 3.1"),
+    ]
+    private static let tncTypes: [(TncType, String)] = [
+        (.pk232, "PK-232"), (.kam, "KAM"), (.dxp38, "HAL DXP-38"), (.other, "Other"),
+    ]
+
+    var body: some View {
+        SettingsGroup(title: language.tr("RTTY: rozhraní pro vysílání")) {
+            Picker(selection: $draft.rttyInterface) {
+                ForEach(Self.interfaces, id: \.0.rawValue) { item in
+                    Text(verbatim: item.1).tag(item.0.rawValue)
+                }
+            } label: {
+                EmptyView()
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .accessibilityLabel(Text(verbatim: language.tr("RTTY: rozhraní pro vysílání")))
+            SettingsCaption(language.tr(
+                "PSK a ostatní módy vždy přes fldigi. TU / TNC i dekóduje (text jde do Digitálního rozhraní); TinyFSK a WinKeyer 3.1 jen klíčují FSK, příjem dál dekóduje fldigi. Hardware není vyzkoušený naživo."))
+            switch RttyInterface.from(draft.rttyInterface) {
+            case .tnc:
+                HStack(alignment: .bottom, spacing: 8) {
+                    Picker(selection: $draft.tncType) {
+                        ForEach(Self.tncTypes, id: \.0.rawValue) { item in
+                            Text(verbatim: item.1).tag(item.0.rawValue)
+                        }
+                    } label: {
+                        EmptyView()
+                    }
+                    .labelsHidden()
+                    .frame(width: 140)
+                    .accessibilityLabel(Text(verbatim: "TNC"))
+                    SettingsField(caption: language.tr("Sériový port")) {
+                        SettingsTextField(text: $draft.tncPort)
+                    }
+                    SettingsField(caption: language.tr("Rychlost")) {
+                        SettingsTextField(text: Binding(get: { String(draft.tncBaud) },
+                                                        set: { draft.tncBaud = Int($0) ?? draft.tncBaud }),
+                                          filter: .digits(limit: 6))
+                    }
+                    .frame(width: 90)
+                }
+                HStack(alignment: .bottom, spacing: 8) {
+                    SettingsField(caption: "{TX}") { SettingsTextField(text: $draft.tncTx) }
+                    SettingsField(caption: "{RX}") { SettingsTextField(text: $draft.tncRx) }
+                    SettingsField(caption: "Esc") { SettingsTextField(text: $draft.tncEsc) }
+                }
+                SettingsCaption(language.tr(
+                    "Prázdné = výchozí příkazy typu (PK-232, KAM podle N1MM). Makra {CTRL-C}, {ENTER}, {ENTERLF}, {ESC}. Pro DXP-38 zadej příkazy podle jeho manuálu."))
+            case .tinyFsk:
+                SettingsField(caption: language.tr("Sériový port TinyFSK (9600 8N1)")) {
+                    SettingsTextField(text: $draft.tinyFskPort)
+                }
+                .frame(maxWidth: 320, alignment: .leading)
+            case .winkeyer:
+                HStack(spacing: 12) {
+                    Picker(selection: $draft.wkRttyBaud) {
+                        ForEach([45, 50, 75, 100], id: \.self) { baud in
+                            Text(verbatim: baud == 45 ? "45.45 Bd" : String(baud) + " Bd").tag(baud)
+                        }
+                    } label: {
+                        EmptyView()
+                    }
+                    .labelsHidden()
+                    .frame(width: 110)
+                    .accessibilityLabel(Text(verbatim: language.tr("Rychlost")))
+                    SettingsCheckbox(label: language.tr("Reverse (mark/space)"), isOn: $draft.wkRttyReverse)
+                    SettingsCheckbox(label: language.tr("FSK na KEY, PTT klíčuje (FSKMAP)"), isOn: $draft.wkRttyFskOnKey)
+                }
+                SettingsCaption(language.tr("WinKeyer z Nastavení → CW klíč, firmware 3.1 a novější."))
+            case .fldigi:
+                EmptyView()
+            }
+        }
+    }
+}
+
+/// N1MM Skins, Colors and Fonts for the Digital Interface.
+private struct AppearanceGroup: View {
+    let language: LanguageModel
+    @Binding var draft: ConfigurerDraft
+
+    var body: some View {
+        SettingsGroup(title: language.tr("Vzhled Digitálního rozhraní")) {
+            HStack(alignment: .bottom, spacing: 8) {
+                SettingsField(caption: language.tr("Písmo (prázdné = systémové neproporcionální)")) {
+                    SettingsTextField(text: $draft.diFontName)
+                }
+                SettingsField(caption: language.tr("Barva textu #RRGGBB")) {
+                    SettingsTextField(text: $draft.diTextColor)
+                }
+                .frame(width: 140)
+                SettingsField(caption: language.tr("Pozadí #RRGGBB")) {
+                    SettingsTextField(text: $draft.diBackgroundColor)
+                }
+                .frame(width: 140)
+            }
         }
     }
 }

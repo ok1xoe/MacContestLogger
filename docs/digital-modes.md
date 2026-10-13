@@ -254,6 +254,48 @@ A multi-channel PSK browser (MMVARI multi-channel, fldigi's signal browser) is *
 XML-RPC interface does not expose its browser channels. Several fldigi instances as additional RX windows
 are the workaround.
 
+## RTTY hardware: TU/TNC, TinyFSK, WinKeyer 3.1
+
+**Settings → Digital modes → RTTY: transmit interface** is N1MM's *Default RTTY Interface*. PSK and the
+other sound-card modes always go through fldigi; in RTTY the messages can go to:
+
+| Interface | Transmit | Receive | Esc |
+|---|---|---|---|
+| **fldigi** (default) | AFSK, or fldigi's own FSK | fldigi | `main.abort` |
+| **TU / TNC** (PK-232, KAM, HAL DXP-38, other) | the serial port: the **{TX}** command, the text, the **{RX}** command | the TNC's text in the Digital Interface | the **Esc** command |
+| **TinyFSK** (K0SM's Arduino FSK keyer, 9600 8N1) | `[` text `]` | fldigi | `\` |
+| **WinKeyer 3.1** (the CW keyer's WinKeyer) | FSK RTTY mode (`00 13`), `[` text `]` | fldigi | `\` |
+
+- TNC commands may use `{CTRL-A}`…`{CTRL-Z}`, `{ENTER}`, `{ENTERLF}`, `{ESC}`; empty fields use the type's
+  defaults (N1MM's examples: PK-232 `X{ENTER}` / `{CTRL-D}` / `{CTRL-C}R{ENTER}TC{ENTER}`, KAM `{CTRL-C}T` /
+  `{CTRL-C}E` / `{CTRL-C}R RTTY {ENTER}`). The HAL DXP-38 has no preset — enter its commands from its manual.
+- WinKeyer: speed 45.45/50/75/100 Bd, *Reverse* and *FSKMAP* (FSK on KEY, PTT keys the rig). Sending CW
+  switches the WinKeyer's RTTY mode off first.
+- None of these devices reports the end of a transmission: the lamp of the F-key goes out after the
+  time the text takes at the RTTY speed (N1MM has the same limitation with a TNC). `{TX}` without `{RX}`,
+  Alt+T and the TX window hold the transmission as with fldigi.
+- RTTY through a hardware keyer works without fldigi; the Digital Interface then needs fldigi (or the
+  TNC) only for receiving.
+- **The hardware paths are implemented from the devices' documentation (TinyFSK sketch, K1EL WK 3.1
+  API, N1MM's TNC examples) and tested only against fakes — not on real hardware.**
+
+## Appearance
+
+**Settings → Digital modes → Digital Interface appearance** (N1MM Skins, Colors and Fonts): the
+font of the received text (empty = the system's monospaced font), its colour and the background
+(`#RRGGBB`); the size follows the window's font stepper. *Barva volačky jako pozadí* in the window's
+menu puts the status colours behind the callsigns.
+
+## Built-in decoder
+
+N1MM ships MMVARI as a built-in decoder; MacContestLogger keeps decoding in fldigi (or a TNC). A
+built-in RTTY/PSK decoder is **deferred**: doing it robustly means a sound-card capture with sample-rate
+correction, an FSK demodulator with AFC/ATC and squelch for RTTY, a PSK31/63 Costas-loop demodulator
+with Varicode for PSK, a waterfall to click on, and a TX modulator with the same PTT/Esc safety as the
+keyers — a module the size of fldigi's core that cannot be verified without real signals. The
+design keeps it pluggable: the Digital Interface reads any text source (fldigi, a TNC), so a decoder
+would become one more source behind the same window, Grab window and macros.
+
 ## Sharing CAT with fldigi
 
 When MCL controls the rig, its `rigctld` holds the serial port and fldigi **will

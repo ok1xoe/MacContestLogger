@@ -1479,5 +1479,18 @@
  "Další příjmová okna (host:port, mezerou, max. 4)": "Additional RX windows (host:port, space-separated, at most 4)",
  "Volačky z nich do Grab okna": "Their callsigns into the Grab window",
  "Digi: rozhraní 1 (VFO A / rig 1)": "Digital: interface 1 (VFO A / rig 1)",
- "Digi: rozhraní 2 (VFO B / rig 2)": "Digital: interface 2 (VFO B / rig 2)"
+ "Digi: rozhraní 2 (VFO B / rig 2)": "Digital: interface 2 (VFO B / rig 2)",
+ "RTTY: rozhraní pro vysílání": "RTTY: transmit interface",
+ "PSK a ostatní módy vždy přes fldigi. TU / TNC i dekóduje (text jde do Digitálního rozhraní); TinyFSK a WinKeyer 3.1 jen klíčují FSK, příjem dál dekóduje fldigi. Hardware není vyzkoušený naživo.": "PSK and the other modes always go through fldigi. A TU / TNC also decodes (its text goes to the Digital Interface); TinyFSK and WinKeyer 3.1 only key FSK, fldigi still decodes. The hardware is untested on air.",
+ "Sériový port": "Serial port",
+ "Rychlost": "Speed",
+ "Prázdné = výchozí příkazy typu (PK-232, KAM podle N1MM). Makra {CTRL-C}, {ENTER}, {ENTERLF}, {ESC}. Pro DXP-38 zadej příkazy podle jeho manuálu.": "Empty = the type's default commands (PK-232, KAM as in N1MM). Macros {CTRL-C}, {ENTER}, {ENTERLF}, {ESC}. For the DXP-38 enter the commands from its manual.",
+ "Sériový port TinyFSK (9600 8N1)": "TinyFSK serial port (9600 8N1)",
+ "Reverse (mark/space)": "Reverse (mark/space)",
+ "FSK na KEY, PTT klíčuje (FSKMAP)": "FSK on KEY, PTT keys (FSKMAP)",
+ "WinKeyer z Nastavení → CW klíč, firmware 3.1 a novější.": "The WinKeyer from Settings → CW keyer, firmware 3.1 or newer.",
+ "Vzhled Digitálního rozhraní": "Digital Interface appearance",
+ "Písmo (prázdné = systémové neproporcionální)": "Font (empty = the system monospaced)",
+ "Barva textu #RRGGBB": "Text colour #RRGGBB",
+ "Pozadí #RRGGBB": "Background #RRGGBB"
 }

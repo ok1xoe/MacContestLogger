@@ -5,7 +5,7 @@ import Testing
 
 /// A CW keyer that records what it is asked (nothing is keyed). `send` can be held until `release()` (a slow keyer)
 /// and any call can be made to fail.
-final class FakeCwKeyer: CwKeyer, @unchecked Sendable {
+final class FakeCwKeyer: RttyKeyer, @unchecked Sendable {
     private let lock = NSCondition()
     private var log: [String] = []
     private var holding = false
@@ -66,6 +66,19 @@ final class FakeCwKeyer: CwKeyer, @unchecked Sendable {
 
     func abort() throws {
         try record("abort")
+    }
+
+    // WinKeyer 3.1 FSK RTTY (`RttyKeyer`).
+    func sendRtty(_ text: String, settings: WinkeyerRtty.Settings) throws {
+        try record("rtty " + BaudotText.filter(text).trimmingCharacters(in: .whitespaces))
+    }
+
+    func abortRtty() throws {
+        try record("rtty abort")
+    }
+
+    func sendRawRtty(_ bytes: [UInt8]) throws {
+        try record("rtty raw " + bytes.map { String(format: "%02X", $0) }.joined(separator: " "))
     }
 
     func setSpeed(_ wpm: Int) throws {

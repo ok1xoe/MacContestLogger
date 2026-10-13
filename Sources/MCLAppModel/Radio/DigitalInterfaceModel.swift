@@ -214,6 +214,13 @@ public final class DigitalInterfaceModel {
         return app.rig.vfo.twoEntryWindows ? app.entry : (app.activeEntry ?? app.entry)
     }
 
+    /// N1MM Skins, Colors and Fonts for the Digital Interface: font name, text and background colour (`#RRGGBB`,
+    /// empty = the system's).
+    public var appearance: (font: String, text: String, background: String) {
+        let digital: DigitalConfig = config.config.digital
+        return (digital.diFontName, digital.diTextColor, digital.diBackgroundColor)
+    }
+
     /// N1MM's TX indicator: with two Digital Interfaces, this one has the transmit focus (its rig is active).
     public var hasTransmitFocus: Bool {
         guard let app, app.rig.vfo.twoEntryWindows else { return index == 0 }
@@ -298,6 +305,10 @@ public final class DigitalInterfaceModel {
 
     private func tick(_ started: Int) {
         guard isOpen, started == generation else { return }
+        if index == 0, config.config.digital.rttyRoute.decodes {
+            tickTnc(started)
+            return
+        }
         guard digital.ready else {
             error = RadioWindowTexts.digitalNoModem
             status = ""
@@ -355,6 +366,38 @@ public final class DigitalInterfaceModel {
         }, then: { [weak self] result in
             guard let self, self.isOpen, started == self.generation else { return }
             self.apply(result, host: host, port: port)
+            self.schedule(Self.pollMs, started)
+        })
+    }
+
+    /// An external TU/TNC decodes: its serial port's text is the received text (no fldigi).
+    private func tickTnc(_ started: Int) {
+        let digital: DigitalConfig = config.config.digital
+        let path: String = digital.tncPort
+        let baud: Int = digital.tncBaud
+        let lane: KeyerLane = self.lane
+        let stream: Stream = self.stream
+        lane.run({ devices -> String?? in
+            guard !KotlinStrings.isBlank(path), let link = try? lane.serial(devices, path: path, baud: baud) else {
+                return .some(nil)
+            }
+            let text: String = link.take()
+            if !text.isEmpty {
+                stream.append(text, transmitting: false)
+            }
+            return .some(text)
+        }, then: { [weak self] result in
+            guard let self, self.isOpen, started == self.generation else { return }
+            if case .some(let text) = result, let text {
+                self.error = nil
+                self.status = "TNC · " + path
+                if !text.isEmpty {
+                    self.received()
+                }
+            } else {
+                self.error = .verbatim("TNC: " + DigitalTexts.noSerialPort)
+                self.status = ""
+            }
             self.schedule(Self.pollMs, started)
         })
     }
