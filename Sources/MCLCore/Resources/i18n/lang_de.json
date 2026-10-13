@@ -1561,5 +1561,9 @@
  "Bandplán: na tomto pásmu takový úsek není": "Bandplan: Dieses Band hat kein solches Segment",
  "Bandplán: úsek by byl prázdný": "Bandplan: Das Segment wäre leer",
  "Bandplán se nepodařilo uložit": "Der Bandplan konnte nicht gespeichert werden",
- "Čáry licenčních tříd USA v bandmapě (pro stanice v USA)": "US-Lizenzklassen-Linien in der Bandmap (für US-Stationen)"
+ "Čáry licenčních tříd USA v bandmapě (pro stanice v USA)": "US-Lizenzklassen-Linien in der Bandmap (für US-Stationen)",
+ "Vypnout kolečko myši": "Mausrad deaktivieren",
+ "Na spodní okraj úseku pásma": "Zum unteren Rand des Bandsegments",
+ "Na horní okraj úseku pásma": "Zum oberen Rand des Bandsegments",
+ "Nejnižší kmitočet dole": "Niedrigste Frequenz unten"
 }

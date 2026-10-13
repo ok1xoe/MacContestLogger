@@ -22,6 +22,9 @@ public struct BandmapViewport: Equatable, Sendable {
 
     public private(set) var loHz: Int64
     public private(set) var hiHz: Int64
+    /// N1MM „Show Lowest Freq at Bottom": the frequency grows upwards (post-port option; Kotlin draws the lowest
+    /// frequency at the top). Every position below — `yAt`, `freqAt`, the drag zoom, the markers — follows it.
+    public var lowestAtBottom: Bool = false
 
     /// `remember(band) { band?.lowHz() ?: 0L }` / `band?.highHz() ?: 1L`.
     public init(band: Band?) {
@@ -143,10 +146,10 @@ public struct BandmapViewport: Equatable, Sendable {
     public mutating func dragZoom(from startY: Float, to endY: Float, height: Float,
                                   bounds: ClosedRange<Int64>) -> Bool {
         guard Swift.abs(startY - endY) > Self.dragThresholdPx else { return false }
-        let first: Int64 = freqAt(Swift.min(startY, endY), height: height)
-        let second: Int64 = freqAt(Swift.max(startY, endY), height: height)
-        loHz = Swift.max(first, bounds.lowerBound)
-        hiHz = Swift.min(second, bounds.upperBound)
+        let top: Int64 = freqAt(Swift.min(startY, endY), height: height)
+        let bottom: Int64 = freqAt(Swift.max(startY, endY), height: height)
+        loHz = Swift.max(Swift.min(top, bottom), bounds.lowerBound)
+        hiHz = Swift.min(Swift.max(top, bottom), bounds.upperBound)
         return true
     }
 
@@ -158,10 +161,10 @@ public struct BandmapViewport: Equatable, Sendable {
         return inner - padBottom
     }
 
-    /// `yAt(hz)`: `PAD_TOP + (hz - loHz) / span * usable`, span at least 1.
+    /// `yAt(hz)`: `PAD_TOP + (hz - loHz) / span * usable`, span at least 1 (`lowestAtBottom`: from `hiHz` down).
     public func yAt(_ hz: Int64, height: Float) -> Float {
         let span = Float(Swift.max(spanHz, 1))
-        let ratio: Float = Float(hz &- loHz) / span
+        let ratio: Float = lowestAtBottom ? Float(hiHz &- hz) / span : Float(hz &- loHz) / span
         let offset: Float = ratio * Self.usable(height)
         return Self.padTop + offset
     }
@@ -171,7 +174,8 @@ public struct BandmapViewport: Equatable, Sendable {
     /// Above 70 cm (post-port microwaves, never reachable in Java) the sum is done in `Double`: a `Float` has a
     /// resolution of 1 kHz at 10 GHz, so a click would land on whole kilohertz only.
     public func freqAt(_ y: Float, height: Float) -> Int64 {
-        let ratio: Float = (y - Self.padTop) / Self.usable(height)
+        let down: Float = (y - Self.padTop) / Self.usable(height)
+        let ratio: Float = lowestAtBottom ? 1 - down : down
         if loHz > Int64(Band.cm70.highHz) {
             return JavaMath.d2l(Double(loHz) + Double(ratio) * Double(spanHz))
         }
@@ -182,8 +186,44 @@ public struct BandmapViewport: Equatable, Sendable {
 
     /// The click on the CQ marker: a CQ frequency inside the window, left of the axis, at most 10 px from it.
     public func hitsCqMarker(cqHz: Int64?, x: Float, y: Float, axisX: Float, height: Float) -> Bool {
-        guard let cqHz, cqHz >= loHz, cqHz <= hiHz, x < axisX else { return false }
-        return Swift.abs(y - yAt(cqHz, height: height)) <= Self.cqHitPx
+        hitsMarker(cqHz, x: x, y: y, axisX: axisX, height: height)
+    }
+
+    /// A marker left of the axis (the CQ line, the RX and TX arrows) at `hz` inside the window, at most
+    /// `cqHitPx` from the pointer.
+    public func hitsMarker(_ hz: Int64?, x: Float, y: Float, axisX: Float, height: Float) -> Bool {
+        guard let hz, hz >= loHz, hz <= hiHz, x < axisX else { return false }
+        return Swift.abs(y - yAt(hz, height: height)) <= Self.cqHitPx
+    }
+
+    /// The receiver's filter as a frequency range around the RX frequency (N1MM draws the filter width at the
+    /// arrow): above the dial frequency for an upper sideband (`USB`, `PKTUSB`), below for a lower one, centred
+    /// otherwise (CW, RTTY, AM, FM). `nil` for an unknown passband (0 or less).
+    public static func passband(rxHz: Int64, passbandHz: Int64, rawMode: String) -> ClosedRange<Int64>? {
+        guard passbandHz > 0 else { return nil }
+        let mode: String = rawMode.uppercased()
+        if mode.hasSuffix("USB") {
+            return rxHz...(rxHz &+ passbandHz)
+        }
+        if mode.hasSuffix("LSB") {
+            return (rxHz &- passbandHz)...rxHz
+        }
+        let half: Int64 = passbandHz / 2
+        return (rxHz &- half)...(rxHz &+ (passbandHz - half))
+    }
+
+    /// N1MM „Go to Bottom/Top Of Band": the band plan segment (CW, phone or digi) that holds `tunedHz`, else the
+    /// whole band. `segments` are the band plan of the band (sorted, not overlapping).
+    public static func subBand(tunedHz: Int64, segments: [BandPlan.Segment],
+                               bounds: ClosedRange<Int64>) -> ClosedRange<Int64> {
+        for segment in segments where segment.lowHz <= tunedHz && tunedHz < segment.highHz {
+            let low: Int64 = Swift.max(segment.lowHz, bounds.lowerBound)
+            let high: Int64 = Swift.min(segment.highHz, bounds.upperBound)
+            if low <= high {
+                return low...high
+            }
+        }
+        return bounds
     }
 
     // MARK: - ticks

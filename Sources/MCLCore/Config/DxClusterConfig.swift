@@ -76,6 +76,10 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var spotFilterSpotterContinents: [String] = []
     public var spotFilterSpotterOwnCountry: Bool = false
     public var spotFilterHideNonWorkable: Bool = false
+    /// Band map: the lowest frequency at the bottom (N1MM „Show Lowest Freq at Bottom"; Swift-only key).
+    public var bandmapLowestAtBottom: Bool = false
+    /// Band map: the mouse wheel neither tunes nor zooms (N1MM „Disable Mouse Wheel"; Swift-only key).
+    public var bandmapWheelDisabled: Bool = false
 
     /// The filter as a value (see `SpotFilter`); setting it rewrites the three keys.
     public var spotFilter: SpotFilter {
@@ -103,6 +107,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case spotFilterHiddenBands, spotFilterHiddenModes, spotFilterContest
         case spotFilterSpotterContinents, spotFilterSpotterOwnCountry, spotFilterHideNonWorkable
         case showUsLicenseLines
+        case bandmapLowestAtBottom, bandmapWheelDisabled
     }
 
     public init() {}
@@ -134,6 +139,8 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         spotFilterSpotterContinents = c.value(.spotFilterSpotterContinents, default: d.spotFilterSpotterContinents)
         spotFilterSpotterOwnCountry = c.value(.spotFilterSpotterOwnCountry, default: d.spotFilterSpotterOwnCountry)
         spotFilterHideNonWorkable = c.value(.spotFilterHideNonWorkable, default: d.spotFilterHideNonWorkable)
+        bandmapLowestAtBottom = c.value(.bandmapLowestAtBottom, default: d.bandmapLowestAtBottom)
+        bandmapWheelDisabled = c.value(.bandmapWheelDisabled, default: d.bandmapWheelDisabled)
     }
 
     /// Default set of `commandCount` commands (common DXSpider commands).

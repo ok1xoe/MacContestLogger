@@ -1561,5 +1561,9 @@
  "Bandplán: na tomto pásmu takový úsek není": "Band plan: this band has no such segment",
  "Bandplán: úsek by byl prázdný": "Band plan: the segment would be empty",
  "Bandplán se nepodařilo uložit": "The band plan could not be saved",
- "Čáry licenčních tříd USA v bandmapě (pro stanice v USA)": "US license class lines in the band map (for US stations)"
+ "Čáry licenčních tříd USA v bandmapě (pro stanice v USA)": "US license class lines in the band map (for US stations)",
+ "Vypnout kolečko myši": "Disable mouse wheel",
+ "Na spodní okraj úseku pásma": "Go to bottom of band segment",
+ "Na horní okraj úseku pásma": "Go to top of band segment",
+ "Nejnižší kmitočet dole": "Show lowest frequency at bottom"
 }
