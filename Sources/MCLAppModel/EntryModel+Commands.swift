@@ -620,6 +620,8 @@ extension EntryModel {
             digitalKeyer?.setNet(true)
         case .netOff:
             digitalKeyer?.setNet(false)
+        case .spotMe:
+            spotMeMacro()
         }
     }
 

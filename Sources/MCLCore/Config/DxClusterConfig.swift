@@ -129,6 +129,14 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var autoLogon: Bool = false
     /// N1MM „Show Telnet Buttons".
     public var showButtons: Bool = true
+    /// N1MM „Comment For All Spots": the comment of every spot MCL makes, with `SpotComment` macros.
+    public var spotComment: String = ""
+    /// N1MM Config → „Spot all S&P QSOs": every S&P QSO not yet in the band map is spotted to the cluster (opt-in).
+    public var spotAllSpQsos: Bool = false
+    /// N1MM Special Calls: spots of these calls get a heart in the band map and the Available window.
+    public var specialCalls: [String] = []
+    /// The active contest's bonus stations (BONUS) count as special calls.
+    public var specialCallsIncludeBonus: Bool = true
     /// How many spots the band map's SH/DX asks for.
     public var showDxCount: Int = ClusterCommandFormat.defaultShowDxCount {
         didSet {
@@ -168,6 +176,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case bandmapButtons, filterCwWideHz, filterCwNarrowHz, filterSsbWideHz, filterSsbNarrowHz, filterDigiWideHz
         case filterDigiNarrowHz
         case clusterSoftware, autoLogon, showButtons, showDxCount
+        case spotComment, spotAllSpQsos, specialCalls, specialCallsIncludeBonus
     }
 
     public init() {}
@@ -220,6 +229,10 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         autoLogon = c.value(.autoLogon, default: d.autoLogon)
         showButtons = c.value(.showButtons, default: d.showButtons)
         showDxCount = ClusterCommandFormat.clampedCount(c.value(.showDxCount, default: d.showDxCount))
+        spotComment = c.value(.spotComment, default: d.spotComment)
+        spotAllSpQsos = c.value(.spotAllSpQsos, default: d.spotAllSpQsos)
+        specialCalls = c.value(.specialCalls, default: d.specialCalls)
+        specialCallsIncludeBonus = c.value(.specialCallsIncludeBonus, default: d.specialCallsIncludeBonus)
     }
 
     /// N1MM's band map has at most 36 programmable buttons.

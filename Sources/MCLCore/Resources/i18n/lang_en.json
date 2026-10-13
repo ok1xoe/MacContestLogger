@@ -1627,5 +1627,16 @@
  "zatím nerozpoznán": "not detected yet",
  "Rozpoznaný software: %s · příkazy se formátují pro %s": "Detected software: %s · commands are formatted for %s",
  "{CONN}: cluster %s není v seznamu": "{CONN}: cluster %s is not in the list",
- "Soubor neobsahuje žádné tlačítko": "The file contains no button"
+ "Soubor neobsahuje žádné tlačítko": "The file contains no button",
+ "Komentář spotu": "Spot comment",
+ "Zvláštní volačky": "Special calls",
+ "Komentář ke všem spotům": "Comment for all spots",
+ "Makra: {GRIDSQUARE} lokátor, {MODE} mód, {QTH} QTH/stát/okres, {ZONE} zóna — z výměny spotovaného QSO. Použije se pro Spot It (Alt+P), předvyplní Ctrl+P a {SPOTME}.": "Macros: {GRIDSQUARE} grid, {MODE} mode, {QTH} QTH/state/county, {ZONE} zone — from the exchange of the spotted QSO. Used by Spot It (Alt+P), prefilled in Ctrl+P and used by {SPOTME}.",
+ "Spotovat všechna S&P spojení": "Spot all S&P QSOs",
+ "Pozor: každé S&P spojení, které ještě není v bandmapě, se pošle jako spot do veřejné DX cluster sítě. Ověř, že to propozice závodu dovolují. Dupy, spojení zapsaná po závodě a simulátor se nespotují.": "Caution: every S&P QSO that is not in the band map yet is sent as a spot to the public DX cluster network. Check that the contest rules allow it. Dupes, QSOs entered after the contest and the simulator are never spotted.",
+ "Bonusové stanice, členové klubu, přátelé: jejich spoty mají v bandmapě a v okně Dostupné srdce ♥. Jedna volačka na řádek.": "Bonus stations, club members, friends: their spots get a heart ♥ in the band map and the Available window. One call per line.",
+ "Automaticky zahrnout bonusové stanice závodu": "Automatically include the contest's bonus stations",
+ "Importovat…": "Import…",
+ "Zvláštní volačky: přidáno %s": "Special calls: %s added",
+ "zvláštní volačka": "special call"
 }

@@ -13,7 +13,8 @@ import Foundation
 ///   other mode);
 /// - prosigns `]` SK, `[` AS, `+` AR, `=` BT; `<` / `>` speed ±2 WPM, `~` half space (sent as a space);
 /// - control `{LOG}`, `{WIPE}`, `{RUN}`, `{S&P}`… → `CwMessage.Action`; the call stack `{SOCALLSTACK}`,
-///   `{STACKANOTHER}`, `{CLRSTACK}` too (`{LOGTHENPOP}` is split off by `FunctionKeyRouter` before building);
+///   `{STACKANOTHER}`, `{CLRSTACK}` too (`{LOGTHENPOP}` is split off by `FunctionKeyRouter` before building), and
+///   `{SPOTME}` (a self-spot to the DX cluster);
 /// - `{F1}`…`{F12}` – text of another F-key (chaining, at most 3 levels of insertion).
 ///
 /// Other macros in `{}` are not transmitted and are returned in `CwMessage.unknownMacros`.
@@ -121,7 +122,7 @@ public enum CwMessageBuilder {
         "{GRAB}": .grab, "{DELALL}": .grabDeleteAll, "{DELTOP}": .grabDeleteTop, "{DELSEL}": .grabDeleteSelected,
         "{SCQ}": .resumeCq, "{TX}": .digitalTx, "{RX}": .digitalRx, "{CLRRX}": .clearRx, "{CLRTX}": .clearTx,
         "{ALT-T}": .toggleTx, "{ALT-Q}": .jumpCq, "{ALIGN}": .align, "{ENABLEAFC}": .afcOn, "{DISABLEAFC}": .afcOff,
-        "{ENABLENET}": .netOn, "{DISABLENET}": .netOff,
+        "{ENABLENET}": .netOn, "{DISABLENET}": .netOff, "{SPOTME}": .spotMe,
     ]
 
     /// Builds the message (`nil` template = empty message, like Java `null`).

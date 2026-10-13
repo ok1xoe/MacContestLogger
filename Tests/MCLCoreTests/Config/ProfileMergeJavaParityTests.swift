@@ -304,7 +304,7 @@ import Testing
             "dxCluster.blacklistedCalls",
             "dxCluster.blacklistedSpotters",
             "dxCluster.callBlacklist",
-            "dxCluster.commands", "dxCluster.favorites", "dxCluster.spotFilterHiddenBands",
+            "dxCluster.commands", "dxCluster.favorites", "dxCluster.specialCalls", "dxCluster.spotFilterHiddenBands",
             "dxCluster.spotFilterHiddenModes", "dxCluster.spotFilterSpotterContinents", "dxCluster.spotterBlacklist",
             "goals",
             "hamQth.callModes", "hamQth.fetchFields", "keyBindings", "openWindows", "qrz.callModes",

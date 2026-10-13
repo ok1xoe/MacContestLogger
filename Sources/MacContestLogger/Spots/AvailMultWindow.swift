@@ -234,7 +234,7 @@ private struct AvailRowView: View {
             model.click(row)
         } label: {
             HStack(spacing: 0) {
-                cell(row.call, 0, color, bold: true)
+                cell(special ? row.call + " " + SpecialCalls.mark : row.call, 0, color, bold: true)
                 cell(EntryFormat.oneDecimal(Double(row.freqHz) / 1000.0), 1, color)
                 cell(row.azimuth.map { String($0) + "°" } ?? "", 2, color)
                 cell(row.mode, 3, color)
@@ -251,7 +251,12 @@ private struct AvailRowView: View {
         .contextMenu { menu }
     }
 
-    /// The row as one sentence: the colours (dupe, new multiplier) and the ✓ column are said in words.
+    /// N1MM Special Calls: the heart after the call.
+    private var special: Bool {
+        app.bandmap.isSpecialCall(row.call)
+    }
+
+    /// The row as one sentence: the colours (dupe, new multiplier), the ✓ column and the heart are said in words.
     private var spoken: String {
         let translator: Translator = app.language.translator
         let key: SpotColorClassifier.SpotColorKey = SpotColorClassifier.classify(dupe: row.dupe,
@@ -259,7 +264,8 @@ private struct AvailRowView: View {
         let base: String = AccessibilityText.bandmapSpot(call: row.call, freqHz: Int(row.freqHz), color: key,
                                                          translator: translator)
         let mult: String = AccessibilityText.multMark(row.isMult, translator: translator)
-        return mult.isEmpty ? base : base + ", " + mult
+        let marked: String = mult.isEmpty ? base : base + ", " + mult
+        return special ? marked + ", " + translator.translate("zvláštní volačka") : marked
     }
 
     private func cell(_ text: String, _ column: Int, _ color: Color, bold: Bool = false) -> some View {

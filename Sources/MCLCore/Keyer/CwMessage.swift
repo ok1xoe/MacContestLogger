@@ -59,6 +59,8 @@ public struct CwMessage: Equatable, Sendable {
         case afcOff = "AFC_OFF"
         case netOn = "NET_ON"
         case netOff = "NET_OFF"
+        /// `{SPOTME}` (N1MM): spot my own station to the DX cluster on the entry window's frequency (Swift-only).
+        case spotMe = "SPOT_ME"
     }
 
     /// Message parts in transmission order.
