@@ -13,7 +13,20 @@ hints, the F-key messages and the action buttons. Keys are listed in [keyboard s
 - **Úpravy → Upravit rozpracované spojení…** (N1MM *Edit Current Contact*) opens the QSO you are typing: callsign,
   frequency, mode, sent report, the contest's received fields (or RST and exchange in free logging) and the note.
   **Uložit** puts the values back into the entry window; nothing is logged.
-- Older QSOs are edited in the [log window](log-window.md).
+- Older QSOs are edited in the [log window](log-window.md) or with QuickEdit.
+
+## QuickEdit
+
+N1MM's QuickEdit edits logged QSOs right in the entry window, without a dialog:
+
+- **Ctrl+Q** puts the last logged QSO into the fields; every further **Ctrl+Q** goes one QSO back, **Ctrl+A** one
+  QSO forward. The fields turn light blue and the hint strip shows *QuickEdit n/m* (n = how many QSOs back).
+- Correct the callsign, the frequency, the mode, the reports or the exchange, then press **Enter** (or **Log It**)
+  to save the QSO; the score is recounted. Nothing is logged as a new QSO.
+- **Esc** (or **Wipe**) leaves the QSO unchanged.
+- Either way the entry window gets back what you were typing before Ctrl+Q. While QuickEdit is on, the frequency
+  field does not follow the rig and the dupe beep is silent.
+- The menu items are **Úpravy → QuickEdit (o QSO zpět / vpřed)**.
 
 ## Finding a callsign
 

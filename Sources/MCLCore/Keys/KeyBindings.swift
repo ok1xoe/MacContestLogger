@@ -17,8 +17,9 @@ public struct KeyBindings: Sendable {
         self.init(overrides, defaults: { $0.defaultCombo() })
     }
 
-    /// `defaults` supplies the key of an action nobody remapped; the Java parity tests pass the v1.1.1 defaults.
-    init(_ overrides: [String: String]?, defaults: (ShortcutAction) -> KeyCombo) {
+    /// `defaults` supplies the key of an action nobody remapped (`nil` = no key); the Java parity tests pass the
+    /// v1.1.1 defaults, where the Swift-only actions do not exist.
+    init(_ overrides: [String: String]?, defaults: (ShortcutAction) -> KeyCombo?) {
         var remap: [JavaStringKey: String] = [:]
         for (id, value) in overrides ?? [:] {
             remap[JavaStringKey(id)] = value

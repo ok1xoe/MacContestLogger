@@ -135,7 +135,11 @@ private struct StripHintsView: View {
         WindowFontReader { size in
             ChipRowsLayout(rows: 2, rowHeight: WindowFont.size(20, windowSize: size),
                            maxIdealWidth: WindowFont.size(420, windowSize: size)) {
-                if app.contest.isActive,
+                if let quick = panel.entry.quickEdit {
+                    ChipView(text: language.tr("QuickEdit %s/%s", .int(quick.position), .int(quick.count)),
+                             background: DomainColors.quickEdit, foreground: .labelColor)
+                }
+                if app.contest.isActive, panel.entry.quickEdit == nil,
                    case .contest(let dupe, let chips) = EntryFeedback.of(entry: panel.entry, contest: app.contest) {
                     if dupe {
                         ChipView(text: "DUPE", background: DomainColors.dupe, foreground: .white)

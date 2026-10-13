@@ -71,7 +71,8 @@ public enum EntryActionAvailability {
         switch action {
         case .sendCallExchange, .tuAndLog, .logWithoutSending, .forceLog, .wipe, .wipeUndo, .deleteLast, .note,
              .find, .incrementNr, .toggleEsm, .toggleCut, .yankScp, .operator, .toggleRun, .cqRepeat, .cqRepeatTime,
-             .autoRunSp, .stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast:
+             .autoRunSp, .stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast,
+             .quickEditBack, .quickEditForward:
             return .local
         case .functionKeysSetup, .help:
             return .windows

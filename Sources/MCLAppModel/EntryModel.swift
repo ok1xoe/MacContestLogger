@@ -39,6 +39,8 @@ public final class EntryModel {
     public internal(set) var lastPaperTime: Date?
     /// Kotlin `state.pendingNote`: the Ctrl+N note for the QSO in progress.
     public internal(set) var pendingNote: String?
+    /// N1MM QuickEdit (Ctrl+Q / Ctrl+A): the logged QSO in the fields, `nil` = normal entry.
+    public internal(set) var quickEdit: QuickEditState?
     /// A held Shift shows the opposite F-key set (Kotlin `shiftHeld`).
     public internal(set) var shiftHeld: Bool = false
     /// The suggestions (check partial) the keys act on: the list shown and its highlight. Wired to the suggestions
@@ -358,7 +360,7 @@ public final class EntryModel {
                             exchange: form.contestExchange, ownQth: previewQth)
         }
         let dupe: Bool = isDupe
-        if dupe && !wasDupe && config.config.beepOnDupe {
+        if dupe && !wasDupe && config.config.beepOnDupe && quickEdit == nil {
             ports.beep()
         }
         wasDupe = dupe
@@ -395,6 +397,11 @@ public final class EntryModel {
 
     /// Kotlin `wipe()`: the fields, the ESM progress; the unwipe memory and the paper time stay.
     public func wipe(focus: Bool = true) {
+        if quickEdit != nil {
+            // Wipe / Esc in QuickEdit leaves the logged QSO unchanged.
+            cancelQuickEdit()
+            return
+        }
         form = form.wiped(contestActive: contest.isActive, rstFieldIds: EntryForm.rstFieldIds(fields))
         esmProgress = .empty
         wasDupe = isDupe
@@ -416,6 +423,10 @@ public final class EntryModel {
     ///   - comment: the QSO's note (otherwise the pending Ctrl+N note).
     public func submit(ctrlEnter: Bool = false, force: Bool = false, comment: String? = nil) {
         guard acceptsInput else { return }
+        if quickEdit != nil {
+            saveQuickEdit()
+            return
+        }
         let previous: Task<Void, Never>? = submitTask
         guard let work = prepareSubmission(ctrlEnter: ctrlEnter, force: force, comment: comment) else { return }
         submitTask = Task {

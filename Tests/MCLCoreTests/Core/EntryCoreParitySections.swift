@@ -130,6 +130,11 @@ enum EntryCoreParitySections {
         KeyCombo.parse(javaDefaultKeys(action))!
     }
 
+    /// The key of an action in v1.1.1's key map: the Swift-only actions are not in it (no key, no collision).
+    static func javaBindingDefault(_ action: ShortcutAction) -> KeyCombo? {
+        ShortcutAction.swiftOnly.contains(action) ? nil : javaDefaultCombo(action)
+    }
+
     static func keyAction(_ path: String, _ f: [String]) throws -> Rows {
         if path.hasPrefix("id/") {
             return [(path, [ShortcutAction.byId(X.text(f[0]))?.name ?? "~"])]
@@ -145,7 +150,7 @@ enum EntryCoreParitySections {
     static func keyBindings(_ path: String, _ f: [String]) throws -> Rows {
         let all: [ShortcutAction] = ShortcutAction.javaCases
         if f[0] == "~" {
-            let none = KeyBindings(nil, defaults: javaDefaultCombo)
+            let none = KeyBindings(nil, defaults: javaBindingDefault)
             return [(path + "/combo", all.map { none.comboFor($0)?.format() ?? "~" })]
         }
         let count: Int = try X.int(f[0])
@@ -158,7 +163,7 @@ enum EntryCoreParitySections {
             overrides[id] = value
             values.append(value)
         }
-        let bindings = KeyBindings(overrides, defaults: javaDefaultCombo)
+        let bindings = KeyBindings(overrides, defaults: javaBindingDefault)
         var combos: [String] = []
         var conflicts: [String] = []
         for action in all {

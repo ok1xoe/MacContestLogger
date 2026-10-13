@@ -1684,5 +1684,16 @@
  "Upravit rozpracované spojení": "Edit current contact",
  "Upravit spojení": "Edit contact",
  "Frekvence (kHz)": "Frequency (kHz)",
- "X-QSO (nepočítá se)": "X-QSO (not counted)"
+ "X-QSO (nepočítá se)": "X-QSO (not counted)",
+ "QuickEdit: první QSO deníku": "QuickEdit: first QSO of the log",
+ "QuickEdit: poslední QSO deníku": "QuickEdit: last QSO of the log",
+ "QuickEdit začíná Ctrl+Q": "QuickEdit starts with Ctrl+Q",
+ "QuickEdit %s/%s: Enter uloží, Esc zruší": "QuickEdit %s/%s: Enter saves, Esc cancels",
+ "QuickEdit: %s uloženo": "QuickEdit: %s saved",
+ "QuickEdit zrušen": "QuickEdit cancelled",
+ "QuickEdit: o QSO zpět": "QuickEdit: one QSO back",
+ "QuickEdit: o QSO vpřed": "QuickEdit: one QSO forward",
+ "QuickEdit %s/%s": "QuickEdit %s/%s",
+ "QuickEdit (o QSO zpět)": "Quick Edit (one QSO back)",
+ "QuickEdit (o QSO vpřed)": "Quick Edit (one QSO forward)"
 }

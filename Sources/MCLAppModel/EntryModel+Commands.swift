@@ -133,6 +133,8 @@ extension EntryModel {
         switch step {
         case .takeSuggestion(let index):
             takeSuggestion(index)
+        case .logQso where quickEdit != nil, .esm where quickEdit != nil:
+            saveQuickEdit()
         case .logQso(let ctrlEnter):
             submit(ctrlEnter: ctrlEnter)
         case .esm:
@@ -282,6 +284,10 @@ extension EntryModel {
             findInLog()
         case .editLast:
             editLastContact()
+        case .quickEditBack:
+            quickEditStep(-1)
+        case .quickEditForward:
+            quickEditStep(1)
         case .incrementNr:
             incrementNumber()
         case .stackCall:

@@ -24,6 +24,8 @@ enum DomainColors {
 
     /// Dupe: red (Kotlin `colorScheme.error`).
     static let dupe: NSColor = dynamic("mcl.dupe", light: rgb(0xC62828), dark: rgb(0xFF6B6B))
+    /// N1MM QuickEdit: the entry fields' light blue background.
+    static let quickEdit: NSColor = dynamic("mcl.quickEdit", light: rgb(0xD6EBFF), dark: rgb(0x1E3A5F))
     /// Multiplier: amber (Kotlin `colorScheme.tertiary`).
     static let multiplier: NSColor = dynamic("mcl.multiplier", light: rgb(0x9A6200), dark: rgb(0xFFC046))
     /// The accent the AppKit colours below resolve against (set by `AppearanceApplier`; SwiftUI reads the

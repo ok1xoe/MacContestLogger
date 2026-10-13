@@ -124,9 +124,8 @@ private struct EntryFieldsRow: View {
     private var callField: some View {
         let entry: EntryModel = self.entry
         return EntryFieldBox(key: .call, text: entry.form.call, transform: .uppercase, big: true,
-                             label: app.language.tr("Volačka"), isError: entry.isDupe, focus: focus) {
-            entry.callChanged($0)
-        }
+                             label: app.language.tr("Volačka"), isError: entry.isDupe && entry.quickEdit == nil,
+                             focus: focus, onChange: { entry.callChanged($0) }, tinted: entry.quickEdit != nil)
         .overlay(alignment: .trailing) {
             CallMarkView(app: app, entry: entry)
         }
@@ -135,7 +134,7 @@ private struct EntryFieldsRow: View {
     private func field(_ key: EntryFieldKey, text: String, transform: EntryTextTransform = .none, label: String,
                        onChange: @escaping @MainActor (String) -> Void) -> EntryFieldBox {
         EntryFieldBox(key: key, text: text, transform: transform, big: false, label: label, isError: false,
-                      focus: focus, onChange: onChange)
+                      focus: focus, onChange: onChange, tinted: entry.quickEdit != nil)
     }
 }
 
@@ -150,9 +149,9 @@ private struct ContestFieldsView: View {
             WeightedField(label: id ?? "null", weight: 1,
                           content: EntryFieldBox(key: .contest(id), text: entry.form.contestExchange[id] ?? "",
                                                  transform: .uppercase, big: false, label: id ?? "",
-                                                 isError: false, focus: focus) {
-                              entry.editContestField(id, $0)
-                          })
+                                                 isError: false, focus: focus,
+                                                 onChange: { entry.editContestField(id, $0) },
+                                                 tinted: entry.quickEdit != nil))
         }
     }
 }
@@ -168,12 +167,14 @@ private struct EntryFieldBox: View {
     let focus: EntryFocusController
     let onChange: @MainActor (String) -> Void
     var onTab: (@MainActor (_ backward: Bool) -> Bool)?
+    /// N1MM QuickEdit tints the fields light blue.
+    var tinted: Bool = false
 
     var body: some View {
         WindowFontReader { size in
             EntryTextField(key: key, text: text, transform: transform,
                            fontSize: WindowFont.size(big ? 20 : 14, windowSize: size), bold: big, isError: isError,
-                           accessibilityLabel: label, focus: focus, onChange: onChange, onTab: onTab)
+                           tint: tinted ? DomainColors.quickEdit : nil, accessibilityLabel: label, focus: focus, onChange: onChange, onTab: onTab)
                 .frame(height: WindowFont.size(big ? 34 : 26, windowSize: size))
         }
     }
