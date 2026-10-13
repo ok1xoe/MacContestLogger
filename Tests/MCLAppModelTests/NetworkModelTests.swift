@@ -115,17 +115,18 @@ import Testing
     @Test func theStackFillsOldestFirstIntoTheCallField() async throws {
         let (a, b, _) = try await Self.pair()
         a.network.stackCall(to: "OP2", call: " dl1abc ")
-        await eventually("B stacked") { b.network.chat.stack == ["DL1ABC"] }
+        await eventually("B stacked") { b.model.callStack.calls == ["DL1ABC"] }
         #expect(b.status == "Zásobník od OP1: DL1ABC (Ctrl+Alt+K vloží)")
         await eventually("A's status") { a.status == "Partner: DL1ABC → zásobník OP2" }
         a.network.stackCall(to: "OP2", call: "dl1abc")
         a.network.stackCall(to: "OP2", call: "ok2xyz")
-        await eventually("B has two") { b.network.chat.stack == ["DL1ABC", "OK2XYZ"] }
-        #expect(b.model.infoStrip.text.contains("ZÁSOBNÍK DL1ABC OK2XYZ (Ctrl+Alt+K)"))
+        await eventually("B has two") { b.model.callStack.calls == ["DL1ABC", "OK2XYZ"] }
+        #expect(b.model.infoStrip.text.contains("ZÁSOBNÍK DL1ABC OK2XYZ (Alt+G)"))
 
         b.model.entry.runShortcut(.popStack)
         #expect(b.model.entry.form.call == "DL1ABC")
-        #expect(b.network.chat.stack == ["OK2XYZ"])
+        #expect(b.model.callStack.calls == ["OK2XYZ"])
+        #expect(b.network.chat.stack.isEmpty, "the partner's calls live in the one call stack")
         b.model.entry.runShortcut(.popStack)
         b.model.entry.runShortcut(.popStack)
         #expect(b.status == "Zásobník volaček je prázdný")

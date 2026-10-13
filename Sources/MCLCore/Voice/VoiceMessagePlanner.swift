@@ -218,6 +218,11 @@ public enum VoiceMessagePlanner {
                 steps.append(.action(action))
                 continue
             }
+            if CallStackMacro.handledBeforeVoice.contains(macro) {
+                // The call stack macros are performed by the app before the message is planned (the next call must
+                // be in the field when `!` is resolved).
+                continue
+            }
             if isMacroToken(token) && !["{MYCALL}", "{OPERATOR}", "{WAVDIR}"].contains(macro) {
                 unknown.append(macro)
                 continue

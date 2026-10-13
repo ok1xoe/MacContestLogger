@@ -4,16 +4,17 @@ import SwiftUI
 /// A read-only text island (AppKit `NSTextView`) for the decoded text of the Digital Interface window and
 /// the lines of the CAT log: selectable (⌘C copies), scrolled to the end whenever the text changes (Kotlin
 /// `LaunchedEffect(text) { scroll.scrollTo(scroll.maxValue) }`), and — when `onTap` is set — reporting a click
-/// without a drag-selection as the UTF-16 offset under the pointer (Compose `getOffsetForPosition`).
+/// without a drag-selection as the UTF-16 offset under the pointer (Compose `getOffsetForPosition`) with the modifier
+/// keys held.
 struct DigitalRxTextView: NSViewRepresentable {
     let text: NSAttributedString
     /// What VoiceOver calls the text area (the text itself is its value).
     let accessibilityText: String
     var inset: NSSize = NSSize(width: 0, height: 0)
-    var onTap: (@MainActor (Int) -> Void)?
+    var onTap: (@MainActor (Int, NSEvent.ModifierFlags) -> Void)?
 
     final class TapTextView: NSTextView {
-        var onTap: (@MainActor (Int) -> Void)?
+        var onTap: (@MainActor (Int, NSEvent.ModifierFlags) -> Void)?
 
         override func mouseDown(with event: NSEvent) {
             let point: NSPoint = convert(event.locationInWindow, from: nil)
@@ -21,7 +22,7 @@ struct DigitalRxTextView: NSViewRepresentable {
             super.mouseDown(with: event)
             // `super` tracks the drag until the button is released: a selection is not a tap.
             guard let onTap, selectedRange().length == 0 else { return }
-            onTap(offset)
+            onTap(offset, event.modifierFlags)
         }
     }
 

@@ -127,6 +127,24 @@ public struct SpotAnalyzer: Sendable {
         return SpotStatus(dupe: result.dupe, newMultCount: Self.newMultCount(result))
     }
 
+    /// The status of a call worked at `freqHz` in `mode` (the mode is known — the entry window's, not guessed from a
+    /// spot): dupe and new multipliers with the exchange estimated as for a spot. The call stack and the Digital
+    /// Interface's call colours use it.
+    public func callStatus(call: String, freqHz: Int, mode: String) -> SpotStatus {
+        guard let session, !KotlinText.isBlank(call), let band = Band.from(frequencyHz: freqHz) else {
+            return .neutral
+        }
+        let spot = DxSpot(spotter: "", freqHz: freqHz, dxCall: call, comment: "")
+        let received: [ContestDefinition.ExchangeField?] = session.definition.exchange?.received ?? []
+        let estimated = SpotExchangeEstimator.estimate(received, call, dxcc, hqCalls: hqCalls)
+        let exchange = withHamQth(spot, received, estimated)
+        guard let result = try? session.preview(call: call, band: band.adif, mode: mode, receivedRaw: exchange,
+                                                at: now()) else {
+            return .neutral
+        }
+        return SpotStatus(dupe: result.dupe, newMultCount: Self.newMultCount(result))
+    }
+
     /// Kotlin `r.multipliers().count { it.countsAsMultiplier() && it.isNew() }`.
     static func newMultCount(_ result: ContestSession.LogResult) -> Int {
         result.multipliers.filter { $0.countsAsMultiplier && $0.isNew }.count

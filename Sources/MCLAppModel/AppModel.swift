@@ -235,6 +235,8 @@ public final class AppModel {
     @ObservationIgnored public internal(set) var moveMults: MoveMultsModel!
     /// "Odvysílat CW" of the QTC window.
     @ObservationIgnored public internal(set) var qtcSending: QtcSending!
+    /// The station's call stack (own and partner entries).
+    @ObservationIgnored public internal(set) var callStack: CallStackModel!
     /// The CQ repeat loop of the main entry window.
     @ObservationIgnored var cqRepeatRunner: CqRepeatRunner?
     /// The VFO B / rig 2 entry window (`entry-vfob`, SO2V/SO2R).
@@ -950,18 +952,33 @@ public final class AppModel {
         model.dialogs.clusterConnected = { [weak cluster] in
             cluster?.connected ?? false
         }
+        let callStack = CallStackModel(config: model.config, status: model.status)
+        model.callStack = callStack
+        callStack.evaluate = { [weak model] call in
+            guard let model else { return .neutral }
+            let entry: EntryModel = model.activeEntry ?? model.entry
+            let status: SpotStatus = model.spotAnalysis.current().callStatus(
+                call: call, freqHz: Int(clamping: entry.form.freqHz), mode: entry.form.mode.rawValue)
+            return CallStack.Evaluation(dupe: status.dupe, newMults: status.newMultCount)
+        }
+        callStack.currentBand = { [weak model] in
+            (model?.activeEntry ?? model?.entry)?.band?.adif ?? ""
+        }
+        model.network.stackReceived = { [weak callStack] call in
+            callStack?.push(call, source: .partner, quiet: true)
+        }
         for panel in [model.panel(vfo: 0), model.vfoB] {
             panel.entry.network = model.network
             panel.entry.cluster = cluster
+            panel.entry.callStack = callStack
         }
-        let network: NetworkModel = model.network
         let config: ConfigModel = model.config
         model.infoStrip.sources.snsWaiting = { [weak cluster, weak config] in
             guard let cluster, let config else { return nil }
             return config.config.cluster.serialServer && cluster.isRunning && cluster.reservedSerial == nil
         }
-        model.infoStrip.sources.stackedCalls = { [weak network] in
-            network?.chat.stack ?? []
+        model.infoStrip.sources.stackedCalls = { [weak callStack] in
+            callStack?.calls ?? []
         }
     }
 

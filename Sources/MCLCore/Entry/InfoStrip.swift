@@ -93,7 +93,7 @@ public enum InfoStrip {
             items.append(ContestMessage("SNS: čekám na číslo"))
         }
         if !input.stackedCalls.isEmpty {
-            items.append(ContestMessage("ZÁSOBNÍK %s (Ctrl+Alt+K)", .string(input.stackedCalls.joined(separator: " "))))
+            items.append(ContestMessage("ZÁSOBNÍK %s (Alt+G)", .string(input.stackedCalls.joined(separator: " "))))
         }
         if let sked = input.sked {
             items.append(.verbatim("SKED " + sked.time + " " + sked.call))

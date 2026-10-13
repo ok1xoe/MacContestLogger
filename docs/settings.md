@@ -14,7 +14,7 @@ All Settings tabs are functional (the earlier mock-ups of the N1MM layout have b
 | Tab | Contents |
 |---|---|
 | Hardware | rig (hamlib), SO1V / SO2V / SO2R, rig 2 and OTRSP, foot switch, transverters |
-| Function Keys | CW and voice messages F1–F12, ESM |
+| Function Keys | CW, voice and digital messages F1–F12, ESM, [call stacking](call-stacking.md) |
 | Klávesy (Keys) | remapping of shortcuts |
 | Digital Modes | how to log the rig's data mode (PKTUSB → FT8 / RTTY / DIGITAL...) |
 | Other | CW speed step, tuning and RIT step (CW / phone), RIT clearing after a QSO, dupe beep |

@@ -34,7 +34,32 @@ extension EntryModel {
 
     private var esmInput: EsmFlow.Input {
         EsmFlow.Input(progress: esmProgress, run: operating.isRun, call: form.call, dupe: isDupe,
-                      exchangeValid: exchangeValid, options: operating.esmOptions)
+                      exchangeValid: exchangeValid, options: operating.esmOptions, nextCallKey: nextCallKey)
+    }
+
+    /// The N1MM Next Call key ESM sends instead of TU: configured, holding `{LOGTHENPOP}` in the set of this mode, and
+    /// a call waiting on the stack (Run only).
+    var nextCallKey: Int? {
+        let key: Int = config.config.esm.nextCallKey
+        guard operating.isRun, key >= 0, let stack = callStack, stack.next != nil else { return nil }
+        let set: [FunctionKeyMessage] = currentKeySet(opposite: false)
+        guard key < set.count, CallStackMacro.hasLogThenPop(set[key].text) else { return nil }
+        return key
+    }
+
+    /// The F-key messages the keys send now: the voice set in phone, the digital set in a ready digital mode, else
+    /// the CW set.
+    func currentKeySet(opposite: Bool) -> [FunctionKeyMessage] {
+        let app: AppConfig = config.config
+        let keys: FunctionKeySet
+        if EsmFlow.isPhone(form.mode) {
+            keys = FunctionKeySet(run: app.voiceKeyer.runMessages, sp: app.voiceKeyer.spMessages)
+        } else if form.mode.isDigital && digitalReady {
+            keys = FunctionKeySet(run: app.digital.runMessages, sp: app.digital.spMessages)
+        } else {
+            keys = FunctionKeySet(run: app.cwKeyer.runMessages, sp: app.cwKeyer.spMessages)
+        }
+        return keys.messages(run: operating.isRun, opposite: opposite)
     }
 
     /// Kotlin `esmStep`: what the next Enter does (the F-keys and "Log It" are highlighted); `nil` without ESM.
@@ -71,6 +96,9 @@ extension EntryModel {
         case .action(let action):
             runShortcut(action)
         case .functionKey(let index, let shift, let ctrlShift):
+            if !ctrlShift && !voiceStackMacros([index], opposite: shift) {
+                return true
+            }
             let outcome = FunctionKeyRouter.press(index: index, shift: shift, ctrlShift: ctrlShift,
                                                   context: functionKeyContext())
             apply(outcome, opposite: shift)
@@ -213,7 +241,7 @@ extension EntryModel {
         case .passCall:
             network?.startPass()
         case .popStack:
-            network?.popStack()
+            grabFromStack()
         default:
             unavailable()
         }
@@ -247,6 +275,10 @@ extension EntryModel {
             windows.findInLog(form.call)
         case .incrementNr:
             incrementNumber()
+        case .stackCall:
+            stackAnother(label: "Ctrl+Alt+G", runOnly: false)
+        case .grabStack:
+            grabFromStack()
         default:
             runOperatingShortcut(action)
         }
@@ -425,6 +457,7 @@ extension EntryModel {
     /// Kotlin `functionKeys(indices, refocus, opposite)` (ESM, the send shortcuts, `=`).
     func sendKeys(_ indices: [Int], opposite: Bool = false, refocus: Bool) {
         guard !indices.isEmpty else { return }
+        guard voiceStackMacros(indices, opposite: opposite) else { return }
         let outcome = FunctionKeyRouter.send(indices, opposite: opposite, refocus: refocus,
                                              context: functionKeyContext())
         apply(outcome, opposite: opposite)
@@ -451,7 +484,11 @@ extension EntryModel {
             show(message)
         }
         for action in outcome.actions {
-            performMacroAction(action)
+            if action == .logThenPop {
+                logThenPop(next: outcome.stackNextCall, progress: outcome.stackProgress)
+            } else {
+                performMacroAction(action)
+            }
         }
         if let freqHz = outcome.cqSentFreqHz {
             operating.onCqSent(freqHz)
@@ -487,7 +524,130 @@ extension EntryModel {
             if let message = ports.rig.splitOff() {
                 show(message)
             }
+        case .soCallStack:
+            soCallStack()
+        case .stackAnother:
+            stackAnother(label: "{STACKANOTHER}", runOnly: true)
+        case .clearStack:
+            callStack?.clear()
+        case .logThenPop:
+            logThenPop(next: callStack?.next, progress: nil)
         }
+    }
+
+    // MARK: - call stacking (N1MM)
+
+    /// Ctrl+Alt+G / `{STACKANOTHER}`: the call field onto the stack and a wiped entry window for the next one. A dupe
+    /// is not stacked (the field stays).
+    func stackAnother(label: String, runOnly: Bool) {
+        guard let callStack else { return }
+        if runOnly && !operating.isRun {
+            show(.tr(CallStackTexts.runOnlyKey, .string(label)))
+            return
+        }
+        if callStack.push(form.call) {
+            wipe()
+        }
+    }
+
+    /// `{SOCALLSTACK}` (Run only): an empty field takes the next call; a call with an empty stack is stacked and the
+    /// field cleared; a call with a stacked call is exchanged with it. With an empty stack a dupe does nothing.
+    func soCallStack() {
+        guard let callStack else { return }
+        if !operating.isRun {
+            show(.tr(CallStackTexts.runOnlyKey, .string(CallStackMacro.soCallStack)))
+            return
+        }
+        let typed: String = CallStack.normalize(form.call)
+        if typed.isEmpty {
+            if let next = callStack.pop() {
+                takeStacked(next)
+            }
+            return
+        }
+        guard callStack.next != nil else {
+            if !isDupe && callStack.push(typed) {
+                wipe()
+            }
+            return
+        }
+        guard let next = callStack.pop(showEmpty: false) else { return }
+        callStack.push(typed, quiet: true)
+        wipe()
+        takeStacked(next)
+    }
+
+    /// Alt+G (Ctrl+Alt+K): a wiped entry window with the next call from the stack.
+    func grabFromStack() {
+        guard let callStack else {
+            unavailable()
+            return
+        }
+        guard let next = callStack.pop() else { return }
+        wipe()
+        takeStacked(next)
+    }
+
+    /// A call from the stack in the field: it counts as typed (it is the operator's QSO), the call field has the focus.
+    private func takeStacked(_ call: String) {
+        callChanged(call)
+        focusRequest += 1
+    }
+
+    /// `{LOGTHENPOP}`: the QSO is logged; when it was, the next call comes off the stack into the field and the ESM
+    /// progress is what the rest of the message already sent to it.
+    func logThenPop(next: String?, progress: EsmProgress?) {
+        let logged: String = form.call
+        submit()
+        guard KotlinStrings.isBlank(form.call), !KotlinStrings.isBlank(logged) else { return }
+        callStack?.remove(logged)
+        guard let next, let callStack else { return }
+        callStack.remove(next)
+        takeStacked(next)
+        if let progress {
+            esmProgress = progress
+        }
+    }
+
+    /// The stack macros of an SSB message run before it plays (the next call must be in the field for `!`):
+    /// `false` = the press is refused (`{LOGTHENPOP}` outside Run or before the exchange was sent).
+    private func voiceStackMacros(_ indices: [Int], opposite: Bool) -> Bool {
+        guard EsmFlow.isPhone(form.mode), callStack != nil else { return true }
+        let set: [FunctionKeyMessage] = currentKeySet(opposite: opposite)
+        let texts: [String] = indices.compactMap { i in i >= 0 && i < set.count ? set[i].text : nil }
+        let macros: [String] = texts.flatMap { CallStackMacro.voiceMacros($0) }
+        for macro in macros {
+            switch macro {
+            case CallStackMacro.logThenPop, CallStackMacro.logThenNext:
+                if !operating.isRun {
+                    show(.tr("%s: {LOGTHENPOP} jen v Run", .string(FunctionKeyRouter.keysLabel(indices))))
+                    return false
+                }
+                if KotlinStrings.isBlank(form.call) || !exchangeValid || !esmProgress.exchangeSent {
+                    show(.tr("%s: výměna nebyla odeslána nebo není úplná — {LOGTHENPOP} nic nezapíše",
+                             .string(FunctionKeyRouter.keysLabel(indices))))
+                    return false
+                }
+                let next: String? = callStack?.next
+                // The ESM progress of the next QSO: the keys the rest of the message plays to it ({F5}, {F2}).
+                let keys: [Int] = texts.flatMap { CallStackMacro.functionKeys(in: $0) }
+                logThenPop(next: next, progress: next.map { EsmProgress.empty.afterSent(keys, $0) })
+                if next == nil {
+                    // Nothing on the stack: the QSO is logged and TU (F3) is sent instead.
+                    sendKeys([EsmEngine.f3], opposite: opposite, refocus: false)
+                    return false
+                }
+            case CallStackMacro.soCallStack:
+                soCallStack()
+            case CallStackMacro.stackAnother:
+                stackAnother(label: CallStackMacro.stackAnother, runOnly: true)
+            case CallStackMacro.clearStack:
+                callStack?.clear()
+            default:
+                break
+            }
+        }
+        return true
     }
 
     /// The F-key context of this moment (`cwContext` without the per-press values, `AS:1526-1539`).
@@ -509,7 +669,8 @@ extension EntryModel {
             voice: FunctionKeySet(run: app.voiceKeyer.runMessages, sp: app.voiceKeyer.spMessages),
             cw: FunctionKeySet(run: app.cwKeyer.runMessages, sp: app.cwKeyer.spMessages),
             digital: FunctionKeySet(run: app.digital.runMessages, sp: app.digital.spMessages),
-            cwBase: base)
+            cwBase: base, exchangeValid: exchangeValid, stackNext: operating.isRun ? callStack?.next : nil,
+            serialAfterLog: logbook.nextSerial + 1)
     }
 
     /// The F-key button label (`*FunctionKeyLabel(i, shiftHeld)`).

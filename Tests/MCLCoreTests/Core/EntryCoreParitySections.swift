@@ -134,7 +134,7 @@ enum EntryCoreParitySections {
         if path.hasPrefix("id/") {
             return [(path, [ShortcutAction.byId(X.text(f[0]))?.name ?? "~"])]
         }
-        let all: [ShortcutAction] = ShortcutAction.allCases
+        let all: [ShortcutAction] = ShortcutAction.javaCases
         let index: Int = try X.int(f[0])
         guard index >= 0, index < all.count else { throw X.Malformed(text: f[0]) }
         let a: ShortcutAction = all[index]
@@ -143,7 +143,7 @@ enum EntryCoreParitySections {
     }
 
     static func keyBindings(_ path: String, _ f: [String]) throws -> Rows {
-        let all: [ShortcutAction] = ShortcutAction.allCases
+        let all: [ShortcutAction] = ShortcutAction.javaCases
         if f[0] == "~" {
             let none = KeyBindings(nil, defaults: javaDefaultCombo)
             return [(path + "/combo", all.map { none.comboFor($0)?.format() ?? "~" })]

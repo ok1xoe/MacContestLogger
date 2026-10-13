@@ -53,9 +53,11 @@ listens to the pileup on the same rig or on a second receiver:
   runner is currently typing into the callsign field**,
 - types a callsign and sends it with Enter to the **runner's stack**.
 
-The runner sees the stack in the entry window ("ZÁSOBNÍK DL1ABC K1ZZ", that is, "STACK ...")
-and **Ctrl+Alt+K** puts the next callsign into the field. The stack holds at most 10
-callsigns without duplicates.
+The runner sees the stack in the entry window ("ZÁSOBNÍK DL1ABC K1ZZ (Alt+G)", that is, "STACK ...")
+and **Alt+G** (or **Ctrl+Alt+K**) puts the next callsign into the field. The partner's calls join
+the runner's own [call stack](call-stacking.md) — one stack of at most 10 callsigns without
+duplicates and without dupes, in the order chosen in Settings → Function Keys → Call stacking; with
+the Next Call key, ESM works them one after the other (`{LOGTHENPOP}`).
 
 ## Interlock / TX lockout
 

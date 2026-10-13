@@ -31,6 +31,9 @@ public final class NetworkModel {
     /// Whether the chat window is open (set by the app): Kotlin zeroes `chatUnread` as a side effect of drawing the
     /// window (`LaunchedEffect(chatLines.size)`), so a line that arrives while it is open is read at once.
     @ObservationIgnored var isChatOpen: @MainActor () -> Bool = { false }
+    /// The station's call stack takes a partner's STACK call (set by the app); without it the calls stay in
+    /// `chat.stack`.
+    @ObservationIgnored var stackReceived: (@MainActor (String) -> Void)?
 
     public init(cluster: ClusterSyncModel, status: StatusModel, language: LanguageModel, spots: SpotBuffer,
                 now: @escaping @Sendable () -> Date) {
@@ -73,6 +76,11 @@ public final class NetworkModel {
                 spots.add(spot)
             case .status(let text):
                 show(text)
+            }
+        }
+        if let stackReceived {
+            for call in chat.drainStack() {
+                stackReceived(call)
             }
         }
         if isChatOpen() {

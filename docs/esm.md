@@ -48,6 +48,14 @@ F3 TU, F4 my callsign, F5 his callsign, F6 QSO B4, F8 again?
 - **Run: treat a dupe as a new QSO** (Work dupes, on by default): a dupe is worked
   as a new QSO instead of F6.
 
+## Call stacking
+
+With a [call stack](call-stacking.md) and a **Next Call key** (Settings → Function Keys → Call
+stacking), the end of a Run QSO continues with the next stacked call: where the table says
+"F3 + log", Enter sends the Next Call key instead (a corrected call is still sent first), and its
+`{LOGTHENPOP}` logs the QSO, takes the next call into the field and sends it the exchange. The
+F-key grid frames the Next Call key. With an empty stack Enter sends TU and logs as usual.
+
 ## Keys
 
 | Key | Action |

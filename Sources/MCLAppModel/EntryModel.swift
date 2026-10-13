@@ -132,6 +132,8 @@ public final class EntryModel {
     @ObservationIgnored weak var integrations: IntegrationsModel?
     /// The multi-op messages (Ctrl+Alt+P, Ctrl+Alt+K) and the network log (NETON, NETOFF); wired by the app.
     @ObservationIgnored weak var network: NetworkModel?
+    /// The station's call stack (Ctrl+Alt+G, Alt+G, `{SOCALLSTACK}`, `{LOGTHENPOP}`…); wired by the app.
+    @ObservationIgnored weak var callStack: CallStackModel?
     /// Opens the documentation page (Alt+H); wired by the app to the callbook's browser lane.
     @ObservationIgnored var helpOpener: (@MainActor () -> Void)?
     @ObservationIgnored weak var cluster: ClusterSyncModel?
@@ -293,6 +295,9 @@ public final class EntryModel {
     /// Kotlin `LaunchedEffect(call, freqKHz, mode, cexch, contest.activeId)`: the preview without writing; then the
     /// dupe beep (`LaunchedEffect(isDupe)`, `config.beepOnDupe`).
     func updatePreview() {
+        if isActivePanel, let callStack {
+            callStack.noteBand(band?.adif ?? "")
+        }
         if contest.isActive, !KotlinStrings.isBlank(form.call) {
             contest.preview(call: form.call, band: band?.adif ?? "", mode: form.mode.rawValue,
                             exchange: form.contestExchange, ownQth: previewQth)

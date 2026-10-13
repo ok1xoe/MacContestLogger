@@ -58,6 +58,17 @@ N1MM *Digital Interface*. MCL pulls the decoded text from fldigi and draws it
   Focus stays in the window, so from one place you can pick a callsign, send the
   exchange and log the QSO.
 
+## Call stacking
+
+**Option+click** (N1MM Alt+click) on a callsign, in the text or in the callsign list, puts it on the
+[call stack](call-stacking.md) without touching the callsign field. The window's **Nastavení**
+(Setup) menu has N1MM's **Digital Call Stacking**: *Vypnuto* (off), *FIFO*, *LIFO* or *FIFO, násobiče
+napřed* (mults first). When it is on and you are in **Run** with a callsign already in the field, a
+plain click on another callsign stacks one of them instead of replacing the field: FIFO stacks the
+clicked callsign, LIFO stacks the callsign from the field and puts the clicked one in. A
+`{LOGTHENPOP}` key (for example `! {LOGTHENPOP} TU {F5}{F2}`, also as the ESM Next Call key) then
+works the stacked stations one after the other.
+
 Reading is **incremental**: MCL asks for the length of the RX buffer
 (`text.get_rx_length`) and fetches only what it does not have yet (`text.get_rx`).
 If you clear the buffer in fldigi, this is detected by the shortening and reading

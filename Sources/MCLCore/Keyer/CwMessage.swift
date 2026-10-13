@@ -25,6 +25,15 @@ public struct CwMessage: Equatable, Sendable {
         case clearRit = "CLEAR_RIT"
         case cqFrequency = "CQ_FREQUENCY"
         case splitOff = "SPLIT_OFF"
+        /// `{SOCALLSTACK}`: exchange the call field with the call stack (Run only).
+        case soCallStack = "SO_CALL_STACK"
+        /// `{STACKANOTHER}`: push the call field onto the call stack (Run only).
+        case stackAnother = "STACK_ANOTHER"
+        /// `{CLRSTACK}`: clear the call stack.
+        case clearStack = "CLEAR_STACK"
+        /// `{LOGTHENPOP}` / `{LOGTHENNEXT}`: log the QSO, then the next call from the stack into the call field. Never
+        /// produced by `CwMessageBuilder` — `FunctionKeyRouter` splits the message at the macro.
+        case logThenPop = "LOG_THEN_POP"
     }
 
     /// Message parts in transmission order.

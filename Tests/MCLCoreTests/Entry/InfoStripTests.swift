@@ -22,12 +22,12 @@ import Testing
         #expect(items.map(\.czech) == [
             "TOUR 1200/30 do 1330Z", "County line NY/AB", "Bonus 3", "RPT 2.3 s", "● REC", "ANT Yagi",
             "HODINY -2.4 s", "📝 beacon", "RIT +120", "LADĚNÍ", "DODATEČNÉ ZADÁNÍ", "SNS: čekám na číslo",
-            "ZÁSOBNÍK K1A W1AW (Ctrl+Alt+K)", "SKED 1315Z DL1A",
+            "ZÁSOBNÍK K1A W1AW (Alt+G)", "SKED 1315Z DL1A",
         ])
         #expect(items[9] == ContestMessage("LADĚNÍ"))
         #expect(items[10] == ContestMessage("DODATEČNÉ ZADÁNÍ"))
         #expect(items[11] == ContestMessage("SNS: čekám na číslo"))
-        #expect(items[12] == ContestMessage("ZÁSOBNÍK %s (Ctrl+Alt+K)", "K1A W1AW"))
+        #expect(items[12] == ContestMessage("ZÁSOBNÍK %s (Alt+G)", "K1A W1AW"))
         #expect(InfoStrip.text(Array(items.prefix(2)), .source) == " TOUR 1200/30 do 1330Z · County line NY/AB")
     }
 

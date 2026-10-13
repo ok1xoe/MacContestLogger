@@ -198,6 +198,11 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var esmEnabled: Bool = false
     public var esmSpCallOnce: Bool = false
     public var esmWorkDupes: Bool = false
+    /// `esm.nextCallKey` (-1 = none).
+    public var esmNextCallKey: Int = -1
+    public var callStackOrder: String = CallStack.Order.multsFirst.rawValue
+    public var callStackClearOnBandChange: Bool = true
+    public var digitalCallStacking: Bool = false
 
     // MARK: CW keyer and digital modes — `CD:302-317`
 
@@ -446,6 +451,10 @@ extension ConfigurerDraft {
         esmEnabled = config.esm.enabled
         esmSpCallOnce = config.esm.spCallOnce
         esmWorkDupes = config.esm.workDupes
+        esmNextCallKey = config.esm.nextCallKey
+        callStackOrder = config.esm.callStackOrder
+        callStackClearOnBandChange = config.esm.callStackClearOnBandChange
+        digitalCallStacking = config.digital.digitalCallStacking
     }
 
     private mutating func loadKeyers(_ config: AppConfig) {

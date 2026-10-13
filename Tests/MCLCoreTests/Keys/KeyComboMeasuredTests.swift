@@ -130,6 +130,8 @@ import Testing
             "self_up Alt+Shift+DOWN", "self_down Alt+Shift+UP", "spot Alt+P", "spot_comment Ctrl+P",
             "store Alt+O", "mark Alt+M", "remove_spot Alt+D", "remove_blacklist Alt+Shift+D",
             "dx_window Ctrl+TAB",
+            // Swift-only (call stacking).
+            "stack_call Ctrl+Alt+G", "grab_stack Alt+G",
         ]
         let actual: [String] = ShortcutAction.allCases.map { "\($0.id) \($0.defaultCombo().format())" }
         #expect(actual == expected)

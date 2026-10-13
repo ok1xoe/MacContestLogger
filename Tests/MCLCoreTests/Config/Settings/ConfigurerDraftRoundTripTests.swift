@@ -119,6 +119,10 @@ import Testing
         expected.nPlusOneEnabled = true
         expected.preferredCallbook = "hamqth"
         expected.clubLog.ctyEnabled = true
+        expected.esm.nextCallKey = -1
+        expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
+        expected.esm.callStackClearOnBandChange = true
+        expected.digital.digitalCallStacking = false
         #expect(decoded == expected)
     }
 
@@ -341,6 +345,10 @@ import Testing
         w.same(\.esmEnabled, \.esm.enabled, true)
         w.same(\.esmSpCallOnce, \.esm.spCallOnce, true)
         w.same(\.esmWorkDupes, \.esm.workDupes, false)
+        w.same(\.esmNextCallKey, \.esm.nextCallKey, 11)
+        w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
+        w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
+        w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
     }
 
     static func wireKeyers(_ w: inout Wiring) {
