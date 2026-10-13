@@ -115,6 +115,11 @@ import Testing
         // to its defaults).
         var expected = Self.fullConfig()
         expected.dxCluster.spotFilter = .default
+        expected.dxCluster.callFrame = true
+        expected.dxCluster.tuningToleranceCwHz = DxClusterConfig.defaultTuningToleranceHz
+        expected.dxCluster.tuningToleranceSsbHz = DxClusterConfig.defaultTuningToleranceHz
+        expected.dxCluster.tuningToleranceDigiHz = DxClusterConfig.defaultTuningToleranceHz
+        expected.dxCluster.spotModeOnTune = false
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
         expected.callHistoryExtraFiles = []
@@ -284,6 +289,11 @@ import Testing
         w.number(\.minSkimmers, \.dxCluster.minSkimmers, 3)
         w.same(\.autoSplit, \.dxCluster.autoSplit, false)
         w.same(\.showBandPlan, \.dxCluster.showBandPlan, false)
+        w.same(\.callFrame, \.dxCluster.callFrame, false)
+        w.number(\.tuningToleranceCwHz, \.dxCluster.tuningToleranceCwHz, 150)
+        w.number(\.tuningToleranceSsbHz, \.dxCluster.tuningToleranceSsbHz, 900)
+        w.number(\.tuningToleranceDigiHz, \.dxCluster.tuningToleranceDigiHz, 60)
+        w.same(\.spotModeOnTune, \.dxCluster.spotModeOnTune, true)
         w.same(\.spotFilter, \.dxCluster.spotFilter,
                SpotFilter(hiddenBands: [.m160, .cm9], hiddenModes: ["DIGI"], contestOnly: true,
                          spotterContinents: ["EU", "NA"], spotterOwnCountry: true, hideNonWorkable: true))

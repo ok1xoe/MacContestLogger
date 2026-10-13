@@ -15,6 +15,7 @@ struct BandmapDrawState {
     let showPlan: Bool
     let spotFont: Int
     let viewport: BandmapViewport
+    let toleranceHz: Int?
 
     /// `nil` without a tuned band (the window shows its hint instead).
     @MainActor
@@ -29,6 +30,7 @@ struct BandmapDrawState {
         showPlan = model.showPlan
         spotFont = model.spotFont
         viewport = model.viewport
+        toleranceHz = model.tuningToleranceHz
     }
 }
 
@@ -58,6 +60,7 @@ struct BandmapView: NSViewRepresentable {
         view.state = state
         view.setAccessibilityLabel(language.tr("Bandmapa"))
         view.refreshAccessibilityValue()
+        view.refreshToolTips()
         view.needsDisplay = true
     }
 }
@@ -75,7 +78,7 @@ final class BandmapSpotElement: NSAccessibilityElement {
 }
 
 @MainActor
-final class BandmapCanvas: NSView {
+final class BandmapCanvas: NSView, NSViewToolTipOwner {
 
     var model: BandmapModel?
     var language: LanguageModel?
@@ -137,6 +140,7 @@ final class BandmapCanvas: NSView {
         drawSpots(model: model, state: state, axisX: axisX, height: height, metrics: metrics)
         drawNotes(state: state, viewport: viewport, axisX: axisX, width: width, yAt: yAt)
         drawCq(state: state, viewport: viewport, axisX: axisX, width: width, yAt: yAt, metrics: metrics)
+        drawTolerance(state: state, viewport: viewport, axisX: axisX, yAt: yAt)
         drawVfo(state: state, viewport: viewport, axisX: axisX, width: width, yAt: yAt)
         if let start = pressStart, let current = dragCurrentY {
             DomainColors.primary.withAlphaComponent(0.15).setFill()
@@ -253,6 +257,19 @@ final class BandmapCanvas: NSView {
              font: font, color: DomainColors.primary)
     }
 
+    /// N1MM's tuning tolerance: a light blue band on the scale around the tuned frequency (the call-frame's reach).
+    private func drawTolerance(state: BandmapDrawState, viewport: BandmapViewport, axisX: CGFloat,
+                               yAt: (Int64) -> CGFloat) {
+        guard let tolerance = state.toleranceHz, tolerance > 0, state.tunedHz >= viewport.loHz,
+              state.tunedHz <= viewport.hiHz else { return }
+        let first: CGFloat = yAt(state.tunedHz - Int64(tolerance))
+        let second: CGFloat = yAt(state.tunedHz + Int64(tolerance))
+        let top: CGFloat = Swift.min(first, second)
+        let height: CGFloat = Swift.max(abs(second - first), 2)
+        NSColor.systemTeal.withAlphaComponent(0.35).setFill()
+        NSRect(x: axisX - 6, y: top, width: 6, height: height).fill()
+    }
+
     /// The tuned frequency: a translucent line across and a triangle pointing at the axis.
     private func drawVfo(state: BandmapDrawState, viewport: BandmapViewport, axisX: CGFloat, width: CGFloat,
                          yAt: (Int64) -> CGFloat) {
@@ -291,6 +308,7 @@ final class BandmapCanvas: NSView {
             element.setAccessibilityRole(.button)
             element.setAccessibilityLabel(AccessibilityText.bandmapSpot(
                 call: spot.dxCall, freqHz: spot.freqHz, color: key, translator: language.translator))
+            element.setAccessibilityHelp(model.tooltip(spot))
             let origin = NSPoint(x: CGFloat(metrics.axisX) + Self.leaderWidth,
                                  y: CGFloat(placement.labelY) - rowHeight / 2)
             let frame = NSRect(origin: origin, size: NSSize(width: Swift.max(bounds.width - origin.x, 1),
@@ -317,6 +335,38 @@ final class BandmapCanvas: NSView {
         }
         setAccessibilityValue(AccessibilityText.bandmapValue(
             band: state.band.adif, tunedHz: state.tunedHz, spots: state.spots.count, translator: language.translator))
+    }
+
+    // MARK: - tooltips
+
+    /// One tooltip area per spot label (N1MM's spot tooltip), rebuilt with every update and resize.
+    func refreshToolTips() {
+        removeAllToolTips()
+        guard let state, let model else { return }
+        let metrics: Metrics = metrics(state)
+        let rowHeight = CGFloat(metrics.rowH)
+        let left = CGFloat(metrics.axisX) + Self.leaderWidth
+        for placement in model.placements(spots: state.spots, height: Float(bounds.height), rowH: metrics.rowH) {
+            let rect = NSRect(x: left, y: CGFloat(placement.labelY) - rowHeight / 2,
+                              width: Swift.max(bounds.width - left, 1), height: rowHeight)
+            addToolTip(rect, owner: self, userData: nil)
+        }
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        refreshToolTips()
+    }
+
+    nonisolated func view(_ view: NSView, stringForToolTip tag: NSView.ToolTipTag, point: NSPoint,
+                          userData data: UnsafeMutableRawPointer?) -> String {
+        MainActor.assumeIsolated {
+            guard let model, let state else { return "" }
+            let metrics: Metrics = metrics(state)
+            guard let spot = model.menuSpot(x: Float(point.x), y: Float(point.y), height: Float(bounds.height),
+                                            axisX: metrics.axisX, rowH: metrics.rowH) else { return "" }
+            return model.tooltip(spot)
+        }
     }
 
     // MARK: - pointer
@@ -370,6 +420,9 @@ final class BandmapCanvas: NSView {
         let height = Float(bounds.height)
         if let current = dragCurrentY, abs(start.y - current) > CGFloat(BandmapViewport.dragThresholdPx) {
             model.drag(from: Float(start.y), to: Float(current), height: height)
+        } else if event.clickCount >= 2 {
+            model.doubleClick(x: Float(start.x), y: Float(start.y), height: height, axisX: metrics.axisX,
+                              rowH: metrics.rowH)
         } else {
             model.click(x: Float(start.x), y: Float(start.y), height: height, axisX: metrics.axisX,
                         rowH: metrics.rowH)
@@ -417,6 +470,7 @@ final class BandmapCanvas: NSView {
         addItem(menu, state.showPlan ? language.tr("Skrýt bandplán") : language.tr("Zobrazit bandplán")) {
             model.toggleBandPlan()
         }
+        addItem(menu, language.tr("Najít volačku…")) { model.promptFind() }
         menu.popUp(positioning: nil, at: point, in: self)
     }
 

@@ -93,6 +93,54 @@ is turned on (transmitting on VFO B):
 - It can be turned off in **"Nastavení → DX Cluster → Automatický split z komentáře
   spotu"** (Settings → DX Cluster → Automatic split from the spot comment).
 
+## Spots in the bandmap: clicks, call-frame, marks
+
+Modelled on the N1MM Logger+ [Bandmap window](https://n1mmwp.hamdocs.com/manual-windows/bandmap-window/).
+
+**Clicks.** A click on a spot tunes the radio to it (with the automatic split above). A click on the
+frequency scale or on an empty place tunes to the frequency under the cursor; a click on the CQ marker
+goes back to the CQ frequency.
+
+| Action | Call |
+|---|---|
+| click on a spot | the call shows in the **call-frame** above the call field |
+| double click on a spot | the call goes straight into the call field (replacing what was there) |
+| **Space** in an empty call field | takes the call-frame's call (with the predicted exchange) and moves on |
+
+The call-frame is N1MM's: it always shows the spot nearest to the entry window's frequency within the
+**tuning tolerance** of the mode, so tuning near a spot (VFO knob, wheel, Ctrl+↑/↓) shows its call too.
+A call typed into the field is never replaced. **Settings → DX Cluster** has the switch ("Klik na spot
+dá volačku do rámečku nad polem" — a click on a spot puts the call into the call-frame; off = a click
+fills the call field at once and tuning within 100 Hz of a spot fills an empty field, as before) and the
+**tuning tolerances** for CW, SSB and digital modes (0–20,000 Hz, default 300 Hz, as in N1MM). The
+tolerance is drawn as a light blue strip on the scale around the tuned frequency.
+
+**Always use packet spot mode.** "Ladění na spot nastaví i mód spotu" (tuning to a spot also sets the
+spot's mode) in Settings → DX Cluster: tuning to a spot sets its mode on the radio and in the entry
+window — from the spot comment (`CW`, `FT8`, `SSB`…), the digital frequencies or the band plan. Off by
+default. A single-mode contest keeps its mode.
+
+**Marks after the call.**
+
+| Mark | Meaning |
+|---|---|
+| `#` | spot from a CW Skimmer / RBN |
+| `!` | spot from your own skimmer (the spotter is your call with `-#`) |
+| `¤` | sunrise or sunset at the station's country (within 30 minutes) |
+| `291°` | bearing from your grid |
+| `×3` | confirmed by three skimmers |
+| `QSX 027` | the station listens split (from `UP 2`, `QSX 14027`…): the last three kHz digits on HF |
+| `NEW` | spotted less than 3 minutes ago |
+
+**Tooltip.** Hovering over a spot shows the exact frequency the spotter sent, the spotter, how many
+minutes ago it was spotted, the comment, the QSX frequency, how many times it was spotted and by how
+many skimmers, the bearing, the gray line and "Vlastní spot" (self spotted). VoiceOver reads the same text
+as the spot's help.
+
+**Find a callsign.** Right click → "Najít volačku…" (Find a callsign): type a call or a part of it; the
+next spot above the tuned frequency that contains it is tuned to (it wraps around to the lowest one), so
+using it again finds the next instance. Alt+F8 returns to where you were.
+
 ## Band plan in the bandmap
 
 Equivalent of N1MM **Display of Band Plans in Background of Bandmap Frequency Scale**

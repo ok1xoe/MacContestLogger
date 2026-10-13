@@ -13,6 +13,8 @@ struct SpotSources {
     var buffer: SpotBuffer?
     /// Kotlin `contest.predictExchange(spot)`: the predicted multiplier fields of the spotted station.
     var predictExchange: @MainActor (DxSpot) -> JavaLinkedMap<String> = { _ in JavaLinkedMap() }
+    /// N1MM „Always use packet spot mode": the spot's mode by the analysis (`nil` = unknown).
+    var spotMode: @MainActor (DxSpot) -> Mode? = { _ in nil }
 }
 
 /// Tuning to a spot (`AS:552-581`): the band map, the available multipliers and the spot navigation.
@@ -21,10 +23,28 @@ extension RigModel {
     /// Kotlin `tuneToSpot(spot)`: the predicted exchange (`prefillExchange`), `qsy(freq, call = dxCall)` and the
     /// automatic split of the spot's comment. Only the frequency, the mode, the split and the active entry window's
     /// fields change — nothing transmits.
-    public func tuneToSpot(_ spot: DxSpot) {
-        let exchange: JavaLinkedMap<String> = spotSources.predictExchange(spot)
-        qsy(Int64(spot.freqHz), mode: nil, prefill: SpotPrefill(call: spot.dxCall, exchange: exchange))
+    ///
+    /// `fillCall: false` (a single click in the band map with the N1MM call-frame on) tunes without touching the
+    /// entry fields: the call shows in the call-frame. With „Always use packet spot mode" the spot's mode is set on
+    /// the rig and in the active entry window too.
+    public func tuneToSpot(_ spot: DxSpot, fillCall: Bool = true) {
+        let prefill: SpotPrefill? = fillCall
+            ? SpotPrefill(call: spot.dxCall, exchange: spotSources.predictExchange(spot)) : nil
+        let mode: Mode? = config.config.dxCluster.spotModeOnTune ? spotSources.spotMode(spot) : nil
+        qsy(Int64(spot.freqHz), mode: mode, prefill: prefill)
+        if let mode {
+            notifyEntries { entry in
+                if entry.isActivePanel {
+                    entry.applySpotMode(mode)
+                }
+            }
+        }
         applySplitFromSpot(spot)
+    }
+
+    /// The predicted exchange of a spot (the call-frame taken with the space bar).
+    func predictedExchange(_ spot: DxSpot) -> JavaLinkedMap<String> {
+        spotSources.predictExchange(spot)
     }
 
     /// Kotlin `spotForCall(call)`: the first spot in the buffer whose call equals the Kotlin-trimmed `call` ignoring

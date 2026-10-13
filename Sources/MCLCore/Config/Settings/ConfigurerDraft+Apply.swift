@@ -231,6 +231,12 @@ extension ConfigurerDraft {
         dx.minSkimmers = ConfigurerRows.toIntOrNull(minSkimmers) ?? 1
         dx.autoSplit = autoSplit
         dx.showBandPlan = showBandPlan
+        dx.callFrame = callFrame
+        let tolerance: Int = DxClusterConfig.defaultTuningToleranceHz
+        dx.tuningToleranceCwHz = ConfigurerRows.toIntOrNull(tuningToleranceCwHz) ?? tolerance
+        dx.tuningToleranceSsbHz = ConfigurerRows.toIntOrNull(tuningToleranceSsbHz) ?? tolerance
+        dx.tuningToleranceDigiHz = ConfigurerRows.toIntOrNull(tuningToleranceDigiHz) ?? tolerance
+        dx.spotModeOnTune = spotModeOnTune
         dx.spotFilter = spotFilter
         let stamp: String = now.toString()
         BlacklistService.sync(&dx.callBlacklist, blacklistedCalls, nowUtc: stamp)
