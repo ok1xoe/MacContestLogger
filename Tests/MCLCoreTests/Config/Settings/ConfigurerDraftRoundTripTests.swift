@@ -123,6 +123,20 @@ import Testing
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
+        expected.digital.rttyInterface = RttyInterface.fldigi.rawValue
+        expected.digital.tncType = TncType.pk232.rawValue
+        expected.digital.tncPort = ""
+        expected.digital.tncBaud = 9600
+        expected.digital.tncTx = ""
+        expected.digital.tncRx = ""
+        expected.digital.tncEsc = ""
+        expected.digital.tinyFskPort = ""
+        expected.digital.wkRttyBaud = 45
+        expected.digital.wkRttyReverse = false
+        expected.digital.wkRttyFskOnKey = false
+        expected.digital.diFontName = ""
+        expected.digital.diTextColor = ""
+        expected.digital.diBackgroundColor = ""
         expected.digital.fldigi2Host = "127.0.0.1"
         expected.digital.fldigi2Port = 0
         expected.digital.extraRx = ""
@@ -396,6 +410,20 @@ import Testing
         w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
+        w.same(\.rttyInterface, \.digital.rttyInterface, "TINYFSK")
+        w.same(\.tncType, \.digital.tncType, "KAM")
+        w.same(\.tncPort, \.digital.tncPort, "/dev/cu.tnc")
+        w.same(\.tncBaud, \.digital.tncBaud, 4800)
+        w.same(\.tncTx, \.digital.tncTx, "{CTRL-C}T")
+        w.same(\.tncRx, \.digital.tncRx, "{CTRL-C}E")
+        w.same(\.tncEsc, \.digital.tncEsc, "{CTRL-C}R{ENTER}")
+        w.same(\.tinyFskPort, \.digital.tinyFskPort, "/dev/cu.usbmodem1")
+        w.same(\.wkRttyBaud, \.digital.wkRttyBaud, 75)
+        w.same(\.wkRttyReverse, \.digital.wkRttyReverse, true)
+        w.same(\.wkRttyFskOnKey, \.digital.wkRttyFskOnKey, true)
+        w.same(\.diFontName, \.digital.diFontName, "Menlo")
+        w.same(\.diTextColor, \.digital.diTextColor, "#FFFF00")
+        w.same(\.diBackgroundColor, \.digital.diBackgroundColor, "#000080")
         w.same(\.fldigi2Host, \.digital.fldigi2Host, "10.0.0.2")
         w.same(\.fldigi2Port, \.digital.fldigi2Port, 7363)
         w.same(\.extraRx, \.digital.extraRx, "127.0.0.1:7363")

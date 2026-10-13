@@ -16,6 +16,8 @@ final class KeyerLane: Sendable {
         var fldigi: (any FldigiPort)?
         /// Kotlin `fldigiSignature` (`"${host}:${port}"`).
         var fldigiSignature: String?
+        /// The open TU/TNC or TinyFSK port.
+        var serial: SerialLink?
     }
 
     /// How the keyer is opened when it is needed (read on the main actor when the job is queued).
@@ -83,6 +85,18 @@ final class KeyerLane: Sendable {
         devices.keyer = keyer
         devices.signature = signature
         return keyer
+    }
+
+    /// The digital modes' serial device on `path` (reopened after a change of the path).
+    func serial(_ devices: Devices, path: String, baud: Int) throws -> SerialLink {
+        if let link = devices.serial, link.path == path {
+            return link
+        }
+        devices.serial?.close()
+        devices.serial = nil
+        let link = SerialLink(path: path, transport: try hardware.openSerial(path, baud))
+        devices.serial = link
+        return link
     }
 
     /// Kotlin `fldigiClient()` (`AS:1554-1562`), on the lane: a new client after the address changed.

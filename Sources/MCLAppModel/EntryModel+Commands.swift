@@ -13,7 +13,9 @@ extension EntryModel {
 
     /// A digital modem is configured (`config.digital.engine != NONE`).
     var digitalReady: Bool {
-        config.config.digital.engine != .none
+        let digital: DigitalConfig = config.config.digital
+        // RTTY through a hardware keyer needs no fldigi.
+        return digital.engine != .none || (form.mode == .rtty && digital.rttyRoute != .fldigi)
     }
 
     /// Kotlin `phone || cw || digi`.

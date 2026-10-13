@@ -131,6 +131,35 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// N1MM „RX Windows add to Grab window". Swift-only key.
     public var extraRxToGrab: Bool = true
 
+    /// N1MM „Default RTTY Interface": FLDIGI, TNC, TINYFSK or WINKEYER (PSK always fldigi). Swift-only key.
+    public var rttyInterface: String = RttyInterface.fldigi.rawValue
+    /// The TU/TNC (PK232, KAM, DXP38, OTHER) — the presets of its commands. Swift-only key.
+    public var tncType: String = TncType.pk232.rawValue
+    /// The TNC's serial port. Swift-only key.
+    public var tncPort: String = ""
+    /// The TNC's serial speed (8N1). Swift-only key.
+    public var tncBaud: Int = 9600
+    /// The TNC's {TX} command (empty = the type's preset; `{CTRL-C}`, `{ENTER}`, `{ESC}` …). Swift-only key.
+    public var tncTx: String = ""
+    /// The TNC's {RX} command (empty = the preset). Swift-only key.
+    public var tncRx: String = ""
+    /// The TNC's abort command for Esc (empty = the preset). Swift-only key.
+    public var tncEsc: String = ""
+    /// TinyFSK's serial port (9600 8N1). Swift-only key.
+    public var tinyFskPort: String = ""
+    /// WinKeyer 3.1 RTTY speed: 45 (45.45), 50, 75 or 100 baud. Swift-only key.
+    public var wkRttyBaud: Int = 45
+    /// WinKeyer 3.1 RTTY: mark and space reversed. Swift-only key.
+    public var wkRttyReverse: Bool = false
+    /// WinKeyer 3.1 RTTY FSKMAP: FSK on KEY, PTT keys the transmitter (default FSK on PTT). Swift-only key.
+    public var wkRttyFskOnKey: Bool = false
+    /// The Digital Interface's font (empty = the system monospaced font). Swift-only key.
+    public var diFontName: String = ""
+    /// The Digital Interface's text colour `#RRGGBB` (empty = the system's). Swift-only key.
+    public var diTextColor: String = ""
+    /// The Digital Interface's background `#RRGGBB` (empty = none). Swift-only key.
+    public var diBackgroundColor: String = ""
+
     enum CodingKeys: String, CodingKey {
         case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
         case autoTrxUpdate, rttyModem, pskModem
@@ -139,6 +168,7 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         case cwIdEnabled, cwIdText, diButtonCount, rxOutputToFile, diMessages
         case alignRttyHz, alignOtherHz, afcOnCq, netWithRunChange, shiftCompEnabled, shiftCompHz
         case fldigi2Host, fldigi2Port, extraRx, extraRxToGrab
+        case rttyInterface, tncType, tncPort, tncBaud, tncTx, tncRx, tncEsc, tinyFskPort, wkRttyBaud, wkRttyReverse, wkRttyFskOnKey, diFontName, diTextColor, diBackgroundColor
     }
 
     public init() {}
@@ -191,6 +221,20 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         fldigi2Port = max(0, min(65535, c.value(.fldigi2Port, default: d.fldigi2Port)))
         extraRx = c.value(.extraRx, default: d.extraRx)
         extraRxToGrab = c.value(.extraRxToGrab, default: d.extraRxToGrab)
+        rttyInterface = RttyInterface.from(c.value(.rttyInterface, default: d.rttyInterface)).rawValue
+        tncType = TncType.from(c.value(.tncType, default: d.tncType)).rawValue
+        tncPort = c.value(.tncPort, default: d.tncPort)
+        tncBaud = c.value(.tncBaud, default: d.tncBaud) > 0 ? c.value(.tncBaud, default: d.tncBaud) : d.tncBaud
+        tncTx = c.value(.tncTx, default: d.tncTx)
+        tncRx = c.value(.tncRx, default: d.tncRx)
+        tncEsc = c.value(.tncEsc, default: d.tncEsc)
+        tinyFskPort = c.value(.tinyFskPort, default: d.tinyFskPort)
+        wkRttyBaud = c.value(.wkRttyBaud, default: d.wkRttyBaud)
+        wkRttyReverse = c.value(.wkRttyReverse, default: d.wkRttyReverse)
+        wkRttyFskOnKey = c.value(.wkRttyFskOnKey, default: d.wkRttyFskOnKey)
+        diFontName = c.value(.diFontName, default: d.diFontName)
+        diTextColor = c.value(.diTextColor, default: d.diTextColor)
+        diBackgroundColor = c.value(.diBackgroundColor, default: d.diBackgroundColor)
     }
 
     /// An audio frequency for fldigi's cursor (100…4000 Hz), else `fallback`.
@@ -215,6 +259,26 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// A second fldigi is configured (DI2 has its own modem).
     public var hasSecondFldigi: Bool {
         fldigi2Port > 0
+    }
+
+    /// The TNC's TX / RX / abort commands: the configured ones, a blank one from the type's preset.
+    public var tncCommands: (tx: String, rx: String, esc: String) {
+        let preset = TncType.from(tncType).defaultCommands
+        func pick(_ value: String, _ fallback: String) -> String {
+            JavaText.isBlank(value) ? fallback : value
+        }
+        return (pick(tncTx, preset.tx), pick(tncRx, preset.rx), pick(tncEsc, preset.esc))
+    }
+
+    /// The WinKeyer 3.1 RTTY mode.
+    public var winkeyerRtty: WinkeyerRtty.Settings {
+        WinkeyerRtty.Settings(baud: wkRttyBaud == 45 ? 45.45 : Double(wkRttyBaud), reverse: wkRttyReverse,
+                              fskOnKey: wkRttyFskOnKey)
+    }
+
+    /// The interface RTTY goes through.
+    public var rttyRoute: RttyInterface {
+        RttyInterface.from(rttyInterface)
     }
 
     public static let buttonSlots = 24

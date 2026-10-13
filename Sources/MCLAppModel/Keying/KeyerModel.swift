@@ -448,6 +448,8 @@ public final class KeyerModel {
             devices.keyer?.close()
             devices.keyer = nil
             devices.signature = nil
+            devices.serial?.close()
+            devices.serial = nil
         }
     }
 
@@ -497,6 +499,8 @@ public final class KeyerModel {
             devices.signature = nil
             devices.fldigi = nil
             devices.fldigiSignature = nil
+            devices.serial?.close()
+            devices.serial = nil
         }
         await voice.shutdown()
         await lane.settle()
@@ -584,7 +588,7 @@ public final class KeyerModel {
         activeCat.set(activeRigCat())
     }
 
-    private func openRequest() -> KeyerLane.OpenRequest {
+    func openRequest() -> KeyerLane.OpenRequest {
         let keyerConfig: CwKeyerConfig = config.config.cwKeyer
         return KeyerLane.OpenRequest(method: keyerConfig.method, port: keyerConfig.winkeyerPort, wpm: cwSpeed,
                                      disabledText: language.tr(KeyerTexts.cwDisabled),

@@ -153,7 +153,7 @@ public final class DigitalKeyerModel {
 
     /// Kotlin `digitalReady`: a digital modem is configured.
     public var ready: Bool {
-        config.config.digital.engine != .none
+        config.config.digital.engine != .none || hardwareRoute != nil
     }
 
     /// The token of a transmission held open (N1MM `{TX}` without `{RX}`, Alt+T, the TX window): the lamp stays lit
@@ -180,6 +180,10 @@ public final class DigitalKeyerModel {
         guard let keyer, !closed else { return }
         guard keyer.txAllowed() else {
             keyer.noteSendFailure()
+            return
+        }
+        if let route = hardwareRoute {
+            sendHardware(text, key: key, returnToRx: returnToRx, route: route)
             return
         }
         keyer.tx.announceTx()
@@ -219,12 +223,136 @@ public final class DigitalKeyerModel {
         })
     }
 
+    // MARK: - RTTY hardware (TU/TNC, TinyFSK, WinKeyer 3.1)
+
+    /// The entry window's mode (wired by the app): RTTY may go through a hardware keyer.
+    @ObservationIgnored var activeMode: @MainActor () -> Mode? = { nil }
+    /// The hardware transmission's end (the keyers do not report it: an estimate from the text's length).
+    @ObservationIgnored private var hardwareTimer: (any RescoreTimer)?
+
+    /// The RTTY interface for this moment, `nil` = fldigi.
+    var hardwareRoute: RttyInterface? {
+        let route: RttyInterface = config.config.digital.rttyRoute
+        guard route != .fldigi, activeMode() == .rtty else { return nil }
+        return route
+    }
+
+    /// The bytes or the WinKeyer call of one hardware write, prepared on the main actor.
+    private enum HardwareWrite: Sendable {
+        case serial(path: String, baud: Int, bytes: [UInt8])
+        case winkeyer(text: String, settings: WinkeyerRtty.Settings, request: KeyerLane.OpenRequest)
+        case winkeyerRaw([UInt8], request: KeyerLane.OpenRequest)
+    }
+
+    /// The write of a hardware route: `text` framed for the device, `start` / `end` adding the keying around it.
+    private func hardwareWrite(_ route: RttyInterface, text: String, start: Bool, end: Bool) -> HardwareWrite? {
+        guard let keyer else { return nil }
+        let digital: DigitalConfig = config.config.digital
+        let body: [UInt8] = Array(BaudotText.filter(text).replacingOccurrences(of: "\n", with: "\r\n").utf8)
+        switch route {
+        case .tinyFsk:
+            let bytes: [UInt8] = (start ? [TinyFsk.txOn] : []) + body + (end ? [TinyFsk.txEnd] : [])
+            return .serial(path: digital.tinyFskPort, baud: 9_600, bytes: bytes)
+        case .tnc:
+            let commands = digital.tncCommands
+            let bytes: [UInt8] = (start ? TncCommands.bytes(commands.tx) : []) + body
+                + (end ? TncCommands.bytes(commands.rx) : [])
+            return .serial(path: digital.tncPort, baud: digital.tncBaud, bytes: bytes)
+        case .winkeyer:
+            if start && end {
+                return .winkeyer(text: text, settings: digital.winkeyerRtty, request: keyer.openRequest())
+            }
+            let bytes: [UInt8] = (start ? WinkeyerRtty.mode(digital.winkeyerRtty) + [0x5B] : []) + body + (end ? [0x5D] : [])
+            return .winkeyerRaw(bytes, request: keyer.openRequest())
+        case .fldigi:
+            return nil
+        }
+    }
+
+    /// Runs a hardware write on the keyer lane; `nil` = done, else the error text.
+    private func perform(_ write: HardwareWrite, then: @escaping @MainActor (String?) -> Void) {
+        let lane: KeyerLane = self.lane
+        lane.run({ devices -> String? in
+            do {
+                switch write {
+                case .serial(let path, let baud, let bytes):
+                    guard !KotlinStrings.isBlank(path) else { return DigitalTexts.noSerialPort }
+                    try lane.serial(devices, path: path, baud: baud).write(bytes)
+                case .winkeyer(let text, let settings, let request):
+                    guard let rtty = try lane.keyerOrOpen(devices, request) as? any RttyKeyer else {
+                        return DigitalTexts.noWinkeyerRtty
+                    }
+                    try rtty.sendRtty(text, settings: settings)
+                case .winkeyerRaw(let bytes, let request):
+                    guard let rtty = try lane.keyerOrOpen(devices, request) as? any RttyKeyer else {
+                        return DigitalTexts.noWinkeyerRtty
+                    }
+                    try rtty.sendRawRtty(bytes)
+                }
+                return nil
+            } catch {
+                return KeyingErrors.javaMessage(error) ?? "?"
+            }
+        }, then: then)
+    }
+
+    /// An RTTY message through the hardware keyer: the lamp is lit while the text is (estimated to be) sent; with
+    /// `returnToRx == false` the transmission is held as with fldigi.
+    private func sendHardware(_ text: String, key: Int, returnToRx: Bool, route: RttyInterface) {
+        guard let keyer else { return }
+        let appending: Bool = isHolding
+        keyer.tx.announceTx()
+        let token: Int64 = keyer.beginDigital(key: key)
+        if appending {
+            heldToken = token
+        }
+        guard let write = hardwareWrite(route, text: " " + text + " ", start: !appending, end: returnToRx) else { return }
+        perform(write) { [weak self] failure in
+            guard let self, let keyer = self.keyer else { return }
+            if let failure {
+                self.heldToken = nil
+                keyer.failDigital(token)
+                keyer.show(.verbatim(route.rawValue + ": " + failure))
+                keyer.noteSendFailure()
+                return
+            }
+            if returnToRx {
+                self.heldToken = nil
+                self.finishHardware(token, after: BaudotText.durationMs(text,
+                                                                        baud: self.config.config.digital.winkeyerRtty.baud))
+            } else {
+                self.heldToken = token
+            }
+        }
+    }
+
+    private func finishHardware(_ token: Int64, after milliseconds: Int) {
+        hardwareTimer?.cancel()
+        hardwareTimer = clock.schedule(afterMilliseconds: milliseconds) { [weak self] in
+            self?.keyer?.finishDigital(token)
+        }
+    }
+
     /// Alt+T / the TX button / `{TX}` alone (N1MM): fldigi transmits (idle) until `endHold`; text typed in the
     /// Digital Interface's TX window is appended (`typeHeld`). Goes through the TX gate like every transmission.
     public func startHold() {
         guard let keyer, !closed, !isHolding else { return }
         guard keyer.txAllowed() else {
             keyer.noteSendFailure()
+            return
+        }
+        if let route = hardwareRoute {
+            keyer.tx.announceTx()
+            let token: Int64 = keyer.beginDigital(key: -1)
+            heldToken = token
+            if let write = hardwareWrite(route, text: "", start: true, end: false) {
+                perform(write) { [weak self] failure in
+                    guard let self, let failure, let keyer = self.keyer else { return }
+                    self.heldToken = nil
+                    keyer.failDigital(token)
+                    keyer.show(.verbatim(route.rawValue + ": " + failure))
+                }
+            }
             return
         }
         keyer.tx.announceTx()
@@ -256,6 +384,12 @@ public final class DigitalKeyerModel {
     /// Text typed in the TX window while a transmission is held.
     public func typeHeld(_ text: String) {
         guard isHolding, !text.isEmpty else { return }
+        if let route = hardwareRoute {
+            if let write = hardwareWrite(route, text: text, start: false, end: false) {
+                perform(write) { _ in }
+            }
+            return
+        }
         let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run { devices in
@@ -267,6 +401,12 @@ public final class DigitalKeyerModel {
     public func endHold() {
         guard isHolding, let token = heldToken else { return }
         heldToken = nil
+        if let route = hardwareRoute {
+            if let write = hardwareWrite(route, text: "", start: false, end: true) {
+                perform(write) { [weak self] _ in self?.finishHardware(token, after: 300) }
+            }
+            return
+        }
         let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run({ devices -> Bool in
@@ -376,7 +516,24 @@ public final class DigitalKeyerModel {
     public func abort() -> Bool {
         guard let keyer, keyer.abortDigitalLamp() else { return false }
         watchTimer?.cancel()
+        hardwareTimer?.cancel()
         heldToken = nil
+        if let route = hardwareRoute {
+            // Esc: TinyFSK / WinKeyer `\` (stop and clear), the TNC's abort command.
+            let digital: DigitalConfig = config.config.digital
+            switch route {
+            case .tinyFsk:
+                perform(.serial(path: digital.tinyFskPort, baud: 9_600, bytes: [TinyFsk.abort])) { _ in }
+            case .tnc:
+                perform(.serial(path: digital.tncPort, baud: digital.tncBaud,
+                                bytes: TncCommands.bytes(digital.tncCommands.esc))) { _ in }
+            case .winkeyer:
+                perform(.winkeyerRaw(WinkeyerRtty.abort, request: keyer.openRequest())) { _ in }
+            case .fldigi:
+                break
+            }
+            return true
+        }
         let restore: String? = cwIdRestore
         cwIdRestore = nil
         let (host, port): (String, Int) = endpoint(txSide)

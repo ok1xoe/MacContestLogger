@@ -94,6 +94,10 @@ public struct HardwarePorts: Sendable {
     public var synthesize: @Sendable (_ cacheDir: JavaPath, _ voice: String, _ text: String) -> JavaPath? = { _, _, _ in
         nil
     }
+    /// A serial port of the digital modes (TU/TNC, TinyFSK; 8N1 at the given speed; called on the keyer lane).
+    public var openSerial: @Sendable (_ path: String, _ baud: Int) throws -> any ByteTransport = { _, _ in
+        throw InertHardwareError()
+    }
     /// `FldigiClient(host, port)` (called on the keyer lane).
     public var makeFldigi: @Sendable (String, Int) throws -> any FldigiPort = { _, _ in throw InertHardwareError() }
     /// `capture.start(deviceName)` — the receiver audio input (blocks; called on the audio lane).
@@ -144,6 +148,7 @@ public struct HardwarePorts: Sendable {
         ports.microphoneAccess = { await MicrophoneAccess.request() }
         ports.synthesize = { cacheDir, voice, text in MacSpeech(cacheDir: cacheDir, voice: voice).synthesize(text) }
         ports.makeFldigi = { host, port in try FldigiClient(host: host, port: port) }
+        ports.openSerial = { path, baud in try SerialPort.open(path: path, settings: SerialPort.Settings(baud: baud)) }
         ports.startAudio = { capture, device throws(AudioIOError) in try capture.start(deviceName: device) }
         ports.makeSimAudio = { noise in try SimAudioPlayer(noiseLevel: noise) }
         return ports
