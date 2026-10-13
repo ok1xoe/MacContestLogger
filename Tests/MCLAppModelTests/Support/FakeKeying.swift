@@ -149,6 +149,9 @@ final class FakeKeyingHardware: @unchecked Sendable {
     private var delayHeld = false
     /// The fake fldigi server's port (loopback only).
     var fldigiPort: Int?
+    /// Further fake fldigi ports a test serves (a second fldigi, additional RX windows): a request for one of them
+    /// goes there, any other to `fldigiPort`.
+    var allowedFldigiPorts: Set<Int> = []
 
     /// The generation of the last started (deviceless) capture: blocks are fed with `capture.accept`.
     var lastAudioGeneration: UInt64? {
@@ -348,8 +351,9 @@ final class FakeKeyingHardware: @unchecked Sendable {
             record("say " + text)
             return nil
         }
-        ports.makeFldigi = { [self] _, _ in
-            guard let port = fldigiPort else { throw JavaIOError(nil, javaClass: "java.net.ConnectException") }
+        ports.makeFldigi = { [self] _, requested in
+            let chosen: Int? = allowedFldigiPorts.contains(requested) ? requested : fldigiPort
+            guard let port = chosen else { throw JavaIOError(nil, javaClass: "java.net.ConnectException") }
             guardTestPort(port)
             return try FldigiClient(host: "127.0.0.1", port: port, connectTimeoutMs: 5_000, requestTimeoutMs: 5_000)
         }

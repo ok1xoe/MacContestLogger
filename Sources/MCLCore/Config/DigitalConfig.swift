@@ -122,6 +122,15 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// The compensation offset (Hz, may be negative). Swift-only key.
     public var shiftCompHz: Int = 170
 
+    /// SO2V/SO2R: the second fldigi of the Digital Interface 2 (VFO B / rig 2). Swift-only key.
+    public var fldigi2Host: String = "127.0.0.1"
+    /// Its XML-RPC port; 0 = no second fldigi (DI2 uses DI1's). Swift-only key.
+    public var fldigi2Port: Int = 0
+    /// N1MM's additional RX windows: further fldigi instances decoding the same audio (`host:port`, up to 4, separated by spaces), attached to the Digital Interface 1. Swift-only key.
+    public var extraRx: String = ""
+    /// N1MM „RX Windows add to Grab window". Swift-only key.
+    public var extraRxToGrab: Bool = true
+
     enum CodingKeys: String, CodingKey {
         case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
         case autoTrxUpdate, rttyModem, pskModem
@@ -129,6 +138,7 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         case grabOrder, grabNoDupes, grabOnlyScp, grabClearOnQsy, grabClearOnCq, grabSendSpace, grabAddToBandmap
         case cwIdEnabled, cwIdText, diButtonCount, rxOutputToFile, diMessages
         case alignRttyHz, alignOtherHz, afcOnCq, netWithRunChange, shiftCompEnabled, shiftCompHz
+        case fldigi2Host, fldigi2Port, extraRx, extraRxToGrab
     }
 
     public init() {}
@@ -177,6 +187,10 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         netWithRunChange = c.value(.netWithRunChange, default: d.netWithRunChange)
         shiftCompEnabled = c.value(.shiftCompEnabled, default: d.shiftCompEnabled)
         shiftCompHz = max(-5000, min(5000, c.value(.shiftCompHz, default: d.shiftCompHz)))
+        fldigi2Host = c.value(.fldigi2Host, default: d.fldigi2Host)
+        fldigi2Port = max(0, min(65535, c.value(.fldigi2Port, default: d.fldigi2Port)))
+        extraRx = c.value(.extraRx, default: d.extraRx)
+        extraRxToGrab = c.value(.extraRxToGrab, default: d.extraRxToGrab)
     }
 
     /// An audio frequency for fldigi's cursor (100…4000 Hz), else `fallback`.
@@ -187,6 +201,20 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// The Align target for a modem (RTTY or the others).
     public func alignHz(modem: String) -> Int {
         KotlinStrings.uppercase(modem).hasPrefix("RTTY") ? alignRttyHz : alignOtherHz
+    }
+
+    /// fldigi of a side: DI1 = `fldigiHost:fldigiPort`, DI2 = `fldigi2Host:fldigi2Port` when configured
+    /// (`fldigi2Port > 0`), else DI1's.
+    public func endpoint(_ side: Int) -> (host: String, port: Int) {
+        if side == 1, fldigi2Port > 0 {
+            return (DigitalConfig.normalizedHost(fldigi2Host), fldigi2Port)
+        }
+        return (fldigiHost, fldigiPort)
+    }
+
+    /// A second fldigi is configured (DI2 has its own modem).
+    public var hasSecondFldigi: Bool {
+        fldigi2Port > 0
     }
 
     public static let buttonSlots = 24

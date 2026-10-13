@@ -301,6 +301,12 @@ extension EntryModel {
             insertKey()
         case .toggleTx:
             toggleDigitalTx()
+        case .digitalLeft, .digitalRight:
+            let side: Int = action == .digitalLeft ? 0 : 1
+            if let rig, rig.vfo.twoEntryWindows {
+                rig.requestFocusVfo(side)
+            }
+            windows.setOpen(side == 0 ? "digitalinterface" : "digitalinterface2", true)
         default:
             runOperatingShortcut(action)
         }

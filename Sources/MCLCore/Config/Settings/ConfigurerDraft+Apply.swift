@@ -53,6 +53,10 @@ extension ConfigurerDraft {
         config.esm.callStackOrder = CallStack.Order.from(callStackOrder).rawValue
         config.esm.callStackClearOnBandChange = callStackClearOnBandChange
         config.digital.digitalCallStacking = digitalCallStacking
+        config.digital.fldigi2Host = fldigi2Host
+        config.digital.fldigi2Port = max(0, min(65535, fldigi2Port))
+        config.digital.extraRx = extraRx
+        config.digital.extraRxToGrab = extraRxToGrab
         config.wsjtx.highlightCalls = highlightCalls
         config.wsjtx.mirrorDxCall = mirrorDxCall
         config.wsjtx.clearDecodesOnBandChange = clearDecodesOnBandChange

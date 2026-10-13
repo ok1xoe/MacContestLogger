@@ -20,7 +20,7 @@ public final class MenuModel {
         "settings.import", "settings.merge", "settings.exportEdi", "settings.exportOther", "settings.print",
         "database.refillDxcc", "database.updateClubLogDxcc", "contest.updateCallHistory", "contest.updateDefinitions", "contest.editor",
         "settings.profiles", "settings.open", "contest.record", "window.catlog", "window.rotator",
-        "window.cwkeyboard", "window.cwreader", "window.digitalinterface", "window.waterfall", "beacons.load",
+        "window.cwkeyboard", "window.cwreader", "window.digitalinterface", "window.digitalinterface2", "window.waterfall", "beacons.load",
         "window.dxcluster", "window.bandmap", "window.availmult", "window.blacklist", "window.netstatus",
         "window.chat", "window.partner", "window.wsjtxdecodes", "wsjtx.launch", "wsjtx.launch2", "window.hamqthlog", "window.rate", "window.skeds",
         "window.score", "window.movemults", "window.dupesheet", "window.statistics", "window.qtc",

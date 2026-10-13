@@ -966,6 +966,12 @@ public final class AppModel {
         callStack.currentBand = { [weak model] in
             (model?.activeEntry ?? model?.entry)?.band?.adif ?? ""
         }
+        // The F-keys and macros go to DI2's fldigi while the VFO B / rig 2 window is active and a second fldigi exists.
+        model.keyer.digital.activeSide = { [weak rig = model.rig, weak config = model.config] in
+            guard let rig, let config, rig.vfo.twoEntryWindows, rig.vfo.activeVfo == 1,
+                  config.config.digital.hasSecondFldigi else { return 0 }
+            return 1
+        }
         let grabList = GrabListModel(config: model.config)
         model.grabList = grabList
         grabList.isDupe = { [weak callStack] call in

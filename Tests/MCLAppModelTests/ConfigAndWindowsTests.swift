@@ -87,7 +87,7 @@ import Testing
     /// `defeditor` is (`showDefinitionEditor = "defeditor" in openOnStart`).
     @Test func editorAndProfilesWindowsAreImplemented() async throws {
         #expect(WindowsModel.implemented == [
-            "log", "defeditor", "profiles", "catLog", "rotator", "cwkeyboard", "cwreader", "digitalinterface",
+            "log", "defeditor", "profiles", "catLog", "rotator", "cwkeyboard", "cwreader", "digitalinterface", "digitalinterface2",
             "waterfall", "dxCluster", "bandmap", "availMult", "blacklist", "netstatus", "chat", "partner", "wsjtxdecodes",
             "hamqthLog", "rate", "goals", "goals-from-log", "statistics", "score", "dupesheet", "skeds", "qtc",
             "simulator", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc", "mult:dxcc",
