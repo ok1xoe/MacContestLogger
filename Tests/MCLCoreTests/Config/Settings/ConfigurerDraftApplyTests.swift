@@ -370,6 +370,19 @@ import Testing
                                "captionRadioFrequency",
                                "autoTrxUpdate",
                                "rttyModem",
-                               "pskModem"])
+                               "pskModem",
+                               "clusterSoftware",
+                               "autoLogon",
+                               "showButtons",
+                               "showDxCount",
+                               "spotFilterSpotterPrefixes",
+                               "spotFilterSpotterCallAreas",
+                               "spotFilterOnlyCallHistory",
+                               "spotFilterOnlyWorked",
+                               "spotFilterHideBeacons",
+                               "spotFilterRemoveBusted",
+                               "spotFilterBustedTwoChars",
+                               "spotFilterPreferredSpotters",
+                               "blacklistEnabled"])
     }
 }

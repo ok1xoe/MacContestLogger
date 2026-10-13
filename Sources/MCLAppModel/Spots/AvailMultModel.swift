@@ -132,6 +132,11 @@ public final class AvailMultModel {
 
     // MARK: - row actions
 
+    /// The row's spotter is a preferred one (N1MM's ★ column).
+    public func isPreferred(_ row: SpotRow) -> Bool {
+        feed.spotFilter().isPreferred(row.spotter)
+    }
+
     /// A click on a row: tune to the call's spot, or (none left in the buffer) `qsy(freq, call)`.
     public func click(_ row: SpotRow) {
         if let spot = rig.spotForCall(row.call) {

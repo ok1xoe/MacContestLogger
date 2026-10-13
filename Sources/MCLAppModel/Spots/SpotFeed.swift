@@ -50,6 +50,13 @@ public final class SpotFeed {
     @ObservationIgnored public var spotFilter: @MainActor () -> SpotFilter = { .default }
     /// The analysis the filter infers modes and the contest from (set by the app).
     @ObservationIgnored public var filterAnalyzer: @MainActor () -> SpotAnalyzer? = { nil }
+    /// The call history, the log and the busted calls for the filter's options that need them (set by the app).
+    @ObservationIgnored public var filterContext: @MainActor (SpotFilter) -> SpotFilterContext = { _ in .none }
+
+    /// The context `filter` needs now (`.none` when none of its options asks).
+    public func context(for filter: SpotFilter) -> SpotFilterContext {
+        filter.needsContext ? filterContext(filter) : .none
+    }
 
     /// The live spots after the Bands/Modes filter — what the band map, the Available Mults and the spot
     /// navigation show. The buffer itself is untouched, so a changed filter applies to the existing spots.
@@ -57,7 +64,7 @@ public final class SpotFeed {
         let all: [DxSpot] = buffer.snapshot()
         let filter: SpotFilter = spotFilter()
         guard !filter.isDefault else { return all }
-        return filter.apply(all, analyzer: filterAnalyzer())
+        return filter.apply(all, analyzer: filterAnalyzer(), context: context(for: filter))
     }
 
     /// The filter (or the contest it depends on) changed: redraw the observers like after a new spot.

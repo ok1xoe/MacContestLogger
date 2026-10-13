@@ -19,6 +19,11 @@ struct SpotFilterEditor: View {
                 .accessibilityIdentifier("\(idPrefix).contest")
             Divider()
             originRow
+            Divider()
+            moreFilters
+            Divider()
+            preferredRow
+            Divider()
             SettingsCheckbox(label: language.tr("Zobrazovat nepracovatelné spoty"),
                              isOn: Binding(get: { !filter.hideNonWorkable },
                                            set: { filter.hideNonWorkable = !$0 }))
@@ -110,7 +115,79 @@ struct SpotFilterEditor: View {
                 .toggleStyle(.checkbox)
                 .accessibilityIdentifier("\(idPrefix).origin.own")
             }
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(verbatim: language.tr("Prefixy spotterů")).windowFont(12)
+                callsField(filter.spotterPrefixText, label: language.tr("Prefixy spotterů"), placeholder: "OK OM DL") {
+                    filter.spotterPrefixText = $0
+                }
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(verbatim: language.tr("Call oblasti vlastní země")).windowFont(12)
+                FlowLayout(spacing: 6) {
+                    ForEach(SpotFilter.callAreas, id: \.self) { digit in
+                        Toggle(isOn: Binding(get: { filter.spotterCallAreas.contains(digit) },
+                                             set: { filter.setCallArea(digit, on: $0) })) {
+                            Text(verbatim: digit).windowFont(12)
+                        }
+                        .toggleStyle(.checkbox)
+                        .accessibilityLabel(language.tr("Call oblast %s", .string(digit)))
+                        .accessibilityIdentifier("\(idPrefix).area.\(digit)")
+                    }
+                }
+            }
             SettingsCaption(language.tr("Nic nezaškrtnuto = bez filtru. Skimmer spoty se řídí polohou skimmeru."))
+            SettingsCaption(language.tr(
+                "Projde spotter, který odpovídá čemukoli zadanému: kontinent, vlastní země, začátek značky nebo call oblast."))
+        }
+    }
+
+    // MARK: - call history, worked, beacons, busted spots
+
+    private var moreFilters: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            SettingsCheckbox(label: language.tr("Jen spoty stanic z call history"), isOn: $filter.onlyCallHistory)
+                .accessibilityIdentifier("\(idPrefix).callhistory")
+            SettingsCheckbox(label: language.tr("Jen spoty stanic, které už jsou v deníku"), isOn: $filter.onlyWorked)
+                .accessibilityIdentifier("\(idPrefix).worked")
+            SettingsCheckbox(label: language.tr("Skrýt spoty majáků NCDXF/IARU"), isOn: $filter.hideBeacons)
+                .accessibilityIdentifier("\(idPrefix).beacons")
+            HStack(spacing: 12) {
+                SettingsCheckbox(label: language.tr("Odstranit chybné (busted) spoty"), isOn: $filter.removeBusted)
+                    .accessibilityIdentifier("\(idPrefix).busted")
+                SettingsCheckbox(label: language.tr("I chyby ve dvou znacích"), isOn: $filter.bustedTwoChars)
+                    .disabled(!filter.removeBusted)
+                    .accessibilityIdentifier("\(idPrefix).busted2")
+            }
+            SettingsCaption(language.tr(
+                "Chybný spot = značka lišící se o jeden (dva) znaky od jiné značky na stejném kmitočtu (tolerance ladění); skryje se ta hlášená méněkrát."))
+        }
+    }
+
+    // MARK: - preferred spotters
+
+    private var preferredRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(verbatim: language.tr("Preferovaní spotteři")).windowFont(12, weight: .semibold)
+                callsField(filter.preferredSpotters.joined(separator: " "),
+                           label: language.tr("Preferovaní spotteři"), placeholder: "OK1XOE OK1ABC") {
+                    filter.preferredSpotters = SpotFilter.normalizedCalls([$0])
+                }
+            }
+            SettingsCaption(language.tr(
+                "Až 3 značky (typicky vlastní skimmer); jejich spoty jsou zvýrazněné a označené ★. OK1ABC platí i pro OK1ABC-2, OK1ABC-# a OK1ABC/3."))
+        }
+    }
+
+    private func callsField(_ value: String, label: String, placeholder: String,
+                            commit: @escaping @MainActor (String) -> Void) -> some View {
+        WindowFontReader { size in
+            CommitTextField(value: value, placeholder: placeholder, fontSize: CGFloat(WindowFont.size(12, windowSize: size)),
+                            accessibilityLabel: label, onCommit: commit)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+                .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.secondary.opacity(0.4)))
+                .frame(maxWidth: 260)
         }
     }
 }

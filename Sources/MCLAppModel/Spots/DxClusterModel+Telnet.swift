@@ -5,6 +5,8 @@ import MCLCore
 struct ConsoleCacheKey: Equatable {
     let filter: SpotFilter
     let analysisRevision: Int
+    /// The spot feed's revision when the filter's context depends on the buffer (busted spots), else 0.
+    let contextRevision: Int
 }
 
 /// The N1MM+ Telnet window's own options and buttons: the node software (detected from the greeting or chosen), auto
@@ -163,9 +165,11 @@ extension DxClusterModel {
 
     /// The traffic log's lines styled for the console: spot lines tinted by mode and greyed when the filter hides
     /// them. Lines already styled under the same filter and analysis are reused.
-    public func consoleLines(analyzer: SpotAnalyzer, analysisRevision: Int) -> [ConsoleLine] {
+    public func consoleLines(analyzer: SpotAnalyzer, analysisRevision: Int, context: SpotFilterContext = .none,
+                             contextRevision: Int = 0) -> [ConsoleLine] {
         let filter: SpotFilter = spotFilter
-        let key = ConsoleCacheKey(filter: filter, analysisRevision: analysisRevision)
+        let key = ConsoleCacheKey(filter: filter, analysisRevision: analysisRevision,
+                                  contextRevision: filter.needsContext ? contextRevision : 0)
         let log: [String] = self.log.snapshot()
         var cache: [String: ConsoleLine] = consoleCache?.key == key ? consoleCache?.lines ?? [:] : [:]
         var fresh: [String: ConsoleLine] = [:]
@@ -176,7 +180,7 @@ extension DxClusterModel {
             if let known = cache[text] {
                 line = known
             } else {
-                line = ConsoleLine.lines([text], filter: filter, analyzer: analyzer)[0]
+                line = ConsoleLine.lines([text], filter: filter, analyzer: analyzer, context: context)[0]
                 cache[text] = line
             }
             fresh[text] = line

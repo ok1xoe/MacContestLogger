@@ -30,12 +30,65 @@ public final class BlacklistModel {
         isCall ? config.config.dxCluster.callBlacklist : config.config.dxCluster.spotterBlacklist
     }
 
-    /// Kotlin `applyDxClusterBlacklist()`: the skimmer threshold and both lists into the buffer.
+    /// Kotlin `applyDxClusterBlacklist()`: the skimmer threshold and both lists into the buffer (empty lists while the
+    /// blacklists are switched off).
     public func apply() {
         let dx: DxClusterConfig = config.config.dxCluster
         spots.setMinSkimmers(dx.minSkimmers)
+        guard dx.blacklistEnabled else {
+            spots.setBlacklist(calls: [], spotters: [])
+            return
+        }
         spots.setBlacklist(calls: BlacklistService.values(dx.callBlacklist),
                            spotters: BlacklistService.values(dx.spotterBlacklist))
+    }
+
+    // MARK: - N1MM switch, Clear, Import, Export
+
+    /// The blacklists apply (N1MM's checkbox). Spots dropped while they were on do not come back; new ones do.
+    public var enabled: Bool {
+        config.config.dxCluster.blacklistEnabled
+    }
+
+    public func setEnabled(_ on: Bool) {
+        guard on != enabled else { return }
+        config.config.dxCluster.blacklistEnabled = on
+        config.saveSilently()
+        apply()
+        revision += 1
+    }
+
+    /// Empties one list.
+    public func clear(isCall: Bool) {
+        edit(isCall) { list in
+            let had: Bool = !list.isEmpty
+            list = []
+            return had
+        }
+    }
+
+    /// One call per line (also separated by commas or spaces; `#` lines are comments) added to one list; returns how
+    /// many were new.
+    @discardableResult
+    public func importText(isCall: Bool, _ text: String) -> Int {
+        let stamp: String = nowUtc()
+        var added = 0
+        edit(isCall) { list in
+            for line in text.split(whereSeparator: \.isNewline) where !line.trimmingCharacters(in: .whitespaces)
+                .hasPrefix("#") {
+                for token in line.split(whereSeparator: { $0 == "," || $0 == ";" || $0.isWhitespace })
+                where BlacklistService.add(&list, String(token), note: "", nowUtc: stamp) {
+                    added += 1
+                }
+            }
+            return added > 0
+        }
+        return added
+    }
+
+    /// One list as text, one value per line.
+    public func exportText(isCall: Bool) -> String {
+        entries(isCall: isCall).map(\.value).joined(separator: "\n") + "\n"
     }
 
     /// Kotlin `migrateLegacyBlacklist()` (start-up): the old string lists merged into the entries and emptied, then
