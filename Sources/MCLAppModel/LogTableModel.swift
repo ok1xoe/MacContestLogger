@@ -150,6 +150,18 @@ public final class LogTableModel {
         return true
     }
 
+    /// N1MM Find Again: the QSO after the one selected among the rows shown (the first when none or several are
+    /// selected; after the last it starts again).
+    public func findNext() {
+        let ids: [Int64] = logbook.displayed.compactMap(\.id)
+        guard !ids.isEmpty else { return }
+        var next: Int = 0
+        if selected.count == 1, let current = selected.first, let index = ids.firstIndex(of: current) {
+            next = (index + 1) % ids.count
+        }
+        select([ids[next]])
+    }
+
     /// Kotlin `onToggleWarnings`.
     public func toggleWarnings() {
         logbook.setOnlyWarnings(!logbook.onlyWarnings)

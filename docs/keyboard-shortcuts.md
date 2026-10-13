@@ -43,7 +43,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Alt+W** | clears the fields; another Alt+W with empty fields **restores** them |
 | **Ctrl+D** | deletes the last QSO (with confirmation) |
 | **Ctrl+N** | note: with a callsign filled in, for the QSO in progress, otherwise for the last logged one |
-| **Ctrl+F** | finds the callsign from the field in the log (opens the QSO overview with the search `call:`) |
+| **Ctrl+F** | finds the callsign from the field in the log (opens the QSO overview with the search `call:`); again with the same callsign selects its next QSO (Find Again) |
+| **Ctrl+Y** | edits the last logged QSO in a dialog (also the **Edit** button), see [Entry window](entry-window.md#editing-a-qso) |
 | **Ctrl+U** | serial number in the exchange +1 |
 | **Alt+Y** | next call of the Check window's panes into the callsign field (again = the next one; in an exchange field the first value of the exchange pane), see [Check window](call-check.md#alt-y) |
 | **↑ / ↓** | with SCP suggestions, moves within the suggestions, otherwise tunes the rig |
@@ -164,7 +165,7 @@ turned the Mission Control shortcuts off.
 ## Unsupported N1MM shortcuts
 
 SO2R/SO2V (**\\**, Pause, Ctrl+←/→, Alt+F5/F6, Ctrl+Alt+D), quick edit
-**Ctrl+Q/A** and **Ctrl+Y**, filters **Alt+'**, callsign stack
+**Ctrl+Q/A**, filters **Alt+'**, callsign stack
 **Alt+G / Ctrl+Alt+G**, multi-op **Ctrl+Alt+M / Alt+Z**, autosend **Ctrl+Shift+M**.
 
 ## RIT

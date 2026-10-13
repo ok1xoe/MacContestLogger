@@ -62,6 +62,10 @@ struct LogWindowView: View {
             // Kotlin `LaunchedEffect(state.logSearchRequest)`: Ctrl+F of the entry window.
             table.takeSearchRequest()
         }
+        .onChange(of: app.windows.logFindNextRequest) {
+            // Find Again (Ctrl+F with the same call): the next QSO of the search.
+            table.findNext()
+        }
         // The sheets close only through the model (their buttons and keys).
         .sheet(item: Binding(get: { table.bulkPrompt.map { BulkPromptItem(id: table.bulkPromptId, action: $0) } },
                              set: { _ in })) { item in
@@ -345,6 +349,10 @@ final class LogTableCoordinator: NSObject, NSTableViewDataSource, NSTableViewDel
         }
         if table.selectedRowIndexes != wanted {
             table.selectRowIndexes(wanted, byExtendingSelection: false)
+            if wanted.count == 1, let row = wanted.first {
+                // A single row selected by the model (Find Again) comes into view.
+                table.scrollRowToVisible(row)
+            }
         }
         let shown: Set<Int64> = Set(wanted.compactMap { rows[$0].id })
         if shown != desired {

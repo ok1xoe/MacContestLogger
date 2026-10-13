@@ -279,7 +279,9 @@ extension EntryModel {
         case .note:
             promptNote()
         case .find:
-            windows.findInLog(form.call)
+            findInLog()
+        case .editLast:
+            editLastContact()
         case .incrementNr:
             incrementNumber()
         case .stackCall:
@@ -311,6 +313,17 @@ extension EntryModel {
             windows.setOpen(side == 0 ? "digitalinterface" : "digitalinterface2", true)
         default:
             runOperatingShortcut(action)
+        }
+    }
+
+    /// N1MM Ctrl+F / Find Again: the log window shows the typed call's QSOs; Ctrl+F again with the same call (the log
+    /// still showing them) selects the next one.
+    func findInLog() {
+        let query: String = WindowsModel.findQuery(form.call)
+        if !query.isEmpty, windows.isOpen("log"), logbook.query == query {
+            windows.findNextInLog()
+        } else {
+            windows.findInLog(form.call)
         }
     }
 

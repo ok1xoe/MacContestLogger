@@ -29,6 +29,8 @@ public final class DialogsModel {
         case score3830 = "score-3830"
         /// The operator at the key (Kotlin `OperatorDialog`, Ctrl+O / OPON).
         case operatorLogin = "operator"
+        /// N1MM's Edit Contact dialog (Ctrl+Y, the Edit button, Edit Current Contact).
+        case qsoEdit = "qso-edit"
 
         /// Kotlin default size.
         public var defaultSize: CGSize {
@@ -43,6 +45,7 @@ public final class DialogsModel {
             case .dxccOverrides: return CGSize(width: 620, height: 640)
             case .score3830: return CGSize(width: 560, height: 560)
             case .operatorLogin: return CGSize(width: 400, height: 230)
+            case .qsoEdit: return CGSize(width: 460, height: 520)
             }
         }
 
@@ -62,6 +65,8 @@ public final class DialogsModel {
     public private(set) var dxccOverrides: DxccOverridesModel?
     /// The open „Odeslat výsledek na 3830" window's state (`nil` = closed).
     public private(set) var score3830: ScoreSubmitModel?
+    /// The Edit Contact dialog's model while it is open.
+    public private(set) var qsoEdit: QsoEditModel?
     public private(set) var showContestBrowser: Bool = false
     public private(set) var showNewDatabase: Bool = false
     public private(set) var showOpenDatabase: Bool = false
@@ -150,12 +155,22 @@ public final class DialogsModel {
         case .dxccOverrides: return dxccOverrides != nil
         case .score3830: return score3830 != nil
         case .operatorLogin: return showOperator
+        case .qsoEdit: return qsoEdit != nil
         }
     }
 
     /// The dialogs that should be shown; the main window opens and closes their windows to match.
     public var openDialogs: Set<Window> {
         Set(Window.allCases.filter { isOpen($0) })
+    }
+
+    /// Opens the Edit Contact dialog with `model` (a dialog already open is replaced).
+    public func openQsoEdit(_ model: QsoEditModel) {
+        model.onClose = { [weak self, weak model] in
+            guard let self, let model, self.qsoEdit === model else { return }
+            self.qsoEdit = nil
+        }
+        qsoEdit = model
     }
 
     /// Builds the 3830 window's model (needs the callbook model, wired by the app).
@@ -221,6 +236,11 @@ public final class DialogsModel {
             }
         case .operatorLogin:
             showOperator = open
+        case .qsoEdit:
+            // Opened only with its model (`openQsoEdit`).
+            if !open {
+                qsoEdit = nil
+            }
         }
     }
 

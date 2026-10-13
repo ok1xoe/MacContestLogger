@@ -164,6 +164,7 @@ struct MacContestLoggerApp: App {
         dialog(.dxccOverrides) { DxccOverridesWindowView(host: host) }
         dialog(.score3830) { Score3830WindowView(host: host) }
         dialog(.operatorLogin) { OperatorWindowView(host: host) }
+        dialog(.qsoEdit) { QsoEditWindowView(host: host) }
     }
 
     /// The info and tool windows: Info (`rate`), the goal windows, statistics, score, dupesheet, skeds, QTC, the

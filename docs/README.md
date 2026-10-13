@@ -10,6 +10,7 @@ version looks slightly different, but the controls and their meaning are the sam
 
 - [Getting started](zaciname.md)
 - [Settings (Configurer)](settings.md)
+- [Entry window](entry-window.md)
 - [Entry window keyboard shortcuts](keyboard-shortcuts.md)
 - [Text commands in the callsign field](text-commands.md)
 - [ESM – Enter Sends Message](esm.md)

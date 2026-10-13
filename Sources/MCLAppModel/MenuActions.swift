@@ -79,6 +79,10 @@ public enum MenuActions {
         if id == "help.dataFolder" {
             return .openDataFolder(app.dataDir)
         }
+        if id == "edit.editCurrent" {
+            (app.activeEntry ?? app.entry).editCurrentContact()
+            return nil
+        }
         if let action = MenuModel.shortcutActions[id], id.hasPrefix("edit.") {
             (app.activeEntry ?? app.entry).runShortcut(action)
             return nil
