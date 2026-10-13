@@ -41,6 +41,18 @@ public final class IntegrationsModel {
     public internal(set) var wsjtxDecodes = WsjtxDecodes()
     /// The last WSJT-X status (`AppState.wsjtxStatus`).
     public internal(set) var wsjtxStatus: WsjtxMessages.Status?
+    /// The last status of every WSJT-X / JTDX instance by its Id (two instances for SO2R).
+    public internal(set) var wsjtxStatuses: [String: WsjtxMessages.Status] = [:]
+    /// The JTDX TCP logbook port while it listens.
+    public var jtdxTcpPort: Int? { jtdxTcpListener?.boundPort }
+    /// The colours last sent to WSJT-X's Band Activity, by instance and call.
+    @ObservationIgnored var highlighted: [String: String] = [:]
+    @ObservationIgnored var jtdxTcpListener: (any UdpListening)?
+    @ObservationIgnored var jtdxTcpGeneration = 0
+    /// WSJT-X's DX Call into an entry window (call, VFO 0/1); wired by the app.
+    @ObservationIgnored var mirrorDxCall: (@MainActor (String, Int) -> Void)?
+    /// Opens the decode list (launching WSJT-X); wired by the app.
+    @ObservationIgnored var openDecodeList: (@MainActor () -> Void)?
 
     /// The broadcast runs.
     public var broadcastActive: Bool { broadcast != nil }

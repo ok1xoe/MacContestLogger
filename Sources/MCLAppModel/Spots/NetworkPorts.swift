@@ -93,6 +93,8 @@ public struct NetworkPorts: Sendable {
     public var clubLogCty: (any DataFetcher)?
     /// `true` for the inert ports.
     public var isInert: Bool
+    /// Starts an external program (WSJT-X / JTDX): the application path and its arguments. Inert = refused.
+    public var launchApp: @Sendable (_ path: String, _ arguments: [String]) throws -> Void = NetworkPorts.inertLaunch
 
     /// The network services default to inert, so a test that passes only the spot ports opens nothing else.
     public init(makeSession: @escaping @Sendable (ClusterHooks) -> any ClusterSessionPort, http: any HttpGetter,
@@ -101,7 +103,9 @@ public struct NetworkPorts: Sendable {
                     = NetworkPorts.inertTransport,
                 udp: UdpPorts = .inert, online: OnlinePorts = .inert,
                 clock: @escaping ClockProbe = NetworkPorts.inertClock,
-                plugins: PluginsPorts = .inert, clubLogCty: (any DataFetcher)? = nil, isInert: Bool = false) {
+                plugins: PluginsPorts = .inert, clubLogCty: (any DataFetcher)? = nil, isInert: Bool = false,
+                launchApp: @escaping @Sendable (String, [String]) throws -> Void = NetworkPorts.inertLaunch) {
+        self.launchApp = launchApp
         self.makeSession = makeSession
         self.http = http
         self.urlOpener = urlOpener
@@ -124,6 +128,19 @@ public struct NetworkPorts: Sendable {
         makeSession: { hooks in InertClusterSession(log: hooks.log) },
         http: InertHttpGetter(), urlOpener: .inert, makeSyncTransport: inertTransport, udp: .inert,
         online: .inert, clock: inertClock, plugins: .inert, isInert: true)
+
+    /// The launcher of the inert ports: starts nothing.
+    @Sendable public static func inertLaunch(_ path: String, _ arguments: [String]) throws {
+        throw SyncTransportError(disabledMessage)
+    }
+
+    /// `open -n -a <app> --args …`: a new instance each time (a second WSJT-X for rig 2).
+    @Sendable public static func liveLaunch(_ path: String, _ arguments: [String]) throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-n", "-a", path] + (arguments.isEmpty ? [] : ["--args"] + arguments)
+        try process.run()
+    }
 
     /// The transport of the inert ports: opens nothing, `connect` fails with `disabledMessage`.
     @Sendable public static func inertTransport(_ config: ClusterConfig, _ persistenceDir: URL) throws
@@ -149,7 +166,7 @@ public struct NetworkPorts: Sendable {
     public static let live = NetworkPorts(makeSession: sessions(), http: URLSessionHttpGetter(),
                                           urlOpener: .workspace, makeSyncTransport: liveTransport, udp: .live,
                                           online: .live, clock: LiveClockProbe.probe, plugins: .live,
-                                          clubLogCty: URLSessionDataFetcher())
+                                          clubLogCty: URLSessionDataFetcher(), launchApp: liveLaunch)
 
     /// `live`, unless `MCL_INERT_NETWORK` is set (the reading of `HardwarePorts.isInert`). The plugins stay inert
     /// under `MCL_INERT_HARDWARE` as well (they run local executables).
@@ -160,6 +177,7 @@ public struct NetworkPorts: Sendable {
         var ports: NetworkPorts = live
         if HardwarePorts.isInert(environment, variable: HardwarePorts.inertVariable) {
             ports.plugins = .inert
+            ports.launchApp = inertLaunch
         }
         return ports
     }

@@ -137,6 +137,8 @@
         { "id": "window.digitalinterface", "label": "Digitální rozhraní", "state": "enable" },
         { "id": "window.simulator", "label": "Simulátor pileupu", "state": "enable" },
         { "id": "window.wsjtxdecodes", "label": "WSJT-X dekódy", "state": "enable" },
+        { "id": "wsjtx.launch", "label": "Spustit WSJT-X / JTDX", "state": "enable" },
+        { "id": "wsjtx.launch2", "label": "Spustit WSJT-X / JTDX (rádio 2)", "state": "enable" },
         { "id": "window.netstatus", "label": "Stav sítě",       "state": "enable" },
         { "id": "window.chat",      "label": "Chat",            "state": "enable" },
         { "id": "window.partner",   "label": "Partner",         "state": "enable" },

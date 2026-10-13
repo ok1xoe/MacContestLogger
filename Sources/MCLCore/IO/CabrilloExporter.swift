@@ -245,7 +245,7 @@ public enum CabrilloExporter {
     /// Values of our category selection converted to a Cabrillo 3.0 dictionary.
     private static func categoryValue(_ dim: String, _ value: String) -> String {
         if dim == "MODE" {
-            if isAny(value, ["DIGITAL", "FT8", "FT4", "PSK", "JT65"]) { return "DIGI" }
+            if isAny(value, ["DIGITAL", "FT8", "FT4", "PSK", "JT65", "Q65", "FT2"]) { return "DIGI" }
             if isAny(value, ["PH", "PHONE"]) { return "SSB" }
         } else if dim == "BAND" {
             if JavaText.equals("70CM", value) { return "432" }
@@ -388,7 +388,7 @@ public enum CabrilloExporter {
         case .ssb, .am: return "PH"
         case .fm: return "FM"
         case .rtty: return "RY"
-        case .psk, .ft8, .ft4, .jt65, .digital: return "DG"
+        case .psk, .ft8, .ft4, .jt65, .digital, .q65, .ft2: return "DG"
         }
     }
 

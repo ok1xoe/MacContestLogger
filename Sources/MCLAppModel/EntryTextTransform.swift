@@ -45,7 +45,7 @@ public enum EntryTextTransform: Equatable, Sendable {
 extension EntryGrid {
 
     /// Kotlin `DIGI_MODES`: the concrete digital modes offered by the mode picker of a digital contest.
-    public static let digiModes: [Mode] = [.ft8, .ft4, .jt65, .rtty, .psk, .digital]
+    public static let digiModes: [Mode] = [.ft8, .ft4, .jt65, .rtty, .psk, .digital, .q65, .ft2]
 
     /// Kotlin `isDigiContest`: in a contest whose primary mode is DIGITAL, or while a digital mode (PSK, FT8, FT4,
     /// DIGITAL) is set, the mode can be picked from `digiModes`.

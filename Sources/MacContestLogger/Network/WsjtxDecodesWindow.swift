@@ -9,6 +9,8 @@ final class WsjtxDecodesWindowState: ObservableObject {
     @Published var onlyCq: Bool = false
     @Published var hideDupes: Bool = true
     @Published var onlyMults: Bool = false
+    @Published var text: String = ""
+    @Published var sort: WsjtxDecodes.Sort = .time
 }
 
 /// Kotlin `WsjtxDecodesWindow` (`wsjtxdecodes` 640×460, `WsjtxDecodesWindow.kt:41-123`, N1MM Decode List): the decodes
@@ -40,7 +42,9 @@ struct WsjtxDecodesWindowView: View {
         let language: LanguageModel = app.language
         let integrations: IntegrationsModel = app.integrations
         let rows: [WsjtxDecodes.Row] = integrations.wsjtxDecodes.filtered(
-            onlyCq: state.onlyCq, hideDupe: state.hideDupes, onlyMult: state.onlyMults)
+            onlyCq: state.onlyCq, hideDupe: state.hideDupes, onlyMult: state.onlyMults, text: state.text,
+            sort: state.sort)
+        let instances: Bool = integrations.wsjtxStatuses.count > 1
         return VStack(alignment: .leading, spacing: 6) {
             WindowTopBar(size: $session.fontSize, language: language)
             HStack(spacing: 6) {
@@ -51,6 +55,22 @@ struct WsjtxDecodesWindowView: View {
                             identifier: "wsjtx.hideDupes") { state.hideDupes.toggle() }
                 NetworkChip(label: language.tr("Jen násobiče"), selected: state.onlyMults,
                             identifier: "wsjtx.onlyMults") { state.onlyMults.toggle() }
+                TextField(language.tr("Hledat v textu"), text: $state.text)
+                    .textFieldStyle(.roundedBorder)
+                    .windowFont(13)
+                    .frame(width: 140)
+                    .accessibilityIdentifier("wsjtx.text")
+                Picker(selection: $state.sort) {
+                    Text(verbatim: language.tr("Čas")).tag(WsjtxDecodes.Sort.time)
+                    Text(verbatim: "SNR").tag(WsjtxDecodes.Sort.snr)
+                    Text(verbatim: "Hz").tag(WsjtxDecodes.Sort.frequency)
+                    Text(verbatim: language.tr("Volačka")).tag(WsjtxDecodes.Sort.call)
+                } label: {
+                    EmptyView()
+                }
+                .labelsHidden()
+                .frame(width: 110)
+                .accessibilityLabel(Text(verbatim: language.tr("Řazení")))
             }
             Text(verbatim: language.text(WsjtxDecodes.statusText(status: integrations.wsjtxStatus)))
                 .windowFont(14, weight: .medium)
@@ -58,7 +78,7 @@ struct WsjtxDecodesWindowView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                        decodeRow(row)
+                        decodeRow(row, instances: instances)
                             .contentShape(Rectangle())
                             .onTapGesture(count: 2) { integrations.reply(to: row) }
                     }
@@ -72,7 +92,7 @@ struct WsjtxDecodesWindowView: View {
         .environment(\.windowFontSize, session.fontSize)
     }
 
-    private func decodeRow(_ row: WsjtxDecodes.Row) -> some View {
+    private func decodeRow(_ row: WsjtxDecodes.Row, instances: Bool) -> some View {
         let text: WsjtxDecodes.RowText = WsjtxDecodes.rowText(row)
         let color: Color = Self.color(row)
         let scale: Double = Double(session.fontSize) / Double(WindowFont.defaultSize)
@@ -81,6 +101,12 @@ struct WsjtxDecodesWindowView: View {
             Text(verbatim: text.snr).windowFont(13, design: .monospaced).frame(width: 40 * scale, alignment: .leading)
             Text(verbatim: text.deltaFrequency).windowFont(13, design: .monospaced)
                 .frame(width: 50 * scale, alignment: .leading)
+            // N1MM's Band/Mode column (and the instance with two WSJT-X).
+            Text(verbatim: (row.band?.adif ?? "") + " " + row.modeName
+                 + (instances ? " " + (row.decode.id ?? "") : ""))
+                .windowFont(12, design: .monospaced)
+                .foregroundStyle(.secondary)
+                .frame(width: (instances ? 150 : 80) * scale, alignment: .leading)
             Text(verbatim: text.message)
                 .windowFont(13, weight: row.parsed.cq ? .bold : .regular, design: .monospaced)
                 .foregroundStyle(color)

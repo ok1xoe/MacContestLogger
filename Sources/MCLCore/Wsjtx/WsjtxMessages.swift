@@ -164,6 +164,45 @@ public enum WsjtxMessages {
         return out.bytes
     }
 
+    /// An RGB colour of HighlightCallsign.
+    public struct Rgb: Equatable, Hashable, Sendable {
+        public let red: UInt8
+        public let green: UInt8
+        public let blue: UInt8
+
+        public init(_ hex: UInt32) {
+            red = UInt8((hex >> 16) & 0xFF)
+            green = UInt8((hex >> 8) & 0xFF)
+            blue = UInt8(hex & 0xFF)
+        }
+    }
+
+    /// HighlightCallsign (13): WSJT-X colours `call` in its Band Activity window (`nil` colours = the highlight is
+    /// removed: QColor Invalid). `id` must be the target instance's Id. QColor in QDataStream: `qint8` spec (1 = RGB,
+    /// 0 = invalid) and five `quint16` (alpha, red, green, blue — 8 bits repeated —, pad).
+    public static func encodeHighlightCallsign(id: String?, call: String, background: Rgb?, foreground: Rgb?,
+                                               highlightLast: Bool = false) -> [UInt8] {
+        var out = WsjtxDataOutput()
+        out.writeInt(WsjtxProtocol.magic)
+        out.writeInt(WsjtxProtocol.schema)
+        out.writeInt(WsjtxProtocol.highlightCallsign)
+        WsjtxCodec.writeString(&out, id)
+        WsjtxCodec.writeString(&out, call)
+        writeColor(&out, background)
+        writeColor(&out, foreground)
+        out.writeBoolean(highlightLast)
+        return out.bytes
+    }
+
+    private static func writeColor(_ out: inout WsjtxDataOutput, _ color: Rgb?) {
+        out.writeByte(color == nil ? 0 : 1)
+        let components: [UInt8] = color.map { [0xFF, $0.red, $0.green, $0.blue] } ?? [0, 0, 0, 0]
+        for component in components {
+            out.write([component, component])
+        }
+        out.write([0, 0])
+    }
+
     /// Writing a Decode (WSJT-X sends it; here for tests and simulation).
     public static func encodeDecode(_ d: Decode) -> [UInt8] {
         var out = WsjtxDataOutput()

@@ -104,7 +104,7 @@ import Testing
     static func replay(seed: Int64, count: Int) -> [String] {
         var random = JavaRandom(seed: seed)
         let tracker = RunModeTracker()
-        let modes: [Mode] = Mode.allCases
+        let modes: [Mode] = Mode.javaCases
         let bands: [Band] = Band.javaV111Cases
         var lines: [String] = []
         for index in 0..<count {

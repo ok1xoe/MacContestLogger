@@ -22,7 +22,7 @@ public final class MenuModel {
         "settings.profiles", "settings.open", "contest.record", "window.catlog", "window.rotator",
         "window.cwkeyboard", "window.cwreader", "window.digitalinterface", "window.waterfall", "beacons.load",
         "window.dxcluster", "window.bandmap", "window.availmult", "window.blacklist", "window.netstatus",
-        "window.chat", "window.partner", "window.wsjtxdecodes", "window.hamqthlog", "window.rate", "window.skeds",
+        "window.chat", "window.partner", "window.wsjtxdecodes", "wsjtx.launch", "wsjtx.launch2", "window.hamqthlog", "window.rate", "window.skeds",
         "window.score", "window.movemults", "window.dupesheet", "window.statistics", "window.qtc",
         "window.propagation", "window.bandnotes", "window.simulator", "window.dxccmap", "mult.dxcc", "mult.grid",
         "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",

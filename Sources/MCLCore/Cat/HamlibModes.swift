@@ -56,7 +56,7 @@ public struct HamlibModeMapping: Equatable, Sendable {
         case .am: return "AM"
         // AFSK: RTTY as audio in data mode (LSB side like FSK), otherwise the rig's FSK mode.
         case .rtty: return rttyAfsk ? "PKTLSB" : "RTTY"
-        case .psk, .ft8, .ft4, .jt65, .digital: return "PKTUSB"
+        case .psk, .ft8, .ft4, .jt65, .digital, .q65, .ft2: return "PKTUSB"
         }
     }
 }

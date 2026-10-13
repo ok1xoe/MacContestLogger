@@ -79,6 +79,17 @@ enum ProfileMergeSchema {
             Property("shiftCompEnabled", .boolean, .fieldDefault),
             Property("shiftCompHz", .int, .fieldDefault),
         ],
+        "cz.ok1xoe.maccontestlogger.config.WsjtxConfig": [
+            Property("highlightCalls", .boolean, .fieldDefault),
+            Property("mirrorDxCall", .boolean, .fieldDefault),
+            Property("clearDecodesOnBandChange", .boolean, .fieldDefault),
+            Property("jtdxTcpEnabled", .boolean, .fieldDefault),
+            Property("jtdxTcpBind", .string, .fieldDefault),
+            Property("programPath", .string, .fieldDefault),
+            Property("programArgs", .string, .fieldDefault),
+            Property("radio2Id", .string, .fieldDefault),
+            Property("openDecodesOnLaunch", .boolean, .fieldDefault),
+        ],
     ]
 
     /// The Swift-only keys as paths in a written configuration (`name` on the root, `owner/name` in a bean property

@@ -238,7 +238,7 @@ enum JavaRadioParitySections {
     // MARK: - 6. FrequencySteps, AntennaSelector, BandNotes, TransverterRig, AudioToRf
 
     static func frequencySteps(_ b: inout F.Builder) {
-        for mode in Mode.allCases {
+        for mode in Mode.javaCases {
             b.out("/step/" + mode.rawValue, String(FrequencySteps.stepHz(mode)))
         }
         b.out("/step/~", String(FrequencySteps.stepHz(nil)))

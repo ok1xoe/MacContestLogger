@@ -38,6 +38,14 @@ extension EntryModel {
         focusRequest += 1
     }
 
+    /// WSJT-X's DX Call shown in the call field for the dupe and multiplier check (N1MM): no focus change, the call
+    /// counts as from a spot (tuning away does not self-spot it). The same call does nothing.
+    public func mirrorCall(_ call: String) {
+        guard !KotlinStrings.isBlank(call), CallStack.normalize(form.call) != CallStack.normalize(call) else { return }
+        selfSpot.prefilledFromSpot()
+        setCallText(call)
+    }
+
     /// Kotlin's `prefillExchange` effect (`EP:214-219`): the non-blank values go into the contest fields as they are
     /// (no touch mark), then the preview follows.
     public func prefillExchange(_ values: JavaLinkedMap<String>) {

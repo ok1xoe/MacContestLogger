@@ -1,3 +1,4 @@
+import AppKit
 import MCLAppModel
 import MCLCore
 import SwiftUI
@@ -15,6 +16,45 @@ struct WsjtTab: View {
                     "Naslouchá WSJT-X paketům a importuje zalogovaná QSO do aktivního závodu. Nasměruj WSJT-X (UDP Server) unicastem na tuto adresu. Výchozí port 2237. Změny se projeví po uložení."))
                 SettingsToggleRow(label: language.tr("Příjem zapnut"), isOn: $draft.wxReceiveEnabled,
                                   text: $draft.wxReceiveBind)
+                SettingsCheckbox(label: language.tr("Barvit volačky v Band Activity podle dupe / násobiče"),
+                                 isOn: $draft.highlightCalls)
+                SettingsCheckbox(label: language.tr("DX Call z WSJT-X do pole volačky (kontrola dupe / násobiče)"),
+                                 isOn: $draft.mirrorDxCall)
+                SettingsCheckbox(label: language.tr("Změna pásma vymaže seznam dekódů"),
+                                 isOn: $draft.clearDecodesOnBandChange)
+            }
+            SettingsGroup(title: language.tr("Spuštění WSJT-X / JTDX")) {
+                SettingsCaption(language.tr(
+                    "Okno → Spustit WSJT-X / JTDX spustí program (každé spuštění novou instanci) a otevře seznam dekódů. Pro SO2R druhá instance „rádio 2\" dostane --rig-name; její DX Call jde do okna VFO B / rig 2. Ovládání rigu: ve WSJT-X nastav Hamlib NET rigctl na stejný rigctld jako MCL."))
+                HStack(spacing: 8) {
+                    SettingsField(caption: language.tr("Program (.app)")) {
+                        SettingsTextField(text: $draft.programPath)
+                    }
+                    SettingsButton(language.tr("Vybrat…"), borderless: true) {
+                        let panel = NSOpenPanel()
+                        panel.allowedContentTypes = [.application]
+                        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+                        if panel.runModal() == .OK, let url = panel.url {
+                            draft.programPath = url.path
+                        }
+                    }
+                }
+                HStack(spacing: 8) {
+                    SettingsField(caption: language.tr("Parametry")) {
+                        SettingsTextField(text: $draft.programArgs)
+                    }
+                    SettingsField(caption: language.tr("Jméno instance pro rádio 2")) {
+                        SettingsTextField(text: $draft.radio2Id)
+                    }
+                    .frame(width: 200)
+                }
+                SettingsCheckbox(label: language.tr("Po spuštění otevřít seznam dekódů"), isOn: $draft.openDecodesOnLaunch)
+            }
+            SettingsGroup(title: language.tr("JTDX: logování přes TCP")) {
+                SettingsCaption(language.tr(
+                    "JTDX posílá zalogovaná QSO jako ADIF přes TCP (External logbook). V JTDX nastav TCP server na tuto adresu; výchozí port 52001. Změny se projeví po uložení."))
+                SettingsToggleRow(label: language.tr("Příjem zapnut"), isOn: $draft.jtdxTcpEnabled,
+                                  text: $draft.jtdxTcpBind)
             }
             SettingsGroup(title: language.tr("Vysílání do deníků")) {
                 SettingsCaption(language.tr(

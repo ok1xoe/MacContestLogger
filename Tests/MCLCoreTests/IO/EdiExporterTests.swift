@@ -101,7 +101,7 @@ import Testing
     /// `modeCode`: 1 SSB, 2 CW, 5 AM, 6 FM, 7 RTTY, 0 others and `null`.
     @Test func modeCodes() {
         let codes = Mode.allCases.map { EdiExporter.modeCode($0) }
-        #expect(codes == [2, 1, 6, 5, 7, 0, 0, 0, 0, 0])
+        #expect(codes == [2, 1, 6, 5, 7, 0, 0, 0, 0, 0, 0, 0])
         #expect(EdiExporter.modeCode(nil) == 0)
     }
 

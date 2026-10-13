@@ -7,7 +7,7 @@ struct ModeControlTab: View {
     let app: AppModel
     @Binding var draft: ConfigurerDraft
 
-    private static let alwaysModes: [String] = ["CW", "SSB", "RTTY", "PSK", "FT8", "FT4", "DIGITAL"]
+    private static let alwaysModes: [String] = ["CW", "SSB", "RTTY", "PSK", "FT8", "FT4", "Q65", "FT2", "DIGITAL"]
 
     var body: some View {
         let language: LanguageModel = app.language
