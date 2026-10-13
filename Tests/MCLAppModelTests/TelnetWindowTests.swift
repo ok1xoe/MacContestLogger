@@ -51,7 +51,10 @@ final class ButtonWaitGate: Sendable {
         await eventually("waiting 5 s") { gate.requests == [5_000] }
         #expect(spot.server.lines(0) == ["SH/WWV"])
         gate.release()
-        await eventually("the rest and the next press") { spot.server.lines(0) == ["SH/WWV", "SH/WCY", "SH/USERS"] }
+        // The commands after the wait go out on their own send threads: compare without their order.
+        await eventually("the rest and the next press") {
+            spot.server.lines(0).first == "SH/WWV" && Set(spot.server.lines(0)) == ["SH/WWV", "SH/WCY", "SH/USERS"]
+        }
         await spot.settle()
         spot.dx.runButton("BYE")
         await eventually("an ordinary button at once") { spot.server.lines(0).last == "BYE" }

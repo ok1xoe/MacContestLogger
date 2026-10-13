@@ -1627,5 +1627,12 @@
  "zatím nerozpoznán": "not detected yet",
  "Rozpoznaný software: %s · příkazy se formátují pro %s": "Detected software: %s · commands are formatted for %s",
  "{CONN}: cluster %s není v seznamu": "{CONN}: cluster %s is not in the list",
- "Soubor neobsahuje žádné tlačítko": "The file contains no button"
+ "Soubor neobsahuje žádné tlačítko": "The file contains no button",
+ "Importovat seznam…": "Import list…",
+ "Exportovat seznam…": "Export list…",
+ "Seznam clusterů: řádek „název,host:port,login“; hesla se neexportují.": "Cluster list: a line “name,host:port,login”; passwords are not exported.",
+ "Uchovat spoty přes restart programu": "Keep the spots across a restart",
+ "Při ukončení se spoty uloží a po startu se vrátí ty, které jsou ještě v časovém limitu.": "At quit the spots are saved; after the start those still within the timeout come back.",
+ "Náhodně posunout kmitočet při naladění spotu": "Randomize the frequency when tuning to a spot",
+ "Naladí 50–150 Hz (fonie 100–250 Hz) vedle spotu, aby všichni nevolali přesně na stejném kmitočtu.": "Tunes 50–150 Hz (phone 100–250 Hz) off the spot so that not everyone calls on exactly the same frequency."
 }

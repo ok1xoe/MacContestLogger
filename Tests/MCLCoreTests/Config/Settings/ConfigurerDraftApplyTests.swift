@@ -310,6 +310,7 @@ import Testing
                                "bandmapButtons", "filterCwWideHz", "filterCwNarrowHz", "filterSsbWideHz", "filterSsbNarrowHz",
                                "filterDigiWideHz", "filterDigiNarrowHz",
                                "clusterSoftware", "autoLogon", "showButtons", "showDxCount",
+                               "saveSpots", "randomizeSpotFrequencies",
                                "nextCallKey", "callStackOrder",
                                "callStackClearOnBandChange", "digitalCallStacking",
                                "rttyInterface",

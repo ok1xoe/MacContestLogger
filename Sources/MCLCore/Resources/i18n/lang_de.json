@@ -1627,5 +1627,12 @@
  "zatím nerozpoznán": "noch nicht erkannt",
  "Rozpoznaný software: %s · příkazy se formátují pro %s": "Erkannte Software: %s · Befehle werden für %s formatiert",
  "{CONN}: cluster %s není v seznamu": "{CONN}: Cluster %s ist nicht in der Liste",
- "Soubor neobsahuje žádné tlačítko": "Die Datei enthält keine Taste"
+ "Soubor neobsahuje žádné tlačítko": "Die Datei enthält keine Taste",
+ "Importovat seznam…": "Liste importieren…",
+ "Exportovat seznam…": "Liste exportieren…",
+ "Seznam clusterů: řádek „název,host:port,login“; hesla se neexportují.": "Clusterliste: eine Zeile „Name,Host:Port,Login“; Passwörter werden nicht exportiert.",
+ "Uchovat spoty přes restart programu": "Spots über einen Neustart behalten",
+ "Při ukončení se spoty uloží a po startu se vrátí ty, které jsou ještě v časovém limitu.": "Beim Beenden werden die Spots gespeichert; nach dem Start kommen die noch gültigen zurück.",
+ "Náhodně posunout kmitočet při naladění spotu": "Frequenz beim Abstimmen auf einen Spot zufällig versetzen",
+ "Naladí 50–150 Hz (fonie 100–250 Hz) vedle spotu, aby všichni nevolali přesně na stejném kmitočtu.": "Stimmt 50–150 Hz (Fonie 100–250 Hz) neben den Spot ab, damit nicht alle genau auf derselben Frequenz rufen."
 }
