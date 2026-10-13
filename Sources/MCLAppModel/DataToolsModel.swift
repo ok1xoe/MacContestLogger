@@ -33,6 +33,8 @@ public final class DataToolsModel {
 
     @ObservationIgnored let contest: ContestModel
     @ObservationIgnored private let logbook: LogbookModel
+    /// The log (for the extensions in other files).
+    var logbookModel: LogbookModel { logbook }
     @ObservationIgnored let callData: CallDataModel
     @ObservationIgnored let config: ConfigModel
     @ObservationIgnored let status: StatusModel
@@ -116,6 +118,7 @@ public final class DataToolsModel {
             status.showVerbatim(ErrorText.message(error))
             return outcome.changed
         }
+        await recordDxccStampAfterRefill()
         if outcome.changed == 0 {
             status.show("Přepočet DXCC: vše sedí (%s QSO)", .int(outcome.total))
         } else {

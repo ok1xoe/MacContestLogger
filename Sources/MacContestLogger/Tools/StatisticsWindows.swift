@@ -267,27 +267,35 @@ private struct ScoreContent: View {
 
 /// Kotlin `DupesheetWindow` (`dupesheet` 900×420, `DupesheetWindow.kt:30-109`): the worked calls of the shown band (and
 /// mode by the contest's dupe rules) in columns by the digit; calls that contain the typed text are highlighted.
+/// N1MM: one sheet per VFO / radio — `dupesheet` follows VFO A, `dupesheet2` the VFO B entry window.
 struct DupesheetWindowView: View {
     static let id = "dupesheet"
+    static let id2 = "dupesheet2"
 
     let host: AppHost
+    /// 0 = VFO A, 1 = VFO B.
+    var vfo: Int = 0
 
     var body: some View {
-        ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("Dupesheet") },
+        let second: Bool = vfo == 1
+        ToolWindowShell(host: host, id: second ? Self.id2 : Self.id,
+                        title: { $0.language.tr(second ? "Dupesheet VFO B" : "Dupesheet VFO A") },
                         size: CGSize(width: 900, height: 420), minSize: CGSize(width: 420, height: 240),
-                        appeared: { $0.dupesheet.open() }, disappeared: { $0.dupesheet.close() },
+                        appeared: { (second ? $0.dupesheet2 : $0.dupesheet).open() },
+                        disappeared: { (second ? $0.dupesheet2 : $0.dupesheet).close() },
                         content: { app, windowSize in
-            DupesheetContent(app: app, windowSize: windowSize)
+            DupesheetContent(app: app, sheet: second ? app.dupesheet2 : app.dupesheet, windowSize: windowSize)
         })
     }
 }
 
 private struct DupesheetContent: View {
     let app: AppModel
+    let sheet: DupesheetModel
     let windowSize: Int
 
     var body: some View {
-        if let view = app.dupesheet.view {
+        if let view = sheet.view {
             Text(verbatim: view.title)
                 .windowFont(13, weight: .medium)
                 .accessibilityIdentifier("dupesheet.title")

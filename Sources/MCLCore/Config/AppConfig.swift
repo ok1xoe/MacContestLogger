@@ -195,6 +195,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// The online callbook of the entry window's manual lookup button: `"hamqth"` or `"qrz"` (see
     /// `CallbookService`). Swift-only key.
     public var preferredCallbook = CallbookService.hamQth.rawValue
+    /// The Dupesheet windows sort each column by suffix (N1MM), otherwise by the whole call (v1.1.1). Swift-only key.
+    public var dupesheetSortBySuffix = true
 
     /// Call history file in N1MM format (pre-filling the exchange); empty = none.
     public var callHistoryFile = ""
@@ -233,7 +235,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case language, themeMode, themeAccent
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
-        case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook
+        case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
@@ -336,6 +338,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         nPlusOneEnabled = c.value(.nPlusOneEnabled, default: d.nPlusOneEnabled)
         preferredCallbook = CallbookService(configValue: c.value(.preferredCallbook, default: d.preferredCallbook))
             .rawValue
+        dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
         callHistoryLookupEnabled = c.value(.callHistoryLookupEnabled, default: d.callHistoryLookupEnabled)
         callHistoryExtraFiles = c.value(.callHistoryExtraFiles, default: d.callHistoryExtraFiles)

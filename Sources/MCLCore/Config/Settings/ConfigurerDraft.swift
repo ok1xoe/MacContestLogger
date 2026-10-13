@@ -114,6 +114,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var nPlusOneEnabled: Bool = true
     /// The online callbook of the entry window's lookup button (`CallbookService.rawValue`).
     public var preferredCallbook: String = CallbookService.hamQth.rawValue
+    /// The Dupesheet windows sort each column by suffix.
+    public var dupesheetSortBySuffix: Bool = true
     public var clEnabled: Bool = false
     public var clEmail: String = ""
     public var clPassword: String = ""
@@ -426,6 +428,7 @@ extension ConfigurerDraft {
         scpSuggestionsEnabled = config.scpSuggestionsEnabled
         nPlusOneEnabled = config.nPlusOneEnabled
         preferredCallbook = config.preferredCallbook
+        dupesheetSortBySuffix = config.dupesheetSortBySuffix
         clEnabled = config.clubLog.enabled
         clEmail = config.clubLog.email
         clPassword = config.clubLog.appPassword

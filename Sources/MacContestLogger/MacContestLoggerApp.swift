@@ -187,8 +187,11 @@ struct MacContestLoggerApp: App {
         toolWindow("Skóre", id: ScoreWindowView.id, size: CGSize(width: 620, height: 420)) {
             ScoreWindowView(host: host)
         }
-        toolWindow("Dupesheet", id: DupesheetWindowView.id, size: CGSize(width: 900, height: 420)) {
+        toolWindow("Dupesheet VFO A", id: DupesheetWindowView.id, size: CGSize(width: 900, height: 420)) {
             DupesheetWindowView(host: host)
+        }
+        toolWindow("Dupesheet VFO B", id: DupesheetWindowView.id2, size: CGSize(width: 900, height: 420)) {
+            DupesheetWindowView(host: host, vfo: 1)
         }
         toolWindow("Skedy", id: SkedWindowView.id, size: CGSize(width: 640, height: 420)) {
             SkedWindowView(host: host)

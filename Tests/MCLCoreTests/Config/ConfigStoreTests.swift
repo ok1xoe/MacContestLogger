@@ -44,6 +44,17 @@ import Testing
         #expect(loaded.scpFile == "/tmp/master.scp")
     }
 
+    /// The Dupesheet's suffix order is on by default, also for a file without the key (v1.1.1), and round-trips.
+    @Test func dupesheetSortBySuffixDefaultsOnAndRoundTrips() throws {
+        #expect(AppConfig().dupesheetSortBySuffix)
+        let old = try JSONDecoder().decode(AppConfig.self, from: Data("{}".utf8))
+        #expect(old.dupesheetSortBySuffix)
+        var cfg = AppConfig()
+        cfg.dupesheetSortBySuffix = false
+        let loaded = try JSONDecoder().decode(AppConfig.self, from: try JSONEncoder().encode(cfg))
+        #expect(!loaded.dupesheetSortBySuffix)
+    }
+
     @Test func preferredCallbookDefaultsToHamQthAndRoundTrips() throws {
         #expect(AppConfig().preferredCallbook == "hamqth")
         let old = try JSONDecoder().decode(AppConfig.self, from: Data(#"{"scpFile":"/x"}"#.utf8))

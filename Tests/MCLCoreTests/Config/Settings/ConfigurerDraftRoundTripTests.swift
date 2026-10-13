@@ -121,6 +121,7 @@ import Testing
         expected.callHistoryLookupEnabled = true
         expected.callHistoryShowUserInfo = true
         expected.preferredCallbook = "hamqth"
+        expected.dupesheetSortBySuffix = true
         expected.clubLog.ctyEnabled = true
         expected.esm.nextCallKey = -1
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
@@ -309,6 +310,7 @@ import Testing
         w.same(\.scpSuggestionsEnabled, \.scpSuggestionsEnabled, false)
         w.same(\.nPlusOneEnabled, \.nPlusOneEnabled, false)
         w.same(\.preferredCallbook, \.preferredCallbook, "qrz")
+        w.same(\.dupesheetSortBySuffix, \.dupesheetSortBySuffix, false)
         w.same(\.callHistoryFile, \.callHistoryFile, "/data/history.txt")
         w.same(\.callHistoryExtraFiles, \.callHistoryExtraFiles, ["/data/extra-a.txt", "/data/extra-b.txt"])
         w.same(\.callHistoryLookupEnabled, \.callHistoryLookupEnabled, false)

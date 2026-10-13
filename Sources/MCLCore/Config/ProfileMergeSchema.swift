@@ -17,7 +17,7 @@ enum ProfileMergeSchema {
 
     /// Hand-maintained Swift-only properties by owning Java class (see the type's documentation): the two switches
     /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`), the preferred online callbook
-    /// (`preferredCallbook`) Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX cluster Bands/Modes spot filter
+    /// (`preferredCallbook`), the Dupesheet's suffix order (`dupesheetSortBySuffix`), Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX cluster Bands/Modes spot filter
     /// (`dxCluster.spotFilter*`), the call stack (`esm.nextCallKey`, `esm.callStack*`), digital call stacking
     /// (`digital.digitalCallStacking`), the call history switches and extra files (`callHistory*`) and a contest's
     /// own call history file (`contestSetups.*.callHistoryFile`).
@@ -26,6 +26,7 @@ enum ProfileMergeSchema {
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
             Property("nPlusOneEnabled", .boolean, .fieldDefault),
             Property("preferredCallbook", .string, .fieldDefault),
+            Property("dupesheetSortBySuffix", .boolean, .fieldDefault),
             Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
             Property("callHistoryExtraFiles", .list(.string), .fieldDefault),
             Property("callHistoryShowUserInfo", .boolean, .fieldDefault),

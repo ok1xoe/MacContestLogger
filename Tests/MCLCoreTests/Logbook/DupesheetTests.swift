@@ -62,3 +62,46 @@ import Testing
         #expect(s["\u{212A}"] == nil)
     }
 }
+
+/// The Swift-only suffix order (N1MM Visible Dupesheet: "each call area is sorted by suffix").
+@Suite struct DupesheetSuffixOrderTests {
+
+    static func qso(_ call: String) -> Qso {
+        DupesheetTests.qso(call, 14_010_000, .cw)
+    }
+
+    @Test func suffixIsWhatFollowsTheLastDigitOfTheBaseCall() {
+        #expect(Dupesheet.suffix("OK1XOE") == "XOE")
+        #expect(Dupesheet.suffix("DL/OK1XOE/P") == "XOE")
+        #expect(Dupesheet.suffix("3DA0RU") == "RU")
+        #expect(Dupesheet.suffix("S50A") == "A")
+        #expect(Dupesheet.suffix("RAEM") == "RAEM", "no digit: the whole call")
+        #expect(Dupesheet.suffix("OK1") == "")
+    }
+
+    @Test func eachColumnIsSortedBySuffixThenByCall() {
+        let log: [Qso] = ["DL1ZZ", "OK1ABC", "W1AW", "DK1ZZ", "OK1XOE", "K2AA", "RAEM", "G0AAA"].map(Self.qso)
+        let sheet = Dupesheet.build(log, band: "20m", mode: "CW", scope: .PER_BAND, order: .suffix)
+        #expect(sheet["1"] == ["OK1ABC", "W1AW", "OK1XOE", "DK1ZZ", "DL1ZZ"])
+        #expect(sheet["2"] == ["K2AA"])
+        #expect(sheet["0"] == ["G0AAA"])
+        #expect(sheet["#"] == ["RAEM"])
+        #expect(sheet.columns.map(\.key) == ["#", "0", "1", "2"], "the columns keep their order")
+    }
+
+    @Test func theDefaultOrderIsStillTheWholeCall() {
+        let log: [Qso] = ["DL1ZZ", "OK1ABC", "DK1ZZ"].map(Self.qso)
+        #expect(Dupesheet.build(log, band: nil, mode: nil, scope: .ONCE)["1"] == ["DK1ZZ", "DL1ZZ", "OK1ABC"])
+        #expect(Dupesheet.build(log, band: nil, mode: nil, scope: .ONCE, order: .call)["1"]
+                == ["DK1ZZ", "DL1ZZ", "OK1ABC"])
+    }
+
+    @Test func theViewPassesTheOrderOn() {
+        let log: [Qso] = ["DL1ZZ", "OK1ABC"].map(Self.qso)
+        let byCall = StatsViews.dupesheet(qsos: log, scope: nil, band: "20m", mode: "CW", typedCall: "")
+        let bySuffix = StatsViews.dupesheet(qsos: log, scope: nil, band: "20m", mode: "CW", typedCall: "",
+                                            order: .suffix)
+        #expect(byCall.columns.first { $0.digit == "1" }?.calls.map(\.text) == ["DL1ZZ", "OK1ABC"])
+        #expect(bySuffix.columns.first { $0.digit == "1" }?.calls.map(\.text) == ["OK1ABC", "DL1ZZ"])
+    }
+}

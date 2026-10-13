@@ -578,6 +578,10 @@ public final class AppModel {
             }
             await contest?.offerStartupDialog()
         }
+        // N1MM: a database whose country table is older than the current country data is reported when opened.
+        database.afterOpened = { [weak dataTools] in
+            await dataTools?.checkDxccStamp()
+        }
         database.drain = { [weak model] in
             // No periodic backup beside the switch (a tick in flight finishes on the old database first).
             await model?.autoBackup.stop()
@@ -592,6 +596,7 @@ public final class AppModel {
         // Kotlin offers the start-up dialog during the first composition (`remember`) and loads the menu in a
         // `LaunchedEffect` after it, so a broken `menu.json` has the last word in the status line.
         await contest.offerStartupDialog()
+        await dataTools.checkDxccStamp()
         model.activateIntegrations()
         await radio.recording.startIfConfigured()
         await menu.load()

@@ -184,30 +184,50 @@ public final class ScoreWindowModel {
 /// The Dupesheet window (`DupesheetWindow.kt`): the worked calls of the shown band (and mode, by the contest's dupe
 /// rules) in columns by the digit, with the typed call highlighted. A log of up to 5 000 QSOs is computed inline on the
 /// main actor; a larger one off the main thread with a generation.
+///
+/// N1MM: each VFO / radio has its own sheet. `dupesheet` follows VFO A (the tuned band, the radio's mode, the typed
+/// call of the active entry window); `dupesheet2` follows the VFO B entry window (its band, mode and call). The calls
+/// of a column are sorted by suffix while `dupesheetSortBySuffix` is on (N1MM), by the whole call otherwise.
 @Observable @MainActor
 public final class DupesheetModel {
+
+    /// What a sheet shows: the band, the mode and the typed call it follows (read inside the observation, so a
+    /// change rebuilds the sheet).
+    public struct Sources {
+        /// The tuned band; `nil` = the band of the last QSO.
+        public var band: @MainActor () -> Band? = { nil }
+        /// The radio's mode; `nil` = the mode of the last QSO.
+        public var mode: @MainActor () -> Mode? = { nil }
+        /// Kotlin `state.typedCall`.
+        public var typedCall: @MainActor () -> String = { "" }
+        /// Sort the columns by suffix (`dupesheetSortBySuffix`).
+        public var sortBySuffix: @MainActor () -> Bool = { false }
+
+        public init() {}
+    }
 
     /// Above this many QSOs the sheet is built off the main thread.
     public static let defaultInlineLimit = 5_000
     /// The limit in use (tests lower it to reach the off-thread path).
     var inlineLimit = DupesheetModel.defaultInlineLimit
 
+    /// 0 = VFO A (`dupesheet`), 1 = VFO B (`dupesheet2`).
+    public let vfo: Int
     public private(set) var view: DupesheetView?
     public private(set) var isOpen = false
 
     @ObservationIgnored private let logbook: LogbookModel
     @ObservationIgnored private let contest: ContestModel
-    @ObservationIgnored private let rig: RigModel
     @ObservationIgnored private let language: LanguageModel
     @ObservationIgnored private var derived: LogDerived<DupesheetView>?
-    /// Kotlin `state.typedCall` (wired by the app).
-    @ObservationIgnored public var typedCall: @MainActor () -> String = { "" }
+    /// Wired by the app.
+    @ObservationIgnored public var sources = Sources()
 
-    init(logbook: LogbookModel, contest: ContestModel, rig: RigModel, language: LanguageModel) {
+    init(logbook: LogbookModel, contest: ContestModel, language: LanguageModel, vfo: Int = 0) {
         self.logbook = logbook
         self.contest = contest
-        self.rig = rig
         self.language = language
+        self.vfo = vfo
     }
 
     public func open() {
@@ -218,9 +238,10 @@ public final class DupesheetModel {
             tracked: { [weak self] in
                 guard let self else { return }
                 _ = self.contest.activeId
-                _ = self.rig.currentBand
-                _ = self.rig.activeState
-                _ = self.typedCall()
+                _ = self.sources.band()
+                _ = self.sources.mode()
+                _ = self.sources.typedCall()
+                _ = self.sources.sortBySuffix()
             },
             source: { [weak self] in
                 self?.job() ?? { _ in
@@ -249,18 +270,19 @@ public final class DupesheetModel {
         derived?.generation ?? 0
     }
 
-    /// What the sheet is built with: the band of the tuned frequency or of the last QSO, the radio's mode or the last
-    /// QSO's, the contest's dupe scope (none outside a contest), the typed call.
+    /// What the sheet is built with: the band of the followed VFO or of the last QSO, its mode or the last QSO's,
+    /// the contest's dupe scope (none outside a contest), the typed call and the order.
     private func job() -> LogDerived<DupesheetView>.Job {
         let rows: [Qso] = logbook.rows
-        let band: String? = StatsViews.dupesheetBand(tuned: rig.currentBand, qsos: rows)
-        let mode: String? = StatsViews.dupesheetMode(radio: rig.activeState?.mode, qsos: rows)
+        let band: String? = StatsViews.dupesheetBand(tuned: sources.band(), qsos: rows)
+        let mode: String? = StatsViews.dupesheetMode(radio: sources.mode(), qsos: rows)
         let scope: ContestDefinition.Scope? = contest.isActive ? contest.runtime.dupeScope : nil
-        let typed: String = typedCall()
+        let typed: String = sources.typedCall()
+        let order: Dupesheet.Order = sources.sortBySuffix() ? .suffix : .call
         let translator: Translator = language.translator
         return { qsos in
             StatsViews.dupesheet(qsos: qsos, scope: scope, band: band, mode: mode, typedCall: typed,
-                                 translate: translator)
+                                 translate: translator, order: order)
         }
     }
 }

@@ -36,6 +36,17 @@ Open it with **"Okno → Dupesheet"** (Window → Dupesheet).
   a contest by band.
 - Columns **0–9** by the digit of the area (OK1... → 1, `DL/OK1XOE` → 1),
   callsigns without a digit in the column **#**; counts in the header.
+- Each column is **sorted by suffix** like in N1MM — the letters after the last digit
+  of the callsign (`OK1XOE` → `XOE`, `DL/OK1XOE/P` → `XOE`), equal suffixes by the
+  whole callsign. The switch **"Nastavení → Závod → Dupesheet: řadit volačky podle
+  sufixu"** (Settings → Contest → Dupesheet: sort callsigns by suffix, on by default)
+  turns it off; the columns are then sorted by the whole callsign as before.
+- **One sheet per VFO / radio** (N1MM: "Each VFO/Radio has its own Visible
+  Dupesheet"). The window **Dupesheet VFO A** follows the rig's band and mode and
+  the callsign being typed. **"Okno → Dupesheet VFO B"** (Window → Dupesheet VFO B)
+  opens the second sheet, which follows the band (from the frequency field), mode
+  and callsign of the **VFO B / rig 2 entry window** (SO2V/SO2R); without a frequency
+  there it shows the band of the last QSO.
 - Callsigns that contain the text typed in the callsign field (from 2 characters)
   are **highlighted** — a dupe is visible even before you finish typing.
 - The dupesheet does not distinguish TOUR sessions (it shows the whole contest on
