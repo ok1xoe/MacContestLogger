@@ -117,6 +117,9 @@ import Testing
         expected.dxCluster.spotFilter = .default
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
+        expected.callHistoryExtraFiles = []
+        expected.callHistoryLookupEnabled = true
+        expected.callHistoryShowUserInfo = true
         expected.preferredCallbook = "hamqth"
         expected.clubLog.ctyEnabled = true
         expected.esm.nextCallKey = -1
@@ -307,6 +310,9 @@ import Testing
         w.same(\.nPlusOneEnabled, \.nPlusOneEnabled, false)
         w.same(\.preferredCallbook, \.preferredCallbook, "qrz")
         w.same(\.callHistoryFile, \.callHistoryFile, "/data/history.txt")
+        w.same(\.callHistoryExtraFiles, \.callHistoryExtraFiles, ["/data/extra-a.txt", "/data/extra-b.txt"])
+        w.same(\.callHistoryLookupEnabled, \.callHistoryLookupEnabled, false)
+        w.same(\.callHistoryShowUserInfo, \.callHistoryShowUserInfo, false)
         w.same(\.clEnabled, \.clubLog.enabled, true)
         w.same(\.clEmail, \.clubLog.email, "cl@example.org")
         w.same(\.clPassword, \.clubLog.appPassword, "clpw")

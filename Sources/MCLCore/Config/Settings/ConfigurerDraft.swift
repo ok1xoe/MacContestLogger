@@ -106,6 +106,10 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var keyOverrides: [String: String] = [:]
     public var scpFile: String = ""
     public var callHistoryFile: String = ""
+    /// Additional call history files merged after `callHistoryFile` (`AppConfig.callHistoryExtraFiles`).
+    public var callHistoryExtraFiles: [String] = []
+    public var callHistoryLookupEnabled: Bool = true
+    public var callHistoryShowUserInfo: Bool = true
     public var scpSuggestionsEnabled: Bool = true
     public var nPlusOneEnabled: Bool = true
     /// The online callbook of the entry window's lookup button (`CallbookService.rawValue`).
@@ -416,6 +420,9 @@ extension ConfigurerDraft {
         keyOverrides = config.keyBindings
         scpFile = config.scpFile
         callHistoryFile = config.callHistoryFile
+        callHistoryExtraFiles = config.callHistoryExtraFiles
+        callHistoryLookupEnabled = config.callHistoryLookupEnabled
+        callHistoryShowUserInfo = config.callHistoryShowUserInfo
         scpSuggestionsEnabled = config.scpSuggestionsEnabled
         nPlusOneEnabled = config.nPlusOneEnabled
         preferredCallbook = config.preferredCallbook

@@ -127,7 +127,8 @@ public final class DataToolsModel {
     // MARK: - call history from the log
 
     /// Kotlin `updateCallHistoryFromLog()` (`AS:206-235`, N1MM "Update Call History from log"): the received
-    /// exchange of the log's QSOs merged into the call history and saved — the configured file (trimmed), or
+    /// exchange of the log's QSOs merged into the call history and saved — the primary file (the active contest's
+    /// own, otherwise the configured one; trimmed), or
     /// `<data>/CALLHISTORY.txt`, whose path is then written into the configuration (Kotlin `configStore.save`, not
     /// `saveConfig`: nothing is reloaded).
     ///
@@ -141,10 +142,11 @@ public final class DataToolsModel {
             return
         }
         let rows: [Qso] = logbook.rows
-        let history: CallHistory = callData.callHistory
-        let configured: String = KotlinStrings.trim(config.config.callHistoryFile)
+        // Only the primary file (the contest's own or the global one) is written; the additional files stay apart.
+        let history: CallHistory = callData.primaryCallHistory
+        let configured: String = callData.primaryCallHistoryPath
         let target: (url: URL, persist: Bool) = ContestDataPaths.callHistoryTarget(
-            configured: config.config.callHistoryFile, dataDir: dataDir)
+            configured: configured, dataDir: dataDir)
         // Kotlin `Path.of(configured)`: a relative path stays relative (saved against the working directory).
         let path: String = target.persist ? target.url.path : configured
         track { [weak self] in
@@ -173,9 +175,9 @@ public final class DataToolsModel {
             if updates.isEmpty {
                 return .empty
             }
-            let merged: CallHistory = history.withUpdates(updates)
+            let merged: CallHistory = history.withUpdates(updates, rotatingGrids: true)
             do throws(CallHistorySaveError) {
-                try merged.save(path)
+                try merged.save(path, keepingFileLines: true)
             } catch {
                 return .failed(error.message)
             }

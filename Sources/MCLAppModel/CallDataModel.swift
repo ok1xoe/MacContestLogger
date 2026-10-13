@@ -13,13 +13,20 @@ import Observation
 ///
 /// Kotlin reloads both on **every** `saveConfig()`; this app reloads on a path change (`observePaths()`) and after the
 /// `master.scp` download. The settings dialog calls `reload()` after saving.
+///
+/// The call history follows N1MM (Swift-only): the active contest's own file (`ContestSetup.callHistoryFile`, N1MM
+/// Associated Files) replaces the global `callHistoryFile`, the additional files (`callHistoryExtraFiles`) are merged
+/// after it into one table, and when a contest opens, the loaded files' `#CONTEST` lines switch
+/// `callHistoryLookupEnabled` (`applyContestTags`).
 @Observable @MainActor
 public final class CallDataModel {
 
     /// `master.scp` (Kotlin `state.scp`).
     public private(set) var scp: ScpDatabase = .empty()
-    /// The call history (Kotlin `state.callHistory`).
+    /// The call history (Kotlin `state.callHistory`): the primary file merged with the additional ones.
     public private(set) var callHistory: CallHistory = .empty
+    /// The primary file alone (what "Update call history from log" and "Clear call history" rewrite).
+    public private(set) var primaryCallHistory: CallHistory = .empty
     /// Raised with every adopted `master.scp` load.
     public private(set) var scpRevision: Int = 0
     /// Raised with every adopted call history load.
@@ -27,6 +34,27 @@ public final class CallDataModel {
 
     /// Runs after a load was adopted (the suggestions recompute).
     @ObservationIgnored public var onLoaded: (@MainActor () -> Void)?
+
+    /// The active contest as the `#CONTEST` association sees it.
+    public struct ContestContext: Equatable, Sendable {
+        /// The opened contest (its database id).
+        public let contestId: String
+        /// `CallHistory.contestKey` of the contest's definition id and name.
+        public let keys: Set<String>
+        /// The keys of every definition of the catalog (which `#` lines name a contest).
+        public let known: Set<String>
+
+        public init(contestId: String, keys: Set<String>, known: Set<String>) {
+            self.contestId = contestId
+            self.keys = keys
+            self.known = known
+        }
+    }
+
+    /// The active contest (`nil` = none); read inside `observePaths()`'s tracking (wired by the app).
+    @ObservationIgnored public var contestContext: @MainActor () -> ContestContext? = { nil }
+    /// The active contest's own call history file (`ContestSetup.callHistoryFile`; wired by the app).
+    @ObservationIgnored public var contestCallHistoryFile: @MainActor () -> String? = { nil }
 
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let status: StatusModel
@@ -37,7 +65,14 @@ public final class CallDataModel {
     @ObservationIgnored private var callHistoryGeneration: Int = 0
     /// The trimmed paths of the last started loads (`observePaths()` reloads only on a change).
     @ObservationIgnored private var scpPath: String?
-    @ObservationIgnored private var callHistoryPath: String?
+    /// The files of the last started call history load.
+    @ObservationIgnored private var callHistorySources: CallHistorySources?
+    /// The files of the adopted call history (`nil` until the first load).
+    @ObservationIgnored private var loadedSources: CallHistorySources?
+    /// Contest + files the `#CONTEST` lines were last applied for.
+    @ObservationIgnored private var appliedTagsKey: String?
+    /// The additional files of the adopted call history, each loaded on its own (merged after the primary one).
+    @ObservationIgnored private var extraHistories: [CallHistory] = []
     @ObservationIgnored private var tasks: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored private var nextTaskId: Int = 0
 
@@ -55,6 +90,48 @@ public final class CallDataModel {
     public var scpSuggestionsEnabled: Bool { config.config.scpSuggestionsEnabled }
     /// Settings switch of the `N+1:` row, same meaning.
     public var nPlusOneEnabled: Bool { config.config.nPlusOneEnabled }
+    /// N1MM „Enable Call History Lookup" (observed through the config): off = no exchange prefill.
+    public var callHistoryLookupEnabled: Bool { config.config.callHistoryLookupEnabled }
+    /// N1MM „Show User Information": the call history and UserText lines of the entry window.
+    public var showsCallHistoryUserInfo: Bool { config.config.callHistoryShowUserInfo }
+
+    /// The call history files: the primary one (the contest's own, otherwise the global one; trimmed) and the
+    /// additional ones (trimmed, blank ones and repeats of the primary left out).
+    struct CallHistorySources: Equatable {
+        let primary: String
+        let extras: [String]
+
+        var signature: String {
+            ([primary] + extras).joined(separator: "\u{0}")
+        }
+    }
+
+    /// The file "Update call history from log" and "Clear call history" write: the active contest's own file,
+    /// otherwise the global `callHistoryFile` (trimmed; blank = none).
+    public var primaryCallHistoryPath: String {
+        currentSources().primary
+    }
+
+    private func currentSources() -> CallHistorySources {
+        let own: String = KotlinStrings.trim(contestCallHistoryFile() ?? "")
+        let primary: String = own.isEmpty ? KotlinStrings.trim(config.config.callHistoryFile) : own
+        var extras: [String] = []
+        for raw in config.config.callHistoryExtraFiles {
+            let path: String = KotlinStrings.trim(raw)
+            if !path.isEmpty && path != primary && !extras.contains(path) {
+                extras.append(path)
+            }
+        }
+        return CallHistorySources(primary: primary, extras: extras)
+    }
+
+    /// Menu Nastavení → „Zapnout dohledávání v call history" (N1MM Config → Enable Call History Lookup).
+    public func toggleLookup() {
+        config.config.callHistoryLookupEnabled.toggle()
+        config.save(failureKey: "Uložení nastavení selhalo: %s")
+        status.show(config.config.callHistoryLookupEnabled ? "Dohledávání v call history zapnuto"
+                    : "Dohledávání v call history vypnuto")
+    }
 
     /// Kotlin `reloadScp()` + `reloadCallHistory()` (start-up, settings saved).
     public func reload() {
@@ -77,36 +154,81 @@ public final class CallDataModel {
         }
     }
 
-    /// Kotlin `reloadCallHistory()`: the trimmed `config.callHistoryFile`; blank = an empty call history.
+    /// Kotlin `reloadCallHistory()`: the primary file (`primaryCallHistoryPath`; blank = an empty call history) and
+    /// the additional ones, merged in order.
     public func reloadCallHistory() {
-        let path: String = KotlinStrings.trim(config.config.callHistoryFile)
-        callHistoryPath = path
+        loadCallHistory(currentSources())
+    }
+
+    private func loadCallHistory(_ sources: CallHistorySources) {
+        callHistorySources = sources
         callHistoryGeneration += 1
         let generation: Int = callHistoryGeneration
         track { [weak self] in
-            let loaded: CallHistory = await Self.loadCallHistory(path)
+            let primary: CallHistory = await Self.loadCallHistory(sources.primary)
+            var extras: [CallHistory] = []
+            for path in sources.extras {
+                extras.append(await Self.loadCallHistory(path))
+            }
             guard let self, generation == self.callHistoryGeneration else { return }
-            self.callHistory = loaded
-            self.callHistoryRevision += 1
-            self.onLoaded?()
+            self.extraHistories = extras
+            self.loadedSources = sources
+            self.adoptPrimary(primary)
+            self.applyContestTags()
         }
     }
 
-    /// Takes over a call history the app has just saved to `path` (Kotlin `callHistory = merged` after "Update call
-    /// history from log", `AS:226`) without reading the file again: a load in flight is superseded, and `path`
-    /// (trimmed) becomes the loaded path, so writing it into `config.callHistoryFile` does not reload it.
+    /// The primary history becomes current, merged with the loaded additional files.
+    private func adoptPrimary(_ primary: CallHistory) {
+        primaryCallHistory = primary
+        callHistory = extraHistories.reduce(primary) { $0.merging($1) }
+        callHistoryRevision += 1
+        onLoaded?()
+    }
+
+    /// N1MM: when a contest is opened, a file whose comments name known contests (`#CQWWCW`) enables the lookup if
+    /// one is this contest and disables it otherwise; a file naming none leaves the switch alone. Applied once per
+    /// contest and set of files, after their load, so the operator's later choice in the menu stands.
+    func applyContestTags() {
+        guard let context = contestContext(), let loaded = loadedSources, loaded == currentSources() else { return }
+        let key: String = context.contestId + "\u{1}" + loaded.signature
+        guard key != appliedTagsKey else { return }
+        appliedTagsKey = key
+        guard let enabled = CallHistory.lookupDecision(tags: callHistory.contestTags, contest: context.keys,
+                                                       known: context.known),
+              enabled != config.config.callHistoryLookupEnabled else { return }
+        config.config.callHistoryLookupEnabled = enabled
+        config.saveSilently()
+        status.show(enabled ? "Call history patří k tomuto závodu — dohledávání zapnuto"
+                    : "Call history patří k jinému závodu — dohledávání vypnuto")
+    }
+
     /// A loaded Master.scp takes effect (also the tests' way in).
     func adoptScp(_ database: ScpDatabase) {
         scp = database
         scpRevision += 1
     }
 
+    /// Takes over a call history the app has just saved (Kotlin `callHistory = merged` after "Update call history from
+    /// log", `AS:226`). The primary file was rewritten by the app: `history` is its content, merged again with the loaded additional
+    /// files, without reading the file again (a load in flight is superseded). When the configuration names no
+    /// primary file yet (the default `CALLHISTORY.txt`), `path` (trimmed) becomes it, so writing it into
+    /// `config.callHistoryFile` does not reload it.
     public func adoptCallHistory(_ history: CallHistory, path: String) {
-        callHistoryPath = KotlinStrings.trim(path)
+        var sources: CallHistorySources = currentSources()
+        if sources.primary.isEmpty {
+            sources = CallHistorySources(primary: KotlinStrings.trim(path), extras: sources.extras)
+        }
+        let extrasLoaded: Bool = loadedSources?.extras == sources.extras
+        callHistorySources = sources
         callHistoryGeneration += 1
-        callHistory = history
-        callHistoryRevision += 1
-        onLoaded?()
+        if extrasLoaded {
+            loadedSources = sources
+            adoptPrimary(history)
+        } else {
+            // The additional files of these sources are not loaded yet: read everything again.
+            loadCallHistory(sources)
+        }
     }
 
     /// Reloads a database whose configured path changed, then keeps watching the config (re-armed after each
@@ -115,6 +237,9 @@ public final class CallDataModel {
         withObservationTracking {
             _ = config.config.scpFile
             _ = config.config.callHistoryFile
+            _ = config.config.callHistoryExtraFiles
+            _ = contestCallHistoryFile()
+            _ = contestContext()
         } onChange: { [weak self] in
             MainHop.post {
                 self?.pathsChanged()
@@ -127,8 +252,10 @@ public final class CallDataModel {
         if KotlinStrings.trim(config.config.scpFile) != scpPath {
             reloadScp()
         }
-        if KotlinStrings.trim(config.config.callHistoryFile) != callHistoryPath {
+        if currentSources() != callHistorySources {
             reloadCallHistory()
+        } else {
+            applyContestTags()
         }
     }
 

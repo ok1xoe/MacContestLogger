@@ -14,9 +14,13 @@ public struct ContestSetup: Codable, Equatable, Sendable {
     public var skeds: [SkedEntry] = []
     /// Bonus stations (N1MM BONUS) of this contest.
     public var bonusStations: [String] = []
+    /// N1MM Contest Setup → Associated Files: the call history file of this contest; empty = the global
+    /// `AppConfig.callHistoryFile`. Swift-only key, written only when set.
+    public var callHistoryFile: String = ""
 
     enum CodingKeys: String, CodingKey {
         case category, sentExchange, operators, soapbox, startedAt, endedAt, tour, skeds, bonusStations
+        case callHistoryFile
     }
 
     public init() {}
@@ -33,5 +37,23 @@ public struct ContestSetup: Codable, Equatable, Sendable {
         tour = c.value(.tour, default: d.tour)
         skeds = c.value(.skeds, default: d.skeds)
         bonusStations = c.value(.bonusStations, default: d.bonusStations)
+        callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
+    }
+
+    /// The synthesized encoding, except that an empty `callHistoryFile` is left out (the setup v1.1.1 writes).
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(category, forKey: .category)
+        try c.encode(sentExchange, forKey: .sentExchange)
+        try c.encode(operators, forKey: .operators)
+        try c.encode(soapbox, forKey: .soapbox)
+        try c.encode(startedAt, forKey: .startedAt)
+        try c.encode(endedAt, forKey: .endedAt)
+        try c.encode(tour, forKey: .tour)
+        try c.encode(skeds, forKey: .skeds)
+        try c.encode(bonusStations, forKey: .bonusStations)
+        if !callHistoryFile.isEmpty {
+            try c.encode(callHistoryFile, forKey: .callHistoryFile)
+        }
     }
 }

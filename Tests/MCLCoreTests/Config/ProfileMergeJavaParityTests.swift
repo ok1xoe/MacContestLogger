@@ -298,7 +298,7 @@ import Testing
             }
         }
         #expect(paths.sorted() == [
-            "antennas", "bandNotes", "contestSetups", "cwKeyer.runMessages", "cwKeyer.spMessages",
+            "antennas", "bandNotes", "callHistoryExtraFiles", "contestSetups", "cwKeyer.runMessages", "cwKeyer.spMessages",
             "digital.diMessages", "digital.runMessages", "digital.spMessages", "dxCluster.blacklistedCalls",
             "dxCluster.blacklistedSpotters",
             "dxCluster.callBlacklist",
@@ -346,7 +346,14 @@ import Testing
         where !properties.isEmpty && message.contains("(class " + owner + ")") {
             guard let range = message.range(of: #"\((\d+) known properties"#, options: .regularExpression),
                   let count = Int(message[range].filter(\.isNumber)) else { return message }
-            return message.replacingCharacters(in: range, with: "(\(count - properties.count) known properties")
+            var out: String = message.replacingCharacters(in: range,
+                                                          with: "(\(count - properties.count) known properties")
+            // A list short enough not to be truncated shows the Swift-only names at its end.
+            for property in properties {
+                out = out.replacingOccurrences(of: ", \"" + property.name + "\")", with: ")")
+                out = out.replacingOccurrences(of: ", \"" + property.name + "\",", with: ",")
+            }
+            return out
         }
         return message
     }

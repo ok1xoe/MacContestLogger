@@ -100,10 +100,21 @@ What is copied: the contest row (definition snapshot, setup, station), its QSOs 
 
 The status line reports the target, the number of contests and QSOs copied and how many QSOs were already there.
 
+## Importing call history files
+
+**"Soubor → Import → Importovat call history…"** (File → Import → Import call history...) is N1MM's **Import Call
+History** with several files selected: choose one or more N1MM call history files (Cmd+click) and they are merged into
+the loaded call history — added to **Settings → Contest → Call history → Další soubory call history** (additional
+files), loaded at once and kept for the next start. A later file fills in the empty fields of callsigns already known,
+appends UserText and moves a different grid to Loc2; the directives of each file apply (see
+[Call history](call-history.md#several-files-in-one-table)). Files already in use are skipped. The chosen files are not
+changed and **Update call history from log** writes only the main file.
+
 ## Exporting the call history
 
 **"Soubor → Export → Call history (N1MM)…"** and **"… (CSV)…"** (File → Export → Call history (N1MM) / (CSV)...)
-write the **loaded** call history (the file in Settings → Contest → Call history) to a file of your choice, N1MM's
+write the **loaded** call history (the file in Settings → Contest → Call history, merged with the additional files) to a
+file of your choice, N1MM's
 equivalent of **Export Call History**:
 
 - **N1MM** is the text format the logger reads (`!!Order!!` header, the N1MM column names), so the file can be

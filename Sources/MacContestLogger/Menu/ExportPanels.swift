@@ -57,6 +57,10 @@ enum ExportPanels {
             }
         case .openDataFolder(let dir):
             NSWorkspace.shared.open(dir)
+        case .openCallHistoryImport:
+            openFiles(message: app.language.tr("Importovat call history (lze vybrat více souborů)")) { files in
+                app.dataTools.importCallHistoryFiles(files)
+            }
         case .openBeacons:
             openFile(message: app.language.tr("Soubor majáků (Beacons.txt)")) { file in
                 app.spotNavigation.loadBeacons(url: file)
@@ -86,6 +90,22 @@ enum ExportPanels {
         panel.allowsMultipleSelection = false
         panel.message = message
         begin(panel, chosen: chosen)
+    }
+
+    /// Several files at once (N1MM's Ctrl+click in Import Call History).
+    static func openFiles(message: String, chosen: @escaping @MainActor ([URL]) -> Void) {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = true
+        panel.message = message
+        panel.begin { response in
+            guard response == .OK else { return }
+            let urls: [URL] = panel.urls
+            MainActor.assumeIsolated {
+                chosen(urls)
+            }
+        }
     }
 
     /// Kotlin `chooseDirectory(title)` (`apple.awt.fileDialogForDirectories`).

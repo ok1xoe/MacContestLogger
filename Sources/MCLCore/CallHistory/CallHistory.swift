@@ -22,10 +22,18 @@ public struct CallHistory: Sendable {
     /// Callsign (upper case) → record (column → value), in order of first occurrence (Java
     /// `LinkedHashMap`); a later line of the same callsign replaces the whole record.
     let byCall: JavaLinkedMap<JavaLinkedMap<String>>
+    /// The N1MM import directives of the file (`!!MapStateToSect!!`…); the defaults when it has none.
+    public let options: ImportOptions
+    /// The comment lines of the file (stripped, with their `#`), in file order: N1MM's `#CONTEST` association lines
+    /// among them (`contestTags`). Written back by `toLines()`.
+    public let comments: [String]
 
-    init(columns: [String], byCall: JavaLinkedMap<JavaLinkedMap<String>>) {
+    init(columns: [String], byCall: JavaLinkedMap<JavaLinkedMap<String>>, options: ImportOptions = ImportOptions(),
+         comments: [String] = []) {
         self.columns = columns
         self.byCall = byCall
+        self.options = options
+        self.comments = comments
     }
 
     /// Empty history with the default column order (Java `empty()`).
@@ -52,19 +60,44 @@ public struct CallHistory: Sendable {
     }
 
     /// Parsing the file lines (Java `parse(List<String>)`).
+    ///
+    /// N1MM extensions (Swift-only; a file without them parses exactly like Java v1.1.1):
+    /// - comment lines are kept (`comments`, the `#CONTEST` association);
+    /// - an `!!Order!!` line whose first separator is `;` makes `;` the delimiter of the lines that follow;
+    /// - directive lines (`!!MapStateToSect!!`…, several on a line separated by `,` or `;`) set `options`. A file
+    ///   with any directive follows N1MM's import rules: a repeated callsign overlays the non-empty fields of its
+    ///   earlier record (UserText appended, an alternate Loc1 moved into Loc2) instead of replacing the record, and
+    ///   every record is normalised by the directives.
     public static func parse(_ lines: [String]) -> CallHistory {
         var order: [String] = defaultOrder
         var map = JavaLinkedMap<JavaLinkedMap<String>>()
+        var comments: [String] = []
+        var options = ImportOptions()
+        for line in lines {
+            if let names = directiveNames(JavaText.strip(line)) {
+                options.apply(names)
+            }
+        }
+        var delimiter: UInt16 = 0x2C
         for line in lines {
             let stripped: String = JavaText.strip(line)
-            if stripped.isEmpty || stripped.utf16.first == 0x23 {
+            if stripped.isEmpty {
                 continue
             }
-            let parts: [String] = splitKeepingEmpty(stripped)
+            if stripped.utf16.first == 0x23 {
+                comments.append(stripped)
+                continue
+            }
             if isOrderHeader(stripped) {
+                delimiter = orderDelimiter(stripped)
+                let parts: [String] = splitKeepingEmpty(stripped, delimiter: delimiter)
                 order = parts.dropFirst().map { JavaText.toLowerCase(JavaText.trim($0)) }
                 continue
             }
+            if directiveNames(stripped) != nil {
+                continue
+            }
+            let parts: [String] = splitKeepingEmpty(stripped, delimiter: delimiter)
             guard let callIndex = indexOf(order, "call"), callIndex < parts.count else {
                 continue
             }
@@ -79,9 +112,14 @@ public struct CallHistory: Sendable {
                     record.put(order[index], value)
                 }
             }
-            map.put(call, record)
+            if options.present {
+                record = normalized(record, options: options, order: &order)
+                map.put(call, overlay(map[call], record, options: options, order: &order))
+            } else {
+                map.put(call, record)
+            }
         }
-        return CallHistory(columns: order, byCall: map)
+        return CallHistory(columns: order, byCall: map, options: options, comments: comments)
     }
 
     // MARK: - Lookup
@@ -170,9 +208,14 @@ public struct CallHistory: Sendable {
     /// are skipped, the others are trimmed and commas replaced by a space. If the `call` column is missing, it is added
     /// at the beginning.
     ///
-    /// - Parameter updates: callsign → (column → value); a `nil` callsign, column or value map
-    ///   (Java NPE) is skipped.
-    public func withUpdates(_ updates: JavaLinkedMap<JavaLinkedMap<String>>) -> CallHistory {
+    /// - Parameters:
+    ///   - updates: callsign → (column → value); a `nil` callsign, column or value map (Java NPE) is skipped.
+    ///   - rotatingGrids: Swift-only, N1MM's rule for a grid written to Loc1 (the app's update from the log): a
+    ///     different grid moves the previous Loc1 into Loc2 (the older Loc2 is dropped) unless the file has
+    ///     `!!NoLoc2AltGrid!!`; a 4-character grid is overwritten by a 6-character one of the same square without
+    ///     moving it, and never replaces a 6-character one of its square. `false` = Java v1.1.1 (overwrite).
+    public func withUpdates(_ updates: JavaLinkedMap<JavaLinkedMap<String>>,
+                            rotatingGrids: Bool = false) -> CallHistory {
         var order: [String] = columns
         if Self.indexOf(order, "call") == nil {
             order.insert("call", at: 0)
@@ -193,17 +236,32 @@ public struct CallHistory: Sendable {
                 if Self.indexOf(order, column) == nil {
                     order.append(column)
                 }
-                record.put(column, JavaText.replace(JavaText.trim(value), ",", " "))
+                let cleaned: String = JavaText.replace(JavaText.trim(value), ",", " ")
+                if rotatingGrids && column == "loc1" {
+                    // N1MM: a different grid moves the previous Loc1 into Loc2 (Swift-only; Java overwrote it).
+                    Self.putGrid(cleaned, into: &record, altGrid: options.loc2AltGrid, order: &order)
+                } else {
+                    record.put(column, cleaned)
+                }
             }
             map.put(call, record)
         }
-        return CallHistory(columns: order, byCall: map)
+        return CallHistory(columns: order, byCall: map, options: options, comments: comments)
     }
 
     /// File content in the N1MM format: a comment, the `!!Order!!` header with N1MM column names, callsigns
     /// sorted by UTF-16 (`sorted()`).
-    public func toLines() -> [String] {
-        var out: [String] = ["# Call history \u{2014} MacContestLogger (form\u{E1}t N1MM+)"]
+    ///
+    /// - Parameter keepingFileLines: Swift-only — the file's own comments (the `#CONTEST` association) and directives
+    ///   follow the header, so they survive the app's saves; `false` writes exactly what Java v1.1.1 writes.
+    public func toLines(keepingFileLines: Bool = false) -> [String] {
+        var out: [String] = [Self.savedHeader]
+        if keepingFileLines {
+            out += comments.filter { !$0.hasPrefix(Self.savedHeader) }
+            if !options.directives.isEmpty {
+                out.append(options.directives.map { "!!" + $0 + "!!" }.joined(separator: ","))
+            }
+        }
         let names: [String] = columns.map { Self.n1mmNames[JavaStringKey($0)] ?? $0 }
         out.append("!!Order!!," + names.joined(separator: ","))
         let calls: [String] = byCall.keys.compactMap { $0 }.sorted { JavaText.compare($0, $1) < 0 }
@@ -216,8 +274,11 @@ public struct CallHistory: Sendable {
 
     // MARK: - Helpers
 
+    /// The first line `toLines()` writes.
+    static let savedHeader: String = "# Call history \u{2014} MacContestLogger (form\u{E1}t N1MM+)"
+
     /// N1MM column names for writing the header (lower-case keys, equality by UTF-16).
-    private static let n1mmNames: [JavaStringKey: String] = {
+    static let n1mmNames: [JavaStringKey: String] = {
         let pairs: [(String, String)] = [
             ("call", "Call"), ("name", "Name"), ("loc1", "Loc1"), ("loc2", "Loc2"), ("sect", "Sect"),
             ("state", "State"), ("ck", "CK"), ("birthdate", "BirthDate"), ("exch1", "Exch1"),
@@ -287,12 +348,13 @@ public struct CallHistory: Sendable {
         return true
     }
 
-    /// Java `line.split(",", -1)`: by UTF-16 units, empty parts (also trailing) remain.
-    static func splitKeepingEmpty(_ line: String) -> [String] {
+    /// Java `line.split(",", -1)`: by UTF-16 units, empty parts (also trailing) remain. N1MM's `;` files pass
+    /// `delimiter` 0x3B.
+    static func splitKeepingEmpty(_ line: String, delimiter: UInt16 = 0x2C) -> [String] {
         var parts: [String] = []
         var current: [UInt16] = []
         for unit in line.utf16 {
-            if unit == 0x2C {
+            if unit == delimiter {
                 parts.append(String(decoding: current, as: UTF16.self))
                 current.removeAll(keepingCapacity: true)
             } else {
@@ -319,7 +381,7 @@ extension CallHistory {
 
     /// The same columns without any callsign: what „Vymazat call history" leaves in the file.
     public func emptied() -> CallHistory {
-        CallHistory(columns: columns, byCall: JavaLinkedMap())
+        CallHistory(columns: columns, byCall: JavaLinkedMap(), options: options, comments: comments)
     }
 
     /// The history as CSV (RFC 4180: a field with a comma, quote or line break is quoted, `"` doubled), UTF-8, one

@@ -15,6 +15,8 @@ public enum DefaultMenu {
         "callhistory.exportN1mm": "Call history (N1MM)…",
         "callhistory.exportCsv": "Call history (CSV)…",
         "callhistory.clear": "Vymazat call history…",
+        "callhistory.import": "Importovat call history…",
+        "settings.callHistoryLookup": "Zapnout dohledávání v call history",
         "tools.addCallToCountry": "Přiřadit volačku k zemi…",
         "file.post3830": "Odeslat výsledek na 3830…",
         "file.import": "Import",
@@ -133,7 +135,7 @@ public enum DefaultMenu {
         let file = node("file", [
             leaf("contest.new"), leaf("contest.open"), leaf("file.openRecent"), leaf("sep.file.1"),
             leaf("database.new"), leaf("database.open"), leaf("file.copyContest"), leaf("sep.file.2"),
-            node("file.import", [leaf("settings.import"), leaf("settings.merge")]),
+            node("file.import", [leaf("settings.import"), leaf("settings.merge"), leaf("callhistory.import")]),
             node("file.export", [
                 leaf("settings.export"), leaf("settings.exportAdifRange"), leaf("settings.exportCabrillo"),
                 leaf("settings.exportEdi"), leaf("settings.exportOther"), leaf("callhistory.exportN1mm"),
@@ -152,7 +154,10 @@ public enum DefaultMenu {
             leaf("contest.updateCallHistory"), leaf("callhistory.clear"), leaf("beacons.load"), leaf("sep.tools.2"),
             leaf("contest.editor"),
         ])
-        let settings = node("settings", [settingsOpen, leaf("settings.keys"), leaf("settings.profiles")])
+        let settings = node("settings", [
+            settingsOpen, leaf("settings.keys"), leaf("settings.profiles"), leaf("sep.settings.1"),
+            leaf("settings.callHistoryLookup"),
+        ])
         let help = node("help", [
             leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("sep.help.1"),
             leaf("help.report"), leaf("help.dataFolder"),

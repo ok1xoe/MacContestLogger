@@ -44,7 +44,10 @@ extension CallHistory {
     /// Error texts like Java `getMessage()` (measured: the parent is a file, a read-only directory, the target
     /// is a non-empty directory); instead of the random number of the temporary file the message has the template
     /// `callhistoryXXXXXXXXXX.tmp`.
-    public func save(_ path: String) throws(CallHistorySaveError) {
+    ///
+    /// - Parameter keepingFileLines: also write the file's comments and directives (`toLines(keepingFileLines:)`;
+    ///   Swift-only, the app's saves).
+    public func save(_ path: String, keepingFileLines: Bool = false) throws(CallHistorySaveError) {
         let file: String = RawFileSystem.javaPath(path)
         let absolute: String = file.utf8.first == UInt8(ascii: "/")
             ? file : RawFileSystem.resolve(FileManager.default.currentDirectoryPath, file)
@@ -53,7 +56,7 @@ extension CallHistory {
         }
         try Self.createDirectories(directory)
         var text = ""
-        for line in toLines() {
+        for line in toLines(keepingFileLines: keepingFileLines) {
             text += line
             text += "\n"
         }
