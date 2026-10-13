@@ -95,3 +95,73 @@ differ from the entered one by **exactly one character** — a substitution
 (`OK1XOE` ↔ `OK1XDE`), an insertion (`OK1XOEE`) or an omission (`OK1XO`). It
 catches reception errors that partial check does not find. Sources: log (gray),
 spots and master.scp. A click takes the callsign into the field.
+
+## Check window
+
+Equivalent of the N1MM **Check window**
+([doc](https://n1mmwp.hamdocs.com/manual-windows/check-window/)). Open it with **"Okno → Check"** (Window → Check).
+It follows the call typed in the active entry window (the VFO B window too) and shows side by side panes:
+
+| Pane | Source |
+|---|---|
+| **Deník** (Log) | the calls of the open log |
+| **master.scp** | the loaded `master.scp` |
+| **Telnet** | the stations spotted by the DX cluster — a call shows only after it was spotted **3 times** (while its spot is alive; adjustable) |
+| **Call history** | the calls of the loaded call history |
+| **Výměna** (Exchange) | in a contest: the values of the multiplier list behind the exchange field being typed (counties, sections…) |
+| **Zpětné hledání** (Reverse lookup) | calls whose exchange matches what you typed (see below) |
+
+The header of each pane shows the number of matches and the size of its source.
+
+- From 2 characters a call is shown when it **contains** the typed text; from 3 characters also when it differs by
+  **one character** (a substitution, an extra or a missing character — a likely copying error).
+- Colours per character: typed characters plain, **green** characters complete the call, **red** marks where the
+  call differs from what you typed. An **exact match** is bold italic.
+- Order: exact match, starts with the text, contains it, one character off; then shorter calls first.
+- A click puts the call into the call field (an exchange value into its field).
+
+### Right-click menu
+
+| Item | N1MM | Meaning |
+|---|---|---|
+| Skrýt tento panel | Hide this pane | hides the pane |
+| Proporcionální šířka tohoto panelu | Proportional width this pane | 1×–4× the normal width |
+| Zobrazené panely | (pane check boxes) | which panes are shown |
+| Alt+Y: pořadí panelů | Yank: configuration | the order Alt+Y goes through the panes; a click moves a pane one place up |
+| Alt+Y: i duplicitní volačky | Yank: allow dupes | Alt+Y also takes calls that are dupes on the band |
+| Řazení: upřednostnit rozdíly na konci volačky | Sorting: Favor end-character differences | among equal matches, calls that differ only towards their end (`/P`, the last letter) come first |
+| Telnet: volačka od počtu spotů | (3 spots) | how many spots a call needs for the Telnet pane |
+| Zpětné hledání v call history a deníku | Reverse Call History Lookup | the reverse lookup on / off |
+| Práh zpětného hledání (znaků) | Set Reverse Lookup Threshold | characters of an exchange value before it is searched (default 2) |
+| Zpětné hledání: shoda od prvního znaku | (match from the beginning) | off = the typed text may be anywhere in the value |
+
+The settings are kept in the configuration (`check*` keys).
+
+### Alt+Y
+
+**Alt+Y** in the call field takes the first call of the panes in the yank order (Deník, master.scp, Telnet, Call
+history, Zpětné hledání by default), skipping dupes unless allowed. Pressing it again while the field still holds
+that call takes the **next** one, round and round; typing anything else starts over. It works with the Check window
+closed too. In an exchange field Alt+Y takes the first value of the exchange pane. Without any Check match it takes
+the first Check partial suggestion, as before.
+
+### Reverse lookup
+
+N1MM **Reverse Call History Lookup**: type what you copied of the exchange (for example the county) and the pane lists
+the calls whose **log QSOs or call history record** have it — every typed value must match, from the threshold's
+number of characters, from the first character of the value (or anywhere, see the menu). A partly typed call narrows
+the list to the calls containing it. Up to 100 calls; the report and the serial number are not searched.
+
+## ✓ / ? in the call field
+
+Equivalent of the N1MM check mark and **View → Show ? on Unmatched Calls**. From 3 characters the call field shows at
+its right end:
+
+- **✓** when a Check source (log, master.scp, a spot, call history) has the exact call, coloured by its multiplier
+  status: green = more than one new multiplier, red = one new multiplier, blue = a new QSO, grey = a dupe;
+- **?** when no source has it. **"Zobrazení → Zobrazovat ? u neznámých volaček"** (View → Show ? on unmatched calls)
+  turns the question mark off.
+
+The mark is shown while a Check is visible: the Check window, or the `SCP:` row of the entry window (Settings →
+Contest).
+

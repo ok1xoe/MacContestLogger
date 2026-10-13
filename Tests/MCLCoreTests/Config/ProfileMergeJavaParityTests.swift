@@ -298,7 +298,7 @@ import Testing
             }
         }
         #expect(paths.sorted() == [
-            "antennas", "bandNotes", "contestSetups", "cwKeyer.runMessages", "cwKeyer.spMessages",
+            "antennas", "bandNotes", "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "contestSetups", "cwKeyer.runMessages", "cwKeyer.spMessages",
             "digital.diMessages", "digital.runMessages", "digital.spMessages", "dxCluster.blacklistedCalls",
             "dxCluster.blacklistedSpotters",
             "dxCluster.callBlacklist",

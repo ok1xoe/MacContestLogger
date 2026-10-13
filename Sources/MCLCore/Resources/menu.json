@@ -47,6 +47,12 @@
       ]
     },
     {
+      "id": "view", "label": "Zobrazení", "state": "enable",
+      "children": [
+        { "id": "view.unmatchedMark", "label": "Zobrazovat ? u neznámých volaček", "state": "enable" }
+      ]
+    },
+    {
       "id": "contest", "label": "Závod", "state": "enable",
       "children": [
         { "id": "contest.postcontest", "label": "Dodatečné zadání (papírový deník)", "state": "enable" },
@@ -119,6 +125,7 @@
         { "id": "window.catlog",    "label": "CAT log",         "state": "enable" },
         { "id": "window.dxcluster", "label": "DX Cluster",      "state": "enable" },
         { "id": "window.bandmap",   "label": "Bandmapa",       "state": "enable" },
+        { "id": "window.check",     "label": "Check",           "state": "enable" },
         { "id": "window.blacklist", "label": "Blacklist",       "state": "enable" },
         { "id": "window.hamqthlog", "label": "HamQTH log",      "state": "enable" },
         { "id": "window.rate",      "label": "Info",            "state": "enable" },

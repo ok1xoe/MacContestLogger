@@ -45,7 +45,7 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Ctrl+N** | note: with a callsign filled in, for the QSO in progress, otherwise for the last logged one |
 | **Ctrl+F** | finds the callsign from the field in the log (opens the QSO overview with the search `call:`) |
 | **Ctrl+U** | serial number in the exchange +1 |
-| **Alt+Y** | first Super Check Partial suggestion into the callsign field |
+| **Alt+Y** | next call of the Check window's panes into the callsign field (again = the next one; in an exchange field the first value of the exchange pane), see [Check window](call-check.md#alt-y) |
 | **↑ / ↓** | with SCP suggestions, moves within the suggestions, otherwise tunes the rig |
 | **Ctrl+O** | operator login |
 

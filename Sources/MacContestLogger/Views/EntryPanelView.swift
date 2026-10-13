@@ -120,6 +120,9 @@ private struct EntryFieldsRow: View {
                              label: app.language.tr("Volačka"), isError: entry.isDupe, focus: focus) {
             entry.callChanged($0)
         }
+        .overlay(alignment: .trailing) {
+            CallMarkView(app: app, entry: entry)
+        }
     }
 
     private func field(_ key: EntryFieldKey, text: String, transform: EntryTextTransform = .none, label: String,

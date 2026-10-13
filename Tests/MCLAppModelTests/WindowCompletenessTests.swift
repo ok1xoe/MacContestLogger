@@ -114,7 +114,7 @@ import Testing
         for file in tools where file.pathExtension == "swift" {
             views += try captures("struct (\\w+WindowView): View", in: try String(contentsOf: file, encoding: .utf8))
         }
-        #expect(views.count == 14, "found \(views.sorted())")
+        #expect(views.count == 15, "found \(views.sorted())")
         let registered: [String] = try captures("toolWindow\\(\\s*[^,]+,\\s*id:\\s*(\\w+)\\.id[,)]", in: app)
         #expect(Set(registered).count == registered.count, "a window is registered twice: \(registered)")
         // `MultGridWindowView` is registered once through `multWindow`, by `MultGridWindowView.id(kind)`.

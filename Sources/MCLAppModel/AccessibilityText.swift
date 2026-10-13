@@ -208,4 +208,9 @@ public enum AccessibilityText {
     public static func dupesheetCall(_ text: String, hit: Bool, translator: Translator) -> String {
         hit ? text + ", " + translator.translate("shoduje se s psaným") : text
     }
+
+    /// A call of the Check window: the exact match is only shown bold italic.
+    public static func checkMatch(_ call: String, exact: Bool, translator: Translator) -> String {
+        exact ? call + ", " + translator.translate("přesná shoda") : call
+    }
 }

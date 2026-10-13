@@ -198,6 +198,19 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// The Dupesheet windows sort each column by suffix (N1MM), otherwise by the whole call (v1.1.1). Swift-only key.
     public var dupesheetSortBySuffix = true
 
+    /// The Check window (N1MM right-click menu, see `CheckSettings`). Swift-only keys.
+    public var checkHiddenPanes: [String] = []
+    public var checkPaneWeights: [String: Int] = [:]
+    public var checkYankOrder: [String] = CheckSettings.defaultYankOrder.map(\.rawValue)
+    public var checkYankAllowDupes = false
+    public var checkFavorEndDifferences = false
+    public var checkTelnetMinSpots = 3
+    public var checkReverseEnabled = true
+    public var checkReverseThreshold = 2
+    public var checkReverseFromStart = true
+    /// N1MM View → "Show ? on Unmatched Calls": a `?` after a call no Check source knows. Swift-only key.
+    public var showUnmatchedCallMark = true
+
     /// Call history file in N1MM format (pre-filling the exchange); empty = none.
     public var callHistoryFile = ""
 
@@ -227,6 +240,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
+        case checkHiddenPanes, checkPaneWeights, checkYankOrder, checkYankAllowDupes, checkFavorEndDifferences
+        case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
+        case showUnmatchedCallMark
         case callHistoryFile, databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -328,6 +344,16 @@ public struct AppConfig: Codable, Equatable, Sendable {
         nPlusOneEnabled = c.value(.nPlusOneEnabled, default: d.nPlusOneEnabled)
         preferredCallbook = CallbookService(configValue: c.value(.preferredCallbook, default: d.preferredCallbook))
             .rawValue
+        checkHiddenPanes = c.value(.checkHiddenPanes, default: d.checkHiddenPanes)
+        checkPaneWeights = c.value(.checkPaneWeights, default: d.checkPaneWeights)
+        checkYankOrder = c.value(.checkYankOrder, default: d.checkYankOrder)
+        checkYankAllowDupes = c.value(.checkYankAllowDupes, default: d.checkYankAllowDupes)
+        checkFavorEndDifferences = c.value(.checkFavorEndDifferences, default: d.checkFavorEndDifferences)
+        checkTelnetMinSpots = c.value(.checkTelnetMinSpots, default: d.checkTelnetMinSpots)
+        checkReverseEnabled = c.value(.checkReverseEnabled, default: d.checkReverseEnabled)
+        checkReverseThreshold = c.value(.checkReverseThreshold, default: d.checkReverseThreshold)
+        checkReverseFromStart = c.value(.checkReverseFromStart, default: d.checkReverseFromStart)
+        showUnmatchedCallMark = c.value(.showUnmatchedCallMark, default: d.showUnmatchedCallMark)
         dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
 

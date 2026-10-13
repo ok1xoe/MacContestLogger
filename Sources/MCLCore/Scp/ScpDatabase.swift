@@ -86,6 +86,9 @@ public final class ScpDatabase: Sendable {
 
     public var size: Int { calls.count }
 
+    /// Every callsign (upper case, file order) — the Check window searches them all.
+    public var allCalls: [String] { calls }
+
     /// Suggestions for the typed text, sorted by relevance, at most `limit`. Empty for text shorter than
     /// `minQuery` UTF-16 units (after `trim` and upper-casing — so `ß` is long enough).
     public func find(_ partial: String?, limit: Int) -> [String] {
