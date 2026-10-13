@@ -35,6 +35,18 @@ public final class DigitalInterfaceModel {
         case plain
         /// Option+click (N1MM Alt+click): a call goes onto the call stack, the call field stays.
         case stack
+        /// Cmd+click (N1MM Ctrl+click — Ctrl+click is the secondary click on macOS): the word goes into the entry
+        /// field that has the typing cursor.
+        case force
+        /// Shift+click (N1MM): the word converted Letters ↔ Figures, then into the entry window.
+        case lettersFigures
+    }
+
+    /// How a call is coloured: its status as in the bandmap and whether the validity resources know it.
+    public struct CallMark: Equatable, Sendable {
+        public let color: SpotColorClassifier.SpotColorKey
+        /// Not found in the chosen resources (N1MM: yellow).
+        public let unverified: Bool
     }
 
     /// An underlined range of the text: a call, or a word the contest takes as an exchange field.
@@ -48,6 +60,8 @@ public final class DigitalInterfaceModel {
         public let start: Int
         public let end: Int
         public let kind: Kind
+        /// Received while the own station transmitted (fldigi's echo): shown dimmed, never grabbed.
+        public var transmitted: Bool = false
     }
 
     struct Dependencies {
@@ -67,6 +81,16 @@ public final class DigitalInterfaceModel {
     public private(set) var error: EntryStatus?
     /// The last calls heard (at most 8, in order of first appearance).
     public private(set) var recentCalls: [String] = []
+    /// The ranges of `text` received while transmitting.
+    public private(set) var transmittedRanges: [Range<Int>] = []
+    /// The pause bar (N1MM): the window shows no new text until it is clicked again (fldigi is still read).
+    public private(set) var paused = false
+    /// Paused by the pointer over a call with an empty call field (N1MM pause routines).
+    public private(set) var hoverPaused = false
+    /// N1MM „MouseOver": the word under the pointer.
+    public private(set) var mouseOver: String = ""
+    /// N1MM „Letters/Figs": the word under the pointer in the other RTTY shift.
+    public private(set) var lettersFigs: String = ""
 
     /// The RX text stream, read on the keyer lane and cleared on the main actor (under its lock).
     final class Stream: @unchecked Sendable {
@@ -77,12 +101,16 @@ public final class DigitalInterfaceModel {
             lock.withLock { stream.pending(rxLength) }
         }
 
-        func append(_ chunk: String) {
-            lock.withLock { stream.append(chunk) }
+        func append(_ chunk: String, transmitting: Bool) {
+            lock.withLock { stream.append(chunk, transmitting: transmitting) }
         }
 
         var text: String {
             lock.withLock { stream.text }
+        }
+
+        var transmitted: [Range<Int>] {
+            lock.withLock { stream.transmitted }
         }
 
         func clear() {
@@ -120,6 +148,11 @@ public final class DigitalInterfaceModel {
     @ObservationIgnored private var loopKey: String?
     /// fldigi's modem names were asked for in this loop (once per open / address).
     @ObservationIgnored private var namesRead = false
+    /// The call Hover Mode took last (it is not taken again while the pointer stays on it).
+    @ObservationIgnored private var hoveredCall: String?
+    @ObservationIgnored private var markKey: String = ""
+    @ObservationIgnored private var markCache: [String: CallMark] = [:]
+    @ObservationIgnored private var loggedCalls: Set<String>?
     /// One observation of the configuration at a time (a reopened model does not stack another).
     @ObservationIgnored private var observing = false
 
@@ -212,11 +245,15 @@ public final class DigitalInterfaceModel {
                 let length: Int32 = try client.rxLength()
                 var chunk: String?
                 if let span = stream.pending(length) {
-                    let read: String = try client.rxText(start: span.start, length: span.length)
-                    stream.append(read)
-                    chunk = read
+                    chunk = try client.rxText(start: span.start, length: span.length)
                 }
-                var poll = Poll(chunk: chunk, modem: try client.modemName(), trx: try client.trxState())
+                let modem: String = try client.modemName()
+                let trx: String = try client.trxState()
+                if let chunk {
+                    // Text read while fldigi transmits is its echo of the own transmission (N1MM: no grabbing).
+                    stream.append(chunk, transmitting: trx == "TX")
+                }
+                var poll = Poll(chunk: chunk, modem: modem, trx: trx)
                 poll.carrier = try? client.carrier()
                 if needNames {
                     poll.names = try? client.modemNames()
@@ -236,12 +273,7 @@ public final class DigitalInterfaceModel {
         switch result {
         case .read(let poll):
             if poll.chunk != nil {
-                text = stream.text
-                let own: String = myCall
-                for hit in CallsignScanner.scan(text) where hit.call != own {
-                    recent.offer(hit.call)
-                }
-                recentCalls = recent.calls
+                received()
             }
             status = RadioWindowTexts.digitalStatus(modem: poll.modem, trx: poll.trx)
             error = nil
@@ -262,6 +294,24 @@ public final class DigitalInterfaceModel {
         }
     }
 
+    /// New text from fldigi: shown unless the window is paused; the calls heard outside the own transmission (and
+    /// shown by the validity routines) go to the recent calls.
+    private func received() {
+        let full: String = stream.text
+        let tx: [Range<Int>] = stream.transmitted
+        if !isPaused {
+            text = full
+            transmittedRanges = tx
+        }
+        let own: String = myCall
+        let validity: DigitalCallValidity = DigitalCallValidity.from(config.config.digital.callValidity)
+        for hit in callHits(full) where hit.call != own && !tx.contains(where: { $0.contains(hit.start) }) {
+            guard validity.highlight(verified: isVerified(hit.call)) != nil else { continue }
+            recent.offer(hit.call)
+        }
+        recentCalls = recent.calls
+    }
+
     // MARK: - the window's actions
 
     /// „Vymazat": the text and the recent calls (fldigi's position stays, the old text is not read again).
@@ -269,7 +319,146 @@ public final class DigitalInterfaceModel {
         stream.clear()
         recent.clear()
         text = ""
+        transmittedRanges = []
         recentCalls = []
+    }
+
+    /// The window shows no new text (the pause bar or the pointer over a call).
+    public var isPaused: Bool {
+        paused || hoverPaused
+    }
+
+    /// The pause bar clicked: pause, or show everything that arrived meanwhile.
+    public func togglePause() {
+        paused.toggle()
+        resumeIfNeeded()
+    }
+
+    private func resumeIfNeeded() {
+        guard !isPaused else { return }
+        text = stream.text
+        transmittedRanges = stream.transmitted
+    }
+
+    /// The pointer over the text (`nil` = it left): the MouseOver and Letters/Figs indicators; with Hover Mode a
+    /// call goes into the call field; with the pause routines a call under the pointer pauses the window while the
+    /// call field is empty.
+    public func hover(offset: Int?) {
+        let word: TextTokens.Token? = offset.flatMap { wordAt($0) }
+        mouseOver = word?.word ?? ""
+        lettersFigs = word.map { LettersFigures.convert($0.word) } ?? ""
+        let call: String? = offset.flatMap { callAt($0) }
+        let digi: DigitalConfig = config.config.digital
+        let fieldEmpty: Bool = KotlinStrings.isBlank(app?.typedCall ?? "")
+        let pause: Bool = digi.pauseOnCallHover && call != nil && fieldEmpty
+        if pause != hoverPaused {
+            hoverPaused = pause
+            resumeIfNeeded()
+        }
+        if digi.hoverMode, let call, call != hoveredCall {
+            hoveredCall = call
+            take(call)
+        } else if call == nil {
+            hoveredCall = nil
+        }
+    }
+
+    /// A right click in the text: with N1MM „Rt Click = Return NOT menu" it is Enter (ESM); `false` = not handled.
+    @discardableResult
+    public func rightClick() -> Bool {
+        guard config.config.digital.rightClickReturn else { return false }
+        app?.perform(.enter)
+        return true
+    }
+
+    // MARK: - calls and their colours
+
+    /// The calls of a text: whole words that look like a call, and with the garbage search the Master.scp calls
+    /// inside other words.
+    func callHits(_ text: String) -> [CallsignScanner.Hit] {
+        var hits: [CallsignScanner.Hit] = CallsignScanner.scan(text)
+        guard config.config.digital.scpGarbageSearch, let scp = app?.callData.scp, scp.size > 0 else { return hits }
+        let covered: [Range<Int>] = hits.map { $0.start..<$0.end }
+        for token in TextTokens.words(text) where !covered.contains(where: { $0.overlaps(token.start..<token.end) }) {
+            guard token.word.uppercased().utf16.count == token.word.utf16.count,
+                  let found = ScpGarbageSearch.find(token.word, contains: { scp.contains($0) }) else { continue }
+            hits.append(CallsignScanner.Hit(start: token.start + found.start, end: token.start + found.end,
+                                            call: found.call))
+        }
+        return hits.sorted { $0.start < $1.start }
+    }
+
+    /// The call under an offset of the shown text (not the own one).
+    func callAt(_ offset: Int) -> String? {
+        for span in spans where offset >= span.start && offset < span.end {
+            if case .call(let call) = span.kind {
+                return call
+            }
+        }
+        return nil
+    }
+
+    /// The word under an offset of the shown text.
+    func wordAt(_ offset: Int) -> TextTokens.Token? {
+        TextTokens.words(text).first { offset >= $0.start && offset < $0.end }
+    }
+
+    /// The colour of a call (N1MM: the bandmap's colours by dupe and new multipliers; yellow when the validity
+    /// resources do not know it). Cached until the log, the analysis, the resources or the band and mode change.
+    public func mark(for call: String) -> CallMark {
+        let key: String = markEpoch
+        if key != markKey {
+            markKey = key
+            markCache = [:]
+            loggedCalls = nil
+        }
+        if let cached = markCache[call] {
+            return cached
+        }
+        var color: SpotColorClassifier.SpotColorKey = .good
+        if let app {
+            let entry: EntryModel = app.activeEntry ?? app.entry
+            let status: SpotStatus = app.spotAnalysis.current().callStatus(
+                call: call, freqHz: Int(clamping: entry.form.freqHz), mode: entry.form.mode.rawValue)
+            color = SpotColorClassifier.classify(dupe: status.dupe, newMultCount: status.newMultCount)
+        }
+        let validity: DigitalCallValidity = DigitalCallValidity.from(config.config.digital.callValidity)
+        let mark = CallMark(color: color, unverified: validity.highlight(verified: isVerified(call)) ?? true)
+        markCache[call] = mark
+        return mark
+    }
+
+    /// What invalidates the cached marks.
+    private var markEpoch: String {
+        guard let app else { return "" }
+        let entry: EntryModel = app.activeEntry ?? app.entry
+        return [String(app.logbook.rows.count), String(app.spotAnalysis.revision), String(app.callData.scpRevision),
+                String(app.callData.callHistoryRevision), entry.band?.adif ?? "", entry.form.mode.rawValue,
+                config.config.digital.callValidity].joined(separator: "|")
+    }
+
+    /// The call is in one of the chosen resources: Master.scp, the call history, the spots, this log.
+    func isVerified(_ call: String) -> Bool {
+        guard let app else { return true }
+        let digi: DigitalConfig = config.config.digital
+        if digi.validateScp && app.callData.scp.contains(call) {
+            return true
+        }
+        if digi.validateCallHistory && app.callData.callHistory.lookup(call) != nil {
+            return true
+        }
+        if digi.validateSpotted && app.dxCluster.spots.find(call) != nil {
+            return true
+        }
+        if digi.validateLogged {
+            if loggedCalls == nil {
+                loggedCalls = Set(app.logbook.rows.map { KotlinStrings.uppercase($0.call) })
+            }
+            if loggedCalls?.contains(call) == true {
+                return true
+            }
+        }
+        return false
     }
 
     /// The underlined ranges: the calls (not the own one), then the words the contest definition takes as an
@@ -278,10 +467,14 @@ public final class DigitalInterfaceModel {
     public var spans: [Span] {
         let own: String = myCall
         var result: [Span] = []
-        var taken: Set<Int> = []
-        for hit in CallsignScanner.scan(text) where hit.call != own {
-            result.append(Span(start: hit.start, end: hit.end, kind: .call(hit.call)))
-            taken.insert(hit.start)
+        var taken: [Range<Int>] = []
+        let validity: DigitalCallValidity = DigitalCallValidity.from(config.config.digital.callValidity)
+        let tx: [Range<Int>] = transmittedRanges
+        for hit in callHits(text) where hit.call != own {
+            guard validity.highlight(verified: isVerified(hit.call)) != nil else { continue }
+            result.append(Span(start: hit.start, end: hit.end, kind: .call(hit.call),
+                               transmitted: tx.contains { $0.contains(hit.start) }))
+            taken.append(hit.start..<hit.end)
         }
         let current: JavaLinkedMap<String> = app?.currentExchange ?? JavaLinkedMap()
         let typed: String = app?.typedCall ?? ""
@@ -305,11 +498,11 @@ public final class DigitalInterfaceModel {
 
     /// The words of a line (not a call's start) the contest takes as an exchange field. A broken
     /// `validation.regex` would throw in Kotlin's composition; here the word is not offered.
-    private static func exchangeSpans(_ line: [TextTokens.Token], taken: Set<Int>,
+    private static func exchangeSpans(_ line: [TextTokens.Token], taken: [Range<Int>],
                                       fields: [ContestDefinition.ExchangeField],
                                       current: JavaLinkedMap<String>) -> [Span] {
         var spans: [Span] = []
-        for token in line where !taken.contains(token.start) {
+        for token in line where !taken.contains(where: { $0.overlaps(token.start..<token.end) }) {
             guard let grab = try? ExchangeGrab.route(fields, current, token.word) else { continue }
             spans.append(Span(start: token.start, end: token.end,
                               kind: .exchange(fieldId: grab.fieldId, value: grab.value)))
@@ -320,6 +513,20 @@ public final class DigitalInterfaceModel {
     /// A click at a UTF-16 offset of the text: a call goes into the call field, otherwise an exchange word into its
     /// field (calls first, as Kotlin).
     public func tap(offset: Int, click: Click = .plain) {
+        switch click {
+        case .force:
+            if let word = wordAt(offset) {
+                (app?.activeEntry ?? app?.entry)?.insertIntoFocusedField(word.word)
+            }
+            return
+        case .lettersFigures:
+            if let word = wordAt(offset) {
+                takeConverted(LettersFigures.convert(word.word))
+            }
+            return
+        case .plain, .stack:
+            break
+        }
         let all: [Span] = spans
         let hit: (Span) -> Bool = { offset >= $0.start && offset < $0.end }
         for span in all where hit(span) {
@@ -345,6 +552,12 @@ public final class DigitalInterfaceModel {
             app.callStack?.push(call)
             return
         }
+        defer {
+            // N1MM „Send Space on Callsign Mouse Click": the cursor moves on to the exchange.
+            if config.config.digital.sendSpaceOnClick, CallStack.normalize(app.typedCall) == CallStack.normalize(call) {
+                (app.activeEntry ?? app.entry).jumpToExchange()
+            }
+        }
         let typed: String = CallStack.normalize(app.typedCall)
         let stacking: Bool = config.config.digital.digitalCallStacking && app.operating.isRun
         guard stacking, !typed.isEmpty, typed != CallStack.normalize(call), let stack = app.callStack else {
@@ -360,6 +573,22 @@ public final class DigitalInterfaceModel {
         }
     }
 
+    /// A Shift+clicked word after the Letters/Figures conversion: a call into the call field, an exchange word into
+    /// its field, anything else into the field with the typing cursor.
+    private func takeConverted(_ word: String) {
+        guard let app else { return }
+        if let call = CallsignScanner.scan(word).first?.call, call.utf16.count == word.utf16.count {
+            take(call)
+            return
+        }
+        let fields: [ContestDefinition.ExchangeField] = contest.exchangeFields(call: app.typedCall)
+        if let grab = try? ExchangeGrab.route(fields, app.currentExchange, word) {
+            app.prefillExchange([(id: grab.fieldId, value: grab.value)])
+            return
+        }
+        (app.activeEntry ?? app.entry).insertIntoFocusedField(word)
+    }
+
     // MARK: - frequency and modem
 
     /// The caption's frequency (N1MM shows the exact frequency): the transmitted frequency (dial ± audio in a
@@ -368,7 +597,9 @@ public final class DigitalInterfaceModel {
         guard let app else { return "" }
         let state: RigState? = app.rig.activeState
         let dial: Int64 = state?.freqHz ?? (app.activeEntry ?? app.entry).form.freqHz
-        let transmit: Int64 = digital.transmitHz(dialHz: dial, rawMode: state?.rawMode)
+        // N1MM „Display Radio Freq and not Exact Freq in DI Caption".
+        let transmit: Int64 = config.config.digital.captionRadioFrequency
+            ? dial : digital.transmitHz(dialHz: dial, rawMode: state?.rawMode)
         return DigitalTexts.frequencyCaption(transmitHz: transmit, carrierHz: digital.carrierHz)
     }
 
@@ -412,6 +643,30 @@ public final class DigitalInterfaceModel {
 
     public func setAutoTrxUpdate(_ on: Bool) {
         config.config.digital.autoTrxUpdate = on
+        config.saveSilently()
+    }
+
+    /// A switch of the window's Setup menu (saved at once).
+    public func option(_ path: WritableKeyPath<DigitalConfig, Bool>) -> Bool {
+        config.config.digital[keyPath: path]
+    }
+
+    public func setOption(_ path: WritableKeyPath<DigitalConfig, Bool>, _ on: Bool) {
+        config.config.digital[keyPath: path] = on
+        config.saveSilently()
+        if path == \DigitalConfig.pauseOnCallHover && !on && hoverPaused {
+            hoverPaused = false
+            resumeIfNeeded()
+        }
+    }
+
+    /// N1MM Callsign Validity and Highlight.
+    public var callValidity: DigitalCallValidity {
+        DigitalCallValidity.from(config.config.digital.callValidity)
+    }
+
+    public func setCallValidity(_ validity: DigitalCallValidity) {
+        config.config.digital.callValidity = validity.rawValue
         config.saveSilently()
     }
 

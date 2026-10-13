@@ -305,6 +305,30 @@ public final class EntryModel {
         updatePreview()
     }
 
+    /// The field with the typing cursor (set by the view; `nil` = none or not known).
+    @ObservationIgnored public var focusedField: (@MainActor () -> EntryFieldKey?)?
+
+    /// N1MM Ctrl+click in the Digital Interface (Cmd+click here): the text goes into the field that has the typing
+    /// cursor, whatever it is; without a known field into the call field.
+    public func insertIntoFocusedField(_ text: String) {
+        let value: String = KotlinStrings.uppercase(KotlinStrings.trim(text))
+        guard !value.isEmpty else { return }
+        switch focusedField?() ?? .call {
+        case .call:
+            callChanged(value)
+        case .rstSent:
+            editRstSent(value)
+        case .rstRcvd:
+            editRstRcvd(value)
+        case .exchange:
+            editExchange(value)
+        case .contest(let id):
+            editContestField(id, value)
+        case .time:
+            paperTime = value
+        }
+    }
+
     /// Kotlin `LaunchedEffect(call, freqKHz, mode, cexch, contest.activeId)`: the preview without writing; then the
     /// dupe beep (`LaunchedEffect(isDupe)`, `config.beepOnDupe`).
     func updatePreview() {

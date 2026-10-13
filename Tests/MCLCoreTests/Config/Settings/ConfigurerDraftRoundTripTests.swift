@@ -123,6 +123,19 @@ import Testing
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
+        expected.digital.callValidity = DigitalCallValidity.combined.rawValue
+        expected.digital.validateScp = true
+        expected.digital.validateCallHistory = true
+        expected.digital.validateSpotted = true
+        expected.digital.validateLogged = true
+        expected.digital.scpGarbageSearch = false
+        expected.digital.highlightBackground = false
+        expected.digital.nonScrollingRx = false
+        expected.digital.pauseOnCallHover = false
+        expected.digital.hoverMode = false
+        expected.digital.rightClickReturn = false
+        expected.digital.sendSpaceOnClick = false
+        expected.digital.captionRadioFrequency = false
         expected.digital.autoTrxUpdate = true
         expected.digital.rttyModem = "RTTY"
         expected.digital.pskModem = "BPSK31"
@@ -352,6 +365,19 @@ import Testing
         w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
+        w.same(\.callValidity, \.digital.callValidity, "RESOURCES")
+        w.same(\.validateScp, \.digital.validateScp, false)
+        w.same(\.validateCallHistory, \.digital.validateCallHistory, false)
+        w.same(\.validateSpotted, \.digital.validateSpotted, false)
+        w.same(\.validateLogged, \.digital.validateLogged, false)
+        w.same(\.scpGarbageSearch, \.digital.scpGarbageSearch, true)
+        w.same(\.highlightBackground, \.digital.highlightBackground, true)
+        w.same(\.nonScrollingRx, \.digital.nonScrollingRx, true)
+        w.same(\.pauseOnCallHover, \.digital.pauseOnCallHover, true)
+        w.same(\.hoverMode, \.digital.hoverMode, true)
+        w.same(\.rightClickReturn, \.digital.rightClickReturn, true)
+        w.same(\.sendSpaceOnClick, \.digital.sendSpaceOnClick, true)
+        w.same(\.captionRadioFrequency, \.digital.captionRadioFrequency, true)
         w.same(\.autoTrxUpdate, \.digital.autoTrxUpdate, false)
         w.same(\.rttyModem, \.digital.rttyModem, "RTTY-75N")
         w.same(\.pskModem, \.digital.pskModem, "BPSK63")

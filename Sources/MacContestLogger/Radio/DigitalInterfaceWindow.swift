@@ -95,19 +95,71 @@ struct DigitalInterfaceWindowView: View {
                     }
                 }
             }
-            DigitalRxTextView(text: Self.annotated(model.text, spans: model.spans, size: session.fontSize),
-                              accessibilityText: language.tr("Dekódovaný text"),
-                              onTap: { offset, flags in
-                                  model.tap(offset: offset, click: flags.contains(.option) ? .stack : .plain)
-                              })
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            HStack(alignment: .top, spacing: 4) {
+                pauseBar(model, language: language)
+                DigitalRxTextView(text: Self.annotated(model, size: session.fontSize),
+                                  accessibilityText: language.tr("Dekódovaný text"),
+                                  scrolling: !model.option(\.nonScrollingRx),
+                                  onTap: { offset, flags in model.tap(offset: offset, click: Self.click(flags)) },
+                                  onHover: { offset in model.hover(offset: offset) },
+                                  onRightClick: { model.rightClick() })
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            indicators(model, language: language)
             Text(verbatim: language.tr(
-                "Klik na volačku ji vloží do pole volačky, Option+klik ji dá do zásobníku, klik na jinak podtržené slovo do výměny. Text dekóduje fldigi."))
+                "Klik: volačka do pole volačky, jiné podtržené slovo do výměny · Option+klik: do zásobníku · Cmd+klik: slovo do pole s kurzorem · Shift+klik: převod Letters/Figs. Text dekóduje fldigi."))
                 .windowFont(11)
                 .foregroundStyle(.secondary)
         }
         .padding(8)
         .environment(\.windowFontSize, session.fontSize)
+    }
+
+    /// macOS modifiers → N1MM's clicks: Option = Alt (stack), Cmd = Ctrl (into the focused field; Ctrl+click is the
+    /// secondary click here), Shift = Letters/Figures.
+    static func click(_ flags: NSEvent.ModifierFlags) -> DigitalInterfaceModel.Click {
+        if flags.contains(.option) {
+            return .stack
+        }
+        if flags.contains(.command) {
+            return .force
+        }
+        if flags.contains(.shift) {
+            return .lettersFigures
+        }
+        return .plain
+    }
+
+    /// N1MM's pause bar left of the received text: green = live, yellow = paused (click to switch).
+    private func pauseBar(_ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
+        let paused: Bool = model.isPaused
+        return Button {
+            model.togglePause()
+        } label: {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(paused ? Color.yellow : Color.green)
+                .frame(width: 8)
+                .frame(maxHeight: .infinity)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(language.tr(paused ? "Příjem pozastaven — klik pokračuje" : "Pozastavit příjem"))
+        .accessibilityIdentifier("digital.pause")
+    }
+
+    /// N1MM's MouseOver and Letters/Figs indicators.
+    private func indicators(_ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
+        HStack(spacing: 12) {
+            Text(verbatim: language.tr("Pod myší") + ": " + model.mouseOver)
+            Text(verbatim: language.tr("Letters/Figs") + ": " + model.lettersFigs)
+            if model.isPaused {
+                Text(verbatim: language.tr("POZASTAVENO"))
+                    .foregroundStyle(Color(nsColor: .systemOrange))
+            }
+        }
+        .windowFont(11, design: .monospaced)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("digital.indicators")
     }
 
     /// N1MM's fldigi „Op Mode" menu: the contest modems first, the rest of fldigi's list in a submenu.
@@ -149,11 +201,53 @@ struct DigitalInterfaceWindowView: View {
             (nil, "Vypnuto"), (.fifo, "Zapnuto: FIFO"), (.lifo, "Zapnuto: LIFO"),
             (.multsFirst, "Zapnuto: FIFO, násobiče napřed"),
         ]
+        let toggles: [(WritableKeyPath<DigitalConfig, Bool>, String)] = [
+            (\.captionRadioFrequency, "V titulku frekvence rigu, ne přesná"),
+            (\.nonScrollingRx, "Neposuvné okno příjmu"),
+            (\.pauseOnCallHover, "Pozastavit příjem nad volačkou (prázdné pole)"),
+            (\.hoverMode, "Hover: volačka pod myší do pole"),
+            (\.rightClickReturn, "Pravý klik = Enter (ESM)"),
+            (\.sendSpaceOnClick, "Po kliku na volačku kurzor do výměny (mezera)"),
+            (\.scpGarbageSearch, "Hledat volačky z Master.scp i v šumu"),
+            (\.highlightBackground, "Barva volačky jako pozadí"),
+        ]
+        let resources: [(WritableKeyPath<DigitalConfig, Bool>, String)] = [
+            (\.validateScp, "Master.scp"), (\.validateCallHistory, "Call history"),
+            (\.validateSpotted, "Spoty z clusteru"), (\.validateLogged, "Volačky v deníku"),
+        ]
+        let validities: [(DigitalCallValidity, String)] = [
+            (.generic, "Vše, co vypadá jako volačka"), (.resources, "Jen volačky ze zdrojů"),
+            (.combined, "Obojí, neověřené žlutě"),
+        ]
         return Menu {
             Button {
                 model.setAutoTrxUpdate(!model.autoTrxUpdate)
             } label: {
                 Text(verbatim: (model.autoTrxUpdate ? "✓ " : "") + language.tr("AutoTRXUpdate (frekvence = rig ± audio)"))
+            }
+            ForEach(Array(toggles.enumerated()), id: \.offset) { _, toggle in
+                Button {
+                    model.setOption(toggle.0, !model.option(toggle.0))
+                } label: {
+                    Text(verbatim: (model.option(toggle.0) ? "✓ " : "") + language.tr(toggle.1))
+                }
+            }
+            Menu(language.tr("Ověřování volaček")) {
+                ForEach(Array(validities.enumerated()), id: \.offset) { _, item in
+                    Button {
+                        model.setCallValidity(item.0)
+                    } label: {
+                        Text(verbatim: (model.callValidity == item.0 ? "✓ " : "") + language.tr(item.1))
+                    }
+                }
+                Divider()
+                ForEach(Array(resources.enumerated()), id: \.offset) { _, item in
+                    Button {
+                        model.setOption(item.0, !model.option(item.0))
+                    } label: {
+                        Text(verbatim: (model.option(item.0) ? "✓ " : "") + language.tr(item.1))
+                    }
+                }
             }
             Section(language.tr("Digitální zásobník volaček")) {
                 ForEach(Array(options.enumerated()), id: \.offset) { _, option in
@@ -171,6 +265,47 @@ struct DigitalInterfaceWindowView: View {
         .fixedSize()
         .accessibilityLabel(language.tr("Nastavení digitálního rozhraní"))
         .accessibilityIdentifier("digital.setup")
+    }
+
+    /// The window's text with the model's spans: calls in their status colour (N1MM: the bandmap's colours; yellow
+    /// for an unverified call; the colour as background with „Highlight Background"), text received while
+    /// transmitting dimmed, and in the non-scrolling mode the current (last) line underlined.
+    static func annotated(_ model: DigitalInterfaceModel, size: Int) -> NSAttributedString {
+        let text: String = model.text
+        let result = NSMutableAttributedString(attributedString: annotated(text, spans: model.spans, size: size))
+        let length: Int = result.length
+        let background: Bool = model.option(\.highlightBackground)
+        for range in model.transmittedRanges where range.lowerBound >= 0 && range.upperBound <= length {
+            result.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor,
+                                range: NSRange(location: range.lowerBound, length: range.count))
+        }
+        for span in model.spans where span.start >= 0 && span.end <= length && span.start < span.end {
+            guard case .call(let call) = span.kind, !span.transmitted else { continue }
+            let mark: DigitalInterfaceModel.CallMark = model.mark(for: call)
+            let range = NSRange(location: span.start, length: span.end - span.start)
+            let color: NSColor = SpotColors.color(mark.color)
+            if background {
+                result.addAttributes([.backgroundColor: color.withAlphaComponent(0.35)], range: range)
+                if mark.unverified {
+                    result.addAttribute(.foregroundColor, value: NSColor.systemYellow, range: range)
+                }
+            } else {
+                result.addAttribute(.foregroundColor, value: color, range: range)
+                if mark.unverified {
+                    result.addAttribute(.backgroundColor, value: NSColor.systemYellow.withAlphaComponent(0.45),
+                                        range: range)
+                }
+            }
+        }
+        if model.option(\.nonScrollingRx), length > 0 {
+            let units: [UInt16] = Array(text.utf16)
+            let lastNewline: Int = units.lastIndex(of: 0x0A).map { $0 + 1 } ?? 0
+            if lastNewline < length {
+                result.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue,
+                                    range: NSRange(location: lastNewline, length: length - lastNewline))
+            }
+        }
+        return result
     }
 
     /// The text in the window's monospaced body size with the calls (primary) and exchange words (tertiary)

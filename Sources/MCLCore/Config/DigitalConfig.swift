@@ -51,9 +51,37 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// fldigi's modem for PSK (typing PSK in the call field). Swift-only key.
     public var pskModem: String = "BPSK31"
 
+    /// N1MM Callsign Validity and Highlight: `GENERIC` (anything that looks like a call), `RESOURCES` (only calls found in the chosen resources) or `COMBINED` (generic, unverified calls marked yellow). Swift-only key.
+    public var callValidity: String = DigitalCallValidity.combined.rawValue
+    /// A call in Master.scp counts as verified. Swift-only key.
+    public var validateScp: Bool = true
+    /// A call in the call history file counts as verified. Swift-only key.
+    public var validateCallHistory: Bool = true
+    /// A spotted call (the DX cluster buffer) counts as verified. Swift-only key.
+    public var validateSpotted: Bool = true
+    /// A call logged in this log counts as verified. Swift-only key.
+    public var validateLogged: Bool = true
+    /// N1MM „Use Search routine to find Master.scp in Garbage Text": Master.scp calls inside words that are not calls. Swift-only key.
+    public var scpGarbageSearch: Bool = false
+    /// N1MM „Highlight Background of Text": the status colour behind the call instead of its text colour. Swift-only key.
+    public var highlightBackground: Bool = false
+    /// N1MM Window Scroll Type „Non Scrolling": the received text does not move while new text arrives. Swift-only key.
+    public var nonScrollingRx: Bool = false
+    /// N1MM „Use RX Window Callsign Pause Routines": the pointer over a call (empty call field) pauses the window. Swift-only key.
+    public var pauseOnCallHover: Bool = false
+    /// N1MM Hover Mode: the pointer over a call puts it into the call field. Swift-only key.
+    public var hoverMode: Bool = false
+    /// N1MM „Rt Click = Return NOT menu": a right click in the received text is Enter (ESM). Swift-only key.
+    public var rightClickReturn: Bool = false
+    /// N1MM „Send Space on Callsign Mouse Click": after a call is clicked the cursor moves on to the exchange. Swift-only key.
+    public var sendSpaceOnClick: Bool = false
+    /// N1MM „Display Radio Freq and not Exact Freq in DI Caption" (also `{LDIGFQ}`/`{RDIGFQ}`). Swift-only key.
+    public var captionRadioFrequency: Bool = false
+
     enum CodingKeys: String, CodingKey {
         case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
         case autoTrxUpdate, rttyModem, pskModem
+        case callValidity, validateScp, validateCallHistory, validateSpotted, validateLogged, scpGarbageSearch, highlightBackground, nonScrollingRx, pauseOnCallHover, hoverMode, rightClickReturn, sendSpaceOnClick, captionRadioFrequency
     }
 
     public init() {}
@@ -71,6 +99,19 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         autoTrxUpdate = c.value(.autoTrxUpdate, default: d.autoTrxUpdate)
         rttyModem = DigitalConfig.modemName(c.value(.rttyModem, default: d.rttyModem), fallback: d.rttyModem)
         pskModem = DigitalConfig.modemName(c.value(.pskModem, default: d.pskModem), fallback: d.pskModem)
+        callValidity = DigitalCallValidity.from(c.value(.callValidity, default: d.callValidity)).rawValue
+        validateScp = c.value(.validateScp, default: d.validateScp)
+        validateCallHistory = c.value(.validateCallHistory, default: d.validateCallHistory)
+        validateSpotted = c.value(.validateSpotted, default: d.validateSpotted)
+        validateLogged = c.value(.validateLogged, default: d.validateLogged)
+        scpGarbageSearch = c.value(.scpGarbageSearch, default: d.scpGarbageSearch)
+        highlightBackground = c.value(.highlightBackground, default: d.highlightBackground)
+        nonScrollingRx = c.value(.nonScrollingRx, default: d.nonScrollingRx)
+        pauseOnCallHover = c.value(.pauseOnCallHover, default: d.pauseOnCallHover)
+        hoverMode = c.value(.hoverMode, default: d.hoverMode)
+        rightClickReturn = c.value(.rightClickReturn, default: d.rightClickReturn)
+        sendSpaceOnClick = c.value(.sendSpaceOnClick, default: d.sendSpaceOnClick)
+        captionRadioFrequency = c.value(.captionRadioFrequency, default: d.captionRadioFrequency)
     }
 
     /// A modem name as fldigi knows it: trimmed; blank → `fallback`.

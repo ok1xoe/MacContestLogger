@@ -95,6 +95,12 @@ public final class CallDataModel {
     /// Takes over a call history the app has just saved to `path` (Kotlin `callHistory = merged` after "Update call
     /// history from log", `AS:226`) without reading the file again: a load in flight is superseded, and `path`
     /// (trimmed) becomes the loaded path, so writing it into `config.callHistoryFile` does not reload it.
+    /// A loaded Master.scp takes effect (also the tests' way in).
+    func adoptScp(_ database: ScpDatabase) {
+        scp = database
+        scpRevision += 1
+    }
+
     public func adoptCallHistory(_ history: CallHistory, path: String) {
         callHistoryPath = KotlinStrings.trim(path)
         callHistoryGeneration += 1
