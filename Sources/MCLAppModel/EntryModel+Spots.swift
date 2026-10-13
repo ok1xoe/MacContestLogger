@@ -113,7 +113,12 @@ extension EntryModel {
         case .spotWithComment: spots.spotWithComment(call: KotlinStrings.trim(form.call), freqHz: form.freqHz)
         case .store: storeCall()
         case .mark: spots.mark(freqHz: form.freqHz)
-        case .removeSpot: spots.removeSpotOf(call: form.call, blacklist: false)
+        case .removeSpot:
+            // N1MM: Alt+D with an empty call field deletes the next call of the call stack.
+            if KotlinStrings.isBlank(form.call), let stack = callStack, stack.removeTop() {
+                return
+            }
+            spots.removeSpotOf(call: form.call, blacklist: false)
         case .removeSpotBlacklist: spots.removeSpotOf(call: form.call, blacklist: true)
         default: unavailable()
         }

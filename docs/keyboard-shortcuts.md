@@ -65,7 +65,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Alt+K** | Settings → Function Keys |
 | **Ctrl+K** | **keyboard CW** window — typed text is sent word by word or on Enter, Esc stops |
 | **Ctrl+Alt+P** | **pass** — hands the callsign from the field to another station of the network log (directly to the only online station, otherwise a choice in the Network status window) |
-| **Ctrl+Alt+K** | next callsign from the **partner's stack** into the callsign field (call stacking) |
+| **Ctrl+Alt+G** | the callsign from the field onto the [call stack](call-stacking.md); the fields are wiped for the next call |
+| **Alt+G** / **Ctrl+Alt+K** | the next callsign from the [call stack](call-stacking.md) (own and partner's) into a wiped entry window |
 
 ## Rig
 
@@ -90,7 +91,7 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Cmd+↓ / Cmd+↑** | next spot **higher / lower** on the band (dupes are skipped) |
 | **Ctrl+Alt+↓ / ↑** | next spot that is a **new multiplier** |
 | **Shift+Alt+↓ / ↑** | next **own** spot (Store / self-spot) |
-| **Alt+D** | removes the spot of the callsign in the field (or the spot on the frequency); in the Bandmap window the spot under the mouse |
+| **Alt+D** | removes the spot of the callsign in the field (or the spot on the frequency); in the Bandmap window the spot under the mouse. With an empty callsign field and a non-empty call stack it deletes the next stacked call |
 | **Alt+Shift+D** | the same and puts the callsign on the **blacklist** (also in the Bandmap window) |
 | **Alt+P** / **Spot It** button | spot to the DX cluster (needs a frequency, as above) |
 | **Ctrl+P** | spot with a comment (needs a frequency, as above) |

@@ -25,6 +25,7 @@ struct FunctionKeysTab: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             EsmGroup(language: language, draft: $draft)
+            CallStackGroup(language: language, draft: $draft)
             RunSpGroup(language: language, draft: $draft)
             messagesGroup
         }
@@ -181,6 +182,59 @@ private struct EsmGroup: View {
                 isOn: $draft.esmSpCallOnce)
             SettingsCheckbox(label: language.tr("Run: dupe dělat jako nové QSO (Work dupes)"),
                              isOn: $draft.esmWorkDupes)
+        }
+    }
+}
+
+/// N1MM call stacking: the Next Call key of ESM, the order calls come off the stack, clearing on a band change and
+/// Digital Call Stacking (the plain click in the Digital Interface).
+private struct CallStackGroup: View {
+    let language: LanguageModel
+    @Binding var draft: ConfigurerDraft
+
+    private static let orders: [(CallStack.Order, String)] = [
+        (.multsFirst, "FIFO, násobiče napřed"), (.fifo, "FIFO"), (.lifo, "LIFO"),
+    ]
+
+    var body: some View {
+        SettingsGroup(title: language.tr("Zásobník volaček (call stacking)")) {
+            SettingsCaption(language.tr(
+                "Ctrl+Alt+G nebo {STACKANOTHER} dá volačku z pole do zásobníku, {SOCALLSTACK} ji prohodí se zásobníkem, Alt+G vezme další volačku, Alt+D s prázdným polem ji smaže, {CLRSTACK} zásobník vymaže. {LOGTHENPOP} zapíše QSO a pokračuje další volačkou: text před makrem jde zapisované stanici, text za ním další (např. „{LOGTHENPOP} TU {F5}{F2}“). Dupy se do zásobníku nedávají."))
+            HStack(alignment: .center, spacing: 12) {
+                SettingsField(caption: language.tr("Klávesa další volačky (ESM)")) {
+                    Picker(selection: $draft.esmNextCallKey) {
+                        Text(verbatim: language.tr("žádná")).tag(-1)
+                        ForEach(0..<VoiceKeyerConfig.keyCount, id: \.self) { index in
+                            Text(verbatim: "F" + String(index + 1)).tag(index)
+                        }
+                    } label: {
+                        EmptyView()
+                    }
+                    .labelsHidden()
+                    .accessibilityLabel(Text(verbatim: language.tr("Klávesa další volačky (ESM)")))
+                }
+                .frame(width: 220)
+                SettingsField(caption: language.tr("Pořadí ze zásobníku")) {
+                    Picker(selection: $draft.callStackOrder) {
+                        ForEach(Self.orders, id: \.0.rawValue) { order in
+                            Text(verbatim: language.tr(order.1)).tag(order.0.rawValue)
+                        }
+                    } label: {
+                        EmptyView()
+                    }
+                    .labelsHidden()
+                    .accessibilityLabel(Text(verbatim: language.tr("Pořadí ze zásobníku")))
+                }
+                .frame(width: 260)
+            }
+            SettingsCaption(language.tr(
+                "ESM pošle na konci QSO v Run místo TU tuto klávesu, když v zásobníku čeká volačka a klávesa obsahuje {LOGTHENPOP} ({LOGTHENNEXT} ESM nevybere)."))
+            SettingsCheckbox(label: language.tr("Při změně pásma zásobník vymazat"),
+                             isOn: $draft.callStackClearOnBandChange)
+            SettingsCheckbox(
+                label: language.tr(
+                    "Digitální rozhraní: klik na volačku při obsazeném poli ji dá do zásobníku (Digital Call Stacking, jen Run)"),
+                isOn: $draft.digitalCallStacking)
         }
     }
 }

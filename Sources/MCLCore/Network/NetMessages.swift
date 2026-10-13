@@ -223,6 +223,14 @@ public struct NetMessages: Sendable, Equatable {
         stack.isEmpty ? nil : stack.removeFirst()
     }
 
+    /// Hands the received calls over to the station's call stack (the one stack of own and partner entries) and
+    /// empties this one.
+    public mutating func drainStack() -> [String] {
+        let calls: [String] = stack
+        stack.removeAll()
+        return calls
+    }
+
     /// The chat window is open: everything is read.
     public mutating func markRead() {
         unread = 0

@@ -75,6 +75,7 @@ performed, never played as files (the same set and meaning as in
 | `{NOSPLIT}` | turns split off |
 | `{F1}`...`{F12}` | inserts the message of another F-key of the same set (chaining, at most 3 levels) |
 | `{END}` | ends the message; everything after it is ignored |
+| `{LOGTHENPOP}`, `{LOGTHENNEXT}`, `{SOCALLSTACK}`, `{STACKANOTHER}`, `{CLRSTACK}` | the [call stack](call-stacking.md); performed **before** the message plays, so `!` and `{F5}` already mean the next call |
 
 Order: items run left to right. A macro runs once the audio before it has finished
 playing (the transmitter stays keyed), so `tu.wav,{LOG}` logs after "thank you" has

@@ -39,8 +39,13 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         }
     }
 
+    /// N1MM Digital Interface → Setup → Digital Call Stacking: in Run, a click on a call while the call field holds
+    /// another call stacks one of them (FIFO: the clicked call; LIFO: the call in the field) instead of replacing it.
+    /// Alt+click always stacks. Swift-only key.
+    public var digitalCallStacking: Bool = false
+
     enum CodingKeys: String, CodingKey {
-        case engine, fldigiHost, fldigiPort, runMessages, spMessages
+        case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
     }
 
     public init() {}
@@ -54,6 +59,7 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         fldigiPort = rawPort <= 0 ? 7362 : rawPort
         runMessages = DigitalConfig.normalized(c.value(.runMessages, default: d.runMessages))
         spMessages = DigitalConfig.normalized(c.value(.spMessages, default: d.spMessages))
+        digitalCallStacking = c.value(.digitalCallStacking, default: d.digitalCallStacking)
     }
 
     private static func normalizedHost(_ v: String) -> String {

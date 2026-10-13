@@ -17,8 +17,9 @@ enum ProfileMergeSchema {
 
     /// Hand-maintained Swift-only properties by owning Java class (see the type's documentation): the two switches
     /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`), the preferred online callbook
-    /// (`preferredCallbook`) Club Log's DXCC data switch (`clubLog.ctyEnabled`) and the DX cluster Bands/Modes spot filter
-    /// (`dxCluster.spotFilter*`).
+    /// (`preferredCallbook`) Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX cluster Bands/Modes spot filter
+    /// (`dxCluster.spotFilter*`), the call stack (`esm.nextCallKey`, `esm.callStack*`) and digital call stacking
+    /// (`digital.digitalCallStacking`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
@@ -35,6 +36,14 @@ enum ProfileMergeSchema {
         ],
         "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
             Property("ctyEnabled", .boolean, .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.EsmConfig": [
+            Property("nextCallKey", .int, .fieldDefault),
+            Property("callStackOrder", .string, .fieldDefault),
+            Property("callStackClearOnBandChange", .boolean, .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.DigitalConfig": [
+            Property("digitalCallStacking", .boolean, .fieldDefault),
         ],
     ]
 

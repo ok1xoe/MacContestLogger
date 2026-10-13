@@ -30,9 +30,14 @@ public enum EsmFlow {
         public var dupe: Bool
         public var exchangeValid: Bool
         public var options: EsmEngine.Options
+        /// The Next Call key (N1MM Configurer → Function Keys → Next Call Key): set only while a call waits on the call
+        /// stack and that key holds `{LOGTHENPOP}`; the end of a Run QSO then sends it instead of TU (F3), and the
+        /// macro logs the QSO and starts the next one.
+        public var nextCallKey: Int?
 
         public init(progress: EsmProgress, run: Bool, call: String, dupe: Bool, exchangeValid: Bool,
-                    options: EsmEngine.Options) {
+                    options: EsmEngine.Options, nextCallKey: Int? = nil) {
+            self.nextCallKey = nextCallKey
             self.progress = progress
             self.run = run
             self.call = call
@@ -42,8 +47,19 @@ public enum EsmFlow {
         }
 
         var step: EsmEngine.Step {
-            EsmEngine.decide(progress.state(run: run, call: call, dupe: dupe, exchangeValid: exchangeValid), options)
+            let base: EsmEngine.Step = EsmEngine.decide(
+                progress.state(run: run, call: call, dupe: dupe, exchangeValid: exchangeValid), options)
+            return EsmFlow.withNextCallKey(base, run: run, nextCallKey: nextCallKey)
         }
+    }
+
+    /// N1MM ESM with call stacking: a Run step that ends the QSO with TU (F3) and logs sends the Next Call key in
+    /// place of F3 and does not log itself (`{LOGTHENPOP}` in that key logs and moves on to the next call).
+    public static func withNextCallKey(_ step: EsmEngine.Step, run: Bool, nextCallKey: Int?) -> EsmEngine.Step {
+        guard run, step.log, let key = nextCallKey, let last = step.keys.last, last == EsmEngine.f3 else {
+            return step
+        }
+        return EsmEngine.Step(keys: Array(step.keys.dropLast()) + [key], log: false, focus: .exchange)
     }
 
     /// Kotlin `esmStep` (`EP:680-684`): what the next Enter does — highlights the F-keys and "Log It"; `nil` when ESM

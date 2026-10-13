@@ -30,6 +30,13 @@ public final class DigitalInterfaceModel {
         case escape
     }
 
+    /// How the text was clicked (macOS: Option = N1MM Alt).
+    public enum Click: Equatable, Sendable {
+        case plain
+        /// Option+click (N1MM Alt+click): a call goes onto the call stack, the call field stays.
+        case stack
+    }
+
     /// An underlined range of the text: a call, or a word the contest takes as an exchange field.
     public struct Span: Equatable, Sendable {
         public enum Kind: Equatable, Sendable {
@@ -291,12 +298,12 @@ public final class DigitalInterfaceModel {
 
     /// A click at a UTF-16 offset of the text: a call goes into the call field, otherwise an exchange word into its
     /// field (calls first, as Kotlin).
-    public func tap(offset: Int) {
+    public func tap(offset: Int, click: Click = .plain) {
         let all: [Span] = spans
         let hit: (Span) -> Bool = { offset >= $0.start && offset < $0.end }
         for span in all where hit(span) {
             if case .call(let call) = span.kind {
-                app?.prefillCall(call)
+                take(call, click: click)
                 return
             }
         }
@@ -308,9 +315,45 @@ public final class DigitalInterfaceModel {
         }
     }
 
-    /// A click on a recent call.
-    public func take(_ call: String) {
-        app?.prefillCall(call)
+    /// A click on a call (in the text or in the recent calls). Option+click stacks it. With Digital Call Stacking on,
+    /// in Run, a plain click while the call field holds another call stacks one of them instead of replacing it
+    /// (N1MM): FIFO the clicked call, LIFO the call in the field (the clicked one goes into the field).
+    public func take(_ call: String, click: Click = .plain) {
+        guard let app else { return }
+        if click == .stack {
+            app.callStack?.push(call)
+            return
+        }
+        let typed: String = CallStack.normalize(app.typedCall)
+        let stacking: Bool = config.config.digital.digitalCallStacking && app.operating.isRun
+        guard stacking, !typed.isEmpty, typed != CallStack.normalize(call), let stack = app.callStack else {
+            app.prefillCall(call)
+            return
+        }
+        if CallStack.Order.from(config.config.esm.callStackOrder) == .lifo {
+            if stack.push(typed) {
+                app.prefillCall(call)
+            }
+        } else {
+            stack.push(call)
+        }
+    }
+
+    // MARK: - Setup menu
+
+    /// N1MM Setup → Digital Call Stacking: `nil` = disabled, else the order calls come off the stack (shared with
+    /// the CW/SSB stack, Settings → Function Keys).
+    public var digitalCallStacking: CallStack.Order? {
+        config.config.digital.digitalCallStacking ? CallStack.Order.from(config.config.esm.callStackOrder) : nil
+    }
+
+    /// Chooses Digital Call Stacking (`nil` = disable); saved at once.
+    public func setDigitalCallStacking(_ order: CallStack.Order?) {
+        config.config.digital.digitalCallStacking = order != nil
+        if let order {
+            config.config.esm.callStackOrder = order.rawValue
+        }
+        config.saveSilently()
     }
 
     /// A key of the window (`onPreviewKeyEvent`): F1–F12 fire on the press (Shift = the opposite set), Enter and Esc

@@ -37,10 +37,20 @@ public struct FunctionKeyContext: Sendable {
     /// options **as configured**, rover QTH, county line, cut style, the moment. `hisCall`, `rst` and `functionKeys`
     /// are set by the router; for digital modes cut numbers and leading zeros are off (`AS:1526-1529`).
     public var cwBase: CwMessageBuilder.Context
+    /// The received exchange is complete (`{LOGTHENPOP}` logs only a complete QSO).
+    public var exchangeValid: Bool
+    /// The call that would come off the call stack now (`{LOGTHENPOP}`), `nil` = an empty stack.
+    public var stackNext: String?
+    /// The serial number of the QSO after the one being logged (`#` after `{LOGTHENPOP}`); `nil` = `serial + 1`.
+    public var serialAfterLog: Int?
 
     public init(mode: Mode, digitalReady: Bool, postContest: Bool, run: Bool, call: String, rstSent: String,
                 freqHz: Int64, progress: EsmProgress, stationCall: String, voice: FunctionKeySet, cw: FunctionKeySet,
-                digital: FunctionKeySet, cwBase: CwMessageBuilder.Context) {
+                digital: FunctionKeySet, cwBase: CwMessageBuilder.Context, exchangeValid: Bool = false,
+                stackNext: String? = nil, serialAfterLog: Int? = nil) {
+        self.exchangeValid = exchangeValid
+        self.stackNext = stackNext
+        self.serialAfterLog = serialAfterLog
         self.mode = mode
         self.digitalReady = digitalReady
         self.postContest = postContest
@@ -90,6 +100,10 @@ public struct FunctionKeyOutcome: Equatable, Sendable {
     public var recordKey: Int?
     /// Move the focus back to the call field.
     public var refocus: Bool = false
+    /// `{LOGTHENPOP}`: the call that comes off the stack after the QSO is logged (`nil` = none, only log).
+    public var stackNextCall: String?
+    /// `{LOGTHENPOP}`: the ESM progress of the next QSO (what the rest of the message sent to the next call).
+    public var stackProgress: EsmProgress?
 
     public init() {}
 }
@@ -166,7 +180,15 @@ public enum FunctionKeyRouter {
             ctx.cutNumbers = false
             ctx.leadingZeros = false
         }
-        let message: CwMessage = CwMessageBuilder.build(texts.joined(separator: " "), ctx)
+        let joined: String = texts.joined(separator: " ")
+        let message: CwMessage
+        if let split = CallStackMacro.split(joined) {
+            guard let built = logThenPop(split, set: set, indices: indices, context: context, ctx: ctx, into: &out)
+            else { return }
+            message = built
+        } else {
+            message = CwMessageBuilder.build(joined, ctx)
+        }
         let index: Int = indices[indices.count - 1]
         if digital {
             if !message.isEmpty {
@@ -182,6 +204,55 @@ public enum FunctionKeyRouter {
             }
         }
         out.actions = message.actions
+    }
+
+    /// `{LOGTHENPOP}` / `{LOGTHENNEXT}` (N1MM, Run only): the text before the macro goes to the station being logged,
+    /// the text after it to the next call from the stack (`!`, `#`, `{F5}` resolve to the next QSO). Without a stacked
+    /// call the QSO is logged and the TU message (F3) is sent instead of the rest. A QSO whose exchange was not sent
+    /// or is not complete is never logged this way: nothing is sent (`nil`).
+    private static func logThenPop(_ split: CallStackMacro.Split, set: [FunctionKeyMessage], indices: [Int],
+                                   context: FunctionKeyContext, ctx: CwMessageBuilder.Context,
+                                   into out: inout FunctionKeyOutcome) -> CwMessage? {
+        let label: String = keysLabel(indices)
+        if !context.run {
+            refuse(&out, .tr("%s: {LOGTHENPOP} jen v Run", .string(label)))
+            return nil
+        }
+        if KotlinStrings.isBlank(context.call) || !context.exchangeValid || !context.progress.exchangeSent {
+            refuse(&out, .tr("%s: výměna nebyla odeslána nebo není úplná — {LOGTHENPOP} nic nezapíše",
+                             .string(label)))
+            return nil
+        }
+        let first: CwMessage = CwMessageBuilder.build(split.prefix, ctx)
+        var next: CwMessageBuilder.Context = ctx
+        next.lastLogged = ctx.hisCall
+        next.serial = context.serialAfterLog ?? (ctx.serial &+ 1)
+        let second: CwMessage
+        if let call = context.stackNext {
+            next.hisCall = call
+            second = CwMessageBuilder.build(split.suffix, next)
+            out.stackNextCall = call
+            out.stackProgress = EsmProgress.empty.afterSent(CallStackMacro.functionKeys(in: split.suffix), call)
+        } else {
+            // Nothing on the stack: log and thank (`!` is the call just logged).
+            next.hisCall = ""
+            let tu: String = EsmEngine.f3 < set.count ? set[EsmEngine.f3].text : ""
+            second = CwMessageBuilder.build(tu, next)
+        }
+        var parts: [CwMessage.Part] = first.parts
+        if !first.parts.isEmpty && !second.parts.isEmpty {
+            parts.append(.text(" "))
+        }
+        parts += second.parts
+        return CwMessage(parts: parts, actions: first.actions + [.logThenPop] + second.actions,
+                         unknownMacros: first.unknownMacros + second.unknownMacros)
+    }
+
+    /// A refused press: nothing sent, the ESM progress and the last sent keys stay.
+    private static func refuse(_ out: inout FunctionKeyOutcome, _ status: EntryStatus) {
+        out.status = status
+        out.progress = nil
+        out.lastSentKeys = nil
     }
 
     /// `keysLabel(indices)`: `F5+F2`.

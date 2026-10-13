@@ -49,6 +49,10 @@ extension ConfigurerDraft {
         config.esm.enabled = esmEnabled
         config.esm.spCallOnce = esmSpCallOnce
         config.esm.workDupes = esmWorkDupes
+        config.esm.nextCallKey = (0..<VoiceKeyerConfig.keyCount).contains(esmNextCallKey) ? esmNextCallKey : -1
+        config.esm.callStackOrder = CallStack.Order.from(callStackOrder).rawValue
+        config.esm.callStackClearOnBandChange = callStackClearOnBandChange
+        config.digital.digitalCallStacking = digitalCallStacking
     }
 
     private func applyKeyers(_ config: inout AppConfig) {

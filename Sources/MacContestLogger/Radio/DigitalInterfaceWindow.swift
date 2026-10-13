@@ -72,6 +72,7 @@ struct DigitalInterfaceWindowView: View {
                         Text(verbatim: "Vymazat").windowFont(14)
                     }
                     .buttonStyle(.borderless)
+                    setupMenu(model, language: language)
                 }
             }
             if let error = model.error {
@@ -81,20 +82,50 @@ struct DigitalInterfaceWindowView: View {
             }
             HStack(spacing: 6) {
                 ForEach(model.recentCalls, id: \.self) { call in
-                    SettingsChip(label: call, selected: false) { model.take(call) }
+                    SettingsChip(label: call, selected: false) {
+                        model.take(call, click: NSEvent.modifierFlags.contains(.option) ? .stack : .plain)
+                    }
                 }
             }
             DigitalRxTextView(text: Self.annotated(model.text, spans: model.spans, size: session.fontSize),
                               accessibilityText: language.tr("Dekódovaný text"),
-                              onTap: { offset in model.tap(offset: offset) })
+                              onTap: { offset, flags in
+                                  model.tap(offset: offset, click: flags.contains(.option) ? .stack : .plain)
+                              })
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             Text(verbatim: language.tr(
-                "Klik na volačku ji vloží do pole volačky, klik na jinak podtržené slovo do výměny. Text dekóduje fldigi."))
+                "Klik na volačku ji vloží do pole volačky, Option+klik ji dá do zásobníku, klik na jinak podtržené slovo do výměny. Text dekóduje fldigi."))
                 .windowFont(11)
                 .foregroundStyle(.secondary)
         }
         .padding(8)
         .environment(\.windowFontSize, session.fontSize)
+    }
+
+    /// N1MM's Digital Interface „Setup" menu: Digital Call Stacking (disabled, FIFO, LIFO, FIFO mults first).
+    private func setupMenu(_ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
+        let current: CallStack.Order? = model.digitalCallStacking
+        let options: [(CallStack.Order?, String)] = [
+            (nil, "Vypnuto"), (.fifo, "Zapnuto: FIFO"), (.lifo, "Zapnuto: LIFO"),
+            (.multsFirst, "Zapnuto: FIFO, násobiče napřed"),
+        ]
+        return Menu {
+            Section(language.tr("Digitální zásobník volaček")) {
+                ForEach(Array(options.enumerated()), id: \.offset) { _, option in
+                    Button {
+                        model.setDigitalCallStacking(option.0)
+                    } label: {
+                        Text(verbatim: (option.0 == current ? "✓ " : "") + language.tr(option.1))
+                    }
+                }
+            }
+        } label: {
+            Text(verbatim: language.tr("Nastavení")).windowFont(14)
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .accessibilityLabel(language.tr("Nastavení digitálního rozhraní"))
+        .accessibilityIdentifier("digital.setup")
     }
 
     /// The text in the window's monospaced body size with the calls (primary) and exchange words (tertiary)

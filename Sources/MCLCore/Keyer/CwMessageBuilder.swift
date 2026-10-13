@@ -12,7 +12,8 @@ import Foundation
 /// - `{ROVERQTH}` – my county (rover), `{COUNTYLINE}` – county line counties separated by "/" (each is ignored in the
 ///   other mode);
 /// - prosigns `]` SK, `[` AS, `+` AR, `=` BT; `<` / `>` speed ±2 WPM, `~` half space (sent as a space);
-/// - control `{LOG}`, `{WIPE}`, `{RUN}`, `{S&P}`… → `CwMessage.Action`;
+/// - control `{LOG}`, `{WIPE}`, `{RUN}`, `{S&P}`… → `CwMessage.Action`; the call stack `{SOCALLSTACK}`,
+///   `{STACKANOTHER}`, `{CLRSTACK}` too (`{LOGTHENPOP}` is split off by `FunctionKeyRouter` before building);
 /// - `{F1}`…`{F12}` – text of another F-key (chaining, at most 3 levels of insertion).
 ///
 /// Other macros in `{}` are not transmitted and are returned in `CwMessage.unknownMacros`.
@@ -104,6 +105,7 @@ public enum CwMessageBuilder {
     private static let actions: [String: CwMessage.Action] = [
         "{LOG}": .log, "{WIPE}": .wipe, "{RUN}": .run, "{S&P}": .searchAndPounce,
         "{CLEARRIT}": .clearRit, "{RITCLEAR}": .clearRit, "{CQFREQ}": .cqFrequency, "{NOSPLIT}": .splitOff,
+        "{SOCALLSTACK}": .soCallStack, "{STACKANOTHER}": .stackAnother, "{CLRSTACK}": .clearStack,
     ]
 
     /// Builds the message (`nil` template = empty message, like Java `null`).

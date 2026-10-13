@@ -138,9 +138,9 @@ import Testing
         // 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing and
         // 15 keys of the 3830 score post and
         // 38 keys of recording, playing, choosing and deleting SSB voice messages in Settings.
-        #expect(map.count == 1_355)
+        #expect(map.count == 1_384)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_355)
+        #expect(german.count == 1_384)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

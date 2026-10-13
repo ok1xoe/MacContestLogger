@@ -58,6 +58,11 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case removeSpot
     case removeSpotBlacklist
     case dxClusterWindow
+    // Swift-only actions (after the Java constants, so the Java order and indices stay).
+    /// N1MM Ctrl+Alt+G / `{STACKANOTHER}`: the call field onto the call stack.
+    case stackCall
+    /// N1MM Alt+G: the next call from the call stack into a wiped entry window.
+    case grabStack
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -124,7 +129,17 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .removeSpot: Spec(name: "REMOVE_SPOT", id: "remove_spot", label: "Odstranit spot", defaultKeys: "Alt+D")
         case .removeSpotBlacklist: Spec(name: "REMOVE_SPOT_BLACKLIST", id: "remove_blacklist", label: "Odstranit spot + blacklist", defaultKeys: "Alt+Shift+D")
         case .dxClusterWindow: Spec(name: "DX_CLUSTER_WINDOW", id: "dx_window", label: "Okno DX clusteru", defaultKeys: "Ctrl+TAB")
+        case .stackCall: Spec(name: "STACK_CALL", id: "stack_call", label: "Volačku do zásobníku", defaultKeys: "Ctrl+Alt+G")
+        case .grabStack: Spec(name: "GRAB_STACK", id: "grab_stack", label: "Další volačka ze zásobníku", defaultKeys: "Alt+G")
         }
+    }
+
+    /// The actions v1.1.1 does not have (appended after the Java constants).
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack]
+
+    /// The Java constants in Java order (`values()`), for the parity gates.
+    public static var javaCases: [ShortcutAction] {
+        allCases.filter { !swiftOnly.contains($0) }
     }
 
     /// Java `name()` of the constant (`SEND_CALL_EXCHANGE`…).

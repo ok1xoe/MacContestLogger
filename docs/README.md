@@ -14,6 +14,7 @@ version looks slightly different, but the controls and their meaning are the sam
 - [Text commands in the callsign field](text-commands.md)
 - [ESM – Enter Sends Message](esm.md)
 - [Run / S&P](run-sp.md)
+- [Call stacking](call-stacking.md)
 
 ## Windows
 

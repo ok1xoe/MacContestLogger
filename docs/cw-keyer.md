@@ -52,6 +52,8 @@ files can be carried over by hand.
 | `{LOG}` | logs the QSO |
 | `{WIPE}` | clears the fields |
 | `{RUN}` / `{S&P}` | switches the mode |
+| `{STACKANOTHER}` / `{SOCALLSTACK}` / `{CLRSTACK}` | [call stack](call-stacking.md): push the call / exchange it with the stack / clear the stack |
+| `{LOGTHENPOP}` / `{LOGTHENNEXT}` | logs the QSO and continues with the next stacked call; the text after the macro goes to the next station ([call stacking](call-stacking.md#logthenpop-log-and-go-on)) |
 
 Other macros in `{}` are not sent yet, and the status line warns about them.
 
