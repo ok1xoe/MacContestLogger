@@ -451,6 +451,10 @@ public final class AppModel {
         let infoStrip = InfoStripModel(contest: contest, config: config, language: language, now: environment.now)
         let spots: Spots = Self.makeSpots(environment, config: config, status: status, language: language,
                                           messages: messages, contest: contest)
+        let filterContext = SpotFilterContextSource(
+            buffer: spots.dxCluster.spots, config: config, analysis: spots.analysis, logbook: logbook,
+            callData: callData, revision: { [weak feed = spots.feed] in feed?.revision ?? 0 })
+        spots.feed.filterContext = { filter in filterContext.context(filter) }
         let net: NetModels = Self.makeNet(environment, config: config, status: status, language: language,
                                           database: database, logbook: logbook, contest: contest, spots: spots)
         wire(entry: entry, operating: operating, callData: callData, suggestions: suggestions, infoStrip: infoStrip)
@@ -525,6 +529,7 @@ public final class AppModel {
             feed?.stop()
             callbook?.closeLane()
             await dxCluster?.shutdown()
+            dxCluster?.persistSpots()
         }
         model.shutdownServices.cluster = { [weak cluster = net.cluster] in
             await cluster?.shutdown()
@@ -536,6 +541,7 @@ public final class AppModel {
         Self.wireSimulator(model, environment: environment)
         environment.catLog.setFile(dataDir.appendingPathComponent("cat.log"))
         ClubLogTrafficLog.shared.setFile(dataDir.appendingPathComponent("clublog.log"))
+        spots.dxCluster.savedSpotsFile = dataDir.appendingPathComponent(SavedSpotsFile.fileName)
         Self.startSpots(spots)
         Self.startRadio(radio)
         runner.start()
@@ -861,6 +867,7 @@ public final class AppModel {
     private static func startSpots(_ spots: Spots) {
         spots.blacklist.migrateLegacy()
         spots.blacklist.apply()
+        spots.dxCluster.restoreSpots()
         spots.feed.start()
         spots.feed.addObserver { [weak callbook = spots.callbook] in
             callbook?.prefetch()

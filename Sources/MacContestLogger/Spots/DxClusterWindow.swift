@@ -22,18 +22,24 @@ struct DxClusterConsole: NSViewRepresentable {
         }
     }
 
-    private func attributes(_ tint: ConsoleLine.Tint) -> [NSAttributedString.Key: Any] {
+    /// A preferred spotter's spot is bold on a light accent background (N1MM highlights it).
+    private func attributes(_ line: ConsoleLine) -> [NSAttributedString.Key: Any] {
         let paragraph = NSMutableParagraphStyle()
         paragraph.paragraphSpacing = 2
-        return [.font: NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular),
-                .foregroundColor: Self.color(tint), .paragraphStyle: paragraph]
+        var out: [NSAttributedString.Key: Any] = [
+            .font: NSFont.monospacedSystemFont(ofSize: fontSize, weight: line.preferred ? .bold : .regular),
+            .foregroundColor: Self.color(line.tint), .paragraphStyle: paragraph]
+        if line.preferred {
+            out[.backgroundColor] = NSColor.controlAccentColor.withAlphaComponent(0.15)
+        }
+        return out
     }
 
     private func text(_ lines: ArraySlice<ConsoleLine>, leadingBreak: Bool) -> NSAttributedString {
         let out = NSMutableAttributedString()
         for (offset, line) in lines.enumerated() {
             let separator: String = (offset > 0 || leadingBreak) ? "\n" : ""
-            out.append(NSAttributedString(string: separator + line.text, attributes: attributes(line.tint)))
+            out.append(NSAttributedString(string: separator + line.text, attributes: attributes(line)))
         }
         return out
     }
@@ -222,7 +228,10 @@ struct DxClusterWindowView: View {
         _ = cluster.logRevision
         _ = cluster.spotFilter
         let revision: Int = app.spotAnalysis.revision
-        return cluster.consoleLines(analyzer: app.spotAnalysis.current(), analysisRevision: revision)
+        let filter: SpotFilter = cluster.spotFilter
+        let feedRevision: Int = filter.needsContext ? app.spotFeed.revision : 0
+        return cluster.consoleLines(analyzer: app.spotAnalysis.current(), analysisRevision: revision,
+                                    context: app.spotFeed.context(for: filter), contextRevision: feedRevision)
     }
 
     // MARK: - header

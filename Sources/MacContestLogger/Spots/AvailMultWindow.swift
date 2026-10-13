@@ -240,7 +240,7 @@ private struct AvailRowView: View {
                 cell(row.mode, 3, color)
                 cell(row.isMult ? "✓" : "", 4, color)
                 cell(row.snr.map { String($0) } ?? "", 5, color)
-                cell(row.spotter, 6, Color.secondary)
+                cell((model.isPreferred(row) ? "★ " : "") + row.spotter, 6, Color.secondary)
                 cell(String(row.points), 7, color)
             }
             .padding(.vertical, 1)
@@ -264,7 +264,8 @@ private struct AvailRowView: View {
         let base: String = AccessibilityText.bandmapSpot(call: row.call, freqHz: Int(row.freqHz), color: key,
                                                          translator: translator)
         let mult: String = AccessibilityText.multMark(row.isMult, translator: translator)
-        let marked: String = mult.isEmpty ? base : base + ", " + mult
+        let preferred: String = model.isPreferred(row) ? ", " + app.language.tr("preferovaný spotter") : ""
+        let marked: String = (mult.isEmpty ? base : base + ", " + mult) + preferred
         return special ? marked + ", " + translator.translate("zvláštní volačka") : marked
     }
 

@@ -92,7 +92,24 @@ struct TelnetClustersTab: View {
             }
             SettingsCaption(language.tr(
                 "Makra tlačítek: {WAIT} počká 5 s, {CONN} název připojí cluster ze seznamu (např. „{CONN} RBN“)."))
+            spotKeeping(language, cluster)
         }
+    }
+
+    /// N1MM „Save Spots" and „Randomize incoming spot frequencies".
+    @ViewBuilder
+    private func spotKeeping(_ language: LanguageModel, _ cluster: DxClusterModel) -> some View {
+        Divider()
+        SettingsCheckbox(label: language.tr("Uchovat spoty přes restart programu"),
+                         isOn: Binding(get: { cluster.saveSpots }, set: { cluster.setSaveSpots($0) }))
+            .accessibilityIdentifier("telnet.savespots")
+        SettingsCaption(language.tr("Při ukončení se spoty uloží a po startu se vrátí ty, které jsou ještě v časovém limitu."))
+        SettingsCheckbox(label: language.tr("Náhodně posunout kmitočet při naladění spotu"),
+                         isOn: Binding(get: { cluster.randomizeSpotFrequencies },
+                                       set: { cluster.setRandomizeSpotFrequencies($0) }))
+            .accessibilityIdentifier("telnet.randomize")
+        SettingsCaption(language.tr(
+            "Naladí 50–150 Hz (fonie 100–250 Hz) vedle spotu, aby všichni nevolali přesně na stejném kmitočtu."))
     }
 
     private func detectedText(_ language: LanguageModel, _ cluster: DxClusterModel) -> String {

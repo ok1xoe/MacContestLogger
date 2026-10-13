@@ -294,12 +294,19 @@ public final class BandmapModel {
 
     /// The label as drawn (N1MM marks beyond `label`): the skimmer mark (`#`, `!` for one's own skimmer) and the
     /// gray-line `¤` after the call, the azimuth and skimmer count, `QSX 027` of a split comment, `NEW` for a spot
+    /// The skimmer mark and N1MM's ★ of a preferred spotter's spot, written right after the call.
+    static func marks(_ skimmer: String?, preferred: Bool) -> String? {
+        let text: String = (skimmer ?? "") + (preferred ? "★" : "")
+        return text.isEmpty ? nil : text
+    }
+
     /// younger than three minutes, and the QO-100 mark of a spot on that satellite's transponder (post-port).
     public func drawnLabel(_ spot: DxSpot) -> String {
         let spotted: SpotBuffer.Spotted? = feed.buffer.find(spot.dxCall)
         let base: String = BandmapSpotInfo.label(
             call: spot.dxCall, azimuth: azimuth(spot), skimmers: feed.buffer.skimmerCount(spot.dxCall),
-            skimmerMark: BandmapSpotInfo.skimmerMark(spot, myCall: config.config.station.call),
+            skimmerMark: Self.marks(BandmapSpotInfo.skimmerMark(spot, myCall: config.config.station.call),
+                                    preferred: config.config.dxCluster.spotFilter.isPreferred(spot.spotter)),
             grayLine: onGrayLine(spot), qsxHz: BandmapSpotInfo.qsxHz(spot),
             isNew: BandmapSpotInfo.isNew(spottedAt: spotted?.spottedAt, now: now()),
             special: isSpecialCall(spot.dxCall))

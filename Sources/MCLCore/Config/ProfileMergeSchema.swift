@@ -22,8 +22,9 @@ enum ProfileMergeSchema {
     /// cluster Bands/Modes spot filter (`dxCluster.spotFilter*`), the band map options (`dxCluster.bandmap*`), the band map US licence
     /// lines (`dxCluster.showUsLicenseLines`), the band map's call-frame, tuning tolerances and packet spot mode
     /// (`dxCluster.callFrame`, `dxCluster.tuningTolerance*Hz`, `dxCluster.spotModeOnTune`), the Telnet window options
-    /// (`dxCluster.clusterSoftware`, `autoLogon`, `showButtons`, `showDxCount`), the spot comment, S&P spotting and special
-    /// calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
+    /// (`dxCluster.clusterSoftware`, `autoLogon`, `showButtons`, `showDxCount`, `saveSpots`,
+    /// `randomizeSpotFrequencies`), the blacklist switch (`dxCluster.blacklistEnabled`), the spot comment, S&P spotting
+    /// and special calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
     /// switches and extra
     /// files (`callHistory*`) and a contest's own call history file (`contestSetups.*.callHistoryFile`).
@@ -77,6 +78,17 @@ enum ProfileMergeSchema {
             Property("autoLogon", .boolean, .fieldDefault),
             Property("showButtons", .boolean, .fieldDefault),
             Property("showDxCount", .int, .fieldDefault),
+            Property("saveSpots", .boolean, .fieldDefault),
+            Property("randomizeSpotFrequencies", .boolean, .fieldDefault),
+            Property("spotFilterSpotterPrefixes", .list(.string), .fieldDefault),
+            Property("spotFilterSpotterCallAreas", .list(.string), .fieldDefault),
+            Property("spotFilterOnlyCallHistory", .boolean, .fieldDefault),
+            Property("spotFilterOnlyWorked", .boolean, .fieldDefault),
+            Property("spotFilterHideBeacons", .boolean, .fieldDefault),
+            Property("spotFilterRemoveBusted", .boolean, .fieldDefault),
+            Property("spotFilterBustedTwoChars", .boolean, .fieldDefault),
+            Property("spotFilterPreferredSpotters", .list(.string), .fieldDefault),
+            Property("blacklistEnabled", .boolean, .fieldDefault),
             Property("spotComment", .string, .fieldDefault),
             Property("spotAllSpQsos", .boolean, .fieldDefault),
             Property("specialCalls", .list(.string), .fieldDefault),

@@ -1,3 +1,4 @@
+import AppKit
 import MCLAppModel
 import MCLCore
 import SwiftUI
@@ -24,7 +25,15 @@ struct DxClusterTab: View {
                     draft.dxFavorites.removeAll { $0.id == favorite.id }
                 }
             }
-            SettingsButton(language.tr("Přidat cluster")) { draft.addDxFavorite() }
+            HStack(spacing: 8) {
+                SettingsButton(language.tr("Přidat cluster")) { draft.addDxFavorite() }
+                SettingsButton(language.tr("Importovat seznam…")) { importList() }
+                    .accessibilityIdentifier("settings.dxcluster.import")
+                SettingsButton(language.tr("Exportovat seznam…")) { exportList() }
+                    .accessibilityIdentifier("settings.dxcluster.export")
+                Spacer(minLength: 0)
+            }
+            SettingsCaption(language.tr("Seznam clusterů: řádek „název,host:port,login“; hesla se neexportují."))
             parameters
             filterWidths
             SettingsCheckbox(label: language.tr("Automatický split z komentáře spotu („UP 5“, „QSX 14025“)"),
@@ -49,6 +58,25 @@ struct DxClusterTab: View {
             BlacklistEditor(language: language, title: language.tr("Blacklist spotterů"),
                             items: $draft.blacklistedSpotters)
         }
+    }
+
+    /// N1MM cluster list import: the clusters of a file whose server is not in the list yet (applied with Save).
+    private func importList() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.title = language.tr("Importovat seznam…")
+        guard panel.runModal() == .OK, let url = panel.url, let data = try? Data(contentsOf: url) else { return }
+        draft.importDxFavorites(String(decoding: data, as: UTF8.self))
+    }
+
+    /// N1MM cluster list export (without passwords).
+    private func exportList() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "DX clusters.txt"
+        panel.title = language.tr("Exportovat seznam…")
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        try? Data(draft.dxFavoritesFileText.utf8).write(to: url)
     }
 
     /// N1MM's tuning tolerance per mode: how close to a spot the call shows in the call-frame.

@@ -122,6 +122,20 @@ Presses wait behind a button that is still in its `{WAIT}`.
 | Zobrazit tlačítka příkazů | N1MM "Show Telnet Buttons": hides the buttons to save space |
 | Uložit / Načíst tlačítka… | saves the ten buttons into a text file (`label,command` per line, `#` comments) and loads such a set back; a shorter file keeps the default buttons for the rest |
 
+### Cluster list, saved spots, randomized frequencies
+
+- **Settings → DX Cluster → Importovat / Exportovat seznam…** (N1MM's cluster list import/export): a text file with one
+  cluster per line, `name,host:port[,login]`, `#` starts a comment. Passwords are never exported. An import adds only
+  the clusters whose `host:port` is not in the list yet; like every Settings change it applies with Save. N1MM's
+  *live* cluster list is not offered: it comes from N1MM's own reporting server, there is no public list to read.
+- **Možnosti… → Uchovat spoty přes restart programu** (N1MM "Save Spots", off by default): at quit the spot buffer is
+  written to `spots.json` in the data directory; after the start the spots still within the *Buffer spotů (min)*
+  timeout come back with their original times (blacklisted calls stay out). With the option off the file is removed
+  at quit.
+- **Možnosti… → Náhodně posunout kmitočet při naladění spotu** (N1MM "Randomize incoming spot frequencies", off by
+  default): tuning to a cluster spot (a click, the spot jumps) lands 50–150 Hz (phone 100–250 Hz) above or below it,
+  so the operators who click the same spot do not all call on exactly the same frequency. Own spots (Mark, Store)
+  are tuned exactly; the split from the spot comment is unchanged.
 ## Spot comment, spotting S&P QSOs and special calls
 
 The other tabs of **Možnosti… (Options)** in the DX Cluster window, modelled on the N1MM Telnet window's *Spot Comment*
@@ -366,12 +380,42 @@ the contest definition (when it lists bands) and in a mode the definition allows
 spots whose spotter sits there pass (the spotter's DXCC from its call, `-#` / `-2` suffixes stripped; a skimmer's own
 location counts). Nothing checked means no filter; a spotter that cannot be resolved is hidden while a filter is on.
 
+**Spotter prefixes and call areas** (N1MM "Filter by Prefix"). *Prefixy spotterů* takes prefixes separated by spaces or
+commas (`OK OM DL`): a spotter whose call starts with one passes. *Call oblasti vlastní země* 0–9: a spotter of your own
+DXCC whose call area (the digit of a one-digit portable suffix `/4`, else the prefix's digit) is checked passes. The
+origin options combine: a spotter matching **any** of the continents, own country, prefixes or call areas passes.
+
+**Jen spoty stanic z call history** (N1MM "Show only spots in call history"): only calls the loaded call history knows.
+**Jen spoty stanic, které už jsou v deníku**: only calls already in the log (any band).
+
+**Skrýt spoty majáků NCDXF/IARU**: hides spots of the 18 International Beacon Project stations (4U1UN, VE8AT, W6WX,
+KH6RS, ZL6B, VK6RBP, JA2IGY, RR9O, VR2B, 4S7B, ZS6DN, 5Z4B, 4X6TU, OH2B, CS3B, LU4AA, OA4B, YV5B, with or without `/B`).
+Beacons you load yourself with `BEACONS` (Nástroje → Načíst soubor majáků…) are your own spots and stay.
+
+**Odstranit chybné (busted) spoty** (N1MM "Remove Busted Spots"): among the live spots, two calls within the tuning
+tolerance of the mode (Settings → DX Cluster) that differ by one character (a changed, added or missing character)
+are a correct call and its busted copy — typically a skimmer's wrong decode. The call reported fewer times (spots,
+skimmers) is hidden; with equal reports the one that came later. *I chyby ve dvou znacích* ("Two Character Errors")
+also treats two-character differences as busted. Calls shorter than four characters and your own spots are never
+compared. A busted spot comes back as soon as the option is off or its call gets more reports.
+
+**Preferovaní spotteři** (N1MM preferred spotters, typically your own skimmer): up to three calls; `OK1ABC` also
+matches `OK1ABC-2`, `OK1ABC-#` and `OK1ABC/3`. Their spots are not filtered but highlighted: bold on a tinted
+background in the DX Cluster window, `★` after the call in the band map and before the spotter in the Available Mults
+window. *Obnovit výchozí* keeps them.
+
 **Zobrazovat nepracovatelné spoty** (N1MM "Show non-workable spots", on by default). When off and a contest is active,
 spots on a band or in a mode the contest does not allow are hidden. The contest definitions express no other
 "cannot be worked" rule, so this is the same test as the *Contest* option; dupes are not non-workable and stay
 (coloured as dupes).
 
-**Obnovit výchozí** puts everything back: all bands and modes on, no origin filter, Contest off, non-workable shown.
+**Obnovit výchozí** puts everything back: all bands and modes on, no origin filter, Contest off, non-workable shown,
+the call history / worked / beacon / busted options off (the preferred spotters stay).
+
+**Blacklists.** The Blacklist window (Okno → Blacklist) has N1MM's controls for the shown list (calls or spotters):
+*Blacklist zapnutý* switches both lists off without losing them (spots already dropped do not come back, new ones are
+kept), *Importovat…* adds the calls of a text file (one per line, or separated by commas or spaces; `#` lines are
+comments), *Exportovat…* writes the list one call per line, *Vymazat seznam* empties it after a confirmation.
 
 ### Spot flow
 

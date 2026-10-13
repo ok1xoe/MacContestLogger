@@ -310,6 +310,7 @@ import Testing
                                "bandmapButtons", "filterCwWideHz", "filterCwNarrowHz", "filterSsbWideHz", "filterSsbNarrowHz",
                                "filterDigiWideHz", "filterDigiNarrowHz",
                                "clusterSoftware", "autoLogon", "showButtons", "showDxCount",
+                               "saveSpots", "randomizeSpotFrequencies",
                                "spotComment", "spotAllSpQsos", "specialCalls", "specialCallsIncludeBonus",
                                "nextCallKey", "callStackOrder",
                                "callStackClearOnBandChange", "digitalCallStacking",
@@ -373,6 +374,19 @@ import Testing
                                "captionRadioFrequency",
                                "autoTrxUpdate",
                                "rttyModem",
-                               "pskModem"])
+                               "pskModem",
+                               "clusterSoftware",
+                               "autoLogon",
+                               "showButtons",
+                               "showDxCount",
+                               "spotFilterSpotterPrefixes",
+                               "spotFilterSpotterCallAreas",
+                               "spotFilterOnlyCallHistory",
+                               "spotFilterOnlyWorked",
+                               "spotFilterHideBeacons",
+                               "spotFilterRemoveBusted",
+                               "spotFilterBustedTwoChars",
+                               "spotFilterPreferredSpotters",
+                               "blacklistEnabled"])
     }
 }
