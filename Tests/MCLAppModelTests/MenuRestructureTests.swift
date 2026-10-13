@@ -27,10 +27,10 @@ import Testing
     @Test func theMenuBarHasOneOfEachInNOneMmOrder() async throws {
         let app = try await TestApp.make()
         let entries: [MenuEntry] = app.model.menu.entries()
-        #expect(entries.map(\.id) == ["file", "edit", "contest", "tools", "settings", "window", "help"])
-        #expect(entries.map(\.title) == ["Soubor", "Úpravy", "Závod", "Nástroje", "Nastavení", "Okno", "Nápověda"])
+        #expect(entries.map(\.id) == ["file", "edit", "view", "contest", "tools", "settings", "window", "help"])
+        #expect(entries.map(\.title) == ["Soubor", "Úpravy", "Zobrazení", "Závod", "Nástroje", "Nastavení", "Okno", "Nápověda"])
         await app.model.language.switchTo("en")
-        #expect(app.model.menu.entries().map(\.title) == ["File", "Edit", "Contest", "Tools", "Settings", "Window",
+        #expect(app.model.menu.entries().map(\.title) == ["File", "Edit", "View", "Contest", "Tools", "Settings", "Window",
                                                           "Help"])
         await app.model.language.switchTo("cs")
     }

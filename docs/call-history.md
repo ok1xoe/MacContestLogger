@@ -195,6 +195,10 @@ QSO party):
 
 Fields are compared with the same columns from which they would be prefilled.
 
+The **Check window** (Okno → Check) has a fuller reverse lookup: it also searches the QSOs of the log, accepts a
+partial value (from a threshold of characters, matching from the start of the value or anywhere) and lists up to 100
+calls; see [Callsign check](call-check.md#reverse-lookup).
+
 ## Callbook (HamQTH / QRZ.com)
 
 Equivalent of N1MM **Callbook lookup**. With a HamQTH or QRZ.com account ("Nastavení

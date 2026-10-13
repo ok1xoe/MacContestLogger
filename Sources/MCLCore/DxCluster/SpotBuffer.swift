@@ -57,6 +57,8 @@ public final class SpotBuffer: Sendable {
         let at: Date
         let until: Date?
         let skimmers: Set<JavaStringKey>
+        /// How many times the station was spotted while its spot stayed alive (the Check window's telnet pane).
+        var count: Int = 1
 
         func alive(_ now: Date, _ maxAgeSeconds: Double) -> Bool {
             if let until {
@@ -132,7 +134,12 @@ public final class SpotBuffer: Sendable {
                 }
                 skimmers.insert(JavaStringKey(JavaText.trim(spot.spotter).uppercased()))
             }
-            s.put(key, Entry(spot: spot, at: clock(), until: nil, skimmers: skimmers))
+            let now: Date = clock()
+            var entry = Entry(spot: spot, at: now, until: nil, skimmers: skimmers)
+            if let prev = s.entries[key], prev.alive(now, s.maxAgeSeconds) {
+                entry.count = prev.count + 1
+            }
+            s.put(key, entry)
             return true
         }
         if added {
@@ -151,6 +158,21 @@ public final class SpotBuffer: Sendable {
         guard let dxCall else { return 0 }
         let key = JavaStringKey(JavaText.trim(dxCall).uppercased())
         return state.withLock { $0.entries[key]?.skimmers.count ?? 0 }
+    }
+
+    /// How many times each live station was spotted (its re-spots while the spot stayed alive, at least 1), by the
+    /// upper-case callsign; skimmer spots count once per spot. The Check window shows a spotted call only from N1MM's
+    /// three spots.
+    public func spotCounts() -> [String: Int] {
+        state.withLock { s in
+            let now = clock()
+            var out: [String: Int] = [:]
+            for key in s.keys {
+                guard let entry = s.entries[key], entry.alive(now, s.maxAgeSeconds) else { continue }
+                out[entry.spot.dxCall.uppercased()] = entry.count
+            }
+            return out
+        }
     }
 
     /// Adds a spot with its own validity period (beacons from `BEACONS` last tens of hours).

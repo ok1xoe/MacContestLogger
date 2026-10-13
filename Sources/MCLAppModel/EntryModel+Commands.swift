@@ -314,6 +314,23 @@ extension EntryModel {
         }
     }
 
+    /// N1MM Alt+Y: the Check window's next call into the call field (or its exchange value into the exchange field
+    /// being typed); without one the first Check partial suggestion, as before.
+    func yank() {
+        let field: EntryFieldKey? = focusedField?()
+        if let checkYank, let value = checkYank(self, field) {
+            if case .contest(let id)? = field {
+                editContestField(id, value)
+            } else {
+                takeCall(value)
+            }
+            return
+        }
+        if !suggestions().isEmpty {
+            takeSuggestion(0)
+        }
+    }
+
     private func runOperatingShortcut(_ action: ShortcutAction) {
         switch action {
         case .toggleEsm:
@@ -321,9 +338,7 @@ extension EntryModel {
         case .toggleCut:
             operating.toggleCutNumbers()
         case .yankScp:
-            if !suggestions().isEmpty {
-                takeSuggestion(0)
-            }
+            yank()
         case .operator:
             dialogs.openOperator()
         case .toggleRun:

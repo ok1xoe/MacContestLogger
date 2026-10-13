@@ -186,6 +186,8 @@ public enum MenuActions {
             app.windows.setOpen("log", true)
         case "contest.postcontest":
             app.operating.setPostContest(!app.operating.postContest)
+        case "view.unmatchedMark":
+            app.check.setShowsUnmatchedMark(!app.check.showsUnmatchedMark)
         case "settings.print":
             // The job is read off the main thread; it comes back as `exports.pendingRequest` (`takeModelRequest`).
             app.exports.startPrint()
@@ -231,6 +233,8 @@ public enum MenuActions {
             return app.operating.postContest
         case "settings.callHistoryLookup":
             return app.callData.callHistoryLookupEnabled
+        case "view.unmatchedMark":
+            return app.check.showsUnmatchedMark
         default:
             return false
         }

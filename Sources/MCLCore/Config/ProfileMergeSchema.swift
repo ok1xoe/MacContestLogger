@@ -17,15 +17,26 @@ enum ProfileMergeSchema {
 
     /// Hand-maintained Swift-only properties by owning Java class (see the type's documentation): the two switches
     /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`), the preferred online callbook
-    /// (`preferredCallbook`), the Dupesheet's suffix order (`dupesheetSortBySuffix`), Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX cluster Bands/Modes spot filter
-    /// (`dxCluster.spotFilter*`), the call stack (`esm.nextCallKey`, `esm.callStack*`), digital call stacking
-    /// (`digital.digitalCallStacking`), the call history switches and extra files (`callHistory*`) and a contest's
-    /// own call history file (`contestSetups.*.callHistoryFile`).
+    /// (`preferredCallbook`), the Dupesheet's suffix order (`dupesheetSortBySuffix`), the Check window (`check*`) and
+    /// the unmatched call mark (`showUnmatchedCallMark`), Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX
+    /// cluster Bands/Modes spot filter (`dxCluster.spotFilter*`), the call stack (`esm.nextCallKey`,
+    /// `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history switches and extra
+    /// files (`callHistory*`) and a contest's own call history file (`contestSetups.*.callHistoryFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
             Property("nPlusOneEnabled", .boolean, .fieldDefault),
             Property("preferredCallbook", .string, .fieldDefault),
+            Property("checkHiddenPanes", .list(.string), .fieldDefault),
+            Property("checkPaneWeights", .map(.integer), .fieldDefault),
+            Property("checkYankOrder", .list(.string), .fieldDefault),
+            Property("checkYankAllowDupes", .boolean, .fieldDefault),
+            Property("checkFavorEndDifferences", .boolean, .fieldDefault),
+            Property("checkTelnetMinSpots", .int, .fieldDefault),
+            Property("checkReverseEnabled", .boolean, .fieldDefault),
+            Property("checkReverseThreshold", .int, .fieldDefault),
+            Property("checkReverseFromStart", .boolean, .fieldDefault),
+            Property("showUnmatchedCallMark", .boolean, .fieldDefault),
             Property("dupesheetSortBySuffix", .boolean, .fieldDefault),
             Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
             Property("callHistoryExtraFiles", .list(.string), .fieldDefault),

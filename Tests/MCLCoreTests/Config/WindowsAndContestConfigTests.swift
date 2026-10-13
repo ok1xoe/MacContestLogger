@@ -244,11 +244,11 @@ private struct ProfileFixture: Codable, Equatable, Sendable {
 
     @Test func topLevelMenusInOrder() {
         let ids = DefaultMenu.tree().menu.map(\.id)
-        #expect(ids == ["file", "edit", "contest", "tools", "settings", "window", "help", "buffer"])
+        #expect(ids == ["file", "edit", "view", "contest", "tools", "settings", "window", "help", "buffer"])
     }
 
     @Test func settingsOpenHas20Tabs() {
-        let settings = DefaultMenu.tree().menu[4]
+        let settings = DefaultMenu.tree().menu[5]
         #expect(settings.id == "settings")
         let open = settings.children[0]
         #expect(open.id == "settings.open")
@@ -257,7 +257,7 @@ private struct ProfileFixture: Codable, Equatable, Sendable {
     }
 
     @Test func bufferIsHidden() {
-        let buffer = DefaultMenu.tree().menu[7]
+        let buffer = DefaultMenu.tree().menu[8]
         #expect(buffer.id == "buffer")
         #expect(buffer.state == .hidden)
     }
