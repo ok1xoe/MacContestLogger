@@ -453,6 +453,8 @@ extension EntryModel {
 
     /// Space in the call field (`jumpToExchange`, `EP:856-861`).
     public func jumpToExchange() {
+        // N1MM: the space bar puts the call-frame's call into an empty call field.
+        takeCallFrame()
         esmProgress = EsmFlow.jumpToExchange(esmProgress, esmEnabled: operating.esmEnabled, mode: form.mode,
                                              run: operating.isRun, call: form.call)
         exchangeFocusRequest += 1

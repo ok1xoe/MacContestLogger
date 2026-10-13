@@ -79,6 +79,11 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var autoSplit: Bool = false
     public var showBandPlan: Bool = false
     public var showUsLicenseLines: Bool = false
+    public var callFrame: Bool = false
+    public var tuningToleranceCwHz: String = ""
+    public var tuningToleranceSsbHz: String = ""
+    public var tuningToleranceDigiHz: String = ""
+    public var spotModeOnTune: Bool = false
     public var spotFilter: SpotFilter = .default
 
     // MARK: HamQTH and QRZ.com — `CD:105-117`
@@ -402,6 +407,11 @@ extension ConfigurerDraft {
         autoSplit = dx.autoSplit
         showBandPlan = dx.showBandPlan
         showUsLicenseLines = dx.showUsLicenseLines
+        callFrame = dx.callFrame
+        tuningToleranceCwHz = String(dx.tuningToleranceCwHz)
+        tuningToleranceSsbHz = String(dx.tuningToleranceSsbHz)
+        tuningToleranceDigiHz = String(dx.tuningToleranceDigiHz)
+        spotModeOnTune = dx.spotModeOnTune
         spotFilter = dx.spotFilter
     }
 

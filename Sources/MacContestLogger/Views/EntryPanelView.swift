@@ -82,7 +82,7 @@ private struct EntryFieldsRow: View {
             if app.operating.postContest {
                 WeightedField(label: app.language.tr("Čas UTC"), weight: 1.1, content: timeField)
             }
-            WeightedField(label: app.language.tr("Volačka"), weight: 2.2, content: callField)
+            WeightedField(label: app.language.tr("Volačka"), weight: 2.2, accent: callFrameAccent, content: callField)
             WeightedField(label: "Snt", weight: 0.8, content: field(.rstSent, text: entry.form.rstSent,
                                                                    label: "Snt") { entry.editRstSent($0) })
             if app.contest.isActive {
@@ -112,6 +112,13 @@ private struct EntryFieldsRow: View {
                                  focus.focus(.call)
                                  return true
                              })
+    }
+
+    /// N1MM's call-frame above the call field: the call of the spot within the tuning tolerance.
+    private var callFrameAccent: FieldAccent? {
+        guard let call = entry.callFrameCall else { return nil }
+        return FieldAccent(text: call, accessibilityLabel: app.language.tr("Rámeček volačky: %s", .string(call)),
+                     help: app.language.tr("Mezerník v prázdném poli volačky ji převezme"))
     }
 
     private var callField: some View {
@@ -183,9 +190,17 @@ struct WindowFontReader<Content: View>: View {
 }
 
 /// A labelled field whose width follows its Kotlin weight and the window font.
+/// Text shown right of a field's label in the accent colour (the call field's call-frame).
+struct FieldAccent {
+    let text: String
+    let accessibilityLabel: String
+    let help: String
+}
+
 struct WeightedField<Content: View>: View {
     let label: String
     let weight: Double
+    var accent: FieldAccent?
     let content: Content
     @Environment(\.windowFontSize) private var size
 
@@ -194,10 +209,20 @@ struct WeightedField<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: label)
-                .windowFont(11)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+            HStack(spacing: 6) {
+                Text(verbatim: label)
+                    .windowFont(11)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                if let accent {
+                    Text(verbatim: accent.text)
+                        .windowFont(11, weight: .bold, design: .monospaced)
+                        .foregroundStyle(.mclPrimary)
+                        .lineLimit(1)
+                        .accessibilityLabel(accent.accessibilityLabel)
+                        .help(accent.help)
+                }
+            }
             content
         }
         .frame(width: weight * Self.unit * Double(size) / Double(WindowFont.defaultSize))

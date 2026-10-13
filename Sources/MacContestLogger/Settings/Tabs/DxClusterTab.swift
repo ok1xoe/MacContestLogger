@@ -28,6 +28,10 @@ struct DxClusterTab: View {
             parameters
             SettingsCheckbox(label: language.tr("Automatický split z komentáře spotu („UP 5“, „QSX 14025“)"),
                              isOn: $draft.autoSplit)
+            SettingsCheckbox(label: language.tr("Klik na spot dá volačku do rámečku nad polem (mezerník ji převezme)"),
+                             isOn: $draft.callFrame)
+            SettingsCheckbox(label: language.tr("Ladění na spot nastaví i mód spotu"), isOn: $draft.spotModeOnTune)
+            tolerances
             SettingsCaption(language.tr(
                 "Skimmer / RBN spoty: 0 = skrýt, 1 = všechny, 2+ = jen stanice hlášené aspoň tolika skimmery. ")
                 + language.tr("Spoty od lidí se zobrazují vždy."))
@@ -43,6 +47,24 @@ struct DxClusterTab: View {
                             items: $draft.blacklistedCalls)
             BlacklistEditor(language: language, title: language.tr("Blacklist spotterů"),
                             items: $draft.blacklistedSpotters)
+        }
+    }
+
+    /// N1MM's tuning tolerance per mode: how close to a spot the call shows in the call-frame.
+    private var tolerances: some View {
+        FlowLayout(spacing: 8) {
+            SettingsField(caption: language.tr("Tolerance ladění CW (Hz)")) {
+                SettingsTextField(text: $draft.tuningToleranceCwHz, filter: .digits(limit: 5))
+            }
+            .frame(width: 170)
+            SettingsField(caption: language.tr("Tolerance ladění SSB (Hz)")) {
+                SettingsTextField(text: $draft.tuningToleranceSsbHz, filter: .digits(limit: 5))
+            }
+            .frame(width: 170)
+            SettingsField(caption: language.tr("Tolerance ladění digi (Hz)")) {
+                SettingsTextField(text: $draft.tuningToleranceDigiHz, filter: .digits(limit: 5))
+            }
+            .frame(width: 170)
         }
     }
 

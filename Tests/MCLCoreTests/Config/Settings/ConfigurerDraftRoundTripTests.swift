@@ -116,6 +116,11 @@ import Testing
         var expected = Self.fullConfig()
         expected.dxCluster.spotFilter = .default
         expected.dxCluster.showUsLicenseLines = false
+        expected.dxCluster.callFrame = true
+        expected.dxCluster.tuningToleranceCwHz = DxClusterConfig.defaultTuningToleranceHz
+        expected.dxCluster.tuningToleranceSsbHz = DxClusterConfig.defaultTuningToleranceHz
+        expected.dxCluster.tuningToleranceDigiHz = DxClusterConfig.defaultTuningToleranceHz
+        expected.dxCluster.spotModeOnTune = false
         expected.scpSuggestionsEnabled = true
         expected.nPlusOneEnabled = true
         expected.callHistoryExtraFiles = []
@@ -286,6 +291,11 @@ import Testing
         w.same(\.autoSplit, \.dxCluster.autoSplit, false)
         w.same(\.showBandPlan, \.dxCluster.showBandPlan, false)
         w.same(\.showUsLicenseLines, \.dxCluster.showUsLicenseLines, true)
+        w.same(\.callFrame, \.dxCluster.callFrame, false)
+        w.number(\.tuningToleranceCwHz, \.dxCluster.tuningToleranceCwHz, 150)
+        w.number(\.tuningToleranceSsbHz, \.dxCluster.tuningToleranceSsbHz, 900)
+        w.number(\.tuningToleranceDigiHz, \.dxCluster.tuningToleranceDigiHz, 60)
+        w.same(\.spotModeOnTune, \.dxCluster.spotModeOnTune, true)
         w.same(\.spotFilter, \.dxCluster.spotFilter,
                SpotFilter(hiddenBands: [.m160, .cm9], hiddenModes: ["DIGI"], contestOnly: true,
                          spotterContinents: ["EU", "NA"], spotterOwnCountry: true, hideNonWorkable: true))

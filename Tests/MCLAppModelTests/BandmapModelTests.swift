@@ -72,9 +72,10 @@ import Testing
     }
 
     /// A click right of the axis on a spot tunes to it; elsewhere it QSYs to the frequency under the cursor; on the
-    /// CQ marker (left of the axis) back to the CQ frequency in Run.
+    /// CQ marker (left of the axis) back to the CQ frequency in Run. (v1.1.1: the call-frame off, a click fills the
+    /// call field.)
     @Test func clicksTuneToSpotsTheBandAndTheCqFrequency() async throws {
-        let spot = try await SpotApp.make()
+        let spot = try await SpotApp.make { config, _ in config.dxCluster.callFrame = false }
         let model: AppModel = spot.model
         let bandmap: BandmapModel = model.bandmap
         model.rig.qsy(14_025_000)

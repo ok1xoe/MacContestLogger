@@ -20,8 +20,10 @@ enum ProfileMergeSchema {
     /// (`preferredCallbook`), the Dupesheet's suffix order (`dupesheetSortBySuffix`), the Check window (`check*`) and
     /// the unmatched call mark (`showUnmatchedCallMark`), Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX
     /// cluster Bands/Modes spot filter (`dxCluster.spotFilter*`), the band map options (`dxCluster.bandmap*`), the band map US licence
-    /// lines (`dxCluster.showUsLicenseLines`), the call stack (`esm.nextCallKey`, `esm.callStack*`), digital call stacking
-    /// (`digital.digitalCallStacking`), the call history switches and extra
+    /// lines (`dxCluster.showUsLicenseLines`), the band map's call-frame, tuning tolerances and packet spot mode
+    /// (`dxCluster.callFrame`, `dxCluster.tuningTolerance*Hz`, `dxCluster.spotModeOnTune`), the call stack
+    /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
+    /// switches and extra
     /// files (`callHistory*`) and a contest's own call history file (`contestSetups.*.callHistoryFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
@@ -56,6 +58,11 @@ enum ProfileMergeSchema {
             Property("showUsLicenseLines", .boolean, .fieldDefault),
             Property("bandmapLowestAtBottom", .boolean, .fieldDefault),
             Property("bandmapWheelDisabled", .boolean, .fieldDefault),
+            Property("callFrame", .boolean, .fieldDefault),
+            Property("tuningToleranceCwHz", .int, .fieldDefault),
+            Property("tuningToleranceSsbHz", .int, .fieldDefault),
+            Property("tuningToleranceDigiHz", .int, .fieldDefault),
+            Property("spotModeOnTune", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
             Property("ctyEnabled", .boolean, .fieldDefault),

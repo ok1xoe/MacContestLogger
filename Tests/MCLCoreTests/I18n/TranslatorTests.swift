@@ -142,10 +142,11 @@ import Testing
         // 26 keys of the N1MM call history features and
         // 20 keys of the Check window, its right-click menu, the call field's mark and the View menu and
         // 4 keys of the band map's wheel, band segment and orientation menu items and
-        // 19 keys of the band map's spot removal, band plan editing and US licence class lines.
-        #expect(map.count == 1_567)
+        // 19 keys of the band map's spot removal, band plan editing and US licence class lines and
+        // 18 keys of the band map's call-frame, spot tooltip, tuning tolerances and callsign search.
+        #expect(map.count == 1_585)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_567)
+        #expect(german.count == 1_585)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

@@ -28,6 +28,9 @@ public final class BandmapModel {
     @ObservationIgnored private let callbook: CallbookModel
     @ObservationIgnored private let rig: RigModel
     @ObservationIgnored private let status: StatusModel
+    @ObservationIgnored private let language: LanguageModel
+    @ObservationIgnored private let dialogs: DialogsModel
+    @ObservationIgnored private let now: @Sendable () -> Date
     /// The spot actions of the entry windows (Remove spot of a call); wired by `AppModel`.
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
     /// The entry window the spot keys act for (the active one); wired by `AppModel`.
@@ -53,6 +56,9 @@ public final class BandmapModel {
         let callbook: CallbookModel
         let rig: RigModel
         let status: StatusModel
+        let language: LanguageModel
+        let dialogs: DialogsModel
+        let now: @Sendable () -> Date
     }
 
     init(_ dependencies: Dependencies) {
@@ -65,6 +71,9 @@ public final class BandmapModel {
         callbook = dependencies.callbook
         rig = dependencies.rig
         status = dependencies.status
+        language = dependencies.language
+        dialogs = dependencies.dialogs
+        now = dependencies.now
         storedBand = rig.currentBand
         storedViewport = BandmapViewport(band: storedBand, tunedHz: rig.tuning.tunedFreqHz)
         observeBand()
@@ -271,11 +280,53 @@ public final class BandmapModel {
                                        skimmers: feed.buffer.skimmerCount(spot.dxCall))
     }
 
-    /// The label as drawn: `label` plus the QO-100 mark of a spot on that satellite's transponder (post-port).
+    /// The label as drawn (N1MM marks beyond `label`): the skimmer mark (`#`, `!` for one's own skimmer) and the
+    /// gray-line `¤` after the call, the azimuth and skimmer count, `QSX 027` of a split comment, `NEW` for a spot
+    /// younger than three minutes, and the QO-100 mark of a spot on that satellite's transponder (post-port).
     public func drawnLabel(_ spot: DxSpot) -> String {
-        let base: String = label(spot)
+        let spotted: SpotBuffer.Spotted? = feed.buffer.find(spot.dxCall)
+        let base: String = BandmapSpotInfo.label(
+            call: spot.dxCall, azimuth: azimuth(spot), skimmers: feed.buffer.skimmerCount(spot.dxCall),
+            skimmerMark: BandmapSpotInfo.skimmerMark(spot, myCall: config.config.station.call),
+            grayLine: onGrayLine(spot), qsxHz: BandmapSpotInfo.qsxHz(spot),
+            isNew: BandmapSpotInfo.isNew(spottedAt: spotted?.spottedAt, now: now()))
         guard let mark = Qo100.label(freqHz: spot.freqHz) else { return base }
         return base + "  " + mark
+    }
+
+    /// N1MM's spot tooltip (the exact frequency, the spotter, the age, the comment, QSX, the counts, the azimuth, the
+    /// gray line, a self-spot).
+    public func tooltip(_ spot: DxSpot) -> String {
+        let facts = BandmapSpotInfo.TooltipFacts(
+            spottedAt: feed.buffer.find(spot.dxCall)?.spottedAt, now: now(),
+            count: feed.buffer.spotCounts()[spot.dxCall.uppercased()] ?? 1,
+            skimmers: feed.buffer.skimmerCount(spot.dxCall), azimuth: azimuth(spot), grayLine: onGrayLine(spot),
+            qsxHz: BandmapSpotInfo.qsxHz(spot))
+        var text: String = BandmapSpotInfo.tooltip(spot, facts: facts, translator: language.translator)
+        if let satellite = Qo100.label(freqHz: spot.freqHz) {
+            text += "\n" + satellite
+        }
+        return text
+    }
+
+    private func azimuth(_ spot: DxSpot) -> Int? {
+        let myLatLon = Maidenhead.centerLatLon(config.config.station.gridSquare)
+        return BandmapLayout.azimuthOf(call: spot.dxCall, myLatLon: myLatLon, dxcc: contest.runtime.dxccLookup)
+    }
+
+    /// The spotted station's entity is at its sunrise or sunset now (N1MM `¤`).
+    private func onGrayLine(_ spot: DxSpot) -> Bool {
+        guard let entity = contest.runtime.dxccLookup?.resolve(spot.dxCall), entity.hasLatLon else { return false }
+        return BandmapSpotInfo.onGrayLine(lat: entity.lat, lon: entity.lon, now: now())
+    }
+
+    /// The tuning tolerance of the active entry window's mode (N1MM, drawn at the tuned frequency); `nil` with the
+    /// call-frame off.
+    public var tuningToleranceHz: Int? {
+        let dx: DxClusterConfig = config.config.dxCluster
+        guard dx.callFrame else { return nil }
+        let mode: Mode = keyEntry?()?.form.mode ?? rig.activeState?.mode ?? .cw
+        return dx.tuningToleranceHz(mode)
     }
 
     /// Kotlin `state.cqFrequencyHz(band)` (the CQ marker).
@@ -312,8 +363,20 @@ public final class BandmapModel {
     // MARK: - pointer
 
     /// A click (`detectTapGestures`, `BM:284-306`): the CQ marker → back to the CQ frequency (Run); a spot right of
-    /// the axis → `tuneToSpot`; otherwise `qsy` to the frequency under the cursor.
+    /// the axis → `tuneToSpot`; otherwise `qsy` to the frequency under the cursor (also a click on the scale).
+    ///
+    /// N1MM: with the call-frame on, a single click on a spot only tunes (the call shows in the call-frame) and a
+    /// double click also fills the call field; with it off every click fills the field (v1.1.1).
     public func click(x: Float, y: Float, height: Float, axisX: Float, rowH: Float) {
+        tap(x: x, y: y, height: height, axisX: axisX, rowH: rowH, fillCall: !config.config.dxCluster.callFrame)
+    }
+
+    /// A double click: as a click, and a spot's call goes into the call field (replacing what was there).
+    public func doubleClick(x: Float, y: Float, height: Float, axisX: Float, rowH: Float) {
+        tap(x: x, y: y, height: height, axisX: axisX, rowH: rowH, fillCall: true)
+    }
+
+    private func tap(x: Float, y: Float, height: Float, axisX: Float, rowH: Float, fillCall: Bool) {
         guard let band else { return }
         // The red TX arrow: a click turns split off (the RX arrow and the CQ marker keep their meaning).
         if arrowAt(x: x, y: y, height: height, axisX: axisX) == true {
@@ -329,7 +392,7 @@ public final class BandmapModel {
                 rig.qsy(cq)
             }
         case .spot(let spot):
-            rig.tuneToSpot(spot)
+            rig.tuneToSpot(spot, fillCall: fillCall)
         case .qsy(let hz):
             rig.qsy(hz)
         }
@@ -544,6 +607,26 @@ public final class BandmapModel {
             status.show(ContestMessage("Bandplán se nepodařilo uložit"))
             return false
         }
+    }
+
+    /// N1MM „Find a Callsign": a prompt for the call (or a part of it); the next spot above the tuned frequency that
+    /// matches is tuned to like a click (Alt+F8 returns).
+    public func promptFind() {
+        dialogs.prompt(title: ContestMessage("Najít volačku v bandmapě"),
+                       hint: ContestMessage("Volačka nebo její část; hledá se od naladěné frekvence nahoru"),
+                       initial: "") { [weak self] text in
+            self?.find(text)
+        }
+    }
+
+    /// Tunes to the next spot whose call contains `query` (see `BandmapSpotInfo.find`).
+    public func find(_ query: String) {
+        guard !KotlinStrings.isBlank(query) else { return }
+        guard let spot = BandmapSpotInfo.find(query, in: feed.filteredSnapshot(), fromHz: tunedHz) else {
+            status.show(ContestMessage("%s v bandmapě není", .string(KotlinStrings.trim(query).uppercased())))
+            return
+        }
+        rig.tuneToSpot(spot, fillCall: !config.config.dxCluster.callFrame)
     }
 
     /// „Zobrazit/Skrýt bandplán": the option is written into the configuration and saved — the file only, without

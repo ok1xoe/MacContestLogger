@@ -59,6 +59,13 @@ public final class SpotNavigation {
         dxCluster.spots
     }
 
+    /// The call-frame's spot (`BandmapSpotInfo.callFrameSpot` over the filtered spots); reading the feed's revision
+    /// keeps an observing view up to date.
+    public func callFrameSpot(freqHz: Int64, toleranceHz: Int) -> DxSpot? {
+        _ = feed.revision
+        return BandmapSpotInfo.callFrameSpot(feed.filteredSnapshot(), freqHz: freqHz, toleranceHz: toleranceHz)
+    }
+
     // MARK: - navigation
 
     /// Kotlin `jumpToNextSpot(direction, onlyMult, onlySelf)` (Ctrl/Alt+↑↓): the nearest spot on the band beyond the

@@ -60,6 +60,33 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
             if normalized != selfSpotThresholdHz { selfSpotThresholdHz = normalized }
         }
     }
+    /// N1MM call-frame: a single click on a band map spot and tuning near a spot put the call into the call-frame
+    /// above the call field (the space bar takes it); a double click fills the call field. Off = a click fills the
+    /// call field at once (v1.1.1).
+    public var callFrame: Bool = true
+    /// N1MM tuning tolerance per mode (Hz, 0…20 000): how close to a spot the tuned frequency must be for its call
+    /// to show in the call-frame.
+    public var tuningToleranceCwHz: Int = DxClusterConfig.defaultTuningToleranceHz {
+        didSet {
+            let normalized = DxClusterConfig.normalizedTolerance(tuningToleranceCwHz)
+            if normalized != tuningToleranceCwHz { tuningToleranceCwHz = normalized }
+        }
+    }
+    public var tuningToleranceSsbHz: Int = DxClusterConfig.defaultTuningToleranceHz {
+        didSet {
+            let normalized = DxClusterConfig.normalizedTolerance(tuningToleranceSsbHz)
+            if normalized != tuningToleranceSsbHz { tuningToleranceSsbHz = normalized }
+        }
+    }
+    public var tuningToleranceDigiHz: Int = DxClusterConfig.defaultTuningToleranceHz {
+        didSet {
+            let normalized = DxClusterConfig.normalizedTolerance(tuningToleranceDigiHz)
+            if normalized != tuningToleranceDigiHz { tuningToleranceDigiHz = normalized }
+        }
+    }
+    /// N1MM "Always use packet spot mode": tuning to a spot also sets the mode of the spot (its comment, the digital
+    /// frequencies, the band plan).
+    public var spotModeOnTune: Bool = false
     /// Old blacklist format (strings only) — kept for migration to
     /// `callBlacklist`/`spotterBlacklist`. Emptied after migration.
     public var blacklistedCalls: [String] = []
@@ -106,6 +133,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case blacklistedCalls, blacklistedSpotters, callBlacklist, spotterBlacklist
         case spotFilterHiddenBands, spotFilterHiddenModes, spotFilterContest
         case spotFilterSpotterContinents, spotFilterSpotterOwnCountry, spotFilterHideNonWorkable
+        case callFrame, tuningToleranceCwHz, tuningToleranceSsbHz, tuningToleranceDigiHz, spotModeOnTune
         case showUsLicenseLines
         case bandmapLowestAtBottom, bandmapWheelDisabled
     }
@@ -141,6 +169,32 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         spotFilterHideNonWorkable = c.value(.spotFilterHideNonWorkable, default: d.spotFilterHideNonWorkable)
         bandmapLowestAtBottom = c.value(.bandmapLowestAtBottom, default: d.bandmapLowestAtBottom)
         bandmapWheelDisabled = c.value(.bandmapWheelDisabled, default: d.bandmapWheelDisabled)
+        callFrame = c.value(.callFrame, default: d.callFrame)
+        tuningToleranceCwHz = DxClusterConfig.normalizedTolerance(
+            c.value(.tuningToleranceCwHz, default: d.tuningToleranceCwHz))
+        tuningToleranceSsbHz = DxClusterConfig.normalizedTolerance(
+            c.value(.tuningToleranceSsbHz, default: d.tuningToleranceSsbHz))
+        tuningToleranceDigiHz = DxClusterConfig.normalizedTolerance(
+            c.value(.tuningToleranceDigiHz, default: d.tuningToleranceDigiHz))
+        spotModeOnTune = c.value(.spotModeOnTune, default: d.spotModeOnTune)
+    }
+
+    /// N1MM's default tuning tolerance (Hz).
+    public static let defaultTuningToleranceHz = 300
+    /// N1MM's limits of the tuning tolerance (Hz).
+    public static let tuningToleranceRange: ClosedRange<Int> = 0...20_000
+
+    /// The tuning tolerance of `mode`: CW, phone (SSB/AM/FM) or digital (RTTY and the rest).
+    public func tuningToleranceHz(_ mode: Mode) -> Int {
+        switch mode {
+        case .cw: return tuningToleranceCwHz
+        case .ssb, .am, .fm: return tuningToleranceSsbHz
+        default: return tuningToleranceDigiHz
+        }
+    }
+
+    static func normalizedTolerance(_ value: Int) -> Int {
+        Swift.min(Swift.max(value, tuningToleranceRange.lowerBound), tuningToleranceRange.upperBound)
     }
 
     /// Default set of `commandCount` commands (common DXSpider commands).
