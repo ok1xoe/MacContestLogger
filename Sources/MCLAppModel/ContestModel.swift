@@ -818,9 +818,7 @@ public final class ContestModel {
     /// item of the activation chain, so a contest-data reload in flight (its environment read before the files were
     /// written) cannot replace the new tables afterwards.
     public func reloadBandData() async {
-        guard let source = environmentSource else { return }
-        let fallback: String = source.dataDir.appendingPathComponent("contest-data").path
-        let root: URL = ContestEnvironment.dataRoot(configured: config.config.contestDataDir, fallback: fallback)
+        guard let root = bandDataRoot else { return }
         let previous: Task<Bool, Never>? = activationChain
         let task = Task { () -> Bool in
             _ = await previous?.value
@@ -834,6 +832,14 @@ public final class ContestModel {
         }
         activationChain = task
         _ = await task.value
+    }
+
+    /// The directory the band plan and the digi frequencies are read from (`contestDataDir`, blank → the default
+    /// `contest-data` of the data directory); `nil` before the app wired the data source.
+    var bandDataRoot: URL? {
+        guard let source = environmentSource else { return nil }
+        let fallback: String = source.dataDir.appendingPathComponent("contest-data").path
+        return ContestEnvironment.dataRoot(configured: config.config.contestDataDir, fallback: fallback)
     }
 
     /// Test seam: runs inside a reload after the runtime was replaced and before the contest is reopened.

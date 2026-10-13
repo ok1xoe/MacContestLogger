@@ -27,6 +27,10 @@ public final class BandmapModel {
     @ObservationIgnored private let blacklist: BlacklistModel
     @ObservationIgnored private let callbook: CallbookModel
     @ObservationIgnored let rig: RigModel
+    @ObservationIgnored private let status: StatusModel
+    @ObservationIgnored private let language: LanguageModel
+    @ObservationIgnored private let dialogs: DialogsModel
+    @ObservationIgnored private let now: @Sendable () -> Date
     /// The spot actions of the entry windows (Remove spot of a call); wired by `AppModel`.
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
     /// The entry window the spot keys act for (the active one); wired by `AppModel`.
@@ -63,6 +67,10 @@ public final class BandmapModel {
         let blacklist: BlacklistModel
         let callbook: CallbookModel
         let rig: RigModel
+        let status: StatusModel
+        let language: LanguageModel
+        let dialogs: DialogsModel
+        let now: @Sendable () -> Date
     }
 
     init(_ dependencies: Dependencies) {
@@ -74,6 +82,10 @@ public final class BandmapModel {
         blacklist = dependencies.blacklist
         callbook = dependencies.callbook
         rig = dependencies.rig
+        status = dependencies.status
+        language = dependencies.language
+        dialogs = dependencies.dialogs
+        now = dependencies.now
         storedBand = rig.currentBand
         storedViewport = BandmapViewport(band: storedBand, tunedHz: rig.tuning.tunedFreqHz)
         observeBand()
@@ -119,11 +131,132 @@ public final class BandmapModel {
         FrequencyText.formatHz(tunedHz) + " kHz"
     }
 
-    /// The visible window: the stored one while the band is the same, otherwise the whole new band.
+    /// The visible window: the stored one while the band is the same, otherwise the whole new band; drawn with the
+    /// lowest frequency at the bottom when that option is on.
     public var viewport: BandmapViewport {
         _ = viewportRevision
         let current: Band? = band
-        return storedBand == current ? storedViewport : BandmapViewport(band: current, tunedHz: tunedHz)
+        var window: BandmapViewport = storedBand == current
+            ? storedViewport : BandmapViewport(band: current, tunedHz: tunedHz)
+        window.lowestAtBottom = lowestAtBottom
+        return window
+    }
+
+    // MARK: - the radio
+
+    /// The header's radio (N1MM: the radio's name and VFO): „Rig 1"/„Rig 2" in SO2R, otherwise the active VFO
+    /// („VFO A"/„VFO B"), then — while CAT is connected — the rig model of Settings without its hamlib number
+    /// („1 — Hamlib Dummy" → „Hamlib Dummy").
+    public func radioName(_ language: LanguageModel) -> String {
+        let vfo: VfoState = rig.vfo
+        let name: String
+        if vfo.so2r {
+            name = language.tr("Rig %s", .int(vfo.activeVfo + 1))
+        } else {
+            name = vfo.activeVfo == 0 ? "VFO A" : "VFO B"
+        }
+        guard rig.catConnected else { return name }
+        return name + Self.modelSuffix(rig.rigConfig(vfo: vfo.activeVfo).modelLabel)
+    }
+
+    /// `" · <model>"` of a Settings model label (`"<hamlib id> — <name>"`), empty for a blank label.
+    static func modelSuffix(_ label: String) -> String {
+        var model: String = KotlinStrings.trim(label)
+        if let dash = model.range(of: " — ") {
+            model = KotlinStrings.trim(String(model[dash.upperBound...]))
+        }
+        return model.isEmpty ? "" : " · " + model
+    }
+
+    /// The transmit frequency while the active rig reports split (N1MM's red TX arrow); `nil` without split or
+    /// with an unknown transmit frequency.
+    public var splitTxHz: Int64? {
+        guard let state = rig.activeState, state.split, state.txFreqHz > 0 else { return nil }
+        return state.txFreqHz
+    }
+
+    /// The header's transmit frequency „TX 14027.00 kHz" while split, otherwise `nil`.
+    public var txText: String? {
+        splitTxHz.map { "TX " + FrequencyText.formatHz($0) + " kHz" }
+    }
+
+    /// The receiver's filter around the RX frequency from the rig's passband (N1MM draws it at the arrow);
+    /// `nil` without CAT or with an unknown passband.
+    public var passbandRange: ClosedRange<Int64>? {
+        guard let state = rig.activeState else { return nil }
+        return BandmapViewport.passband(rxHz: tunedHz, passbandHz: state.passband, rawMode: state.rawMode)
+    }
+
+    /// The arrow under the pointer (left of the axis): `true` = the TX arrow, `false` = the RX arrow, `nil` = none;
+    /// when both are in reach the nearer one.
+    func arrowAt(x: Float, y: Float, height: Float, axisX: Float) -> Bool? {
+        guard band != nil else { return nil }
+        let window: BandmapViewport = viewport
+        let rx: Bool = window.hitsMarker(tunedHz, x: x, y: y, axisX: axisX, height: height)
+        guard let tx = splitTxHz, window.hitsMarker(tx, x: x, y: y, axisX: axisX, height: height) else {
+            return rx ? false : nil
+        }
+        guard rx else { return true }
+        let toTx: Float = abs(window.yAt(tx, height: height) - y)
+        let toRx: Float = abs(window.yAt(tunedHz, height: height) - y)
+        return toTx < toRx
+    }
+
+    /// The tooltip of the arrow under the pointer (left of the axis): the exact RX or TX frequency.
+    public func markerTooltip(x: Float, y: Float, height: Float, axisX: Float) -> String? {
+        switch arrowAt(x: x, y: y, height: height, axisX: axisX) {
+        case true?:
+            return splitTxHz.map { "TX " + FrequencyText.formatHz($0) + " kHz" }
+        case false?:
+            return "RX " + FrequencyText.formatHz(tunedHz) + " kHz"
+        case nil:
+            return nil
+        }
+    }
+
+    // MARK: - options
+
+    /// N1MM „Show Lowest Freq at Bottom" (saved in the configuration).
+    public var lowestAtBottom: Bool {
+        config.config.dxCluster.bandmapLowestAtBottom
+    }
+
+    /// N1MM „Disable Mouse Wheel" (saved in the configuration).
+    public var wheelDisabled: Bool {
+        config.config.dxCluster.bandmapWheelDisabled
+    }
+
+    /// The context menu's „Nejnižší kmitočet dole": saved like the band plan option (the file only).
+    public func toggleLowestAtBottom() {
+        config.config.dxCluster.bandmapLowestAtBottom = !lowestAtBottom
+        config.saveSilently()
+        viewportRevision += 1
+    }
+
+    /// The context menu's „Vypnout kolečko myši".
+    public func toggleWheelDisabled() {
+        config.config.dxCluster.bandmapWheelDisabled = !wheelDisabled
+        config.saveSilently()
+    }
+
+    /// N1MM „Go to Bottom Of Band": QSY to the lower edge of the band plan segment (CW, phone, digi) of the tuned
+    /// frequency, else of the band.
+    public func goToBottomOfBand() {
+        guard let range = subBand() else { return }
+        rig.qsy(range.lowerBound)
+    }
+
+    /// N1MM „Go to Top of Band": QSY to the upper edge of the segment, else of the band.
+    public func goToTopOfBand() {
+        guard let range = subBand() else { return }
+        rig.qsy(range.upperBound)
+    }
+
+    private func subBand() -> ClosedRange<Int64>? {
+        guard let band else { return nil }
+        let bounds: ClosedRange<Int64> = BandmapViewport.bounds(band)
+        let segments: [BandPlan.Segment] = analyzer().bandPlanSegments(lo: bounds.lowerBound, hi: bounds.upperBound)
+        return BandmapViewport.subBand(tunedHz: tunedHz, segments: segments, bounds: bounds)
     }
 
     /// The spots of the buffer now (read when the feed's revision changes).
@@ -159,11 +292,53 @@ public final class BandmapModel {
                                        skimmers: feed.buffer.skimmerCount(spot.dxCall))
     }
 
-    /// The label as drawn: `label` plus the QO-100 mark of a spot on that satellite's transponder (post-port).
+    /// The label as drawn (N1MM marks beyond `label`): the skimmer mark (`#`, `!` for one's own skimmer) and the
+    /// gray-line `¤` after the call, the azimuth and skimmer count, `QSX 027` of a split comment, `NEW` for a spot
+    /// younger than three minutes, and the QO-100 mark of a spot on that satellite's transponder (post-port).
     public func drawnLabel(_ spot: DxSpot) -> String {
-        let base: String = label(spot)
+        let spotted: SpotBuffer.Spotted? = feed.buffer.find(spot.dxCall)
+        let base: String = BandmapSpotInfo.label(
+            call: spot.dxCall, azimuth: azimuth(spot), skimmers: feed.buffer.skimmerCount(spot.dxCall),
+            skimmerMark: BandmapSpotInfo.skimmerMark(spot, myCall: config.config.station.call),
+            grayLine: onGrayLine(spot), qsxHz: BandmapSpotInfo.qsxHz(spot),
+            isNew: BandmapSpotInfo.isNew(spottedAt: spotted?.spottedAt, now: now()))
         guard let mark = Qo100.label(freqHz: spot.freqHz) else { return base }
         return base + "  " + mark
+    }
+
+    /// N1MM's spot tooltip (the exact frequency, the spotter, the age, the comment, QSX, the counts, the azimuth, the
+    /// gray line, a self-spot).
+    public func tooltip(_ spot: DxSpot) -> String {
+        let facts = BandmapSpotInfo.TooltipFacts(
+            spottedAt: feed.buffer.find(spot.dxCall)?.spottedAt, now: now(),
+            count: feed.buffer.spotCounts()[spot.dxCall.uppercased()] ?? 1,
+            skimmers: feed.buffer.skimmerCount(spot.dxCall), azimuth: azimuth(spot), grayLine: onGrayLine(spot),
+            qsxHz: BandmapSpotInfo.qsxHz(spot))
+        var text: String = BandmapSpotInfo.tooltip(spot, facts: facts, translator: language.translator)
+        if let satellite = Qo100.label(freqHz: spot.freqHz) {
+            text += "\n" + satellite
+        }
+        return text
+    }
+
+    private func azimuth(_ spot: DxSpot) -> Int? {
+        let myLatLon = Maidenhead.centerLatLon(config.config.station.gridSquare)
+        return BandmapLayout.azimuthOf(call: spot.dxCall, myLatLon: myLatLon, dxcc: contest.runtime.dxccLookup)
+    }
+
+    /// The spotted station's entity is at its sunrise or sunset now (N1MM `¤`).
+    private func onGrayLine(_ spot: DxSpot) -> Bool {
+        guard let entity = contest.runtime.dxccLookup?.resolve(spot.dxCall), entity.hasLatLon else { return false }
+        return BandmapSpotInfo.onGrayLine(lat: entity.lat, lon: entity.lon, now: now())
+    }
+
+    /// The tuning tolerance of the active entry window's mode (N1MM, drawn at the tuned frequency); `nil` with the
+    /// call-frame off.
+    public var tuningToleranceHz: Int? {
+        let dx: DxClusterConfig = config.config.dxCluster
+        guard dx.callFrame else { return nil }
+        let mode: Mode = keyEntry?()?.form.mode ?? rig.activeState?.mode ?? .cw
+        return dx.tuningToleranceHz(mode)
     }
 
     /// Kotlin `state.cqFrequencyHz(band)` (the CQ marker).
@@ -200,9 +375,26 @@ public final class BandmapModel {
     // MARK: - pointer
 
     /// A click (`detectTapGestures`, `BM:284-306`): the CQ marker → back to the CQ frequency (Run); a spot right of
-    /// the axis → `tuneToSpot`; otherwise `qsy` to the frequency under the cursor.
+    /// the axis → `tuneToSpot`; otherwise `qsy` to the frequency under the cursor (also a click on the scale).
+    ///
+    /// N1MM: with the call-frame on, a single click on a spot only tunes (the call shows in the call-frame) and a
+    /// double click also fills the call field; with it off every click fills the field (v1.1.1).
     public func click(x: Float, y: Float, height: Float, axisX: Float, rowH: Float) {
+        tap(x: x, y: y, height: height, axisX: axisX, rowH: rowH, fillCall: !config.config.dxCluster.callFrame)
+    }
+
+    /// A double click: as a click, and a spot's call goes into the call field (replacing what was there).
+    public func doubleClick(x: Float, y: Float, height: Float, axisX: Float, rowH: Float) {
+        tap(x: x, y: y, height: height, axisX: axisX, rowH: rowH, fillCall: true)
+    }
+
+    private func tap(x: Float, y: Float, height: Float, axisX: Float, rowH: Float, fillCall: Bool) {
         guard let band else { return }
+        // The red TX arrow: a click turns split off (the RX arrow and the CQ marker keep their meaning).
+        if arrowAt(x: x, y: y, height: height, axisX: axisX) == true {
+            rig.splitOff()
+            return
+        }
         let tap: BandmapTap = BandmapLayout.tap(x: x, y: y, viewport: viewport, height: height, axisX: axisX,
                                                 rowH: rowH, spots: feed.filteredSnapshot(), cqHz: cqHz)
         switch tap {
@@ -212,7 +404,7 @@ public final class BandmapModel {
                 rig.qsy(cq)
             }
         case .spot(let spot):
-            rig.tuneToSpot(spot)
+            rig.tuneToSpot(spot, fillCall: fillCall)
         case .qsy(let hz):
             rig.qsy(hz)
         }
@@ -221,7 +413,7 @@ public final class BandmapModel {
     /// The wheel (`BM:236-257`, Compose's sign: `dy < 0` = up): Ctrl zooms, otherwise `qsy` by the step (Shift = the
     /// big one) within the band; the window follows the marker.
     public func wheel(dx: Float, dy: Float, ctrl: Bool, shift: Bool) {
-        guard let band else { return }
+        guard let band, !wheelDisabled else { return }
         var window: BandmapViewport = viewport
         let target: Int64? = window.wheel(
             dx: dx, dy: dy, ctrl: ctrl, shift: shift, tunedHz: tunedHz, bounds: BandmapViewport.bounds(band),
@@ -288,12 +480,23 @@ public final class BandmapModel {
         return menuSpot(x: pointer.x, y: pointer.y, height: pointer.height, axisX: pointer.axisX, rowH: pointer.rowH)
     }
 
-    /// The spot shortcuts while the Bandmap window is the key window: Mark (Alt+M), Remove spot (Alt+D) and Remove
+    /// The zoom keys (keypad `+`/`-`, Cmd+= / Cmd+-, `BandmapZoomKey`) and the spot shortcuts while the Bandmap
+    /// window is the key window: Mark (Alt+M), Remove spot (Alt+D) and Remove
     /// spot + blacklist (Alt+Shift+D) by the user's key bindings, the key translated like the entry's. Mark acts as
     /// the entry's (the active entry window's frequency); Remove takes the spot under the mouse, otherwise it acts as
     /// the entry's (the call field, or the spot nearest to the tuned frequency). `true` = consumed (press and
     /// release of a bound spot key); every other key is left to AppKit.
     public func handleKey(_ event: MacKeyEvent) -> Bool {
+        if let zoom = BandmapZoomKey.decode(event) {
+            if event.kind == .keyDown {
+                if zoom > 0 {
+                    zoomIn()
+                } else {
+                    zoomOut()
+                }
+            }
+            return true
+        }
         guard event.kind != .flagsChanged, let stroke = AwtKeyCodes.translateForLayout(event) else { return false }
         let combo = KeyCombo(ctrl: stroke.isControlDown, alt: stroke.isAltDown, shift: stroke.isShiftDown,
                              meta: stroke.isMetaDown, keyCode: stroke.vk)
@@ -343,9 +546,99 @@ public final class BandmapModel {
         callbook.openHamQth(spot.dxCall)
     }
 
-    /// `tr("Smazat všechny spoty")`.
+    /// `tr("Smazat všechny spoty")` (N1MM "Remove Spots, ALL BANDS").
     public func clearSpots() {
         feed.buffer.clear()
+    }
+
+    /// N1MM "Remove Spots, This Band Only[, Leave Self Spots]" and "Remove Spots, ALL Bands, Leave Self Spots": the
+    /// spots of the band map's band (`thisBand`) or of every band; `keepSelf` leaves the self spots (Mark, Store, the
+    /// spots of calls tuned away from). Without a tuned band "this band" removes nothing.
+    public func removeSpots(thisBand: Bool, keepSelf: Bool) {
+        let band: Band? = self.band
+        if thisBand && band == nil { return }
+        feed.buffer.removeAll { spot in
+            if keepSelf && spot.selfSpotted { return false }
+            return !thisBand || spot.band == band
+        }
+    }
+
+    // MARK: - band plan and licence lines
+
+    /// The US licence class edges in the window when the option is on (N1MM's red lines on the scale).
+    public var licenseLines: [Int64] {
+        guard showLicenseLines else { return [] }
+        let window: BandmapViewport = viewport
+        return UsLicenseLines.edges(lo: window.loHz, hi: window.hiHz)
+    }
+
+    /// `dxCluster.showUsLicenseLines` (read live, so Settings and the menu both apply at once).
+    public var showLicenseLines: Bool {
+        config.config.dxCluster.showUsLicenseLines
+    }
+
+    /// „Zobrazit/Skrýt čáry licenčních tříd USA": written into the configuration and saved like the band plan option.
+    public func toggleLicenseLines() {
+        config.config.dxCluster.showUsLicenseLines = !showLicenseLines
+        config.saveSilently()
+    }
+
+    /// The band plan edited at `freqHz` from the context menu (N1MM: a right click on the frequency sets a CW,
+    /// digital or phone sub-band edge there or removes the sub-band): the station region's rows of
+    /// `bandplan.yaml` change (`BandPlanEdit`), the file is written and the band data reloaded as after Settings →
+    /// Band plan, so the band map redraws with the new plan. A refused edit or a failed write says why in the status
+    /// line. Returns whether the plan changed.
+    @discardableResult
+    public func editBandPlan(_ action: BandPlanEdit.Action, atHz freqHz: Int64) async -> Bool {
+        guard let root = contest.bandDataRoot else { return false }
+        let region: String = analyzer().stationRegion.rawValue
+        let band: Band? = Band.from(frequencyHz: Int(clamping: freqHz))
+        let khz: Double = (Double(freqHz) / 100.0).rounded() / 10.0
+        let outcome: BandPlanEdit.Outcome? = try? await BlockingQueue.run {
+            let rows: [BandPlanFile.Segment] = BandPlanEdit.seeded(BandPlanFile.read(root), region: region)
+            let outcome: BandPlanEdit.Outcome = BandPlanEdit.apply(action, atKhz: khz, band: band, region: region,
+                                                                   segments: rows)
+            if case .edited(let edited) = outcome {
+                try BandPlanFile.write(root, edited)
+            }
+            return outcome
+        }
+        switch outcome {
+        case .edited?:
+            await contest.reloadBandData()
+            status.show(ContestMessage("Bandplán upraven na %s kHz", .string(FrequencyText.formatHz(freqHz))))
+            return true
+        case .refused(let refusal)?:
+            switch refusal {
+            case .outsideBand: status.show(ContestMessage("Bandplán: kmitočet není v pásmu"))
+            case .noSegment: status.show(ContestMessage("Bandplán: na tomto pásmu takový úsek není"))
+            case .empty: status.show(ContestMessage("Bandplán: úsek by byl prázdný"))
+            }
+            return false
+        case nil:
+            status.show(ContestMessage("Bandplán se nepodařilo uložit"))
+            return false
+        }
+    }
+
+    /// N1MM „Find a Callsign": a prompt for the call (or a part of it); the next spot above the tuned frequency that
+    /// matches is tuned to like a click (Alt+F8 returns).
+    public func promptFind() {
+        dialogs.prompt(title: ContestMessage("Najít volačku v bandmapě"),
+                       hint: ContestMessage("Volačka nebo její část; hledá se od naladěné frekvence nahoru"),
+                       initial: "") { [weak self] text in
+            self?.find(text)
+        }
+    }
+
+    /// Tunes to the next spot whose call contains `query` (see `BandmapSpotInfo.find`).
+    public func find(_ query: String) {
+        guard !KotlinStrings.isBlank(query) else { return }
+        guard let spot = BandmapSpotInfo.find(query, in: feed.filteredSnapshot(), fromHz: tunedHz) else {
+            status.show(ContestMessage("%s v bandmapě není", .string(KotlinStrings.trim(query).uppercased())))
+            return
+        }
+        rig.tuneToSpot(spot, fillCall: !config.config.dxCluster.callFrame)
     }
 
     /// „Zobrazit/Skrýt bandplán": the option is written into the configuration and saved — the file only, without

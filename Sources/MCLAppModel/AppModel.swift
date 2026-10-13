@@ -790,7 +790,8 @@ public final class AppModel {
             rig: radio.rig, status: status, config: config, language: language, dialogs: dialogs, now: environment.now))
         let bandmap = BandmapModel(BandmapModel.Dependencies(
             feed: spots.feed, analysis: spots.analysis, contest: contest, config: config, operating: operating,
-            blacklist: spots.blacklist, callbook: spots.callbook, rig: radio.rig))
+            blacklist: spots.blacklist, callbook: spots.callbook, rig: radio.rig, status: status, language: language,
+            dialogs: dialogs, now: environment.now))
         let availMult = AvailMultModel(AvailMultModel.Dependencies(
             feed: spots.feed, analysis: spots.analysis, contest: contest, blacklist: spots.blacklist,
             callbook: spots.callbook, rig: radio.rig))
@@ -805,6 +806,8 @@ public final class AppModel {
         let analysis: SpotAnalysisModel = model.spotAnalysis
         model.rig.spotSources = SpotSources(buffer: model.dxCluster.spots, predictExchange: { [weak analysis] spot in
             analysis?.current().predictExchange(spot) ?? JavaLinkedMap()
+        }, spotMode: { [weak analysis] spot in
+            analysis?.current().packetSpotMode(spot)
         })
         let buffer: SpotBuffer = model.dxCluster.spots
         for panel in [model.panel(vfo: 0), model.vfoB] {

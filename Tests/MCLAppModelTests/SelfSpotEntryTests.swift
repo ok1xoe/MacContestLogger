@@ -5,7 +5,8 @@ import Testing
 
 /// The self-spot and the auto-prefill of the entry windows (`EP:150-153, 235-256`; ledger: the tracker's
 /// call order, the tuning effect in both windows, a wipe and a tune in one step). No rig is connected: the tuning is
-/// the shared state only, CAT never answers and nothing transmits.
+/// the shared state only, CAT never answers and nothing transmits. The auto-prefill is v1.1.1's behaviour with the
+/// N1MM call-frame off (with it on, the nearby spot's call shows in the call-frame instead, `CallFrameTests`).
 @MainActor @Suite struct SelfSpotEntryTests {
 
     static func spots(_ rigApp: RigApp) -> [DxSpot] {
@@ -59,7 +60,7 @@ import Testing
 
     /// With an empty field, tuning onto a spot within 100 Hz fills its call (a call from a spot); 110 Hz away does not.
     @Test func tuningOntoASpotPrefillsAnEmptyField() async throws {
-        let rigApp = try await RigApp.make()
+        let rigApp = try await RigApp.make { config, _ in config.dxCluster.callFrame = false }
         rigApp.model.dxCluster.spots.add(DxSpot(spotter: "OK1RR", freqHz: 14_010_100, dxCall: "W1AW", comment: ""))
         await Self.tune(rigApp, 14_009_990)
         #expect(rigApp.entry.form.call.isEmpty)
@@ -104,7 +105,10 @@ import Testing
     /// A window off screen runs no tuning effect (Kotlin has no VFO B composition then): tuning onto a spot while the
     /// VFO B window is hidden leaves its call blank when it opens, and its typed call is never self-spotted.
     @Test func aHiddenWindowRunsNoTuningEffect() async throws {
-        let rigApp = try await RigApp.make { config, _ in config.radioMode = "SO2V" }
+        let rigApp = try await RigApp.make { config, _ in
+            config.radioMode = "SO2V"
+            config.dxCluster.callFrame = false
+        }
         let second: EntryModel = rigApp.model.vfoB.entry
         #expect(!second.isWindowShown)
         rigApp.model.dxCluster.spots.add(DxSpot(spotter: "OK1RR", freqHz: 14_035_000, dxCall: "DL1ABC", comment: ""))
@@ -122,7 +126,10 @@ import Testing
     /// The tuning effect runs in **both** windows (Kotlin has no `active` guard there): in SO2V a call
     /// typed in the inactive window is self-spotted when the shared frequency moves away.
     @Test func theInactiveWindowSelfSpotsToo() async throws {
-        let rigApp = try await RigApp.make { config, _ in config.radioMode = "SO2V" }
+        let rigApp = try await RigApp.make { config, _ in
+            config.radioMode = "SO2V"
+            config.dxCluster.callFrame = false
+        }
         let second: EntryModel = rigApp.model.vfoB.entry
         second.isWindowShown = true
         #expect(rigApp.entry.isActivePanel && !second.isActivePanel)

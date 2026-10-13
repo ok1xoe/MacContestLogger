@@ -66,7 +66,8 @@ final class BandmapKeyMonitor: ObservableObject {
 }
 
 /// Kotlin `BandmapWindow` (`bandmap` 460×640, `BandmapWindow.kt:75-360`): the window stepper top-right,
-/// the tuned frequency with the zoom buttons and the spot font field, then the band map. Without a tuned band only
+/// the radio, the tuned frequency (and the TX frequency while split) with the zoom buttons and the spot font field,
+/// then the band map. Without a tuned band only
 /// the hint „Bandmapa — nalaď pásmo" shows.
 struct BandmapWindowView: View {
     static let id = "bandmap"
@@ -127,12 +128,24 @@ struct BandmapWindowView: View {
         }
     }
 
-    /// The control row: the tuned frequency, the zoom buttons and the spot font field with its arrows.
+    /// The control row: the radio (N1MM: the rig, its VFO), the tuned frequency and the transmit frequency while
+    /// split, the zoom buttons and the spot font field with its arrows.
     private func controls(model: BandmapModel, language: LanguageModel) -> some View {
         HStack(alignment: .center, spacing: 6) {
+            Text(verbatim: model.radioName(language))
+                .windowFont(12, weight: .medium)
+                .foregroundStyle(.secondary)
+                .fixedSize()
             Text(verbatim: model.tunedText)
                 .windowFont(18, weight: .bold, design: .monospaced)
                 .foregroundStyle(.mclPrimary)
+                .fixedSize()
+            if let tx = model.txText {
+                Text(verbatim: tx)
+                    .windowFont(13, weight: .bold, design: .monospaced)
+                    .foregroundStyle(Color(nsColor: .systemRed))
+                    .fixedSize()
+            }
             Spacer(minLength: 0)
             iconButton("plus", language.tr("Přiblížit")) { model.zoomIn() }
             iconButton("minus", language.tr("Oddálit")) { model.zoomOut() }

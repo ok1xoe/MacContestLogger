@@ -84,9 +84,11 @@ extension EntryModel {
         selfSpotTunedHz = tuned
         let buffer: SpotBuffer = spots.buffer
         let threshold = Int64(config.config.dxCluster.selfSpotThresholdHz)
+        // With the N1MM call-frame the call of a nearby spot shows above the field instead of filling it.
+        let callFrame: Bool = config.config.dxCluster.callFrame
         let action: SelfSpotTracker.Action? = selfSpot.tunedChanged(
             tuned, call: form.call, thresholdHz: threshold,
-            nearest: { buffer.nearestWithin($0, toleranceHz: $1) })
+            nearest: { callFrame ? nil : buffer.nearestWithin($0, toleranceHz: $1) })
         switch action {
         case .selfSpot(let call, let atHz):
             spots.store(call: call, freqHz: atHz)
@@ -96,6 +98,41 @@ extension EntryModel {
         case nil:
             break
         }
+    }
+
+    // MARK: - the call-frame
+
+    /// N1MM's call-frame: the spot within the mode's tuning tolerance of this window's frequency (the nearest; the
+    /// spot filter applies), shown above the call field. `nil` with the option off, without spots or a frequency.
+    public var callFrameSpot: DxSpot? {
+        let dx: DxClusterConfig = config.config.dxCluster
+        guard dx.callFrame, let spots = spotNavigation else { return nil }
+        return spots.callFrameSpot(freqHz: form.freqHz, toleranceHz: dx.tuningToleranceHz(form.mode))
+    }
+
+    /// The call-frame's call when the call field does not already hold it.
+    public var callFrameCall: String? {
+        guard let spot = callFrameSpot,
+              CallStack.normalize(spot.dxCall) != CallStack.normalize(form.call) else { return nil }
+        return spot.dxCall
+    }
+
+    /// The space bar with an empty call field takes the call-frame's call (and the spot's predicted exchange) as a
+    /// call from a spot. `false` = nothing to take.
+    @discardableResult
+    func takeCallFrame() -> Bool {
+        guard KotlinStrings.isBlank(form.call), let spot = callFrameSpot else { return false }
+        selfSpot.prefilledFromSpot()
+        setCallText(spot.dxCall)
+        prefillExchange(rig?.predictedExchange(spot) ?? JavaLinkedMap())
+        return true
+    }
+
+    /// N1MM „Always use packet spot mode": the spot's mode becomes the window's mode (unless the contest fixes it).
+    func applySpotMode(_ mode: Mode) {
+        guard !modeLocked, form.mode != mode else { return }
+        form.applyDefaultRst(mode)
+        setMode(mode)
     }
 
     // MARK: - shortcuts and buttons

@@ -13,8 +13,12 @@ struct BandmapDrawState {
     let cqHz: Int64?
     let notes: [BandNote]
     let showPlan: Bool
+    let licenseLines: [Int64]
     let spotFont: Int
     let viewport: BandmapViewport
+    let toleranceHz: Int?
+    let txHz: Int64?
+    let passband: ClosedRange<Int64>?
 
     /// `nil` without a tuned band (the window shows its hint instead).
     @MainActor
@@ -27,14 +31,18 @@ struct BandmapDrawState {
         cqHz = model.cqHz
         notes = model.notes
         showPlan = model.showPlan
+        licenseLines = model.licenseLines
         spotFont = model.spotFont
         viewport = model.viewport
+        toleranceHz = model.tuningToleranceHz
+        txHz = model.splitTxHz
+        passband = model.passbandRange
     }
 }
 
 /// The band map (an AppKit island, Kotlin `Canvas` of `BandmapWindow.kt:213-360, 440-620`): a
 /// flipped `NSView` that draws the band plan strip, the axis with its ticks, the spread spot labels with their leader
-/// lines, the band notes, the CQ line and the VFO triangle, and takes the pointer — a click, a drag that zooms, the
+/// lines, the band notes, the CQ line, the receiver's filter and the RX/TX arrows, and takes the pointer — a click, a drag that zooms, the
 /// wheel and the context menu. Every coordinate and every decision is the models' (`BandmapModel`, the core's
 /// `BandmapViewport`/`BandmapLayout`); the view only measures its fonts and passes the positions on.
 ///
@@ -58,6 +66,7 @@ struct BandmapView: NSViewRepresentable {
         view.state = state
         view.setAccessibilityLabel(language.tr("Bandmapa"))
         view.refreshAccessibilityValue()
+        view.refreshToolTips()
         view.needsDisplay = true
     }
 }
@@ -75,7 +84,7 @@ final class BandmapSpotElement: NSAccessibilityElement {
 }
 
 @MainActor
-final class BandmapCanvas: NSView {
+final class BandmapCanvas: NSView, NSViewToolTipOwner {
 
     var model: BandmapModel?
     var language: LanguageModel?
@@ -121,6 +130,7 @@ final class BandmapCanvas: NSView {
     private static let planWidth: CGFloat = 13
     private static let markerWidth: CGFloat = 18
     private static let markerHeight: CGFloat = 8
+    private static let passbandWidth: CGFloat = 5
 
     override func draw(_ dirtyRect: NSRect) {
         guard let state, let model, let context = NSGraphicsContext.current?.cgContext else { return }
@@ -134,10 +144,16 @@ final class BandmapCanvas: NSView {
         }
         drawPlan(model: model, state: state, axisX: axisX, yAt: yAt, metrics: metrics, context: context)
         drawAxis(viewport: viewport, axisX: axisX, yAt: yAt, metrics: metrics)
+        drawLicenseLines(state: state, axisX: axisX, yAt: yAt)
         drawSpots(model: model, state: state, axisX: axisX, height: height, metrics: metrics)
         drawNotes(state: state, viewport: viewport, axisX: axisX, width: width, yAt: yAt)
         drawCq(state: state, viewport: viewport, axisX: axisX, width: width, yAt: yAt, metrics: metrics)
-        drawVfo(state: state, viewport: viewport, axisX: axisX, width: width, yAt: yAt)
+        drawPassband(state: state, viewport: viewport, axisX: axisX, yAt: yAt)
+        drawTolerance(state: state, viewport: viewport, axisX: axisX, yAt: yAt)
+        if let tx = state.txHz {
+            drawArrow(at: tx, color: .systemRed, viewport: viewport, axisX: axisX, width: width, yAt: yAt)
+        }
+        drawArrow(at: state.tunedHz, color: .systemBlue, viewport: viewport, axisX: axisX, width: width, yAt: yAt)
         if let start = pressStart, let current = dragCurrentY {
             DomainColors.primary.withAlphaComponent(0.15).setFill()
             let top: CGFloat = Swift.min(start.y, current)
@@ -206,6 +222,15 @@ final class BandmapCanvas: NSView {
         }
     }
 
+    /// The US licence class edges (N1MM's red lines): a short red line across the scale at each edge.
+    private func drawLicenseLines(state: BandmapDrawState, axisX: CGFloat, yAt: (Int64) -> CGFloat) {
+        for hz in state.licenseLines {
+            let y: CGFloat = yAt(hz)
+            line(from: NSPoint(x: axisX - 10, y: y), to: NSPoint(x: axisX + 1 + Self.planWidth, y: y),
+                 color: .systemRed, width: 1.5)
+        }
+    }
+
     /// The spots spread over free rows, each with a leader line from its frequency on the axis to its label.
     private func drawSpots(model: BandmapModel, state: BandmapDrawState, axisX: CGFloat, height: Float,
                            metrics: Metrics) {
@@ -253,19 +278,45 @@ final class BandmapCanvas: NSView {
              font: font, color: DomainColors.primary)
     }
 
-    /// The tuned frequency: a translucent line across and a triangle pointing at the axis.
-    private func drawVfo(state: BandmapDrawState, viewport: BandmapViewport, axisX: CGFloat, width: CGFloat,
-                         yAt: (Int64) -> CGFloat) {
-        guard state.tunedHz >= viewport.loHz, state.tunedHz <= viewport.hiHz else { return }
-        let y: CGFloat = yAt(state.tunedHz)
-        line(from: NSPoint(x: axisX, y: y), to: NSPoint(x: width, y: y),
-             color: DomainColors.dupe.withAlphaComponent(0.5), width: 2)
+    /// N1MM's tuning tolerance: a light blue band on the scale around the tuned frequency (the call-frame's reach).
+    private func drawTolerance(state: BandmapDrawState, viewport: BandmapViewport, axisX: CGFloat,
+                               yAt: (Int64) -> CGFloat) {
+        guard let tolerance = state.toleranceHz, tolerance > 0, state.tunedHz >= viewport.loHz,
+              state.tunedHz <= viewport.hiHz else { return }
+        let first: CGFloat = yAt(state.tunedHz - Int64(tolerance))
+        let second: CGFloat = yAt(state.tunedHz + Int64(tolerance))
+        let top: CGFloat = Swift.min(first, second)
+        let height: CGFloat = Swift.max(abs(second - first), 2)
+        NSColor.systemTeal.withAlphaComponent(0.35).setFill()
+        NSRect(x: axisX - 6, y: top, width: 6, height: height).fill()
+    }
+
+    /// The receiver's filter (N1MM draws the filter width at the arrow): a bar right of the band plan strip.
+    private func drawPassband(state: BandmapDrawState, viewport: BandmapViewport, axisX: CGFloat,
+                              yAt: (Int64) -> CGFloat) {
+        guard let range = state.passband, range.upperBound >= viewport.loHz,
+              range.lowerBound <= viewport.hiHz else { return }
+        let first: CGFloat = yAt(Swift.max(range.lowerBound, viewport.loHz))
+        let second: CGFloat = yAt(Swift.min(range.upperBound, viewport.hiHz))
+        NSColor.systemBlue.withAlphaComponent(0.45).setFill()
+        NSRect(x: axisX + Self.planWidth + 2, y: Swift.min(first, second), width: Self.passbandWidth,
+               height: Swift.max(abs(second - first), 2)).fill()
+    }
+
+    /// An arrow of the radio (N1MM: blue = the receive frequency, red = the transmit frequency while split): a
+    /// translucent line across and a triangle pointing at the axis.
+    private func drawArrow(at hz: Int64, color: NSColor, viewport: BandmapViewport, axisX: CGFloat, width: CGFloat,
+                           yAt: (Int64) -> CGFloat) {
+        guard hz >= viewport.loHz, hz <= viewport.hiHz else { return }
+        let y: CGFloat = yAt(hz)
+        line(from: NSPoint(x: axisX, y: y), to: NSPoint(x: width, y: y), color: color.withAlphaComponent(0.5),
+             width: 2)
         let path = NSBezierPath()
         path.move(to: NSPoint(x: axisX - Self.markerWidth, y: y - Self.markerHeight))
         path.line(to: NSPoint(x: axisX, y: y))
         path.line(to: NSPoint(x: axisX - Self.markerWidth, y: y + Self.markerHeight))
         path.close()
-        DomainColors.dupe.setFill()
+        color.setFill()
         path.fill()
         path.lineWidth = 1
         NSColor.labelColor.setStroke()
@@ -291,6 +342,7 @@ final class BandmapCanvas: NSView {
             element.setAccessibilityRole(.button)
             element.setAccessibilityLabel(AccessibilityText.bandmapSpot(
                 call: spot.dxCall, freqHz: spot.freqHz, color: key, translator: language.translator))
+            element.setAccessibilityHelp(model.tooltip(spot))
             let origin = NSPoint(x: CGFloat(metrics.axisX) + Self.leaderWidth,
                                  y: CGFloat(placement.labelY) - rowHeight / 2)
             let frame = NSRect(origin: origin, size: NSSize(width: Swift.max(bounds.width - origin.x, 1),
@@ -319,6 +371,38 @@ final class BandmapCanvas: NSView {
             band: state.band.adif, tunedHz: state.tunedHz, spots: state.spots.count, translator: language.translator))
     }
 
+    // MARK: - tooltips
+
+    /// One tooltip area per spot label (N1MM's spot tooltip), rebuilt with every update and resize.
+    func refreshToolTips() {
+        removeAllToolTips()
+        guard let state, let model else { return }
+        let metrics: Metrics = metrics(state)
+        let rowHeight = CGFloat(metrics.rowH)
+        let left = CGFloat(metrics.axisX) + Self.leaderWidth
+        for placement in model.placements(spots: state.spots, height: Float(bounds.height), rowH: metrics.rowH) {
+            let rect = NSRect(x: left, y: CGFloat(placement.labelY) - rowHeight / 2,
+                              width: Swift.max(bounds.width - left, 1), height: rowHeight)
+            addToolTip(rect, owner: self, userData: nil)
+        }
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        refreshToolTips()
+    }
+
+    nonisolated func view(_ view: NSView, stringForToolTip tag: NSView.ToolTipTag, point: NSPoint,
+                          userData data: UnsafeMutableRawPointer?) -> String {
+        MainActor.assumeIsolated {
+            guard let model, let state else { return "" }
+            let metrics: Metrics = metrics(state)
+            guard let spot = model.menuSpot(x: Float(point.x), y: Float(point.y), height: Float(bounds.height),
+                                            axisX: metrics.axisX, rowH: metrics.rowH) else { return "" }
+            return model.tooltip(spot)
+        }
+    }
+
     // MARK: - pointer
 
     /// The mouse position over the map: the spot under it is the target of Alt+D (`BandmapModel.handleKey`).
@@ -337,6 +421,11 @@ final class BandmapCanvas: NSView {
         let metrics: Metrics = metrics(state)
         model.pointerMoved(x: Float(point.x), y: Float(point.y), height: Float(bounds.height), axisX: metrics.axisX,
                            rowH: metrics.rowH)
+        let tip: String? = model.markerTooltip(x: Float(point.x), y: Float(point.y), height: Float(bounds.height),
+                                               axisX: metrics.axisX)
+        if toolTip != tip {
+            toolTip = tip
+        }
     }
 
     override func mouseExited(with event: NSEvent) {
@@ -370,6 +459,9 @@ final class BandmapCanvas: NSView {
         let height = Float(bounds.height)
         if let current = dragCurrentY, abs(start.y - current) > CGFloat(BandmapViewport.dragThresholdPx) {
             model.drag(from: Float(start.y), to: Float(current), height: height)
+        } else if event.clickCount >= 2 {
+            model.doubleClick(x: Float(start.x), y: Float(start.y), height: height, axisX: metrics.axisX,
+                              rowH: metrics.rowH)
         } else {
             model.click(x: Float(start.x), y: Float(start.y), height: height, axisX: metrics.axisX,
                         rowH: metrics.rowH)
@@ -413,25 +505,79 @@ final class BandmapCanvas: NSView {
             }
             menu.addItem(.separator())
         }
+        // N1MM's order: Zoom In, Zoom Out, Disable Mouse Wheel, Go to Bottom / Top Of Band.
+        addItem(menu, language.tr("Přiblížit")) { model.zoomIn() }
+        addItem(menu, language.tr("Oddálit")) { model.zoomOut() }
+        addItem(menu, language.tr("Vypnout kolečko myši"), checked: model.wheelDisabled) {
+            model.toggleWheelDisabled()
+        }
+        addItem(menu, language.tr("Na spodní okraj úseku pásma")) { model.goToBottomOfBand() }
+        addItem(menu, language.tr("Na horní okraj úseku pásma")) { model.goToTopOfBand() }
+        menu.addItem(.separator())
+        addItem(menu, language.tr("Smazat spoty, jen toto pásmo, ponechat vlastní")) {
+            model.removeSpots(thisBand: true, keepSelf: true)
+        }
+        addItem(menu, language.tr("Smazat spoty, jen toto pásmo")) { model.removeSpots(thisBand: true, keepSelf: false) }
+        addItem(menu, language.tr("Smazat spoty, všechna pásma, ponechat vlastní")) {
+            model.removeSpots(thisBand: false, keepSelf: true)
+        }
         addItem(menu, language.tr("Smazat všechny spoty")) { model.clearSpots() }
+        menu.addItem(.separator())
         addItem(menu, state.showPlan ? language.tr("Skrýt bandplán") : language.tr("Zobrazit bandplán")) {
             model.toggleBandPlan()
         }
+        let freqHz: Int64 = state.viewport.freqAt(Float(point.y), height: Float(bounds.height))
+        menu.addItem(bandPlanItem(model: model, language: language, freqHz: freqHz))
+        addItem(menu, !model.showLicenseLines
+                    ? language.tr("Zobrazit čáry licenčních tříd USA")
+                    : language.tr("Skrýt čáry licenčních tříd USA")) {
+            model.toggleLicenseLines()
+        }
+        addItem(menu, language.tr("Najít volačku…")) { model.promptFind() }
         menu.addItem(.separator())
         // N1MM „Telnet Bands/Modes" and „Telnet Filters": one sheet holds both parts of the spot filter.
         addItem(menu, language.tr("Telnet pásma/módy…")) { model.openSpotFilter() }
         addItem(menu, language.tr("Telnet filtry…")) { model.openSpotFilter() }
         addItem(menu, language.tr("Uživatelská tlačítka…")) { model.editButtons() }
+        addItem(menu, language.tr("Nejnižší kmitočet dole"), checked: model.lowestAtBottom) {
+            model.toggleLowestAtBottom()
+        }
         menu.popUp(positioning: nil, at: point, in: self)
     }
 
-    private func addItem(_ menu: NSMenu, _ title: String, enabled: Bool = true,
+    /// „Bandplán zde (… kHz)": the sub-band edges set at the clicked frequency, or the sub-band under it removed
+    /// (N1MM's band plan adjustment by a right click on the frequency).
+    private func bandPlanItem(model: BandmapModel, language: LanguageModel, freqHz: Int64) -> NSMenuItem {
+        let item = NSMenuItem(title: language.tr("Bandplán zde (%s kHz)", .string(FrequencyText.formatHz(freqHz))),
+                              action: nil, keyEquivalent: "")
+        let submenu = NSMenu()
+        let edits: [(String, BandPlanEdit.Action)] = [
+            ("Začátek CW zde", .setLow(mode: "CW")), ("Konec CW zde", .setHigh(mode: "CW")),
+            ("Začátek Digi zde", .setLow(mode: "DIGI")), ("Konec Digi zde", .setHigh(mode: "DIGI")),
+            ("Začátek fonie zde", .setLow(mode: "PHONE")), ("Konec fonie zde", .setHigh(mode: "PHONE")),
+            ("Odebrat úsek zde", .remove),
+        ]
+        for (index, edit) in edits.enumerated() {
+            if index == edits.count - 1 {
+                submenu.addItem(.separator())
+            }
+            let action: BandPlanEdit.Action = edit.1
+            addItem(submenu, language.tr(edit.0)) {
+                Task { await model.editBandPlan(action, atHz: freqHz) }
+            }
+        }
+        item.submenu = submenu
+        return item
+    }
+
+    private func addItem(_ menu: NSMenu, _ title: String, enabled: Bool = true, checked: Bool = false,
                          _ run: @escaping @MainActor () -> Void) {
         let action = MenuItemAction(run)
         menuActions.append(action)
         let item = NSMenuItem(title: title, action: #selector(MenuItemAction.fire), keyEquivalent: "")
         item.target = action
         item.isEnabled = enabled
+        item.state = checked ? .on : .off
         menu.addItem(item)
     }
 }

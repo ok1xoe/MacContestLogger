@@ -42,6 +42,8 @@ struct BandPlanTab: View {
             SettingsCheckbox(label: language.tr("Podbarvit úseky v bandmapě (proužek u osy)"),
                              isOn: $draft.showBandPlan)
                 .padding(.top, 4)
+            SettingsCheckbox(label: language.tr("Čáry licenčních tříd USA v bandmapě (pro stanice v USA)"),
+                             isOn: $draft.showUsLicenseLines)
             if anyOverlap {
                 SettingsText(language.tr(
                     "Některé segmenty se překrývají — mód na překryvu by byl nejednoznačný. Uprav rozsahy."),

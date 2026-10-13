@@ -231,6 +231,13 @@ extension ConfigurerDraft {
         dx.minSkimmers = ConfigurerRows.toIntOrNull(minSkimmers) ?? 1
         dx.autoSplit = autoSplit
         dx.showBandPlan = showBandPlan
+        dx.showUsLicenseLines = showUsLicenseLines
+        dx.callFrame = callFrame
+        let tolerance: Int = DxClusterConfig.defaultTuningToleranceHz
+        dx.tuningToleranceCwHz = ConfigurerRows.toIntOrNull(tuningToleranceCwHz) ?? tolerance
+        dx.tuningToleranceSsbHz = ConfigurerRows.toIntOrNull(tuningToleranceSsbHz) ?? tolerance
+        dx.tuningToleranceDigiHz = ConfigurerRows.toIntOrNull(tuningToleranceDigiHz) ?? tolerance
+        dx.spotModeOnTune = spotModeOnTune
         let widths = DxClusterConfig()
         dx.filterCwWideHz = ConfigurerRows.toIntOrNull(filterCwWideHz) ?? widths.filterCwWideHz
         dx.filterCwNarrowHz = ConfigurerRows.toIntOrNull(filterCwNarrowHz) ?? widths.filterCwNarrowHz

@@ -196,6 +196,11 @@ public struct SpotAnalyzer: Sendable {
         BandPlan.IaruRegion.forContinent(dxcc?.resolve(myCall)?.primaryContinent)
     }
 
+    /// The station's IARU region (by its own call's continent) — the band plan the band map shows and edits.
+    public var stationRegion: BandPlan.IaruRegion {
+        myRegion()
+    }
+
     /// Kotlin `resolveSpotMode` (`:559-567`): comment → digi calibration frequency → band plan (DX region,
     /// `categoryToMode`) → the contest's primary mode (`CW` outside a contest).
     public func resolveSpotMode(call: String, freqHz: Int, comment: String?) -> String {
