@@ -1542,5 +1542,9 @@
  "Call history závodu": "Call History des Contests",
  "prázdné = hlavní soubor z Nastavení": "leer = Hauptdatei aus den Einstellungen",
  "Vybrat soubor…": "Datei wählen…",
- "Importovat call history…": "Call History importieren…"
+ "Importovat call history…": "Call History importieren…",
+ "Vypnout kolečko myši": "Mausrad deaktivieren",
+ "Na spodní okraj úseku pásma": "Zum unteren Rand des Bandsegments",
+ "Na horní okraj úseku pásma": "Zum oberen Rand des Bandsegments",
+ "Nejnižší kmitočet dole": "Niedrigste Frequenz unten"
 }
