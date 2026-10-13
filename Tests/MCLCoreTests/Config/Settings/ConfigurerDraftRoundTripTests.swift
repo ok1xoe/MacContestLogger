@@ -123,6 +123,11 @@ import Testing
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
+        expected.digital.cwIdEnabled = false
+        expected.digital.cwIdText = "DE {MYCALL}"
+        expected.digital.diButtonCount = 0
+        expected.digital.rxOutputToFile = false
+        expected.digital.diMessages = DigitalConfig.emptyButtons()
         expected.digital.grabOrder = GrabList.Order.lifo.rawValue
         expected.digital.grabNoDupes = true
         expected.digital.grabOnlyScp = false
@@ -372,6 +377,11 @@ import Testing
         w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
+        w.same(\.cwIdEnabled, \.digital.cwIdEnabled, true)
+        w.same(\.cwIdText, \.digital.cwIdText, "{MYCALL}")
+        w.same(\.diButtonCount, \.digital.diButtonCount, 16)
+        w.same(\.rxOutputToFile, \.digital.rxOutputToFile, true)
+        w.rows(\.diMessages, \.digital.diMessages, (1...DigitalConfig.buttonSlots).map { FunctionKeyMessage(label: "di" + String($0), text: "di text " + String($0)) }) { FunctionKeyDraft($0) }
         w.same(\.grabOrder, \.digital.grabOrder, "FIFO")
         w.same(\.grabNoDupes, \.digital.grabNoDupes, false)
         w.same(\.grabOnlyScp, \.digital.grabOnlyScp, true)

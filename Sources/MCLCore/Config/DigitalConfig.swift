@@ -93,11 +93,28 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// N1MM „Add Callsign to Bandmap on Alt+G": the call in the field is stored in the bandmap (Alt+O) before a grab replaces it. Swift-only key.
     public var grabAddToBandmap: Bool = false
 
+    /// N1MM CWID: after every digital message fldigi sends `cwIdText` in CW (its CW modem), then returns to the previous modem. Swift-only key.
+    public var cwIdEnabled: Bool = false
+    /// The CWID text (`*` / `{MYCALL}` = my call). Swift-only key.
+    public var cwIdText: String = "DE {MYCALL}"
+    /// N1MM's extra Digital Interface message buttons DI1…DI24 (`{DI1}`…`{DI24}`); always 24 items. Swift-only key.
+    public var diMessages: [FunctionKeyMessage] = DigitalConfig.emptyButtons() {
+        didSet {
+            let normalized = DigitalConfig.buttons(diMessages)
+            if normalized != diMessages { diMessages = normalized }
+        }
+    }
+    /// N1MM's extra Digital Interface message buttons: 0, 8, 16 or 24. Swift-only key.
+    public var diButtonCount: Int = 0
+    /// N1MM „Output Main RX Window to Text File": received text appended to `ExportFiles/<MMddyyyy>DigitalInterface1Output.txt`. Swift-only key.
+    public var rxOutputToFile: Bool = false
+
     enum CodingKeys: String, CodingKey {
         case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
         case autoTrxUpdate, rttyModem, pskModem
         case callValidity, validateScp, validateCallHistory, validateSpotted, validateLogged, scpGarbageSearch, highlightBackground, nonScrollingRx, pauseOnCallHover, hoverMode, rightClickReturn, sendSpaceOnClick, captionRadioFrequency
         case grabOrder, grabNoDupes, grabOnlyScp, grabClearOnQsy, grabClearOnCq, grabSendSpace, grabAddToBandmap
+        case cwIdEnabled, cwIdText, diButtonCount, rxOutputToFile, diMessages
     }
 
     public init() {}
@@ -135,6 +152,32 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         grabClearOnCq = c.value(.grabClearOnCq, default: d.grabClearOnCq)
         grabSendSpace = c.value(.grabSendSpace, default: d.grabSendSpace)
         grabAddToBandmap = c.value(.grabAddToBandmap, default: d.grabAddToBandmap)
+        cwIdEnabled = c.value(.cwIdEnabled, default: d.cwIdEnabled)
+        cwIdText = c.value(.cwIdText, default: d.cwIdText)
+        diButtonCount = DigitalConfig.buttonCount(c.value(.diButtonCount, default: d.diButtonCount))
+        diMessages = DigitalConfig.buttons(c.value(.diMessages, default: d.diMessages))
+        rxOutputToFile = c.value(.rxOutputToFile, default: d.rxOutputToFile)
+    }
+
+    public static let buttonSlots = 24
+
+    /// 24 empty buttons.
+    public static func emptyButtons() -> [FunctionKeyMessage] {
+        Array(repeating: FunctionKeyMessage(label: "", text: ""), count: buttonSlots)
+    }
+
+    /// Exactly 24 buttons (missing ones empty).
+    public static func buttons(_ list: [FunctionKeyMessage]) -> [FunctionKeyMessage] {
+        var out = Array(list.prefix(buttonSlots))
+        while out.count < buttonSlots {
+            out.append(FunctionKeyMessage(label: "", text: ""))
+        }
+        return out
+    }
+
+    /// 0, 8, 16 or 24 (anything else → the nearest lower one, at least 0).
+    public static func buttonCount(_ value: Int) -> Int {
+        max(0, min(24, value / 8 * 8))
     }
 
     /// A modem name as fldigi knows it: trimmed; blank → `fallback`.

@@ -53,6 +53,11 @@ extension ConfigurerDraft {
         config.esm.callStackOrder = CallStack.Order.from(callStackOrder).rawValue
         config.esm.callStackClearOnBandChange = callStackClearOnBandChange
         config.digital.digitalCallStacking = digitalCallStacking
+        config.digital.cwIdEnabled = cwIdEnabled
+        config.digital.cwIdText = cwIdText
+        config.digital.diButtonCount = DigitalConfig.buttonCount(diButtonCount)
+        config.digital.rxOutputToFile = rxOutputToFile
+        config.digital.diMessages = diMessages.map { $0.toMessage() }
         config.digital.grabOrder = GrabList.Order.from(grabOrder).rawValue
         config.digital.grabNoDupes = grabNoDupes
         config.digital.grabOnlyScp = grabOnlyScp

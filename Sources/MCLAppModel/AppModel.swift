@@ -986,6 +986,7 @@ public final class AppModel {
             panel.entry.callStack = callStack
             panel.entry.grabList = grabList
             panel.entry.digitalKeyer = model.keyer.digital
+            panel.entry.callHistory = { [weak callData = model.callData] in callData?.callHistory ?? .empty }
         }
         let config: ConfigModel = model.config
         model.infoStrip.sources.snsWaiting = { [weak cluster, weak config] in

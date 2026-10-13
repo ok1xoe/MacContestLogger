@@ -136,6 +136,8 @@ public final class EntryModel {
     @ObservationIgnored weak var callStack: CallStackModel?
     /// The Digital Interface's Grab window (Alt+G, `{GRAB}`, `{LOGTHENGRAB}`, Insert); wired by the app.
     @ObservationIgnored weak var grabList: GrabListModel?
+    /// The call history (`{NAME}`); wired by the app.
+    @ObservationIgnored var callHistory: (@MainActor () -> CallHistory)?
     /// fldigi (AutoTRXUpdate's audio frequency, the modem switch of RTTY / PSK); wired by the app.
     @ObservationIgnored weak var digitalKeyer: DigitalKeyerModel?
     /// Opens the documentation page (Alt+H); wired by the app to the callbook's browser lane.

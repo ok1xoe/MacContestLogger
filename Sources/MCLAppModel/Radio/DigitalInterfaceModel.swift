@@ -161,6 +161,8 @@ public final class DigitalInterfaceModel {
     @ObservationIgnored private var hoveredCall: String?
     /// The position (in all text ever received) up to which calls were offered to the Grab window.
     @ObservationIgnored private var grabbedUpTo: Int = 0
+    /// The received text written to a file (Setup → Output RX window to text file).
+    @ObservationIgnored lazy var rxLog: DigitalRxLog? = app.map { DigitalRxLog(dataDir: $0.dataDir) }
     @ObservationIgnored private var markKey: String = ""
     @ObservationIgnored private var markCache: [String: CallMark] = [:]
     @ObservationIgnored private var loggedCalls: Set<String>?
@@ -193,6 +195,8 @@ public final class DigitalInterfaceModel {
     public func open() {
         guard !isOpen else { return }
         isOpen = true
+        // `{CLRRX}` clears this window.
+        digital.clearRxWindow = { [weak self] in self?.clear() }
         observeConfig()
         restart()
     }
@@ -206,6 +210,7 @@ public final class DigitalInterfaceModel {
         timer = nil
         // N1MM applies AutoTRXUpdate only while the window is open.
         digital.carrierHz = nil
+        digital.clearRxWindow = nil
     }
 
     private func restart() {
@@ -283,7 +288,10 @@ public final class DigitalInterfaceModel {
     private func apply(_ result: PollResult, host: String, port: Int) {
         switch result {
         case .read(let poll):
-            if poll.chunk != nil {
+            if let chunk = poll.chunk {
+                if config.config.digital.rxOutputToFile {
+                    rxLog?.append(chunk, at: Date())
+                }
                 received()
             }
             status = RadioWindowTexts.digitalStatus(modem: poll.modem, trx: poll.trx)
@@ -336,6 +344,52 @@ public final class DigitalInterfaceModel {
         app?.grabList.clear()
         text = ""
         transmittedRanges = []
+    }
+
+    // MARK: - transmitting (N1MM TX window, message buttons, text file)
+
+    /// fldigi transmits a held transmission (the TX button / Alt+T).
+    public var transmitting: Bool {
+        digital.isHolding
+    }
+
+    /// The TX / RX buttons (Alt+T).
+    public func toggleTransmit() {
+        digital.toggleHold()
+    }
+
+    /// Text typed in the TX window: while transmitting it goes out at once; otherwise the line is sent as a
+    /// message (with the usual return to receive).
+    public func typed(_ text: String) {
+        guard !text.isEmpty else { return }
+        if digital.isHolding {
+            digital.typeHeld(text)
+        } else {
+            digital.send(text, key: -1)
+        }
+    }
+
+    /// The Digital Interface's message buttons shown (0, 8, 16, 24) with their labels.
+    public var buttons: [FunctionKeyMessage] {
+        let digi: DigitalConfig = config.config.digital
+        return Array(digi.diMessages.prefix(digi.diButtonCount))
+    }
+
+    /// A message button pressed: sent from the active entry window (macros, `{LOGTHENPOP}`, the lamp, Esc).
+    public func pressButton(_ index: Int) {
+        app?.perform(.digitalButton(index))
+    }
+
+    public func setButtonCount(_ count: Int) {
+        config.config.digital.diButtonCount = DigitalConfig.buttonCount(count)
+        config.saveSilently()
+    }
+
+    /// Setup → Send Text File: the file's text through fldigi (at most 64 kB, line breaks kept).
+    public func sendTextFile(_ url: URL) {
+        guard let data = try? Data(contentsOf: url), !data.isEmpty, data.count <= 65_536 else { return }
+        let text: String = String(decoding: data, as: UTF8.self).replacingOccurrences(of: "\r\n", with: "\n")
+        digital.send(text, key: -1)
     }
 
     /// The Grab button: the highlighted call into a wiped entry window.

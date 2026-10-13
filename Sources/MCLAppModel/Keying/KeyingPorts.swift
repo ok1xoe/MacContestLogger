@@ -31,6 +31,10 @@ public protocol FldigiPort: AnyObject, Sendable {
     func modemNames() throws -> [String]
     /// Switches the modem (`modem.set_by_name`).
     func setModem(_ name: String) throws
+    func transmit(_ text: String, returnToRx: Bool, clearFirst: Bool) throws
+    func addTx(_ text: String) throws
+    func txOn() throws
+    func clearTx() throws
 }
 
 extension FldigiClient: FldigiPort {}

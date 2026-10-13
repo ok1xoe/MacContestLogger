@@ -1425,5 +1425,19 @@
  "Po grabu kurzor do výměny (mezera)": "Nach dem Grab Cursor in den Rapport (Leertaste)",
  "Při grabu dát volačku z pole do bandmapy (Alt+O)": "Beim Grab das Rufzeichen aus dem Feld in die Bandmap (Alt+O)",
  "Grab okno": "Grab-Fenster",
- "Insert: volačka z Grab okna + F5+F2": "Insert: Rufzeichen aus dem Grab-Fenster + F5+F2"
+ "Insert: volačka z Grab okna + F5+F2": "Insert: Rufzeichen aus dem Grab-Fenster + F5+F2",
+ "Tlačítka zpráv DI vysílají jen v digitálním módu přes fldigi": "Die DI-Meldungstasten senden nur in einem Digitalmodus über fldigi",
+ "Digi: vysílání zap / vyp (TX okno)": "Digital: Senden ein / aus (TX-Fenster)",
+ "TX: psaní volného textu (Enter odešle)": "TX: freier Text (Enter sendet)",
+ "Vysílání zap / vyp (Alt+T); Esc vysílání přeruší": "Senden ein / aus (Alt+T); Esc bricht das Senden ab",
+ "Odeslat textový soubor…": "Textdatei senden…",
+ "Tlačítka zpráv": "Meldungstasten",
+ "Ukládat přijatý text do souboru (ExportFiles)": "Empfangenen Text in eine Datei speichern (ExportFiles)",
+ "CW ID po každém vysílání": "CW-ID nach jeder Sendung",
+ "Tlačítka zpráv Digitálního rozhraní": "Meldungstasten des Digital-Interface",
+ "Texty s makry jako F-klávesy (také {TX}, {RX}, {ENTERLF}, {CLRRX}, {CLRTX}, {FILE:soubor}, {DI1}…{DI24}); tlačítka jsou v okně Digitální rozhraní a makra {DI1}…{DI24} je vloží do jiné zprávy.": "Texte mit Makros wie bei den F-Tasten (auch {TX}, {RX}, {ENTERLF}, {CLRRX}, {CLRTX}, {FILE:Datei}, {DI1}…{DI24}); die Tasten sind im Fenster Digital-Interface, die Makros {DI1}…{DI24} fügen sie in eine andere Meldung ein.",
+ "Počet tlačítek": "Anzahl der Tasten",
+ "Načíst .mc…": ".mc laden…",
+ "Uložit .mc…": ".mc speichern…",
+ "fldigi pošle text v CW a vrátí původní mód; * nebo {MYCALL} = moje volačka.": "fldigi sendet den Text in CW und kehrt zum vorherigen Modus zurück; * oder {MYCALL} = mein Rufzeichen."
 }

@@ -81,8 +81,9 @@ public enum FunctionKeyTransmission: Equatable, Sendable {
     case voice(indices: [Int], hisCall: String, freqHz: Int64, opposite: Bool)
     /// `sendCw(message, index)`; `index` = the lit key.
     case cw(CwMessage, index: Int)
-    /// `sendDigitalText(text, index)` (fldigi).
-    case digital(text: String, index: Int)
+    /// `sendDigitalText(text, index)` (fldigi). `returnToRx == false`: the message had `{TX}` without `{RX}` —
+    /// fldigi keeps transmitting after it (N1MM).
+    case digital(text: String, index: Int, returnToRx: Bool = true)
 }
 
 /// The result of an F-key press, applied by the app in this order: status, ESM progress and last sent keys, the
@@ -170,10 +171,10 @@ public enum FunctionKeyRouter {
     /// `sendCwFunctionKeys` / `sendDigitalFunctionKeys`: the non-blank texts of the keys joined by a space, built
     /// with `CwMessageBuilder`; CW reports unknown macros, an empty message is not sent; the actions always come back.
     private static func keyed(_ indices: [Int], opposite: Bool, digital: Bool, context: FunctionKeyContext,
-                              into out: inout FunctionKeyOutcome) {
+                              template: String? = nil, into out: inout FunctionKeyOutcome) {
         let set: [FunctionKeyMessage] = (digital ? context.digital : context.cw).messages(run: context.run,
                                                                                          opposite: opposite)
-        let texts: [String] = indices.compactMap { i in
+        let texts: [String] = template.map { [$0] } ?? indices.compactMap { i in
             guard i >= 0, i < set.count, !KotlinStrings.isBlank(set[i].text) else { return nil }
             return set[i].text
         }
@@ -197,7 +198,13 @@ public enum FunctionKeyRouter {
         let index: Int = indices[indices.count - 1]
         if digital {
             if !message.isEmpty {
-                out.transmission = .digital(text: message.plainText(), index: index)
+                // N1MM {TX}/{RX}: a message with {TX} and no {RX} leaves fldigi transmitting; both are then
+                // handled by the transmission. Alone (no text) they switch transmit on / back to receive.
+                let tx: Bool = message.actions.contains(.digitalTx)
+                let rx: Bool = message.actions.contains(.digitalRx)
+                out.transmission = .digital(text: message.plainText(), index: index, returnToRx: rx || !tx)
+                out.actions = message.actions.filter { $0 != .digitalTx && $0 != .digitalRx }
+                return
             }
         } else {
             if !message.unknownMacros.isEmpty {
@@ -205,10 +212,11 @@ public enum FunctionKeyRouter {
                                  .string(message.unknownMacros.joined(separator: " ")))
             }
             if !message.isEmpty {
-                out.transmission = .cw(message, index: index)
+                out.transmission = .cw(message.withoutNewlines, index: index)
             }
         }
-        out.actions = message.actions
+        out.actions = digital ? message.actions
+            : message.actions.filter { ![.digitalTx, .digitalRx, .clearTx, .toggleTx].contains($0) }
     }
 
     /// `{LOGTHENPOP}` / `{LOGTHENNEXT}` (N1MM, Run only): the text before the macro goes to the station being logged,
@@ -261,9 +269,25 @@ public enum FunctionKeyRouter {
         out.lastSentKeys = nil
     }
 
+    /// A Digital Interface message button (N1MM DI1…DI24): its text is sent through fldigi like an F-key message
+    /// (the same macros, `{Fn}` from the digital set, `{LOGTHENPOP}`); `index` is the lamp's key (none: -1).
+    public static func sendDigitalTemplate(_ template: String, context: FunctionKeyContext) -> FunctionKeyOutcome {
+        var out = FunctionKeyOutcome()
+        if context.postContest {
+            out.status = .tr("Dodatečné zadání — nic se nevysílá (NOPOSTCONTEST ukončí)")
+            return out
+        }
+        guard context.mode.isDigital && context.digitalReady else {
+            out.status = .tr("Tlačítka zpráv DI vysílají jen v digitálním módu přes fldigi")
+            return out
+        }
+        keyed([-1], opposite: false, digital: true, context: context, template: template, into: &out)
+        return out
+    }
+
     /// `keysLabel(indices)`: `F5+F2`.
     public static func keysLabel(_ indices: [Int]) -> String {
-        indices.map { "F\($0 + 1)" }.joined(separator: "+")
+        indices.map { $0 < 0 ? "DI" : "F\($0 + 1)" }.joined(separator: "+")
     }
 
     /// The label of an F-key button (`*FunctionKeyLabel(i, shiftHeld)`, `EP:1335-1339`): the CW set in CW, the

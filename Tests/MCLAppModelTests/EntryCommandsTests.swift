@@ -25,7 +25,7 @@ final class RecordingKeyer: KeyerPort, @unchecked Sendable {
             switch transmission {
             case .voice(let indices, _, _, _): return indices
             case .cw(_, let index): return [index]
-            case .digital(_, let index): return [index]
+            case .digital(_, let index, _): return [index]
             }
         }
     }
