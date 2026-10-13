@@ -57,6 +57,22 @@ private struct ModemGroup: View {
                 }
                 SettingsCaption(tools.fldigiProbeText)
             }
+            HStack(alignment: .bottom, spacing: 8) {
+                SettingsField(caption: language.tr("Mód fldigi pro RTTY")) {
+                    SettingsTextField(text: $draft.rttyModem)
+                }
+                .frame(width: 160)
+                SettingsField(caption: language.tr("Mód fldigi pro PSK")) {
+                    SettingsTextField(text: $draft.pskModem)
+                }
+                .frame(width: 160)
+                SettingsCaption(language.tr(
+                    "Napsání RTTY nebo PSK do pole volačky přepne i fldigi na tento mód (názvy jako v menu Op Mode fldigi, např. RTTY, BPSK31, BPSK63)."))
+            }
+            SettingsCheckbox(
+                label: language.tr(
+                    "AutoTRXUpdate: s rigem v USB/LSB zapisovat a spotovat frekvenci rig ± audio fldigi (při otevřeném Digitálním rozhraní)"),
+                isOn: $draft.autoTrxUpdate)
             SettingsCaption(language.tr(
                 "fldigi dělá modem (RTTY, PSK…) a MCL mu posílá zprávy F-kláves (Function Keys → Digi) a čte dekódovaný text do okna Digitální rozhraní. V RTTY/PSK s modemem funguje i ESM. Esc vysílání přeruší."))
         }

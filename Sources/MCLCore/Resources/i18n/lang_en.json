@@ -1382,5 +1382,13 @@
  "LIFO": "LIFO",
  "ESM pošle na konci QSO v Run místo TU tuto klávesu, když v zásobníku čeká volačka a klávesa obsahuje {LOGTHENPOP} ({LOGTHENNEXT} ESM nevybere).": "At the end of a Run QSO ESM sends this key instead of TU when a callsign waits on the stack and the key contains {LOGTHENPOP} (ESM never picks {LOGTHENNEXT}).",
  "Při změně pásma zásobník vymazat": "Clear the stack on a band change",
- "Digitální rozhraní: klik na volačku při obsazeném poli ji dá do zásobníku (Digital Call Stacking, jen Run)": "Digital Interface: a click on a callsign while the field is taken stacks it (Digital Call Stacking, Run only)"
+ "Digitální rozhraní: klik na volačku při obsazeném poli ji dá do zásobníku (Digital Call Stacking, jen Run)": "Digital Interface: a click on a callsign while the field is taken stacks it (Digital Call Stacking, Run only)",
+ "fldigi: mód %s": "fldigi: mode %s",
+ "AutoTRXUpdate (frekvence = rig ± audio)": "AutoTRXUpdate (frequency = rig ± audio)",
+ "Další módy": "More modes",
+ "Mód fldigi (Op Mode)": "fldigi mode (Op Mode)",
+ "Mód fldigi pro RTTY": "fldigi mode for RTTY",
+ "Mód fldigi pro PSK": "fldigi mode for PSK",
+ "Napsání RTTY nebo PSK do pole volačky přepne i fldigi na tento mód (názvy jako v menu Op Mode fldigi, např. RTTY, BPSK31, BPSK63).": "Typing RTTY or PSK into the callsign field switches fldigi to this mode too (names as in fldigi's Op Mode menu, e.g. RTTY, BPSK31, BPSK63).",
+ "AutoTRXUpdate: s rigem v USB/LSB zapisovat a spotovat frekvenci rig ± audio fldigi (při otevřeném Digitálním rozhraní)": "AutoTRXUpdate: with the rig in USB/LSB, log and spot the rig frequency ± fldigi's audio (while the Digital Interface is open)"
 }

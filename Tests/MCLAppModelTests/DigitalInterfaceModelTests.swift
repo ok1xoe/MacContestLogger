@@ -82,7 +82,8 @@ import Testing
         #expect(digital.status == "RTTY · RX")
         #expect(digital.error == nil)
         #expect(digital.recentCalls == ["DL1ABC"])
-        let firstPoll: [String] = ["text.get_rx_length", "text.get_rx", "modem.get_name", "main.get_trx_state"]
+        let firstPoll: [String] = ["text.get_rx_length", "text.get_rx", "modem.get_name", "main.get_trx_state",
+                                   "modem.get_carrier", "modem.get_names"]
         #expect(server.methods == firstPoll)
         buffer.receive("TU OK2XYZ ")
         app.radioClock.advance(by: 300)
@@ -92,8 +93,8 @@ import Testing
         app.radioClock.advance(by: 300)
         await app.settle()
         // Nothing new: no `text.get_rx`.
-        let quietPoll: [String] = ["text.get_rx_length", "modem.get_name", "main.get_trx_state"]
-        #expect(Array(server.methods.suffix(3)) == quietPoll)
+        let quietPoll: [String] = ["text.get_rx_length", "modem.get_name", "main.get_trx_state", "modem.get_carrier"]
+        #expect(Array(server.methods.suffix(4)) == quietPoll)
         digital.close()
     }
 
@@ -175,7 +176,7 @@ import Testing
         app.radioClock.advance(by: 300)
         await app.settle()
         #expect(first.methods.count == polled)
-        #expect(second.methods.count == 7)
+        #expect(second.methods.count == 10, "6 in the first poll (carrier and modem names too), 4 in the next")
         // Another change that keeps engine, host and port does not restart.
         app.model.config.config.cwPitchHz = 650
         await runMainQueue()

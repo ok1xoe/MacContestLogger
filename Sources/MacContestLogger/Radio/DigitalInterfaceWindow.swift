@@ -66,12 +66,20 @@ struct DigitalInterfaceWindowView: View {
                 HStack(alignment: .center, spacing: 8) {
                     Text(verbatim: model.status.isEmpty ? "—" : model.status)
                         .windowFont(16)
+                    let frequency: String = model.frequencyCaption
+                    if !frequency.isEmpty {
+                        Text(verbatim: frequency)
+                            .windowFont(14, design: .monospaced)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("digital.frequency")
+                    }
                     Button {
                         model.clear()
                     } label: {
                         Text(verbatim: "Vymazat").windowFont(14)
                     }
                     .buttonStyle(.borderless)
+                    opModeMenu(model, language: language)
                     setupMenu(model, language: language)
                 }
             }
@@ -102,6 +110,38 @@ struct DigitalInterfaceWindowView: View {
         .environment(\.windowFontSize, session.fontSize)
     }
 
+    /// N1MM's fldigi „Op Mode" menu: the contest modems first, the rest of fldigi's list in a submenu.
+    private func opModeMenu(_ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
+        let modes = model.opModes
+        let current: String = model.currentModem
+        return Menu {
+            ForEach(modes.common, id: \.self) { name in
+                Button {
+                    model.selectModem(name)
+                } label: {
+                    Text(verbatim: (name == current ? "✓ " : "") + name)
+                }
+            }
+            if !modes.other.isEmpty {
+                Menu(language.tr("Další módy")) {
+                    ForEach(modes.other, id: \.self) { name in
+                        Button {
+                            model.selectModem(name)
+                        } label: {
+                            Text(verbatim: (name == current ? "✓ " : "") + name)
+                        }
+                    }
+                }
+            }
+        } label: {
+            Text(verbatim: language.tr("Mód")).windowFont(14)
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .accessibilityLabel(language.tr("Mód fldigi (Op Mode)"))
+        .accessibilityIdentifier("digital.opMode")
+    }
+
     /// N1MM's Digital Interface „Setup" menu: Digital Call Stacking (disabled, FIFO, LIFO, FIFO mults first).
     private func setupMenu(_ model: DigitalInterfaceModel, language: LanguageModel) -> some View {
         let current: CallStack.Order? = model.digitalCallStacking
@@ -110,6 +150,11 @@ struct DigitalInterfaceWindowView: View {
             (.multsFirst, "Zapnuto: FIFO, násobiče napřed"),
         ]
         return Menu {
+            Button {
+                model.setAutoTrxUpdate(!model.autoTrxUpdate)
+            } label: {
+                Text(verbatim: (model.autoTrxUpdate ? "✓ " : "") + language.tr("AutoTRXUpdate (frekvence = rig ± audio)"))
+            }
             Section(language.tr("Digitální zásobník volaček")) {
                 ForEach(Array(options.enumerated()), id: \.offset) { _, option in
                     Button {

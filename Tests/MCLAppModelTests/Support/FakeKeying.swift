@@ -383,6 +383,7 @@ final class FakeFldigiServer: @unchecked Sendable {
     private let socket: Int32
     private let lock = NSLock()
     private var calls: [String] = []
+    private var bodies: [String] = []
     private var stopped = false
     private var responder: @Sendable (String) -> (status: Int, value: String)
 
@@ -423,6 +424,11 @@ final class FakeFldigiServer: @unchecked Sendable {
     /// The XML-RPC methods called so far.
     var methods: [String] {
         lock.withLock { calls }
+    }
+
+    /// The XML-RPC request bodies so far (method and parameters).
+    var requests: [String] {
+        lock.withLock { bodies }
     }
 
     func respond(_ responder: @escaping @Sendable (String) -> (status: Int, value: String)) {
@@ -495,11 +501,16 @@ final class FakeFldigiServer: @unchecked Sendable {
         let method: String = Self.methodName(text)
         let responder = lock.withLock { () -> @Sendable (String) -> (status: Int, value: String) in
             calls.append(method)
+            if let start = text.range(of: "<methodCall>") {
+                bodies.append(String(text[start.lowerBound...]))
+            }
             return self.responder
         }
         let answer = responder(method)
-        let body: String = "<?xml version=\"1.0\"?><methodResponse><params><param><value><string>" + answer.value
-            + "</string></value></param></params></methodResponse>"
+        // A value starting with `<` is raw XML-RPC (an `<array>`), anything else a string.
+        let value: String = answer.value.hasPrefix("<") ? answer.value : "<string>" + answer.value + "</string>"
+        let body: String = "<?xml version=\"1.0\"?><methodResponse><params><param><value>" + value
+            + "</value></param></params></methodResponse>"
         let bytes: [UInt8] = Array(body.utf8)
         var reply: String = "HTTP/1.1 \(answer.status) X\r\n"
         reply += "Content-Type: text/xml\r\n"

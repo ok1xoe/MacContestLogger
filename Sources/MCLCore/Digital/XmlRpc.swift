@@ -116,6 +116,23 @@ public enum XmlRpc {
         return .string(value.textContent) // no type = string
     }
 
+    /// The strings of an `<array>` response (fldigi `modem.get_names`): the text of every `<value>` inside `<data>`;
+    /// `nil` when the response has no array. A fault → `Failure`. (A Swift-only addition: `parseResponse` keeps the
+    /// Java behaviour for the scalar answers.)
+    public static func parseStringArray(_ xml: String) throws(Failure) -> [String]? {
+        let root = try parse(Data(xml.utf8))
+        if root.first(named: "fault") != nil {
+            let message = root.first(named: "string")?.textContent ?? "XML-RPC fault"
+            throw Failure(message: message)
+        }
+        guard let data = root.first(named: "array")?.first(named: "data") else { return nil }
+        var out: [String] = []
+        for case .element(let value) in data.children where value.name == "value" {
+            out.append(value.textContent)
+        }
+        return out
+    }
+
     static func escape(_ text: String) -> String {
         let amp = JavaText.replace(text, "&", "&amp;")
         let lt = JavaText.replace(amp, "<", "&lt;")

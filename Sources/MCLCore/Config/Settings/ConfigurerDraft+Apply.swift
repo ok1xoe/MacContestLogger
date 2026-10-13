@@ -53,6 +53,9 @@ extension ConfigurerDraft {
         config.esm.callStackOrder = CallStack.Order.from(callStackOrder).rawValue
         config.esm.callStackClearOnBandChange = callStackClearOnBandChange
         config.digital.digitalCallStacking = digitalCallStacking
+        config.digital.autoTrxUpdate = autoTrxUpdate
+        config.digital.rttyModem = DigitalConfig.modemName(rttyModem, fallback: "RTTY")
+        config.digital.pskModem = DigitalConfig.modemName(pskModem, fallback: "BPSK31")
     }
 
     private func applyKeyers(_ config: inout AppConfig) {

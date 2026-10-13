@@ -299,6 +299,9 @@ import Testing
                                "spotFilterHiddenBands", "spotFilterHiddenModes", "spotFilterContest",
                                "spotFilterSpotterContinents", "spotFilterSpotterOwnCountry",
                                "spotFilterHideNonWorkable", "nextCallKey", "callStackOrder",
-                               "callStackClearOnBandChange", "digitalCallStacking"])
+                               "callStackClearOnBandChange", "digitalCallStacking",
+                               "autoTrxUpdate",
+                               "rttyModem",
+                               "pskModem"])
     }
 }

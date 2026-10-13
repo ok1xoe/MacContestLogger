@@ -661,7 +661,8 @@ extension EntryModel {
             myCall: station.call, hisCall: "", lastLogged: logbook.rows.last?.call ?? "", serial: logbook.nextSerial,
             rst: "", exchange: cwExchange(), cutNumbers: app.cwKeyer.cutNumbers, leadingZeros: app.cwKeyer.leadingZeros,
             roverQth: station.roverQth, countyLine: countyLine, cutStyle: app.cwKeyer.cutStyle, station: data,
-            functionKeys: [], now: now())
+            functionKeys: [], now: now(), leftDigitalFrequency: digitalFrequencyText(vfo: 0),
+            rightDigitalFrequency: digitalFrequencyText(vfo: 1))
         return FunctionKeyContext(
             mode: form.mode, digitalReady: digitalReady, postContest: operating.postContest, run: operating.isRun,
             call: form.call, rstSent: form.rstSent, freqHz: form.freqHz, progress: esmProgress,
@@ -671,6 +672,14 @@ extension EntryModel {
             digital: FunctionKeySet(run: app.digital.runMessages, sp: app.digital.spMessages),
             cwBase: base, exchangeValid: exchangeValid, stackNext: operating.isRun ? callStack?.next : nil,
             serialAfterLog: logbook.nextSerial + 1)
+    }
+
+    /// `{LDIGFQ}` / `{RDIGFQ}`: the transmitted frequency of rig / VFO `vfo` (dial ± fldigi's audio in a sideband
+    /// mode), in kHz; `""` without a rig state.
+    func digitalFrequencyText(vfo: Int) -> String {
+        guard let rig, let state = rig.snapshot(vfo: vfo).state else { return "" }
+        let hz: Int64 = digitalKeyer?.transmitHz(dialHz: state.freqHz, rawMode: state.rawMode) ?? state.freqHz
+        return DigitalFrequency.macroText(hz)
     }
 
     /// The F-key button label (`*FunctionKeyLabel(i, shiftHeld)`).
@@ -851,6 +860,10 @@ extension EntryModel {
             form.mode = mode
             form.applyDefaultRst(mode)
             setMode(mode)
+            // N1MM: typing RTTY or PSK switches the digital engine too.
+            if digitalReady, let modem = config.config.digital.modem(for: mode) {
+                digitalKeyer?.setModem(modem)
+            }
         case .rigMode(let mode, let freqHz):
             ports.rig.setMode(mode, freqHz: freqHz)
         case .status(let message):

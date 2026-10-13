@@ -203,6 +203,9 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var callStackOrder: String = CallStack.Order.multsFirst.rawValue
     public var callStackClearOnBandChange: Bool = true
     public var digitalCallStacking: Bool = false
+    public var autoTrxUpdate: Bool = true
+    public var rttyModem: String = "RTTY"
+    public var pskModem: String = "BPSK31"
 
     // MARK: CW keyer and digital modes — `CD:302-317`
 
@@ -455,6 +458,9 @@ extension ConfigurerDraft {
         callStackOrder = config.esm.callStackOrder
         callStackClearOnBandChange = config.esm.callStackClearOnBandChange
         digitalCallStacking = config.digital.digitalCallStacking
+        autoTrxUpdate = config.digital.autoTrxUpdate
+        rttyModem = config.digital.rttyModem
+        pskModem = config.digital.pskModem
     }
 
     private mutating func loadKeyers(_ config: AppConfig) {

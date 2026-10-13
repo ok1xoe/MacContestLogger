@@ -142,7 +142,7 @@ extension EntryModel {
             return
         }
         let lastQso: Qso? = logbook.lastRow
-        spots.spotIt(call: form.call, isCommand: hasCommand, fieldFreqHz: form.freqHz, lastQso: lastQso)
+        spots.spotIt(call: form.call, isCommand: hasCommand, fieldFreqHz: loggedFreqHz, lastQso: lastQso)
         focusRequest += 1
     }
 

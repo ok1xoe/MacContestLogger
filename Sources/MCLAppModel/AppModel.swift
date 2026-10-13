@@ -971,6 +971,7 @@ public final class AppModel {
             panel.entry.network = model.network
             panel.entry.cluster = cluster
             panel.entry.callStack = callStack
+            panel.entry.digitalKeyer = model.keyer.digital
         }
         let config: ConfigModel = model.config
         model.infoStrip.sources.snsWaiting = { [weak cluster, weak config] in

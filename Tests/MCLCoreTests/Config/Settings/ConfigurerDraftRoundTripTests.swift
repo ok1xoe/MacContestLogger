@@ -123,6 +123,9 @@ import Testing
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
+        expected.digital.autoTrxUpdate = true
+        expected.digital.rttyModem = "RTTY"
+        expected.digital.pskModem = "BPSK31"
         #expect(decoded == expected)
     }
 
@@ -349,6 +352,9 @@ import Testing
         w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
+        w.same(\.autoTrxUpdate, \.digital.autoTrxUpdate, false)
+        w.same(\.rttyModem, \.digital.rttyModem, "RTTY-75N")
+        w.same(\.pskModem, \.digital.pskModem, "BPSK63")
     }
 
     static func wireKeyers(_ w: inout Wiring) {

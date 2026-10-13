@@ -52,6 +52,7 @@ files can be carried over by hand.
 | `{LOG}` | logs the QSO |
 | `{WIPE}` | clears the fields |
 | `{RUN}` / `{S&P}` | switches the mode |
+| `{LDIGFQ}` / `{RDIGFQ}` | the frequency of the left / right rig in kHz (in digital modes dial ± fldigi's audio, see [digital-modes.md](digital-modes.md#frequency-and-mode-fldigi)) |
 | `{STACKANOTHER}` / `{SOCALLSTACK}` / `{CLRSTACK}` | [call stack](call-stacking.md): push the call / exchange it with the stack / clear the stack |
 | `{LOGTHENPOP}` / `{LOGTHENNEXT}` | logs the QSO and continues with the next stacked call; the text after the macro goes to the next station ([call stacking](call-stacking.md#logthenpop-log-and-go-on)) |
 

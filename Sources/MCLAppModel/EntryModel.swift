@@ -134,6 +134,8 @@ public final class EntryModel {
     @ObservationIgnored weak var network: NetworkModel?
     /// The station's call stack (Ctrl+Alt+G, Alt+G, `{SOCALLSTACK}`, `{LOGTHENPOP}`…); wired by the app.
     @ObservationIgnored weak var callStack: CallStackModel?
+    /// fldigi (AutoTRXUpdate's audio frequency, the modem switch of RTTY / PSK); wired by the app.
+    @ObservationIgnored weak var digitalKeyer: DigitalKeyerModel?
     /// Opens the documentation page (Alt+H); wired by the app to the callbook's browser lane.
     @ObservationIgnored var helpOpener: (@MainActor () -> Void)?
     @ObservationIgnored weak var cluster: ClusterSyncModel?
@@ -179,6 +181,17 @@ public final class EntryModel {
     /// no QSO is typed into (or logged against) a database that is about to close.
     public var acceptsInput: Bool {
         inputGate()
+    }
+
+    /// The frequency a QSO is logged and spotted on (N1MM AutoTRXUpdate): in a digital mode, while the field
+    /// follows the rig's dial and the rig is in a sideband mode, the dial ± fldigi's audio frequency; otherwise the
+    /// field's frequency.
+    public var loggedFreqHz: Int64 {
+        let field: Int64 = form.freqHz
+        guard form.mode.isDigital, let digitalKeyer, let state = rig?.activeState, state.freqHz == field else {
+            return field
+        }
+        return digitalKeyer.transmitHz(dialHz: field, rawMode: state.rawMode)
     }
 
     /// Band of the typed frequency (Kotlin `Band.fromFrequencyHz(parseFreqHz(freqKHz))`).
@@ -432,6 +445,12 @@ public final class EntryModel {
         }
         let contestPath: Bool = contest.isActive
         let bandAdif: String = band?.adif ?? ""
+        // AutoTRXUpdate: the QSO carries the transmitted frequency (the form keeps the dial).
+        var logged: EntryForm = form
+        let loggedHz: Int64 = loggedFreqHz
+        if loggedHz != form.freqHz {
+            logged.freqKHz = FrequencyText.formatHz(loggedHz)
+        }
         let note: String? = comment ?? pendingNote
         let copies: [(qth: String?, qso: Qso)]
         if contestPath {
@@ -442,10 +461,10 @@ public final class EntryModel {
             let usesRover: Bool = contest.usesRoverQth
             let units: Int = QsoAssembly.loggingQths(countyLine: countyLine, usesRoverQth: usesRover,
                                                      roverQth: config.config.station.roverQth).count
-            copies = contestCopies(serial: logbook.reserveSerial(units: units), note: note, at: at)
+            copies = contestCopies(logged, serial: logbook.reserveSerial(units: units), note: note, at: at)
         } else {
             let serial: Int = logbook.reserveSerial()
-            let qso = QsoAssembly.free(form: form, serial: serial, runMode: runMode, note: note, at: at)
+            let qso = QsoAssembly.free(form: logged, serial: serial, runMode: runMode, note: note, at: at)
             copies = [(qth: nil, qso: qso)]
         }
         let work = Submission(copies: copies, call: form.call, band: bandAdif, mode: form.mode,
@@ -529,7 +548,8 @@ public final class EntryModel {
         return OperatingGuard.check(logbook.statsForRules, rules, band, JavaInstant(date: now()), type, newMultiplier)
     }
 
-    private func contestCopies(serial: Int, note: String?, at: Date?) -> [(qth: String?, qso: Qso)] {
+    private func contestCopies(_ form: EntryForm, serial: Int, note: String?,
+                               at: Date?) -> [(qth: String?, qso: Qso)] {
         let fields: [ContestDefinition.ExchangeField] = self.fields
         let definition: ContestDefinition? = contest.definition
         let setup: ContestSetup? = contest.activeSetup

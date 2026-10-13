@@ -316,7 +316,7 @@
  "MULT (jen nové násobiče)": "MULT (nur neue Multiplikatoren)",
  "Multiplikátorové sady nejsou načtené.": "Die Multiplikator-Sätze sind nicht geladen.",
  "Multiplikátory": "Multiplikatoren",
- "Mód": "Betriebsart",
+ "Mód": "Modus",
  "Mód %s": "Betriebsart %s",
  "Mód určuje závod (%s)": "Die Betriebsart bestimmt der Contest (%s)",
  "Mód zapisovaný do deníku": "Ins Log geschriebene Betriebsart",
@@ -1382,5 +1382,13 @@
  "LIFO": "LIFO",
  "ESM pošle na konci QSO v Run místo TU tuto klávesu, když v zásobníku čeká volačka a klávesa obsahuje {LOGTHENPOP} ({LOGTHENNEXT} ESM nevybere).": "Am Ende eines Run-QSOs sendet ESM statt TU diese Taste, wenn ein Rufzeichen auf dem Stapel wartet und die Taste {LOGTHENPOP} enthält ({LOGTHENNEXT} wählt ESM nie).",
  "Při změně pásma zásobník vymazat": "Stapel beim Bandwechsel leeren",
- "Digitální rozhraní: klik na volačku při obsazeném poli ji dá do zásobníku (Digital Call Stacking, jen Run)": "Digital-Interface: ein Klick auf ein Rufzeichen bei belegtem Feld stapelt es (Digital Call Stacking, nur Run)"
+ "Digitální rozhraní: klik na volačku při obsazeném poli ji dá do zásobníku (Digital Call Stacking, jen Run)": "Digital-Interface: ein Klick auf ein Rufzeichen bei belegtem Feld stapelt es (Digital Call Stacking, nur Run)",
+ "fldigi: mód %s": "fldigi: Mode %s",
+ "AutoTRXUpdate (frekvence = rig ± audio)": "AutoTRXUpdate (Frequenz = Rig ± Audio)",
+ "Další módy": "Weitere Modi",
+ "Mód fldigi (Op Mode)": "fldigi-Modus (Op Mode)",
+ "Mód fldigi pro RTTY": "fldigi-Modus für RTTY",
+ "Mód fldigi pro PSK": "fldigi-Modus für PSK",
+ "Napsání RTTY nebo PSK do pole volačky přepne i fldigi na tento mód (názvy jako v menu Op Mode fldigi, např. RTTY, BPSK31, BPSK63).": "Die Eingabe von RTTY oder PSK im Rufzeichenfeld schaltet auch fldigi in diesen Modus (Namen wie im Op-Mode-Menü von fldigi, z. B. RTTY, BPSK31, BPSK63).",
+ "AutoTRXUpdate: s rigem v USB/LSB zapisovat a spotovat frekvenci rig ± audio fldigi (při otevřeném Digitálním rozhraní)": "AutoTRXUpdate: mit dem Rig in USB/LSB die Frequenz Rig ± fldigi-Audio loggen und spotten (bei geöffnetem Digital-Interface)"
 }
