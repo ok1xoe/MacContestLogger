@@ -258,9 +258,11 @@ public enum StatsViews {
     ///   - scope: the contest's dupe scope, `nil` outside a contest (then per band).
     ///   - typedCall: the call being typed; calls that contain it (from two characters, trimmed, upper case) are
     ///     highlighted.
+    ///   - order: the order of the calls in a column (`.call` = v1.1.1's).
     public static func dupesheet(qsos: [Qso], scope: ContestDefinition.Scope?, band: String?, mode: String?,
-                                 typedCall: String, translate: Translator = .source) -> DupesheetView {
-        let sheet: Dupesheet.Sheet = Dupesheet.build(qsos, band: band, mode: mode, scope: scope)
+                                 typedCall: String, translate: Translator = .source,
+                                 order: Dupesheet.Order = .call) -> DupesheetView {
+        let sheet: Dupesheet.Sheet = Dupesheet.build(qsos, band: band, mode: mode, scope: scope, order: order)
         let partial: String = InfoLines.normalizedCall(typedCall)
         let what: String
         switch scope ?? .PER_BAND {

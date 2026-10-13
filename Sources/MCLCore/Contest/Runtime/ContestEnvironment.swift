@@ -32,6 +32,8 @@ public struct ContestEnvironment: Sendable {
     public let bandPlan: BandPlan
     public let digiFrequencies: DigiFrequencies
     public let problems: [ContestMessage]
+    /// The source and date of the DXCC data (`DxccDataStamp.current`); set by the app's loader, `nil` = unknown.
+    public var dxccStamp: DxccDataStamp? = nil
 
     public var engineAvailable: Bool {
         dxcc != nil && registry != nil
@@ -42,7 +44,7 @@ public struct ContestEnvironment: Sendable {
     public func replacingBandData(bandPlan: BandPlan, digiFrequencies: DigiFrequencies) -> ContestEnvironment {
         ContestEnvironment(dxcc: dxcc, registry: registry, catalog: catalog, dataRoot: dataRoot,
                            contestsDir: contestsDir, bandPlan: bandPlan, digiFrequencies: digiFrequencies,
-                           problems: problems)
+                           problems: problems, dxccStamp: dxccStamp)
     }
 
     /// Kotlin `(config.contestDataDir?.takeIf { it.isNotBlank() } ?: fallback).let { Path.of(it) }`.

@@ -22,6 +22,8 @@ public final class DatabaseModel {
     /// Runs after a database is switched and before „Otevřena databáze %s" (Kotlin `openDatabase`: deactivate the
     /// contest, refresh the log, offer the start-up dialog).
     @ObservationIgnored public var onOpened: (@MainActor () async -> Void)?
+    /// Runs after „Otevřena databáze %s" is shown (a warning about the opened database has the last word).
+    @ObservationIgnored public var afterOpened: (@MainActor () async -> Void)?
     /// Waits for the work in flight on the open database (submissions, activation, recount) before it is closed;
     /// set by the app model.
     @ObservationIgnored public var drain: (@MainActor () async -> Void)?
@@ -146,6 +148,7 @@ public final class DatabaseModel {
         await old.close()
         await onOpened?()
         status.show("Otevřena databáze %s", .string(name))
+        await afterOpened?()
     }
 
     /// Kotlin `setDatabasesDir(dir)` (first-run dialog): saves the directory, creates the default database in it and

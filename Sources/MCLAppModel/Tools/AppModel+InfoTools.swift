@@ -10,6 +10,8 @@ public final class InfoTools {
     public let statistics: StatisticsModel
     public let score: ScoreWindowModel
     public let dupesheet: DupesheetModel
+    /// The VFO B / radio 2 dupesheet (`dupesheet2`).
+    public let dupesheet2: DupesheetModel
     public let skeds: SkedModel
     public let skedWatcher: SkedWatcher
     public let tourWatcher: TourWatcher
@@ -22,7 +24,7 @@ public final class InfoTools {
     private var grids: [String: MultGridModel] = [:]
 
     init(info: InfoModel, goals: GoalsModel, statistics: StatisticsModel, score: ScoreWindowModel,
-         dupesheet: DupesheetModel, skeds: SkedModel, skedWatcher: SkedWatcher, tourWatcher: TourWatcher,
+         dupesheet: DupesheetModel, dupesheet2: DupesheetModel, skeds: SkedModel, skedWatcher: SkedWatcher, tourWatcher: TourWatcher,
          qtc: QtcModel, bandNotes: BandNotesModel, propagation: PropagationWindowModel,
          worldMap: WorldMapWindowModel, makeGrid: @escaping @MainActor (String) -> MultGridModel) {
         self.info = info
@@ -30,6 +32,7 @@ public final class InfoTools {
         self.statistics = statistics
         self.score = score
         self.dupesheet = dupesheet
+        self.dupesheet2 = dupesheet2
         self.skeds = skeds
         self.skedWatcher = skedWatcher
         self.tourWatcher = tourWatcher
@@ -63,6 +66,7 @@ public final class InfoTools {
         statistics.close()
         score.close()
         dupesheet.close()
+        dupesheet2.close()
         worldMap.close()
         for grid in grids.values {
             grid.close()
@@ -75,6 +79,7 @@ public final class InfoTools {
         await statistics.settle()
         await score.settle()
         await dupesheet.settle()
+        await dupesheet2.settle()
         await worldMap.settle()
     }
 }
@@ -86,6 +91,7 @@ extension AppModel {
     public var statistics: StatisticsModel { infoTools.statistics }
     public var scoreWindow: ScoreWindowModel { infoTools.score }
     public var dupesheet: DupesheetModel { infoTools.dupesheet }
+    public var dupesheet2: DupesheetModel { infoTools.dupesheet2 }
     public var skeds: SkedModel { infoTools.skeds }
     public var qtc: QtcModel { infoTools.qtc }
     public var bandNotes: BandNotesModel { infoTools.bandNotes }
@@ -120,11 +126,25 @@ extension AppModel {
         let statistics = StatisticsModel(logbook: model.logbook, language: model.language)
         let score = ScoreWindowModel(logbook: model.logbook, contest: model.contest, language: model.language,
                                      clock: clock)
-        let dupesheet = DupesheetModel(logbook: model.logbook, contest: model.contest, rig: model.rig,
-                                       language: model.language)
-        dupesheet.typedCall = { [weak model] in
-            model?.typedCall ?? ""
+        let dupesheet = DupesheetModel(logbook: model.logbook, contest: model.contest, language: model.language)
+        let sortBySuffix: @MainActor () -> Bool = { [weak config = model.config] in
+            config?.config.dupesheetSortBySuffix ?? true
         }
+        var sourcesA = DupesheetModel.Sources()
+        sourcesA.band = { [weak rig = model.rig] in rig?.currentBand }
+        sourcesA.mode = { [weak rig = model.rig] in rig?.activeState?.mode }
+        sourcesA.typedCall = { [weak model] in model?.typedCall ?? "" }
+        sourcesA.sortBySuffix = sortBySuffix
+        dupesheet.sources = sourcesA
+        // N1MM: the VFO B / radio 2 sheet follows the band, mode and call of the VFO B entry window.
+        let dupesheet2 = DupesheetModel(logbook: model.logbook, contest: model.contest, language: model.language,
+                                        vfo: 1)
+        var sourcesB = DupesheetModel.Sources()
+        sourcesB.band = { [weak second = model.vfoB.entry] in second?.band }
+        sourcesB.mode = { [weak second = model.vfoB.entry] in second?.form.mode }
+        sourcesB.typedCall = { [weak second = model.vfoB.entry] in second?.form.call ?? "" }
+        sourcesB.sortBySuffix = sortBySuffix
+        dupesheet2.sources = sourcesB
         let skeds = SkedModel(SkedModel.Dependencies(
             contest: model.contest, status: model.status, language: model.language, rig: model.rig, now: now))
         let skedWatcher = SkedWatcher(skeds: skeds, status: model.status, messages: model.messages, clock: clock,
@@ -156,7 +176,8 @@ extension AppModel {
         let rig: RigModel = model.rig
         let language: LanguageModel = model.language
         model.infoTools = InfoTools(
-            info: info, goals: goals, statistics: statistics, score: score, dupesheet: dupesheet, skeds: skeds,
+            info: info, goals: goals, statistics: statistics, score: score, dupesheet: dupesheet, dupesheet2: dupesheet2,
+            skeds: skeds,
             skedWatcher: skedWatcher, tourWatcher: tourWatcher, qtc: qtc, bandNotes: bandNotes,
             propagation: propagation, worldMap: worldMap, makeGrid: { kind in
                 MultGridModel(kind: kind, contest: contest, analysis: analysis, feed: feed, rig: rig,
