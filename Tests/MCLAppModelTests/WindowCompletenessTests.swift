@@ -36,7 +36,8 @@ import Testing
         }
         await app.model.language.switchTo("cs")
         for id in ["window.rate", "window.skeds", "window.score", "window.movemults", "window.dupesheet",
-                   "window.statistics", "window.qtc", "window.propagation", "window.bandnotes", "window.simulator",
+                   "window.dupesheet2", "window.statistics", "window.qtc", "window.propagation", "window.bandnotes",
+                   "window.simulator",
                    "window.dxccmap", "mult.dxcc", "mult.grid", "mult.map", "mult.itu", "mult.cq", "mult.districts",
                    "mult.other", "mult.sections"] {
             #expect(entries.contains { $0.id == id }, "\(id) is missing from the menu")

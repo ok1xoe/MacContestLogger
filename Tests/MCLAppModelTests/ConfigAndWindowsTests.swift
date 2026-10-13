@@ -91,6 +91,8 @@ import Testing
             "waterfall", "dxCluster", "bandmap", "availMult", "blacklist", "netstatus", "chat", "partner", "wsjtxdecodes",
             "hamqthLog", "rate", "goals", "goals-from-log", "statistics", "score", "dupesheet", "skeds", "qtc",
             "simulator", "check", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc", "mult:dxcc",
+            "hamqthLog", "rate", "goals", "goals-from-log", "statistics", "score", "dupesheet", "dupesheet2", "skeds", "qtc",
+            "simulator", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc", "mult:dxcc",
             "mult:grid", "mult:itu", "mult:cq", "mult:districts", "mult:other", "mult:sections",
         ])
         let dir = try TempDir()

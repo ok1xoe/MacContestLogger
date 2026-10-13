@@ -299,6 +299,8 @@ import Testing
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",
                                "checkReverseThreshold", "checkReverseFromStart", "showUnmatchedCallMark",
+        #expect(Set(extra) == ["scpSuggestionsEnabled", "nPlusOneEnabled", "preferredCallbook", "dupesheetSortBySuffix",
+                               "ctyEnabled",
                                "spotFilterHiddenBands", "spotFilterHiddenModes", "spotFilterContest",
                                "spotFilterSpotterContinents", "spotFilterSpotterOwnCountry",
                                "spotFilterHideNonWorkable", "nextCallKey", "callStackOrder",

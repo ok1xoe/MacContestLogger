@@ -295,6 +295,62 @@ import Testing
         sheet.close()
     }
 
+    /// N1MM: each call area is sorted by suffix (`dupesheetSortBySuffix`, on by default); off = the whole call.
+    @Test func theDupesheetSortsBySuffixUnlessSwitchedOff() async throws {
+        let tool = try await ToolApp.make()
+        try await tool.start("cq-ww-cw")
+        await tool.log("DK1ZZ")
+        await tool.log("DL1AA")
+        let sheet: DupesheetModel = tool.tools.dupesheet
+        #expect(tool.model.config.config.dupesheetSortBySuffix)
+        sheet.open()
+        #expect(sheet.view?.columns.first { $0.digit == "1" }?.calls.map(\.text) == ["DL1AA", "DK1ZZ"])
+        tool.model.config.config.dupesheetSortBySuffix = false
+        await eventually("the sheet follows the switch") {
+            sheet.view?.columns.first { $0.digit == "1" }?.calls.map(\.text) == ["DK1ZZ", "DL1AA"]
+        }
+        sheet.close()
+    }
+
+    /// N1MM: the VFO B / radio 2 sheet shows the band of the VFO B entry window and highlights its call; the VFO A
+    /// sheet stays on its own band.
+    @Test func theSecondDupesheetFollowsTheVfoBEntryWindow() async throws {
+        let tool = try await ToolApp.make()
+        try await tool.start("cq-ww-cw")
+        await tool.log("DL2BB", freqKHz: "7025")
+        await tool.log("DL1AA")
+        let sheetA: DupesheetModel = tool.tools.dupesheet
+        let sheetB: DupesheetModel = tool.tools.dupesheet2
+        #expect(sheetA.vfo == 0 && sheetB.vfo == 1)
+        #expect(tool.model.dupesheet2 === sheetB)
+        sheetA.open()
+        sheetB.open()
+        #expect(sheetA.view?.title == "Dupesheet 20m — 1 volaček")
+        #expect(sheetB.view?.title == "Dupesheet 20m — 1 volaček", "no VFO B band yet: the last QSO's")
+        let second: EntryModel = tool.model.vfoB.entry
+        second.form.freqKHz = "7030"
+        second.form.mode = .cw
+        await eventually("the VFO B sheet shows 40 m") {
+            sheetB.view?.title == "Dupesheet 40m — 1 volaček"
+        }
+        #expect(sheetB.view?.columns.first { $0.digit == "2" }?.calls == [DupesheetColumn.Call(text: "DL2BB", hit: false)])
+        #expect(sheetA.view?.title == "Dupesheet 20m — 1 volaček")
+        second.form.call = "DL2"
+        await eventually("the VFO B call is highlighted") {
+            sheetB.view?.columns.first { $0.digit == "2" }?.calls.first?.hit == true
+        }
+        sheetA.close()
+        sheetB.close()
+    }
+
+    /// The menu item opens the second sheet's window.
+    @Test func theMenuOpensTheVfoBDupesheet() async throws {
+        let tool = try await ToolApp.make()
+        #expect(MenuActions.perform("window.dupesheet2", app: tool.model) == nil)
+        #expect(tool.model.windows.isOpen("dupesheet2"))
+        #expect(!tool.model.windows.isOpen("dupesheet"))
+    }
+
     @Test func aLargeLogIsBuiltOffTheMainThread() async throws {
         let tool = try await ToolApp.make()
         try await tool.start("cq-ww-cw")

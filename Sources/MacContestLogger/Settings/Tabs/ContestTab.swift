@@ -70,6 +70,8 @@ struct ContestTab: View {
                 .foregroundStyle(.secondary)
             SettingsCheckbox(label: language.tr("Zobrazovat SCP (Check partial)"), isOn: $draft.scpSuggestionsEnabled)
             SettingsCheckbox(label: language.tr("Zobrazovat N+1"), isOn: $draft.nPlusOneEnabled)
+            SettingsCheckbox(label: language.tr("Dupesheet: řadit volačky podle sufixu"),
+                             isOn: $draft.dupesheetSortBySuffix)
         }
     }
 

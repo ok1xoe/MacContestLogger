@@ -94,7 +94,7 @@ logging and multi-mode contests.
 Each tool window remembers its **position and size** (`windowGeometry` in
 `config.json`), and open windows are reopened after a restart (`openWindows`): log,
 CAT log, available multipliers, DX cluster, bandmap, blacklist, HamQTH log, Info,
-skeds, score, multiplier transfer, dupesheet, rotator, statistics, propagation
+skeds, score, multiplier transfer, dupesheet (VFO A and VFO B), rotator, statistics, propagation
 forecast, band notes, waterfall, definition editor, QTC, map (also in DXCC mode)
 and the multiplier windows (DXCC, zones, districts...). The second SO2V/SO2R entry
 window opens automatically according to the mode in Settings → Hardware. Dialogs

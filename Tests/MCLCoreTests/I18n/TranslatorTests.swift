@@ -142,6 +142,10 @@ import Testing
         #expect(map.count == 1_514)
         let german = try Self.bundled("de")
         #expect(german.count == 1_514)
+        // 4 keys of the VFO A/B dupesheets, their suffix order and the outdated country table warning.
+        #expect(map.count == 1_498)
+        let german = try Self.bundled("de")
+        #expect(german.count == 1_498)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

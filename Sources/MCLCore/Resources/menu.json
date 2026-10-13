@@ -133,6 +133,7 @@
         { "id": "window.score",     "label": "Skóre",           "state": "enable" },
         { "id": "window.movemults", "label": "Přesun násobičů", "state": "enable" },
         { "id": "window.dupesheet", "label": "Dupesheet",       "state": "enable" },
+        { "id": "window.dupesheet2", "label": "Dupesheet VFO B", "state": "enable" },
         { "id": "window.waterfall", "label": "Vodopád",         "state": "enable" },
         { "id": "window.rotator",   "label": "Rotátor",         "state": "enable" },
         { "id": "window.statistics", "label": "Statistiky",     "state": "enable" },
