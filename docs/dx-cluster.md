@@ -136,6 +136,41 @@ Presses wait behind a button that is still in its `{WAIT}`.
   default): tuning to a cluster spot (a click, the spot jumps) lands 50–150 Hz (phone 100–250 Hz) above or below it,
   so the operators who click the same spot do not all call on exactly the same frequency. Own spots (Mark, Store)
   are tuned exactly; the split from the spot comment is unchanged.
+## Spot comment, spotting S&P QSOs and special calls
+
+The other tabs of **Možnosti… (Options)** in the DX Cluster window, modelled on the N1MM Telnet window's *Spot Comment*
+and *Special Calls* tabs; every change applies and is saved at once.
+
+**Komentář spotu (Spot comment).** N1MM's "Comment For All Spots": a comment sent with every spot MCL makes — Spot It
+(Alt+P), the prefilled text of Ctrl+P (it can still be edited) and the automatic S&P spot below. Its macros take the
+values of the spotted QSO (the entry window's fields, or the logged exchange when Spot It spots the last QSO):
+
+| Macro | Value |
+|---|---|
+| `{GRIDSQUARE}` | the grid (locator) field |
+| `{MODE}` | the QSO's mode |
+| `{QTH}` | the state, province, district, IOTA or text field |
+| `{ZONE}` | the CQ or ITU zone field |
+
+A macro without a value is left out; the comment is always one line. For a logged QSO the stored exchange is matched
+to the contest's fields by order (only a grid is recognised when some fields were empty).
+
+**{SPOTME}.** The function-key macro `{SPOTME}` (CW, SSB and digital messages) spots your own station on the entry
+window's frequency with the spot comment (its `{MODE}`; `CQ` when the comment is blank) — the same as the `SPOTME`
+text command. Many contests forbid self-spotting: check the rules. Band map buttons refuse it.
+
+**Spotovat všechna S&P spojení (Spot all S&P QSOs)** — N1MM Config → Spot all S&P QSOs. **Off by default.** When on,
+every QSO logged in S&P is spotted to the public DX cluster network with the spot comment, unless the call is already
+in the band map within 1 kHz of the QSO's frequency. Run QSOs, dupes, QSOs entered after the contest (paper log) and
+the pileup simulator are never spotted; while the main cluster connection is down nothing is sent (and nothing is
+reported). Spots go to the public network: check that the contest rules allow it.
+
+**Zvláštní volačky (Special calls).** A list of calls — bonus stations, club members, friends — whose spots get a heart
+**♥** after the call in the band map and in the Available window (VoiceOver says "special call"). A call matches by its
+base (`W1AW` also marks `W1AW/M` and `DL/W1AW`). **Importovat…** adds the calls of an N1MM file (first line
+`Type=FAVORITES SubType=`, then one call per line) or of any plain list; **Exportovat…** writes the N1MM file;
+**Vymazat seznam** empties the list. *Automaticky zahrnout bonusové stanice závodu* (on by default) adds the active
+contest's bonus stations (the `BONUS` command).
 
 ## Spots in the bandmap: clicks, call-frame, marks
 
@@ -168,6 +203,7 @@ default. A single-mode contest keeps its mode.
 
 | Mark | Meaning |
 |---|---|
+| `♥` | a [special call](#spot-comment-spotting-sp-qsos-and-special-calls) |
 | `#` | spot from a CW Skimmer / RBN |
 | `!` | spot from your own skimmer (the spotter is your call with `-#`) |
 | `¤` | sunrise or sunset at the station's country (within 30 minutes) |

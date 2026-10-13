@@ -311,6 +311,7 @@ import Testing
                                "filterDigiWideHz", "filterDigiNarrowHz",
                                "clusterSoftware", "autoLogon", "showButtons", "showDxCount",
                                "saveSpots", "randomizeSpotFrequencies",
+                               "spotComment", "spotAllSpQsos", "specialCalls", "specialCallsIncludeBonus",
                                "nextCallKey", "callStackOrder",
                                "callStackClearOnBandChange", "digitalCallStacking",
                                "rttyInterface",

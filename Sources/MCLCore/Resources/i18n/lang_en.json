@@ -1650,5 +1650,15 @@
  "Chybný spot = značka lišící se o jeden (dva) znaky od jiné značky na stejném kmitočtu (tolerance ladění); skryje se ta hlášená méněkrát.": "Busted spot = a call differing by one (two) characters from another call on the same frequency (tuning tolerance); the one reported fewer times is hidden.",
  "Preferovaní spotteři": "Preferred spotters",
  "Až 3 značky (typicky vlastní skimmer); jejich spoty jsou zvýrazněné a označené ★. OK1ABC platí i pro OK1ABC-2, OK1ABC-# a OK1ABC/3.": "Up to 3 calls (typically your own skimmer); their spots are highlighted and marked ★. OK1ABC also matches OK1ABC-2, OK1ABC-# and OK1ABC/3.",
- "preferovaný spotter": "preferred spotter"
+ "preferovaný spotter": "preferred spotter",
+ "Komentář spotu": "Spot comment",
+ "Zvláštní volačky": "Special calls",
+ "Komentář ke všem spotům": "Comment for all spots",
+ "Makra: {GRIDSQUARE} lokátor, {MODE} mód, {QTH} QTH/stát/okres, {ZONE} zóna — z výměny spotovaného QSO. Použije se pro Spot It (Alt+P), předvyplní Ctrl+P a {SPOTME}.": "Macros: {GRIDSQUARE} grid, {MODE} mode, {QTH} QTH/state/county, {ZONE} zone — from the exchange of the spotted QSO. Used by Spot It (Alt+P), prefilled in Ctrl+P and used by {SPOTME}.",
+ "Spotovat všechna S&P spojení": "Spot all S&P QSOs",
+ "Pozor: každé S&P spojení, které ještě není v bandmapě, se pošle jako spot do veřejné DX cluster sítě. Ověř, že to propozice závodu dovolují. Dupy, spojení zapsaná po závodě a simulátor se nespotují.": "Caution: every S&P QSO that is not in the band map yet is sent as a spot to the public DX cluster network. Check that the contest rules allow it. Dupes, QSOs entered after the contest and the simulator are never spotted.",
+ "Bonusové stanice, členové klubu, přátelé: jejich spoty mají v bandmapě a v okně Dostupné srdce ♥. Jedna volačka na řádek.": "Bonus stations, club members, friends: their spots get a heart ♥ in the band map and the Available window. One call per line.",
+ "Automaticky zahrnout bonusové stanice závodu": "Automatically include the contest's bonus stations",
+ "Zvláštní volačky: přidáno %s": "Special calls: %s added",
+ "zvláštní volačka": "special call"
 }

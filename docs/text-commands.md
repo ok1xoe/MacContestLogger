@@ -68,7 +68,7 @@ In a single-mode contest the mode is given by the definition, so the command is 
 | `ROVERQTH HAM` | | my county (rover); without an argument a dialog |
 | `COUNTYLINE DAD,JEF` | | county line: the QSO is logged for each county; `NOCOUNTYLINE` turns it off |
 | `BONUS W1AW,K1BON` | | bonus stations (QSO party); without an argument a dialog |
-| `SPOTME` | | spots your own station to the DX cluster (DXLog); Alt+P / Spot It spots the callsign from the field |
+| `SPOTME` | | spots your own station to the DX cluster (DXLog; the function-key macro `{SPOTME}` does the same); Alt+P / Spot It spots the callsign from the field |
 | `NETON` | `NET` | turns on network log synchronization (the cluster must be filled in under Settings) |
 | `NETOFF` | `NONET` | turns off network synchronization; the station keeps logging locally |
 | `OPOFF` | `LOGOUT` | logs the operator out, back to the default from the station details (DXLog) |

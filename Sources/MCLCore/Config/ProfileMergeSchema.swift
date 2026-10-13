@@ -23,7 +23,8 @@ enum ProfileMergeSchema {
     /// lines (`dxCluster.showUsLicenseLines`), the band map's call-frame, tuning tolerances and packet spot mode
     /// (`dxCluster.callFrame`, `dxCluster.tuningTolerance*Hz`, `dxCluster.spotModeOnTune`), the Telnet window options
     /// (`dxCluster.clusterSoftware`, `autoLogon`, `showButtons`, `showDxCount`, `saveSpots`,
-    /// `randomizeSpotFrequencies`), the blacklist switch (`dxCluster.blacklistEnabled`), the call stack
+    /// `randomizeSpotFrequencies`), the blacklist switch (`dxCluster.blacklistEnabled`), the spot comment, S&P spotting
+    /// and special calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
     /// switches and extra
     /// files (`callHistory*`) and a contest's own call history file (`contestSetups.*.callHistoryFile`).
@@ -88,6 +89,10 @@ enum ProfileMergeSchema {
             Property("spotFilterBustedTwoChars", .boolean, .fieldDefault),
             Property("spotFilterPreferredSpotters", .list(.string), .fieldDefault),
             Property("blacklistEnabled", .boolean, .fieldDefault),
+            Property("spotComment", .string, .fieldDefault),
+            Property("spotAllSpQsos", .boolean, .fieldDefault),
+            Property("specialCalls", .list(.string), .fieldDefault),
+            Property("specialCallsIncludeBonus", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
             Property("ctyEnabled", .boolean, .fieldDefault),

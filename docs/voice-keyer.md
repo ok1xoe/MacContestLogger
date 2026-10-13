@@ -73,6 +73,7 @@ performed, never played as files (the same set and meaning as in
 | `{CLEARRIT}` / `{RITCLEAR}` | resets RIT |
 | `{CQFREQ}` | jump to the CQ frequency (and clear the fields) |
 | `{NOSPLIT}` | turns split off |
+| `{SPOTME}` | spots your own station to the DX cluster on the entry window's frequency, with the [spot comment](dx-cluster.md#spot-comment-spotting-sp-qsos-and-special-calls) (`CQ` when blank); check that the contest rules allow self-spots |
 | `{F1}`...`{F12}` | inserts the message of another F-key of the same set (chaining, at most 3 levels) |
 | `{END}` | ends the message; everything after it is ignored |
 | `{LOGTHENPOP}`, `{LOGTHENNEXT}`, `{SOCALLSTACK}`, `{STACKANOTHER}`, `{CLRSTACK}` | the [call stack](call-stacking.md); performed **before** the message plays, so `!` and `{F5}` already mean the next call |

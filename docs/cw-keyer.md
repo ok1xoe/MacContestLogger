@@ -94,6 +94,7 @@ duration is calculated from real Morse code timing and the speed.
 | `{CLEARRIT}` / `{RITCLEAR}` | resets RIT |
 | `{CQFREQ}` | jump to the CQ frequency (and clear the fields) |
 | `{NOSPLIT}` | turns split off |
+| `{SPOTME}` | spots your own station to the DX cluster on the entry window's frequency, with the [spot comment](dx-cluster.md#spot-comment-spotting-sp-qsos-and-special-calls) (`CQ` when blank); check that the contest rules allow self-spots |
 
 N1MM interface-control macros (`{CAT1ASC}`, `{TX}`/`{RX}`, `{KEYBOARD}`...) are not
 sent and are reported in the status line as unknown.

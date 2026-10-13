@@ -308,9 +308,21 @@ public final class BandmapModel {
             skimmerMark: Self.marks(BandmapSpotInfo.skimmerMark(spot, myCall: config.config.station.call),
                                     preferred: config.config.dxCluster.spotFilter.isPreferred(spot.spotter)),
             grayLine: onGrayLine(spot), qsxHz: BandmapSpotInfo.qsxHz(spot),
-            isNew: BandmapSpotInfo.isNew(spottedAt: spotted?.spottedAt, now: now()))
+            isNew: BandmapSpotInfo.isNew(spottedAt: spotted?.spottedAt, now: now()),
+            special: isSpecialCall(spot.dxCall))
         guard let mark = Qo100.label(freqHz: spot.freqHz) else { return base }
         return base + "  " + mark
+    }
+
+    /// N1MM Special Calls: `call` is in the Telnet window's list or (with the option on) a bonus station of the active
+    /// contest — its spot gets a heart here and in the Available window.
+    public func isSpecialCall(_ call: String) -> Bool {
+        let dx: DxClusterConfig = config.config.dxCluster
+        var calls: [String] = dx.specialCalls
+        if dx.specialCallsIncludeBonus && contest.isActive {
+            calls += contest.bonusStations
+        }
+        return SpecialCalls.matches(call, bases: SpecialCalls.bases(calls))
     }
 
     /// N1MM's spot tooltip (the exact frequency, the spotter, the age, the comment, QSX, the counts, the azimuth, the
