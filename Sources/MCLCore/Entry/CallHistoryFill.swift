@@ -46,6 +46,27 @@ public enum CallHistoryFill {
         return (out, filled)
     }
 
+    /// N1MM's user data line: the record's non-empty columns except the call and UserText, in column order, as
+    /// `Name: Hiram, State: CT` (N1MM column names, not translated); `nil` when nothing is left.
+    public static func describe(_ record: JavaLinkedMap<String>, columns: [String]) -> String? {
+        var parts: [String] = []
+        var seen: [String] = []
+        for column in columns + record.keys.compactMap({ $0 }) where !seen.contains(column) {
+            seen.append(column)
+            guard column != "call", column != "usertext", !column.isEmpty,
+                  let value = record[column], !KotlinStrings.isBlank(value) else { continue }
+            let name: String = CallHistory.n1mmNames[JavaStringKey(column)] ?? column
+            parts.append(name + ": " + KotlinStrings.trim(value))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: ", ")
+    }
+
+    /// The UserText of a record (trimmed), `nil` when it has none.
+    public static func userText(_ record: JavaLinkedMap<String>) -> String? {
+        guard let text = record["usertext"], !KotlinStrings.isBlank(text) else { return nil }
+        return KotlinStrings.trim(text)
+    }
+
     /// Reverse lookup: only in a contest, with a blank call and a non-blank exchange value;
     /// `callHistory.reverse(exchange, fields, 8)`.
     public static func reverse(callHistory: CallHistory, form: EntryForm, fields: [ContestDefinition.ExchangeField],

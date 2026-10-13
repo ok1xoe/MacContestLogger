@@ -15,7 +15,8 @@
           "id": "file.import", "label": "Import", "state": "enable",
           "children": [
             { "id": "settings.import", "label": "Import QSO (ADIF/Cabrillo)…", "state": "enable" },
-            { "id": "settings.merge", "label": "Sloučit deník…", "state": "enable" }
+            { "id": "settings.merge", "label": "Sloučit deník…", "state": "enable" },
+            { "id": "callhistory.import", "label": "Importovat call history…", "state": "enable" }
           ]
         },
         {
@@ -114,7 +115,9 @@
           ]
         },
         { "id": "settings.keys", "label": "Klávesy…", "state": "enable" },
-        { "id": "settings.profiles", "label": "Profily nastavení…", "state": "enable" }
+        { "id": "settings.profiles", "label": "Profily nastavení…", "state": "enable" },
+        { "id": "sep.settings.1", "state": "enable" },
+        { "id": "settings.callHistoryLookup", "label": "Zapnout dohledávání v call history", "state": "enable" }
       ]
     },
     {

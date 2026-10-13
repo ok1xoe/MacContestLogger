@@ -22,15 +22,18 @@ public struct NewContestForm: Equatable, Sendable {
     /// `"yyyy-MM-dd HH:mm"` UTC.
     public var startedAt: String
     public var endedAt: String
+    /// N1MM Associated Files: the contest's own call history file (Swift-only); empty = the global one.
+    public var callHistoryFile: String
 
     public init(category: [String: String] = [:], sentExchange: [String: String] = [:], operators: String = "",
-                soapbox: String = "", startedAt: String = "", endedAt: String = "") {
+                soapbox: String = "", startedAt: String = "", endedAt: String = "", callHistoryFile: String = "") {
         self.category = category
         self.sentExchange = sentExchange
         self.operators = operators
         self.soapbox = soapbox
         self.startedAt = startedAt
         self.endedAt = endedAt
+        self.callHistoryFile = callHistoryFile
     }
 
     /// Prefill for a chosen definition (Kotlin `LaunchedEffect(selectedId)`); `saved` = the stored setup of this
@@ -52,6 +55,7 @@ public struct NewContestForm: Equatable, Sendable {
         }
         form.operators = nonBlank(saved?.operators) ?? stationCall
         form.soapbox = saved?.soapbox ?? ""
+        form.callHistoryFile = saved?.callHistoryFile ?? ""
         let midnight: Int64 = todayMidnightUtc(now)
         form.startedAt = nonBlank(saved?.startedAt) ?? format(epochSecond: midnight)
         if let ended = nonBlank(saved?.endedAt) {
@@ -73,6 +77,7 @@ public struct NewContestForm: Equatable, Sendable {
         setup.soapbox = soapbox
         setup.startedAt = startedAt
         setup.endedAt = endedAt
+        setup.callHistoryFile = KotlinText.trim(callHistoryFile)
         return setup
     }
 

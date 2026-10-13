@@ -256,6 +256,9 @@ extension ConfigurerDraft {
         config.contestDataDir = Self.trim(contestDataDir)
         config.scpFile = Self.trim(scpFile)
         config.callHistoryFile = Self.trim(callHistoryFile)
+        config.callHistoryExtraFiles = callHistoryExtraFiles.map(Self.trim).filter { !$0.isEmpty }
+        config.callHistoryLookupEnabled = callHistoryLookupEnabled
+        config.callHistoryShowUserInfo = callHistoryShowUserInfo
         config.scpSuggestionsEnabled = scpSuggestionsEnabled
         config.nPlusOneEnabled = nPlusOneEnabled
         config.preferredCallbook = CallbookService(configValue: preferredCallbook).rawValue

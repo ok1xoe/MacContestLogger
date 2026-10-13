@@ -21,6 +21,104 @@ OK1XOE,Tomas,,15,JN79
 
 The `!!Order!!` line defines the columns; without it the N1MM order
 `Call,Name,Loc1,Loc2,Sect,State,CK,BirthDate,Exch1,Misc,UserText` applies.
+A file may also use `;` as the delimiter: when the first separator after `!!Order!!` is a
+semicolon (`!!Order!!;Call;Name;State`), the data lines are split on `;`.
+
+The same group has:
+
+- **Další soubory call history (sloučené)** (Additional call history files, merged) —
+  **Přidat soubory…** (Add files…) picks one or more files, **Odebrat** (Remove) takes one
+  off the list (see [Several files in one table](#several-files-in-one-table)),
+- the active contest's own file with **Přiřadit závodu…** / **Zrušit přiřazení**
+  (Assign to the contest / Remove the assignment), applied to the open contest at once
+  (see [A contest's own file](#a-contests-own-file)),
+- **Načteno celkem: N volaček** (Loaded in total) — the callsigns of all loaded files together,
+- **Zapnout dohledávání v call history** (Enable call history lookup), the same switch as the menu item below,
+- **Zobrazovat informace uživatele (UserText)** (Show user information) — the call history
+  and UserText lines in the entry window.
+
+## Enabling the lookup
+
+Equivalent of N1MM **Config → Enable Call History Lookup**: menu **"Nastavení →
+Zapnout dohledávání v call history"** (Settings → Enable call history lookup) is a check
+item (on by default; config key `callHistoryLookupEnabled`). When it is off, nothing is
+prefilled from the call history (the callbook prefill stays); the reverse lookup and the
+UserText line still work, as in N1MM.
+
+### Associating a file with contests (`#CONTEST` lines)
+
+As in N1MM, a comment line can name the contest a file is meant for — the `#` first on the
+line, one contest per line, upper/lower case does not matter:
+
+```
+#CQWWCW
+# cq-ww-ssb
+# QSO Party PA
+```
+
+When a contest is opened, the names are compared with the contests the logger knows (the
+definitions in the contest data directory) by their id and their name, with case, spaces,
+dashes and other punctuation ignored (`#CQWWCW`, `# CQ WW CW` and `#cq-ww-cw` all name
+`cq-ww-cw`):
+
+- if the file names known contests and **one of them is the opened contest**, the lookup is
+  switched **on**,
+- if it names known contests but **not this one**, the lookup is switched **off**,
+- if no comment names a known contest (ordinary comments, or only N1MM short names the
+  logger has no definition for), the switch is left as it is.
+
+This happens once when the contest is opened (and when its file changes); switching the menu
+item afterwards stands. The comments and directives of the file are kept when the logger
+saves it (update from the log, clearing).
+
+## A contest's own file
+
+Equivalent of N1MM **Contest Setup → Associated Files**. The **Nový závod** (New contest)
+window has a **Call history závodu** (Contest call history) field with **Vybrat soubor…**
+(Choose file…); empty means the main file from Settings. While that contest is open, its
+file is used instead of the main one (the additional files are still merged in), and the
+logger switches back when another contest is opened. The file is remembered with the
+contest's setup and offered again the next time the same contest is created. For a contest
+that is already open, use **Přiřadit závodu…** in Settings → Contest → Call history.
+
+## Several files in one table
+
+Equivalent of N1MM's **File → Import → Import Call History** with several files selected:
+menu **"Soubor → Import → Importovat call history…"** (File → Import → Import call history…)
+lets you choose one or more files (Cmd+click); they are added to the additional files of
+Settings → Contest → Call history and loaded at once. The additional files are merged after
+the main one into one table, in their order:
+
+- a callsign that is not in the table yet is added,
+- for a callsign already there, the later file's **non-empty** fields overwrite the earlier
+  ones; empty fields leave them as they are,
+- **UserText** is appended (`!!AppendUserText!!`, the default) unless the later file says
+  `!!NoAppendUserText!!` (then it replaces it),
+- a different **Loc1** moves the previous one to **Loc2** (an alternate grid) unless the later
+  file says `!!NoLoc2AltGrid!!`.
+
+The files themselves are not changed: **Update from the log** and **Clear call history** write
+only the main file (or the contest's own file). Export writes the merged table.
+
+## Import directives
+
+N1MM's directive lines start with `!!` and may be anywhere in the file; several may share a
+line, separated by `,` or `;` (`!!MapStateToSect!!;!!FourCharGridSq!!`):
+
+| Directive | Effect |
+|---|---|
+| `!!MapStateToSect!!` | an empty `Sect` takes the `State` value |
+| `!!FourCharGridSq!!` | 6-character grids (`Loc1`, `Loc2`) are cut to 4 characters |
+| `!!AppendUserText!!` | a repeated callsign appends its UserText (the default) |
+| `!!NoAppendUserText!!` | a repeated callsign replaces its UserText |
+| `!!Validate50State!!` | a `State` that is not one of the 50 US states is dropped (DC is not a state, so it is dropped too) |
+| `!!NoLoc2AltGrid!!` | a different Loc1 overwrites the previous one instead of moving it to Loc2 |
+| `!!MapOnSection!!` | the Ontario sections GTE (GTA), ONN, ONE and ONS become ON |
+| `!!ValidateArrlSection!!` | a `Sect` that is not an ARRL/RAC section is dropped (PR and VI are sections, ON is not) |
+
+A file **with** directives follows N1MM's import rules also for a callsign repeated inside the
+file (the fields are merged as above). A file **without** any directive reads exactly as before
+(a later line of the same callsign replaces the whole record), so existing files behave the same.
 
 ## Exchange prefill
 
@@ -48,10 +146,17 @@ database from log**. Menu **"Nástroje → Aktualizovat call history z deníku"*
   typical column by type (CQ zone → `CQZone`...); missing columns are added to
   `!!Order!!`,
 - it merges with the existing call history (adds new callsigns, overwrites values,
-  leaves other columns) and saves it atomically back to the file.
+  leaves other columns) and saves it atomically back to the file,
+- a locator follows N1MM's rule for **Loc1/Loc2**: a grid different from the stored Loc1
+  becomes Loc1 and the previous Loc1 moves to Loc2 (the older Loc2 is dropped); a 4-character
+  grid is overwritten by a 6-character grid of the same square (no move), and a 4-character
+  grid never replaces a 6-character one of its square. `!!NoLoc2AltGrid!!` in the file turns
+  the move off.
 
-Without a configured file, `CALLHISTORY.txt` is created in the application data
-directory and the path is saved in the settings. X-QSOs and deleted QSOs are not used.
+It writes the **main** file — the open contest's own file when it has one — never the
+additional merged files. Without a configured file, `CALLHISTORY.txt` is created in the
+application data directory and the path is saved in the settings. X-QSOs and deleted QSOs
+are not used.
 
 ## Clearing the call history
 
@@ -61,6 +166,19 @@ once. The file is **never lost**: its previous content is copied beside it first
 (for example `CALLHISTORY.txt.bak-20261128-143000`). N1MM's **Clear Call History then Update** is these two menu items
 in a row: clear, then **Aktualizovat call history z deníku** (Update call history from log). To keep a copy elsewhere,
 use **Soubor → Export → Call history** first (see [Import and export](import-export.md)).
+
+## Call history and UserText lines
+
+Equivalent of N1MM's **Show User Information**. With **Zobrazovat informace uživatele
+(UserText)** on (Settings → Contest → Call history; on by default, config key
+`callHistoryShowUserInfo`), the strip below the frequency of the entry window (the VFO B
+window too), next to the callbook line, shows for the typed callsign:
+
+- `Call history: Name: Hiram, State: CT, Loc1: FN31, CQZone: 5` — the record's columns except
+  the callsign and UserText, while the lookup is enabled,
+- the record's **UserText** in blue on its own — also when the lookup is disabled, as in N1MM.
+
+Nothing is shown for a callsign without a record.
 
 ## Reverse lookup
 

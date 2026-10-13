@@ -148,6 +148,8 @@ private struct StripHintsView: View {
                 }
                 WorkedBeforeStripView(app: app, panel: panel)
                 CallbookLineView(app: app, panel: panel)
+                CallHistoryLineView(panel: panel)
+                UserTextLineView(app: app, panel: panel)
                 ReverseLookupView(app: app, panel: panel, focus: focus)
             }
         }

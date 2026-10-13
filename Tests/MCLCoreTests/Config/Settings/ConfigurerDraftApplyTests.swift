@@ -297,6 +297,8 @@ import Testing
         let extra = ProfileMergeSchema.swiftOnlyProperties.values.flatMap { $0.map(\.name) }
         #expect(Set(extra) == ["scpSuggestionsEnabled", "nPlusOneEnabled", "preferredCallbook", "dupesheetSortBySuffix",
                                "ctyEnabled",
+                               "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",
+                               "callHistoryFile",
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",
                                "checkReverseThreshold", "checkReverseFromStart", "showUnmatchedCallMark",

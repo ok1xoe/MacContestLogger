@@ -213,6 +213,15 @@ public struct AppConfig: Codable, Equatable, Sendable {
 
     /// Call history file in N1MM format (pre-filling the exchange); empty = none.
     public var callHistoryFile = ""
+    /// N1MM „Config → Enable Call History Lookup": the exchange is prefilled from the call history. A file's
+    /// `#CONTEST` lines switch it when a contest opens. Swift-only key.
+    public var callHistoryLookupEnabled = true
+    /// Further call history files merged after the primary one into one table (N1MM's import of several files).
+    /// Swift-only key.
+    public var callHistoryExtraFiles: [String] = []
+    /// N1MM „Show User Information": the call history line and the UserText line under the entry fields.
+    /// Swift-only key.
+    public var callHistoryShowUserInfo = true
 
     public var databasesDir = ""
     public var lastDatabase = ""
@@ -243,7 +252,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case checkHiddenPanes, checkPaneWeights, checkYankOrder, checkYankAllowDupes, checkFavorEndDifferences
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
-        case callHistoryFile, databasesDir, lastDatabase, windowGeometry, openWindows, goals
+        case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
+        case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
     public init() {}
@@ -356,6 +366,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
         showUnmatchedCallMark = c.value(.showUnmatchedCallMark, default: d.showUnmatchedCallMark)
         dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
+        callHistoryLookupEnabled = c.value(.callHistoryLookupEnabled, default: d.callHistoryLookupEnabled)
+        callHistoryExtraFiles = c.value(.callHistoryExtraFiles, default: d.callHistoryExtraFiles)
+        callHistoryShowUserInfo = c.value(.callHistoryShowUserInfo, default: d.callHistoryShowUserInfo)
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

@@ -18,6 +18,8 @@ import Observation
 ///   the callbook line of the entry window (`callbookLine`, `EP:1186-1192`).
 /// - The spot calls of the cluster buffer join Check partial and N+1 (`EP:632, 645`), read when the call changes.
 /// - The reverse lookup (`remember(exchSnapshot, state.callHistory, cfields)`): synchronous like Kotlin.
+/// - N1MM's Enable Call History Lookup (`callHistoryLookupEnabled`) gates the call history prefill only; the reverse
+///   lookup and the UserText line work without it, as in N1MM.
 ///
 /// The entry form comes from `formSource`; the prefilled form goes back through `formSink` (both wired by the app).
 @Observable @MainActor
@@ -47,6 +49,28 @@ public final class SuggestionsModel {
     /// hidden.
     public var callbookLine: String? {
         callbookRecord.map { "Callbook: " + CallbookPrefill.describe($0) }
+    }
+
+    /// The call history record of the typed call (`nil` = none or a blank call).
+    public var callHistoryRecord: JavaLinkedMap<String>? {
+        let call: String = formSource().call
+        guard !KotlinStrings.isBlank(call) else { return nil }
+        return callData.callHistory.lookup(call)
+    }
+
+    /// N1MM's user data line under the fields („Call history: Name: Hiram, State: CT"): with „Show User Information"
+    /// and the lookup enabled, when the typed call has a record; `nil` = hidden. Not translated, like the callbook line.
+    public var callHistoryLine: String? {
+        guard callData.showsCallHistoryUserInfo, callData.callHistoryLookupEnabled, let record = callHistoryRecord,
+              let text = CallHistoryFill.describe(record, columns: callData.callHistory.columns) else { return nil }
+        return "Call history: " + text
+    }
+
+    /// The UserText of the typed call's record (N1MM shows it in blue even when the lookup is disabled); `nil` =
+    /// hidden (no text, or „Show User Information" off).
+    public var userTextLine: String? {
+        guard callData.showsCallHistoryUserInfo, let record = callHistoryRecord else { return nil }
+        return CallHistoryFill.userText(record)
     }
 
     /// The spot calls of the cluster buffer (Kotlin `state.dxCluster.spots.snapshot().map { it.dxCall() }`).
@@ -142,6 +166,7 @@ public final class SuggestionsModel {
     private struct FillKey: Equatable {
         let call: String
         let callHistoryRevision: Int
+        let lookupEnabled: Bool
         let activeId: String?
         let callbook: HamQthRecord?
     }
@@ -311,7 +336,8 @@ public final class SuggestionsModel {
     }
 
     private func refreshFill(call: String) {
-        let key = FillKey(call: call, callHistoryRevision: callData.callHistoryRevision, activeId: contest.activeId,
+        let key = FillKey(call: call, callHistoryRevision: callData.callHistoryRevision,
+                          lookupEnabled: callData.callHistoryLookupEnabled, activeId: contest.activeId,
                           callbook: callbookRecord)
         guard key != fillKey else { return }
         fillKey = key
@@ -329,8 +355,10 @@ public final class SuggestionsModel {
         fillTimer = nil
         let active: Bool = contest.isActive
         let fields: [ContestDefinition.ExchangeField] = active ? contest.exchangeFields(call: call) : []
-        let history = CallHistoryFill.fill(callHistory: callData.callHistory, call: call, fields: fields,
-                                           contestActive: active)
+        // N1MM Enable Call History Lookup off: no prefill from the call history (the callbook's stays).
+        let history: JavaLinkedMap<String> = callData.callHistoryLookupEnabled
+            ? CallHistoryFill.fill(callHistory: callData.callHistory, call: call, fields: fields, contestActive: active)
+            : JavaLinkedMap()
         var fill = JavaLinkedMap<String>()
         if active && KotlinStrings.trim(call).utf16.count >= 3 {
             fill = CallbookPrefill.prefill(callbook, fields)

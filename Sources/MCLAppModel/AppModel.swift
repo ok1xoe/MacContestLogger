@@ -415,6 +415,12 @@ public final class AppModel {
         wire(radio, entry: entry, logbook: logbook)
         wireKeyer(radio, entry: entry, config: config)
         let callData = CallDataModel(config: config, status: status, dataDir: dataDir)
+        callData.contestCallHistoryFile = { [weak contest] in
+            contest?.activeSetup?.callHistoryFile
+        }
+        callData.contestContext = { [weak contest] in
+            contest.flatMap(Self.callHistoryContext)
+        }
         let suggestionClock: any RescoreClock = environment.suggestionClock ?? MainQueueRescoreClock()
         let vfoB: EntryPanel = Self.makeVfoB(entryDependencies, callData: callData, logbook: logbook,
                                              contest: contest, clock: suggestionClock)
@@ -1103,6 +1109,17 @@ public final class AppModel {
         model.definitionEditor.observeDataDir()
         // Club Log `cty.xml`: the daily check in the background (no network without the fetcher).
         model.dataTools.startClubLogDxccCheck()
+    }
+
+    /// The active contest for the call history's `#CONTEST` lines: its id and name, and those of the catalog.
+    private static func callHistoryContext(_ contest: ContestModel) -> CallDataModel.ContestContext? {
+        guard let id = contest.activeId, let definition = contest.definition else { return nil }
+        func keys(_ definition: ContestDefinition) -> [String] {
+            [definition.id, definition.metadata?.name].compactMap { $0 }.map(CallHistory.contestKey)
+                .filter { !$0.isEmpty }
+        }
+        let known: Set<String> = Set(contest.runtime.available.flatMap(keys))
+        return CallDataModel.ContestContext(contestId: id, keys: Set(keys(definition)), known: known)
     }
 
     /// The callsign help of the entry window (Kotlin `EP:271-295, 623-669`): the databases load at start

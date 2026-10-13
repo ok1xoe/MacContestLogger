@@ -55,7 +55,7 @@ import Testing
         #expect(try children("file") == ["contest.new", "contest.open", "file.openRecent", "database.new",
                                          "database.open", "file.copyContest", "file.import", "file.export",
                                          "file.post3830", "settings.print"])
-        #expect(try children("file.import") == ["settings.import", "settings.merge"])
+        #expect(try children("file.import") == ["settings.import", "settings.merge", "callhistory.import"])
         #expect(try children("file.export") == ["settings.export", "settings.exportAdifRange",
                                                 "settings.exportCabrillo", "settings.exportEdi",
                                                 "settings.exportOther", "callhistory.exportN1mm",
@@ -65,7 +65,8 @@ import Testing
                                           "contest.updateDefinitions", "database.updateClubLogDxcc",
                                           "contest.updateCallHistory", "callhistory.clear", "beacons.load",
                                           "contest.editor"])
-        #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles"])
+        #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
+                                             "settings.callHistoryLookup"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.report",
                                          "help.dataFolder"])

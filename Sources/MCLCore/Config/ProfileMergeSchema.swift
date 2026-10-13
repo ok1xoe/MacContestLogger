@@ -19,9 +19,9 @@ enum ProfileMergeSchema {
     /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`), the preferred online callbook
     /// (`preferredCallbook`), the Dupesheet's suffix order (`dupesheetSortBySuffix`), the Check window (`check*`) and
     /// the unmatched call mark (`showUnmatchedCallMark`), Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX
-    /// cluster Bands/Modes spot filter
-    /// (`dxCluster.spotFilter*`), the call stack (`esm.nextCallKey`, `esm.callStack*`) and digital call stacking
-    /// (`digital.digitalCallStacking`).
+    /// cluster Bands/Modes spot filter (`dxCluster.spotFilter*`), the call stack (`esm.nextCallKey`,
+    /// `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history switches and extra
+    /// files (`callHistory*`) and a contest's own call history file (`contestSetups.*.callHistoryFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
@@ -38,6 +38,12 @@ enum ProfileMergeSchema {
             Property("checkReverseFromStart", .boolean, .fieldDefault),
             Property("showUnmatchedCallMark", .boolean, .fieldDefault),
             Property("dupesheetSortBySuffix", .boolean, .fieldDefault),
+            Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
+            Property("callHistoryExtraFiles", .list(.string), .fieldDefault),
+            Property("callHistoryShowUserInfo", .boolean, .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.ContestSetup": [
+            Property("callHistoryFile", .string, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.DxClusterConfig": [
             Property("spotFilterHiddenBands", .list(.string), .fieldDefault),

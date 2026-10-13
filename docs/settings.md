@@ -147,6 +147,14 @@ Synchronizace času** (Settings → Other → Time synchronization):
   rights — it is recommended to turn on automatic time in System Settings). A manually
   entered time (late entry) is not changed.
 
+## Call history (Závod tab)
+
+**Závod → Call history** (Contest → Call history) holds the main call history file, the additional files merged after
+it (**Přidat soubory…** / **Odebrat**), the open contest's own file (**Přiřadit závodu…**, applied at once), the total of
+loaded callsigns and two switches: **Zapnout dohledávání v call history** (Enable call history lookup, also a check item
+in the Nastavení menu) and **Zobrazovat informace uživatele (UserText)** (Show user information). Details:
+[Call history](call-history.md).
+
 ## Menu bar
 
 The menus follow N1MM+: **Soubor** (File), **Úpravy** (Edit), **Závod** (Contest), **Nástroje** (Tools),
@@ -155,11 +163,11 @@ Settings `Cmd+,` and Quit.
 
 | Menu | Items |
 |---|---|
-| Soubor (File) | New contest, Open contest, Open recent (the last 9 contests of the open database), New / Open database, Copy contest to another database, Import (QSOs, Merge log), Export (ADIF, ADIF by date, Cabrillo, EDI, CSV / text / summary, call history), Post result to 3830, Print log |
+| Soubor (File) | New contest, Open contest, Open recent (the last 9 contests of the open database), New / Open database, Copy contest to another database, Import (QSOs, Merge log, Import call history), Export (ADIF, ADIF by date, Cabrillo, EDI, CSV / text / summary, call history), Post result to 3830, Print log |
 | Úpravy (Edit) | the entry window's actions with your current keys shown next to them (wipe, restore, +1 to the number, note, find, delete last QSO), then Undo, Redo, Cut, Copy, Paste and Select All for the text fields |
 | Závod (Contest) | Late entry, Record contest, None (free logging) |
 | Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Assign call to country, Download master.scp, Update definitions, Update DXCC from Club Log, Update call history, Clear call history, Load beacon file, Definition editor |
-| Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles |
+| Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles, Enable call history lookup (a check item, see [Call history](call-history.md#enabling-the-lookup)) |
 | Okno (Window) | the application's windows, Multiplikátory (Multipliers) and, after a separator, **Vlastní** (Custom) with the windows of window plugins ([Plugin windows](plugin-windows.md)) |
 | Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Report a bug (GitHub issues), Open data folder (honours `MCL_DATA_DIR`) |
 

@@ -15,16 +15,16 @@ import Testing
 
     /// The shipped `lang_en.json` / `lang_de.json` intentionally differ from Java v1.1.1: 61 keys were appended for
     /// Kotlin literals the Swift UI translates, the 20 `menu.json` labels Java leaves out
-    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and 26 keys of the window plugins and 32 keys of their grants, keys and docking and 22 keys of raw CAT, transmitting and web windows and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and 3 keys of File → Open recent and 20 keys of copying a contest to another database and rescoring the last N hours and 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing and 15 keys of the 3830 score post and 38 keys of recording, playing, choosing and deleting SSB voice messages in Settings and 4 keys of the VFO A/B dupesheets, their suffix order and the outdated country table warning and 20 keys of the Check window, its right-click menu, the call field's mark and the View menu. The Java measurement stays as it was; these are its cells for the shipped files
+    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and 26 keys of the window plugins and 32 keys of their grants, keys and docking and 22 keys of raw CAT, transmitting and web windows and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and 3 keys of File → Open recent and 20 keys of copying a contest to another database and rescoring the last N hours and 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing and 15 keys of the 3830 score post and 38 keys of recording, playing, choosing and deleting SSB voice messages in Settings and 4 keys of the VFO A/B dupesheets, their suffix order and the outdated country table warning and 26 keys of the N1MM call history features (lookup switch, merged files, the contest's own file, the user information line) and 20 keys of the Check window, its right-click menu, the call field's mark and the View menu. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
-        "81929": "121852", "afc6becd4f499483": "0e532ab943ecd4e2",
-        "87423": "129642", "d0c67e41ffca0e5d": "0bfcba8d702704db",
-        "1006": "1518",
+        "81929": "124235", "afc6becd4f499483": "8c67170d27b0c821",
+        "87423": "132204", "d0c67e41ffca0e5d": "7e2bf8a0106eda3e",
+        "1006": "1544",
         "cc0ee26c076bc811dcc8325b5de39f43b89e7c0e8805e23db59cea0b4def8a4f":
-            "322aa008b76d8f8dd455c3ef1dc6f98cc11f19806cc2c86797aef061510b57ea",
+            "4fa4b5a3c5cf667b6cbf3f757fe676833a6849e843b0c6a2a4807efa8523553e",
         "2c37f524ad0b3da50e3eac30e91daf1f8bbe8353c3f844467c667a8f5f881bdb":
-            "dc98a30de6baf9ce17def998e2b739fcaffe4f8f84029302fe12448573b4d36d",
+            "f32ccc71eb8d29170b7c51f1cf835d7180191eec7a09b6a9187e125c105d4d01",
     ]
 
     /// A Java cell describing a shipped file, adjusted to the Swift files (`shippedFileCells`). Only whole

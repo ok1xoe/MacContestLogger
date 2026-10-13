@@ -45,6 +45,8 @@ public enum MenuActions {
         case saveAdifRange(suggestedName: String, range: AdifDateRange)
         /// The loaded call history → `exportCallHistory(to:format:)`.
         case saveCallHistory(format: DataToolsModel.CallHistoryFormat, suggestedName: String)
+        /// N1MM Import Call History: one or more files (multiple selection) → `importCallHistoryFiles`.
+        case openCallHistoryImport
     }
 
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to
@@ -52,6 +54,7 @@ public enum MenuActions {
     private static let fileIds: Set<String> = [
         "settings.export", "settings.exportCabrillo", "settings.exportEdi", "settings.exportOther", "settings.import",
         "settings.merge", "database.refillDxcc", "callhistory.exportN1mm", "callhistory.exportCsv",
+        "callhistory.import",
     ]
 
     /// The Help items and the documentation page each opens (`nil` = the docs index, `.issues` = the bug tracker).
@@ -128,6 +131,8 @@ public enum MenuActions {
             return .chooseDirectory(.other)
         case "database.refillDxcc":
             return .confirmRefillDxcc(count: app.logbook.rows.count)
+        case "callhistory.import":
+            return .openCallHistoryImport
         case "callhistory.exportN1mm", "callhistory.exportCsv":
             guard app.dataTools.hasCallHistory else {
                 app.status.show("Call history je prázdná")
@@ -171,6 +176,8 @@ public enum MenuActions {
             }
         case "contest.rescoreHours":
             promptRescoreHours(app: app)
+        case "settings.callHistoryLookup":
+            app.callData.toggleLookup()
         case "database.new":
             app.dialogs.setOpen(.databaseNew, true)
         case "database.open":
@@ -218,13 +225,18 @@ public enum MenuActions {
         }
     }
 
-    /// The ✓ of a toggle item („Dodatečné zadání" shows the POSTCONTEST state; Kotlin's menu items carry no
-    /// check mark — a UI divergence).
+    /// The ✓ of a toggle item („Dodatečné zadání" shows the POSTCONTEST state, „Zapnout dohledávání v call history"
+    /// N1MM's Enable Call History Lookup; Kotlin's menu items carry no check mark — a UI divergence).
     public static func isChecked(_ id: String, app: AppModel) -> Bool {
         switch id {
-        case "contest.postcontest": return app.operating.postContest
-        case "view.unmatchedMark": return app.check.showsUnmatchedMark
-        default: return false
+        case "contest.postcontest":
+            return app.operating.postContest
+        case "settings.callHistoryLookup":
+            return app.callData.callHistoryLookupEnabled
+        case "view.unmatchedMark":
+            return app.check.showsUnmatchedMark
+        default:
+            return false
         }
     }
 

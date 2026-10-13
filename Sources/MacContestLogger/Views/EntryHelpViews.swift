@@ -74,6 +74,40 @@ struct CallbookLineView: View {
     }
 }
 
+/// N1MM's user data line: „Call history: " and the typed call's record (name, state, grids, zones…), shown with
+/// „Show User Information" (Settings → Závod) while the lookup is enabled. The text is not translated, like the
+/// callbook line.
+struct CallHistoryLineView: View {
+    let panel: EntryPanel
+
+    var body: some View {
+        if let line = panel.suggestions.callHistoryLine {
+            Text(verbatim: line)
+                .windowFont(11, weight: .medium)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .accessibilityIdentifier("entry.callHistory")
+        }
+    }
+}
+
+/// The UserText of the typed call's call history record in blue (N1MM shows it even when the lookup is disabled).
+struct UserTextLineView: View {
+    let app: AppModel
+    let panel: EntryPanel
+
+    var body: some View {
+        if let text = panel.suggestions.userTextLine {
+            Text(verbatim: text)
+                .windowFont(11, weight: .semibold)
+                .foregroundStyle(Color.blue)
+                .lineLimit(1)
+                .accessibilityIdentifier("entry.userText")
+                .accessibilityLabel(Text(verbatim: app.language.tr("Informace uživatele (UserText)") + ": " + text))
+        }
+    }
+}
+
 /// Kotlin `ScpSuggestions` (`EP:1458-1500`): Check partial on its own `SCP:` row under the call field, above N+1.
 /// A call already worked on this band is red (a dupe), one worked elsewhere is muted, a spotted one is underlined;
 /// the highlighted one is bold. A click takes it. The row is always reserved (its label shows even when empty), so

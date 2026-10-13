@@ -140,6 +140,27 @@ private struct NewContestContent: View {
             TextEditor(text: Binding(get: { form.form.soapbox }, set: { form.form.soapbox = $0 }))
                 .frame(height: 120)
                 .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.secondary.opacity(0.4)))
+            callHistoryRow
+        }
+    }
+
+    /// N1MM Contest Setup → Associated Files: the contest's own call history file (empty = the global one).
+    private var callHistoryRow: some View {
+        HStack(spacing: 12) {
+            Text(verbatim: language.tr("Call history závodu"))
+                .frame(width: 140, alignment: .leading)
+            TextField(text: Binding(get: { form.form.callHistoryFile }, set: { form.form.callHistoryFile = $0 })) {
+                Text(verbatim: language.tr("prázdné = hlavní soubor z Nastavení"))
+            }
+            .textFieldStyle(.roundedBorder)
+            .accessibilityLabel(Text(verbatim: language.tr("Call history závodu")))
+            Button {
+                ExportPanels.openFile(message: language.tr("Vyber soubor call history pro tento závod")) { url in
+                    form.form.callHistoryFile = url.path
+                }
+            } label: {
+                Text(verbatim: language.tr("Vybrat soubor…"))
+            }
         }
     }
 
