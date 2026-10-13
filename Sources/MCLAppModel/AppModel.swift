@@ -237,6 +237,8 @@ public final class AppModel {
     @ObservationIgnored public internal(set) var qtcSending: QtcSending!
     /// The station's call stack (own and partner entries).
     @ObservationIgnored public internal(set) var callStack: CallStackModel!
+    /// The Check window, Alt+Y and the call field's ✓ / ? mark.
+    @ObservationIgnored public internal(set) var check: CheckModel!
     /// The Digital Interface's Grab window.
     @ObservationIgnored public internal(set) var grabList: GrabListModel!
     /// The CQ repeat loop of the main entry window.
@@ -818,6 +820,7 @@ public final class AppModel {
             }
             entry.selfSpotTuned()
         }
+        wireCheck(model, buffer: buffer)
         model.bandmap.spotNavigation = model.spotNavigation
         model.bandmap.keyEntry = { [weak model] in
             guard let model else { return nil }
@@ -906,6 +909,30 @@ public final class AppModel {
     /// operating state and the keyer; the TX interlock gates every transmission and announces it; the own DX cluster
     /// spots are shared; Ctrl+Alt+P / Ctrl+Alt+K, NETON and NETOFF reach the models; the info strip shows SNS and
     /// the call stack.
+    /// The Check window follows the active entry window; both entry windows' Alt+Y goes through it.
+    private static func wireCheck(_ model: AppModel, buffer: SpotBuffer) {
+        let check = CheckModel(config: model.config, callData: model.callData, logbook: model.logbook,
+                               contest: model.contest)
+        model.check = check
+        check.target = { [weak model] in
+            model.map { $0.activeEntry ?? $0.entry }
+        }
+        check.spotCounts = {
+            buffer.spotCounts()
+        }
+        check.callStatus = { [weak model] call, entry in
+            guard let model else { return .good }
+            let status: SpotStatus = model.spotAnalysis.current().callStatus(
+                call: call, freqHz: Int(clamping: entry.form.freqHz), mode: entry.form.mode.rawValue)
+            return SpotColorClassifier.classify(dupe: status.dupe, newMultCount: status.newMultCount)
+        }
+        for panel in [model.panel(vfo: 0), model.vfoB] {
+            panel.entry.checkYank = { [weak check] entry, field in
+                check?.yank(entry: entry, field: field)
+            }
+        }
+    }
+
     private static func wireNetwork(_ model: AppModel) {
         let cluster: ClusterSyncModel = model.cluster
         let rig: RigModel = model.rig

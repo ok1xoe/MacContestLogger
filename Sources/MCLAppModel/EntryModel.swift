@@ -305,13 +305,23 @@ public final class EntryModel {
         form.exch = text
     }
 
+    /// The received field typed in last (the Check window's exchange pane follows it).
+    public private(set) var lastEditedField: String?
+
     public func editContestField(_ id: String?, _ text: String) {
+        if lastEditedField != id {
+            lastEditedField = id
+        }
         form.editContestField(id, text)
         updatePreview()
     }
 
     /// The field with the typing cursor (set by the view; `nil` = none or not known).
     @ObservationIgnored public var focusedField: (@MainActor () -> EntryFieldKey?)?
+
+    /// N1MM Alt+Y through the Check window (wired by the app): the call (or, in an exchange field, the value) to put
+    /// in; `nil` = nothing, the first Check partial suggestion is taken as before.
+    @ObservationIgnored public var checkYank: (@MainActor (EntryModel, EntryFieldKey?) -> String?)?
 
     /// N1MM Ctrl+click in the Digital Interface (Cmd+click here): the text goes into the field that has the typing
     /// cursor, whatever it is; without a known field into the call field.

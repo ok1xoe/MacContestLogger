@@ -179,6 +179,8 @@ public enum MenuActions {
             app.windows.setOpen("log", true)
         case "contest.postcontest":
             app.operating.setPostContest(!app.operating.postContest)
+        case "view.unmatchedMark":
+            app.check.setShowsUnmatchedMark(!app.check.showsUnmatchedMark)
         case "settings.print":
             // The job is read off the main thread; it comes back as `exports.pendingRequest` (`takeModelRequest`).
             app.exports.startPrint()
@@ -219,7 +221,11 @@ public enum MenuActions {
     /// The ✓ of a toggle item („Dodatečné zadání" shows the POSTCONTEST state; Kotlin's menu items carry no
     /// check mark — a UI divergence).
     public static func isChecked(_ id: String, app: AppModel) -> Bool {
-        id == "contest.postcontest" && app.operating.postContest
+        switch id {
+        case "contest.postcontest": return app.operating.postContest
+        case "view.unmatchedMark": return app.check.showsUnmatchedMark
+        default: return false
+        }
     }
 
     /// A request a model produced asynchronously after its menu action returned (the print job), cleared; the app

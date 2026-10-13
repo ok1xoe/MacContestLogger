@@ -18,13 +18,13 @@ import Testing
     /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and 26 keys of the window plugins and 32 keys of their grants, keys and docking and 22 keys of raw CAT, transmitting and web windows and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and 3 keys of File → Open recent and 20 keys of copying a contest to another database and rescoring the last N hours and 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing and 15 keys of the 3830 score post and 38 keys of recording, playing, choosing and deleting SSB voice messages in Settings. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
-        "81929": "120292", "afc6becd4f499483": "83d71fa38b9117ed",
-        "87423": "127946", "d0c67e41ffca0e5d": "13d06496f8c3ab2b",
-        "1006": "1494",
+        "81929": "121416", "afc6becd4f499483": "748b2c96317ec94c",
+        "87423": "129177", "d0c67e41ffca0e5d": "3559f7bb755da360",
+        "1006": "1514",
         "cc0ee26c076bc811dcc8325b5de39f43b89e7c0e8805e23db59cea0b4def8a4f":
-            "0c0ee44af5dd3d772da57d69df3ef038702c7729aa9a852487f5ac8552e988bc",
+            "deb6c004ef40b835a2be6280a389601ecb3379094600db3bfd1be75ad981d058",
         "2c37f524ad0b3da50e3eac30e91daf1f8bbe8353c3f844467c667a8f5f881bdb":
-            "5af80a1302d06b11cf0ce113080352a3216eb784289a96dafef7656db89820d6",
+            "16e23a90dfa1f96efe318fb7f3539a9f482fb54438a1518cd17cde400f3f1556",
     ]
 
     /// A Java cell describing a shipped file, adjusted to the Swift files (`shippedFileCells`). Only whole

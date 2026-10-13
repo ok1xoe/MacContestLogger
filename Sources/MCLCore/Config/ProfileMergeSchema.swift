@@ -17,7 +17,7 @@ enum ProfileMergeSchema {
 
     /// Hand-maintained Swift-only properties by owning Java class (see the type's documentation): the two switches
     /// of the SCP and N+1 rows (`scpSuggestionsEnabled`, `nPlusOneEnabled`), the preferred online callbook
-    /// (`preferredCallbook`) Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX cluster Bands/Modes spot filter
+    /// (`preferredCallbook`), the Check window (`check*`) and the unmatched call mark (`showUnmatchedCallMark`), Club Log's DXCC data switch (`clubLog.ctyEnabled`), the DX cluster Bands/Modes spot filter
     /// (`dxCluster.spotFilter*`), the call stack (`esm.nextCallKey`, `esm.callStack*`) and digital call stacking
     /// (`digital.digitalCallStacking`).
     static let swiftOnlyProperties: [String: [Property]] = [
@@ -25,6 +25,16 @@ enum ProfileMergeSchema {
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
             Property("nPlusOneEnabled", .boolean, .fieldDefault),
             Property("preferredCallbook", .string, .fieldDefault),
+            Property("checkHiddenPanes", .list(.string), .fieldDefault),
+            Property("checkPaneWeights", .map(.integer), .fieldDefault),
+            Property("checkYankOrder", .list(.string), .fieldDefault),
+            Property("checkYankAllowDupes", .boolean, .fieldDefault),
+            Property("checkFavorEndDifferences", .boolean, .fieldDefault),
+            Property("checkTelnetMinSpots", .int, .fieldDefault),
+            Property("checkReverseEnabled", .boolean, .fieldDefault),
+            Property("checkReverseThreshold", .int, .fieldDefault),
+            Property("checkReverseFromStart", .boolean, .fieldDefault),
+            Property("showUnmatchedCallMark", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.DxClusterConfig": [
             Property("spotFilterHiddenBands", .list(.string), .fieldDefault),

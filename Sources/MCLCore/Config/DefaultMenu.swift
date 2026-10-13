@@ -26,6 +26,9 @@ public enum DefaultMenu {
         "edit.note": "Poznámka k QSO",
         "edit.find": "Najít volačku v deníku",
         "edit.deleteLast": "Smazat poslední QSO",
+        "view": "Zobrazení",
+        "view.unmatchedMark": "Zobrazovat ? u neznámých volaček",
+        "window.check": "Check",
         "tools": "Nástroje",
         "beacons.load": "Načíst soubor majáků…",
         "help": "Nápověda",
@@ -145,6 +148,7 @@ public enum DefaultMenu {
             leaf("edit.wipe"), leaf("edit.wipeUndo"), leaf("edit.incrementNr"), leaf("edit.note"),
             leaf("edit.find"), leaf("edit.deleteLast"),
         ])
+        let view = node("view", [leaf("view.unmatchedMark")])
         let contest = node("contest", [leaf("contest.postcontest"), leaf("contest.record"), leaf("contest.none")])
         let tools = node("tools", [
             leaf("contest.rescore"), leaf("contest.rescoreHours"), leaf("database.refillDxcc"), leaf("tools.addCallToCountry"), leaf("sep.tools.1"),
@@ -159,7 +163,7 @@ public enum DefaultMenu {
         ])
         let window = node("window", [
             leaf("window.log"),
-            leaf("window.catlog"), leaf("window.dxcluster"), leaf("window.bandmap"),
+            leaf("window.catlog"), leaf("window.dxcluster"), leaf("window.bandmap"), leaf("window.check"),
             leaf("window.hamqthlog"), leaf("window.skeds"), leaf("window.score"), leaf("window.movemults"),
             leaf("window.dupesheet"), leaf("window.waterfall"), leaf("window.rotator"),
             leaf("window.statistics"), leaf("window.dxccmap"), leaf("window.qtc"), leaf("window.propagation"),
@@ -170,7 +174,7 @@ public enum DefaultMenu {
         let buffer = MenuNode(id: "buffer", label: nil, state: .hidden, children: [])
 
         var cfg = MenuConfig()
-        cfg.menu = [file, edit, contest, tools, settings, window, help, buffer]
+        cfg.menu = [file, edit, view, contest, tools, settings, window, help, buffer]
         return cfg
     }
 }

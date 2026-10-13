@@ -23,7 +23,7 @@ public final class MenuModel {
         "window.cwkeyboard", "window.cwreader", "window.digitalinterface", "window.digitalinterface2", "window.waterfall", "beacons.load",
         "window.dxcluster", "window.bandmap", "window.availmult", "window.blacklist", "window.netstatus",
         "window.chat", "window.partner", "window.wsjtxdecodes", "wsjtx.launch", "wsjtx.launch2", "window.hamqthlog", "window.rate", "window.skeds",
-        "window.score", "window.movemults", "window.dupesheet", "window.statistics", "window.qtc",
+        "window.score", "window.movemults", "window.dupesheet", "window.check", "view.unmatchedMark", "window.statistics", "window.qtc",
         "window.propagation", "window.bandnotes", "window.simulator", "window.dxccmap", "mult.dxcc", "mult.grid",
         "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
         "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast",
