@@ -125,6 +125,29 @@ operation with a strip right of the frequency axis, with a vertical label inside
   Podbarvit úseky v bandmapě"** (Settings → Band plan → Shade segments in the
   bandmap). The choice is saved in the configuration.
 
+## Radio, split and navigation in the bandmap
+
+Equivalent of the N1MM Logger+ Bandmap window's radio display
+([doc](https://n1mmwp.hamdocs.com/manual-windows/bandmap-window/)).
+
+- **Header:** the radio — **VFO A** / **VFO B**, or **Rig 1** / **Rig 2** in SO2R — with the rig model from
+  Settings while CAT is connected, the receive frequency and, while the rig reports split, the transmit
+  frequency **TX 14030.00 kHz** in red.
+- **Arrows:** the blue arrow is the receive frequency; while the rig is in split a red arrow marks the transmit
+  frequency. Hovering over an arrow shows its exact frequency. **A click on the red arrow turns split off.**
+- **Filter width:** a blue bar next to the band plan strip shows the rig's passband (above the frequency in USB,
+  below in LSB, around it in CW, RTTY, AM and FM), as the rig reports it over CAT.
+- **Zoom:** the + and − buttons, Cmd+= / Cmd+- or keypad + / − while the Bandmap window is active,
+  Ctrl+wheel, a drag across frequencies, and **right click → Přiblížit / Oddálit** (Zoom in / out). N1MM's
+  Shift+keypad zoom of the second radio's bandmap has no counterpart: there is one bandmap, of the active rig.
+- **Right click → Vypnout kolečko myši** (Disable mouse wheel): the wheel neither tunes nor zooms (a lock against
+  accidental retuning). Saved in the configuration.
+- **Right click → Na spodní / horní okraj úseku pásma** (Go to bottom / top of band segment): QSY to the lower or
+  upper edge of the band plan segment (CW, digi, phone) the radio is tuned in; outside every segment to the band
+  edge.
+- **Right click → Nejnižší kmitočet dole** (Show lowest frequency at bottom): turns the bandmap upside down so that
+  frequencies grow upwards. Saved in the configuration.
+
 ## Spot filter (bands, modes, spotter origin, workable)
 
 Modelled on N1MM+'s Telnet window (the *Bands/Modes* and *Filters* tabs). Open it with the **Filtr spotů** button in

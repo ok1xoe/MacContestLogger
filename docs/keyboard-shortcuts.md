@@ -104,6 +104,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 
 Alt+M, Alt+D and Alt+Shift+D also work while the Bandmap window is the active window, with your own key assignments. In the Bandmap window Alt+D removes the spot under the mouse pointer; with the pointer elsewhere it acts as in the entry window.
 
+In the Bandmap window **Cmd+=** / **Cmd+-** (or keypad **+** / **−**) zoom the bandmap in and out.
+
 ## Rotator and antennas
 
 | Key | Action |

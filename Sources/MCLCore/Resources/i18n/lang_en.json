@@ -1542,5 +1542,9 @@
  "Call history závodu": "Contest call history",
  "prázdné = hlavní soubor z Nastavení": "empty = the main file from Settings",
  "Vybrat soubor…": "Choose file…",
- "Importovat call history…": "Import call history…"
+ "Importovat call history…": "Import call history…",
+ "Vypnout kolečko myši": "Disable mouse wheel",
+ "Na spodní okraj úseku pásma": "Go to bottom of band segment",
+ "Na horní okraj úseku pásma": "Go to top of band segment",
+ "Nejnižší kmitočet dole": "Show lowest frequency at bottom"
 }
