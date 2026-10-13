@@ -31,6 +31,8 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var autoSplit: Bool = true
     /// Tint the bandplan segments in the bandmap (CW / digi / phone).
     public var showBandPlan: Bool = true
+    /// Draw the US licence class sub-band edges on the band map scale (Swift-only key; off by default).
+    public var showUsLicenseLines: Bool = false
     /// Skimmer / RBN spots: 0 = hide, 1 = all, n = confirmed by at least n skimmers.
     public var minSkimmers: Int = 1 {
         didSet {
@@ -101,6 +103,10 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var spotFilterSpotterContinents: [String] = []
     public var spotFilterSpotterOwnCountry: Bool = false
     public var spotFilterHideNonWorkable: Bool = false
+    /// Band map: the lowest frequency at the bottom (N1MM „Show Lowest Freq at Bottom"; Swift-only key).
+    public var bandmapLowestAtBottom: Bool = false
+    /// Band map: the mouse wheel neither tunes nor zooms (N1MM „Disable Mouse Wheel"; Swift-only key).
+    public var bandmapWheelDisabled: Bool = false
 
     /// The filter as a value (see `SpotFilter`); setting it rewrites the three keys.
     public var spotFilter: SpotFilter {
@@ -128,6 +134,8 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case spotFilterHiddenBands, spotFilterHiddenModes, spotFilterContest
         case spotFilterSpotterContinents, spotFilterSpotterOwnCountry, spotFilterHideNonWorkable
         case callFrame, tuningToleranceCwHz, tuningToleranceSsbHz, tuningToleranceDigiHz, spotModeOnTune
+        case showUsLicenseLines
+        case bandmapLowestAtBottom, bandmapWheelDisabled
     }
 
     public init() {}
@@ -142,6 +150,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
             c.value(.spotBufferMinutes, default: d.spotBufferMinutes))
         autoSplit = c.value(.autoSplit, default: d.autoSplit)
         showBandPlan = c.value(.showBandPlan, default: d.showBandPlan)
+        showUsLicenseLines = c.value(.showUsLicenseLines, default: d.showUsLicenseLines)
         minSkimmers = max(0, c.value(.minSkimmers, default: d.minSkimmers))
         wheelStepHz = DxClusterConfig.normalizedWheelStepHz(c.value(.wheelStepHz, default: d.wheelStepHz))
         wheelStepShiftHz = DxClusterConfig.normalizedWheelStepShiftHz(
@@ -158,6 +167,8 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         spotFilterSpotterContinents = c.value(.spotFilterSpotterContinents, default: d.spotFilterSpotterContinents)
         spotFilterSpotterOwnCountry = c.value(.spotFilterSpotterOwnCountry, default: d.spotFilterSpotterOwnCountry)
         spotFilterHideNonWorkable = c.value(.spotFilterHideNonWorkable, default: d.spotFilterHideNonWorkable)
+        bandmapLowestAtBottom = c.value(.bandmapLowestAtBottom, default: d.bandmapLowestAtBottom)
+        bandmapWheelDisabled = c.value(.bandmapWheelDisabled, default: d.bandmapWheelDisabled)
         callFrame = c.value(.callFrame, default: d.callFrame)
         tuningToleranceCwHz = DxClusterConfig.normalizedTolerance(
             c.value(.tuningToleranceCwHz, default: d.tuningToleranceCwHz))

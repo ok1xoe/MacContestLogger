@@ -231,6 +231,7 @@ extension ConfigurerDraft {
         dx.minSkimmers = ConfigurerRows.toIntOrNull(minSkimmers) ?? 1
         dx.autoSplit = autoSplit
         dx.showBandPlan = showBandPlan
+        dx.showUsLicenseLines = showUsLicenseLines
         dx.callFrame = callFrame
         let tolerance: Int = DxClusterConfig.defaultTuningToleranceHz
         dx.tuningToleranceCwHz = ConfigurerRows.toIntOrNull(tuningToleranceCwHz) ?? tolerance

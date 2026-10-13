@@ -15,16 +15,16 @@ import Testing
 
     /// The shipped `lang_en.json` / `lang_de.json` intentionally differ from Java v1.1.1: 61 keys were appended for
     /// Kotlin literals the Swift UI translates, the 20 `menu.json` labels Java leaves out
-    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and 26 keys of the window plugins and 32 keys of their grants, keys and docking and 22 keys of raw CAT, transmitting and web windows and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and 3 keys of File → Open recent and 20 keys of copying a contest to another database and rescoring the last N hours and 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing and 15 keys of the 3830 score post and 38 keys of recording, playing, choosing and deleting SSB voice messages in Settings and 4 keys of the VFO A/B dupesheets, their suffix order and the outdated country table warning and 26 keys of the N1MM call history features (lookup switch, merged files, the contest's own file, the user information line) and 20 keys of the Check window, its right-click menu, the call field's mark and the View menu and 18 keys of the band map's call-frame, spot tooltip, tuning tolerances and callsign search. The Java measurement stays as it was; these are its cells for the shipped files
+    /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and 26 keys of the window plugins and 32 keys of their grants, keys and docking and 22 keys of raw CAT, transmitting and web windows and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and 3 keys of File → Open recent and 20 keys of copying a contest to another database and rescoring the last N hours and 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing and 15 keys of the 3830 score post and 38 keys of recording, playing, choosing and deleting SSB voice messages in Settings and 4 keys of the VFO A/B dupesheets, their suffix order and the outdated country table warning and 26 keys of the N1MM call history features (lookup switch, merged files, the contest's own file, the user information line) and 20 keys of the Check window, its right-click menu, the call field's mark and the View menu and 4 keys of the band map's wheel, band segment and orientation menu items and 19 keys of the band map's spot removal, band plan editing and US licence class lines and 18 keys of the band map's call-frame, spot tooltip, tuning tolerances and callsign search. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
-        "81929": "125420", "afc6becd4f499483": "5b78aa7d657395cb",
-        "87423": "133474", "d0c67e41ffca0e5d": "b937e8bd6664f4da",
-        "1006": "1562",
+        "81929": "126946", "afc6becd4f499483": "2b3f5c1b66da8f01",
+        "87423": "135063", "d0c67e41ffca0e5d": "b24c3376f8bd7cba",
+        "1006": "1585",
         "cc0ee26c076bc811dcc8325b5de39f43b89e7c0e8805e23db59cea0b4def8a4f":
-            "db8bab82a22c48f52121ea684be085c360fba814eeec15c0ee00e6d8d562d5d3",
+            "ec2ff99619d2413e5329f38ad5f20d5d077888b82fa68d2d46c820a353f6db1e",
         "2c37f524ad0b3da50e3eac30e91daf1f8bbe8353c3f844467c667a8f5f881bdb":
-            "a22415378ff8b77b331bc98245988098f03c1cc1f604e070b97aa0fef1a58979",
+            "65f5ef5dec9cb8fa01c4af0dda4f954b29734230f68691194f247be1bbfd390c",
     ]
 
     /// A Java cell describing a shipped file, adjusted to the Swift files (`shippedFileCells`). Only whole
