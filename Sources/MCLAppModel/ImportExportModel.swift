@@ -246,6 +246,61 @@ public final class ImportExportModel {
         }
     }
 
+    // MARK: - transaction file
+
+    /// N1MM's transaction file recovery: the QSOs rebuilt from a `.trn` file (`TransactionJournal.replay`) — those of
+    /// the open contest, else of the file's last contest — are added to the open contest; a QSO whose `uuid` is already
+    /// in the database is skipped. The score is recounted.
+    public func recoverFromJournal(_ file: URL) async {
+        let fileName: String = file.lastPathComponent
+        await contest.settleActivations()
+        let active: String = logbook.activeContestId
+        let read: (qsos: [Qso], unreadable: Int)
+        do {
+            read = try await BlockingQueue.run {
+                let text: String = try String(contentsOf: file, encoding: .utf8)
+                let parsed = TransactionJournal.parse(text)
+                let qsos: [Qso] = TransactionJournal.recoverable(TransactionJournal.replay(parsed.entries),
+                                                                 activeContestId: active)
+                return (qsos, parsed.unreadable)
+            }
+        } catch {
+            status.show("Transakční soubor %s nejde přečíst (%s)", .string(fileName), .string(ErrorText.message(error)))
+            return
+        }
+        let incoming: [Qso] = read.qsos
+        let outcome: LogbookModel.BatchOutcome<Int> = await logbook.importBatch(contestId: active) { access in
+            var toAdd: [Qso] = []
+            var skipped: Int = 0
+            for qso in incoming {
+                if !qso.uuid.isEmpty, try access.repository.findByUuid(qso.uuid) != nil {
+                    skipped += 1
+                    continue
+                }
+                var copy: Qso = qso
+                copy.id = nil
+                toAdd.append(copy)
+            }
+            return LogbookModel.BatchPlan(qsos: toAdd, value: skipped)
+        }
+        switch outcome {
+        case .refused(let error):
+            if error is LogbookModel.ContestChanged {
+                status.show(Self.contestChanged(file: fileName))
+            } else {
+                status.showVerbatim(ErrorText.message(error))
+            }
+        case .stored(let inserted, let skipped, let error):
+            contest.requestRescore()
+            if let error {
+                status.showVerbatim(ErrorText.message(error))
+            } else {
+                status.show("Z transakčního souboru %s obnoveno %s QSO, přeskočeno %s už uložených, %s nečitelných řádků",
+                            .string(fileName), .int(inserted), .int(skipped), .int(read.unreadable))
+            }
+        }
+    }
+
     private nonisolated static func readMergeSource(_ file: URL, fileName: String, active: String?, openUrl: URL,
                                                     source: ExchangeSource) throws -> MergeSource {
         if LogImporter.isDatabase(fileName: fileName) {

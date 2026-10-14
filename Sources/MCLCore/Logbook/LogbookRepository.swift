@@ -17,6 +17,9 @@ public final class LogbookRepository {
 
     private let logbookDatabase: LogbookDatabase
 
+    /// N1MM's transaction file: every QSO write is appended to it after it succeeded (`nil` = none, in-memory logs).
+    public var journal: TransactionJournal?
+
     /// Opens (or creates) the logbook file. Corresponds to the public constructor
     /// `LogbookRepository(Path dbFile)`.
     public init(url: URL) throws {
@@ -37,6 +40,7 @@ public final class LogbookRepository {
     public var connection: SQLiteDatabase { logbookDatabase.database }
 
     public func close() {
+        journal?.close()
         logbookDatabase.close()
     }
 
@@ -88,6 +92,7 @@ public final class LogbookRepository {
         try stmt.step()
         let id = connection.lastInsertRowID()
         qso.id = id
+        journal?.record(.insert, id: id, qso: qso)
         return id
     }
 
@@ -106,6 +111,7 @@ public final class LogbookRepository {
         let next = try bind(stmt, qso)
         try stmt.bindInt64(id, at: next)
         try stmt.step()
+        journal?.record(.update, id: id, qso: qso)
     }
 
     public func delete(id: Int64) throws {
@@ -113,6 +119,7 @@ public final class LogbookRepository {
         defer { stmt.finalize() }
         try stmt.bindInt64(id, at: 1)
         try stmt.step()
+        journal?.record(.delete, id: id)
     }
 
     /// Deletes the listed QSOs in one transaction — bulk deletion from the logbook. Unknown
@@ -133,11 +140,15 @@ public final class LogbookRepository {
             try? connection.execute("ROLLBACK")
             throw error
         }
+        for id in ids {
+            journal?.record(.delete, id: id)
+        }
     }
 
     /// Deletes all QSOs (e.g. when starting a new contest).
     public func deleteAll() throws {
         try connection.execute("DELETE FROM qso")
+        journal?.record(.deleteAll)
     }
 
     // MARK: - Read

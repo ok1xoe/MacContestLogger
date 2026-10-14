@@ -29,6 +29,8 @@ public enum MenuActions {
         case openImport
         /// Kotlin `chooseMergePath()` (`tr("Sloučit deník (.sqlite, ADIF, Cabrillo)")`) → `merge`.
         case openMerge
+        /// N1MM's transaction file: a `.trn` file → `recoverFromJournal`.
+        case openJournal
         /// Kotlin `chooseDirectory(title)` → `exportEdi` / `exportOther`.
         case chooseDirectory(DirectoryPurpose)
         /// Kotlin `LogPrinter.print(title, text)`: the print dialog over a prepared job, then `printFinished`.
@@ -59,7 +61,7 @@ public enum MenuActions {
     private static let fileIds: Set<String> = [
         "settings.export", "settings.exportCabrillo", "settings.exportEdi", "settings.exportOther", "settings.import",
         "settings.merge", "database.refillDxcc", "callhistory.exportN1mm", "callhistory.exportCsv",
-        "callhistory.import", "fkeys.export",
+        "callhistory.import", "fkeys.export", "file.recoverJournal",
     ]
 
     /// The Help items and the documentation page each opens (`nil` = the docs index, `.issues` = the bug tracker).
@@ -141,6 +143,12 @@ public enum MenuActions {
             return .openImport
         case "settings.merge":
             return .openMerge
+        case "file.recoverJournal":
+            guard app.contest.isActive else {
+                app.status.show("Obnova z transakčního souboru: není otevřený závod")
+                return nil
+            }
+            return .openJournal
         case "settings.exportEdi":
             // Kotlin checks the contest before the directory panel; the other checks follow the panel.
             guard app.contest.isActive else {

@@ -48,6 +48,10 @@ enum ExportPanels {
             openFile(message: app.language.tr("Sloučit deník (.sqlite, ADIF, Cabrillo)")) { file in
                 app.exports.start { await $0.merge(from: file) }
             }
+        case .openJournal:
+            openFile(message: app.language.tr("Transakční soubor deníku (.trn)")) { file in
+                app.exports.start { await $0.recoverFromJournal(file) }
+            }
         case .chooseDirectory(.edi):
             chooseDirectory(message: app.language.tr("Adresář pro EDI soubory")) { dir in
                 app.exports.start { await $0.exportEdi(to: dir) }

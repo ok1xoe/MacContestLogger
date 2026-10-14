@@ -50,6 +50,7 @@ public enum DefaultMenu {
         "settings.downloadScp": "Stáhnout master.scp",
         "settings.exportEdi": "Export EDI (VKV)…",
         "settings.merge": "Sloučit deník…",
+        "file.recoverJournal": "Obnovit QSO z transakčního souboru…",
         "settings.print": "Tisk deníku…",
         "settings.profiles": "Profily nastavení…",
         "settings.exportOther": "Export CSV, text a souhrn…",
@@ -142,7 +143,9 @@ public enum DefaultMenu {
         let file = node("file", [
             leaf("contest.new"), leaf("contest.open"), leaf("contest.setup"), leaf("file.openRecent"), leaf("sep.file.1"),
             leaf("database.new"), leaf("database.open"), leaf("file.copyContest"), leaf("sep.file.2"),
-            node("file.import", [leaf("settings.import"), leaf("settings.merge"), leaf("callhistory.import")]),
+            node("file.import", [
+                leaf("settings.import"), leaf("settings.merge"), leaf("callhistory.import"), leaf("file.recoverJournal"),
+            ]),
             node("file.export", [
                 leaf("settings.export"), leaf("settings.exportAdifRange"), leaf("settings.exportCabrillo"),
                 leaf("settings.exportEdi"), leaf("settings.exportOther"), leaf("callhistory.exportN1mm"),

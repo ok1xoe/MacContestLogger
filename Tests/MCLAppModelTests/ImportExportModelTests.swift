@@ -265,6 +265,46 @@ import Testing
         Self.expectDupeIndexRebuilt(model)
     }
 
+    /// N1MM's transaction file: the open database journals its writes; a `.trn` file's QSOs are recovered into the
+    /// open contest once.
+    @Test func aTransactionFileIsWrittenAndRecovered() async throws {
+        let app = try await TestApp.make()
+        let model: AppModel = app.model
+        #expect(MenuActions.perform("file.recoverJournal", app: model) == nil)
+        #expect(model.status.message == "Obnova z transakčního souboru: není otevřený závod")
+        try await app.startCqWwCw()
+        await app.logContestQso(call: "DL1ABC", zone: "14")
+        let own: URL = TransactionJournal.fileURL(forDatabase: model.database.handle.url)
+        let logged = TransactionJournal.parse(try String(contentsOf: own, encoding: .utf8)).entries
+        #expect(logged.contains { $0.op == .insert && $0.qso?.call == "DL1ABC" })
+        #expect(MenuActions.perform("file.recoverJournal", app: model) == .openJournal)
+
+        var lines: [String] = []
+        for (index, call) in ["W1AW", "JA1AA"].enumerated() {
+            var qso = Qso()
+            qso.call = call
+            qso.freqHz = 14_025_000
+            qso.mode = .cw
+            qso.timestampUtc = Date(timeIntervalSince1970: 1_764_417_600 + Double(index * 60))
+            qso.uuid = "lost-\(index)"
+            qso.contestId = "lost-contest"
+            let entry = TransactionJournal.Entry(at: 0, op: .insert, id: Int64(index + 1), qso: JournalQso(qso))
+            lines.append(try #require(TransactionJournal.line(entry)))
+        }
+        let file: URL = app.dir.child("Lost.sqlite.trn")
+        try Self.write(lines.joined(separator: "\n") + "\n", file)
+
+        await model.exports.recoverFromJournal(file)
+        #expect(model.status.message
+                == "Z transakčního souboru Lost.sqlite.trn obnoveno 2 QSO, přeskočeno 0 už uložených, 0 nečitelných řádků")
+        #expect(model.logbook.rows.map(\.call).sorted() == ["DL1ABC", "JA1AA", "W1AW"])
+        #expect(model.logbook.rows.allSatisfy { $0.contestId == model.logbook.activeContestId })
+        await model.exports.recoverFromJournal(file)
+        #expect(model.status.message
+                == "Z transakčního souboru Lost.sqlite.trn obnoveno 0 QSO, přeskočeno 2 už uložených, 0 nečitelných řádků")
+        #expect(model.logbook.rows.count == 3)
+    }
+
     /// A foreign database is filtered by the active contest and never modified.
     @Test func mergeFromAForeignDatabaseFiltersByContestAndLeavesItUntouched() async throws {
         let app = try await TestApp.make()

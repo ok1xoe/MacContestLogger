@@ -166,3 +166,20 @@ Automatic log backup):
 Backups `<log>-auto-<UTC time>.sqlite` are consistent copies of the database
 (SQLite `VACUUM INTO`) and can be opened as a log. A manual backup next to the
 log: the command `COPYLOG` (that one is not deleted).
+
+## Transaction file
+
+Like N1MM's `.TRN` file, every write to the log — a logged, edited or deleted QSO, a QSO received from the network
+log, an import — is appended as one line of text (JSON) to the **transaction file** next to the database:
+`<database>.sqlite.trn` in the databases directory. It is only ever appended to, so it survives a damaged or lost
+database file and covers the QSOs logged since the last backup.
+
+**"Soubor → Import → Obnovit QSO z transakčního souboru…"** (File → Import → Recover QSOs from transaction file...)
+rebuilds the log from a `.trn` file (inserts and edits replayed in order, deleted QSOs left out) and adds its QSOs
+to the open contest: those of the open contest when the file has any, otherwise those of the contest the file's
+last QSO belongs to (typically: create a new database and contest, then recover the old database's file). A QSO
+already in the database (the same network id) is skipped, so recovering twice adds nothing; a line cut short by a
+crash is counted as unreadable and skipped. The score is recounted afterwards.
+
+The file grows with the database; it can be deleted when the database is not open (a new one is started on the
+next write).

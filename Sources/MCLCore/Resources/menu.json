@@ -17,7 +17,8 @@
           "children": [
             { "id": "settings.import", "label": "Import QSO (ADIF/Cabrillo)…", "state": "enable" },
             { "id": "settings.merge", "label": "Sloučit deník…", "state": "enable" },
-            { "id": "callhistory.import", "label": "Importovat call history…", "state": "enable" }
+            { "id": "callhistory.import", "label": "Importovat call history…", "state": "enable" },
+            { "id": "file.recoverJournal", "label": "Obnovit QSO z transakčního souboru…", "state": "enable" }
           ]
         },
         {
