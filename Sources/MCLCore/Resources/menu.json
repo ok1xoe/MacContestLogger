@@ -44,7 +44,9 @@
         { "id": "edit.incrementNr", "label": "Číslo ve výměně +1", "state": "enable" },
         { "id": "edit.note", "label": "Poznámka k QSO", "state": "enable" },
         { "id": "edit.find", "label": "Najít volačku v deníku", "state": "enable" },
-        { "id": "edit.deleteLast", "label": "Smazat poslední QSO", "state": "enable" }
+        { "id": "edit.deleteLast", "label": "Smazat poslední QSO", "state": "enable" },
+        { "id": "edit.editLast", "label": "Upravit poslední spojení…", "state": "enable" },
+        { "id": "edit.editCurrent", "label": "Upravit rozpracované spojení…", "state": "enable" }
       ]
     },
     {

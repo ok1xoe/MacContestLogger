@@ -1671,5 +1671,18 @@
  "Historie spotů mé značky": "Spot-Verlauf meines Rufzeichens",
  "Žádný spot této volačky v tomto sezení.": "Kein Spot dieses Rufzeichens in dieser Sitzung.",
  "Naladit na tento spot": "Zu diesem Spot springen",
- "Není zadaná vlastní značka (Nastavení → Stanice)": "Eigenes Rufzeichen nicht eingestellt (Einstellungen → Station)"
+ "Není zadaná vlastní značka (Nastavení → Stanice)": "Eigenes Rufzeichen nicht eingestellt (Einstellungen → Station)",
+ "Volačka nesmí být prázdná": "Das Rufzeichen darf nicht leer sein",
+ "Neplatný čas: %s (rrrr-mm-dd hh:mm:ss)": "Ungültige Zeit: %s (jjjj-mm-tt hh:mm:ss)",
+ "Neplatná frekvence: %s": "Ungültige Frequenz: %s",
+ "Neznámý mód: %s": "Unbekannte Betriebsart: %s",
+ "Neplatné číslo: %s": "Ungültige Nummer: %s",
+ "QSO už v deníku není": "Das QSO ist nicht mehr im Log",
+ "Upravit poslední spojení": "Letzte Verbindung bearbeiten",
+ "Upravit poslední spojení…": "Letzte Verbindung bearbeiten…",
+ "Upravit rozpracované spojení…": "Aktuelle Verbindung bearbeiten…",
+ "Upravit rozpracované spojení": "Aktuelle Verbindung bearbeiten",
+ "Upravit spojení": "Verbindung bearbeiten",
+ "Frekvence (kHz)": "Frequenz (kHz)",
+ "X-QSO (nepočítá se)": "X-QSO (zählt nicht)"
 }

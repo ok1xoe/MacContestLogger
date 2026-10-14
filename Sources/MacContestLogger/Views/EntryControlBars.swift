@@ -154,7 +154,8 @@ struct FunctionKeyBar: View {
     }
 }
 
-/// The action bar (`EP:1352-1375`, labels verbatim): Esc: Stop, Wipe, Log It, Mark, Store and Spot It act; Edit has no action in Kotlin either (disabled). The last button looks the typed call up on the preferred online callbook (HamQTH or QRZ.com). „Log It" is
+/// The action bar (`EP:1352-1375`, labels verbatim): Esc: Stop, Wipe, Log It, Edit (N1MM: the last QSO in the edit
+/// dialog), Mark, Store and Spot It. The last button looks the typed call up on the preferred online callbook (HamQTH or QRZ.com). „Log It" is
 /// highlighted, with the strong border when ESM logs on the next Enter.
 struct EntryActionBar: View {
     let app: AppModel
@@ -217,6 +218,8 @@ struct EntryActionBar: View {
             return { entry.wipe() }
         case "Log It":
             return { entry.submit() }
+        case "Edit":
+            return { entry.editLastContact() }
         case "Mark":
             return { entry.markButton() }
         case "Store":

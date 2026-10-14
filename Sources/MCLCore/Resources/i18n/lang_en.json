@@ -1671,5 +1671,18 @@
  "Historie spotů mé značky": "My call's spot history",
  "Žádný spot této volačky v tomto sezení.": "No spot of this call in this session.",
  "Naladit na tento spot": "Jump to this spot",
- "Není zadaná vlastní značka (Nastavení → Stanice)": "Your own call is not set (Settings → Station)"
+ "Není zadaná vlastní značka (Nastavení → Stanice)": "Your own call is not set (Settings → Station)",
+ "Volačka nesmí být prázdná": "The callsign must not be empty",
+ "Neplatný čas: %s (rrrr-mm-dd hh:mm:ss)": "Invalid time: %s (yyyy-mm-dd hh:mm:ss)",
+ "Neplatná frekvence: %s": "Invalid frequency: %s",
+ "Neznámý mód: %s": "Unknown mode: %s",
+ "Neplatné číslo: %s": "Invalid number: %s",
+ "QSO už v deníku není": "The QSO is no longer in the log",
+ "Upravit poslední spojení": "Edit last contact",
+ "Upravit poslední spojení…": "Edit Last Contact…",
+ "Upravit rozpracované spojení…": "Edit Current Contact…",
+ "Upravit rozpracované spojení": "Edit current contact",
+ "Upravit spojení": "Edit contact",
+ "Frekvence (kHz)": "Frequency (kHz)",
+ "X-QSO (nepočítá se)": "X-QSO (not counted)"
 }

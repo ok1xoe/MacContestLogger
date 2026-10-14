@@ -18,13 +18,13 @@ import Testing
     /// (deliberate divergences from Java v1.1.1), 1 key of the post-port QO-100 spot tooltip line, 2 accessibility labels of the SCP and N+1 rows and 2 Settings labels of their switches and 12 keys of the manual callbook lookups and 1 key of the missing-frequency spot status and 1 accessibility label of the DX Cluster window parallel switch and 1 Settings Apply button and 16 keys of the Club Log DXCC update and 16 keys of the DX cluster spot filter and 26 keys of the window plugins and 32 keys of their grants, keys and docking and 22 keys of raw CAT, transmitting and web windows and 19 keys of the new menu bar (File, Edit, Tools, Help and their items) and 3 keys of File → Open recent and 20 keys of copying a contest to another database and rescoring the last N hours and 35 keys of assigning a call to a country, the ADIF export by date and the call history export and clearing and 15 keys of the 3830 score post and 38 keys of recording, playing, choosing and deleting SSB voice messages in Settings and 4 keys of the VFO A/B dupesheets, their suffix order and the outdated country table warning and 26 keys of the N1MM call history features (lookup switch, merged files, the contest's own file, the user information line) and 20 keys of the Check window, its right-click menu, the call field's mark and the View menu and 4 keys of the band map's wheel, band segment and orientation menu items and 19 keys of the band map's spot removal, band plan editing and US licence class lines and 18 keys of the band map's call-frame, spot tooltip, tuning tolerances and callsign search and 27 keys of the band map's top bar, programmable buttons, filter widths and Telnet filter items and 17 keys of the DX Cluster window's options, button macros and button sets and 7 keys of the cluster list import and export, saved spots and randomized spot frequencies and 16 keys of the spot filter's spotter prefixes and call areas, call history / worked, beacon and busted spot options, preferred spotters and the blacklist switch, import and clear and 10 keys of the spot comment, Spot all S&P QSOs and special calls and 11 keys of the cluster queries about a station and the spot history. The Java measurement stays as it was; these are its cells for the shipped files
     /// with the Swift files' size, hash and map digest.
     static let shippedFileCells: [String: String] = [
-        "81929": "134676", "afc6becd4f499483": "823b64592df99de6",
-        "87423": "143263", "d0c67e41ffca0e5d": "b1f753e586a0cf8a",
-        "1006": "1673",
+        "81929": "135399", "afc6becd4f499483": "e96deda6f6d09daf",
+        "87423": "144058", "d0c67e41ffca0e5d": "cbadb99ae1cc1de8",
+        "1006": "1686",
         "cc0ee26c076bc811dcc8325b5de39f43b89e7c0e8805e23db59cea0b4def8a4f":
-            "4abe0a588a1635728c740ab97919069e91c590fe4ac51afe8396867313911bc4",
+            "0e80656df2192865191536851bedb2771ef86418cbffdf679d33a96ae0439797",
         "2c37f524ad0b3da50e3eac30e91daf1f8bbe8353c3f844467c667a8f5f881bdb":
-            "a2c875d5763443b8797ac0d8277227ba68fa2810552b6fabb1ac3744f000ba5c",
+            "d6674b0b180021fd8cdf20bf3f63512d318b86fe1a2b9bda93f77c17adbdc74d",
     ]
 
     /// A Java cell describing a shipped file, adjusted to the Swift files (`shippedFileCells`). Only whole

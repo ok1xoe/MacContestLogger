@@ -92,7 +92,20 @@ public final class WindowsModel {
     /// `trim().uppercase()`), a blank call clears the search.
     public func findInLog(_ call: String) {
         setOpen("log", true)
-        logSearchRequest = KotlinStrings.isBlank(call) ? "" : "call:" + KotlinStrings.uppercase(KotlinStrings.trim(call))
+        logSearchRequest = Self.findQuery(call)
+    }
+
+    /// The log search of Ctrl+F for `call` (`""` = clear the search).
+    public static func findQuery(_ call: String) -> String {
+        KotlinStrings.isBlank(call) ? "" : "call:" + KotlinStrings.uppercase(KotlinStrings.trim(call))
+    }
+
+    /// Raised by Find Again (Ctrl+F with the same call): the log window selects the next QSO it shows.
+    public private(set) var logFindNextRequest: Int = 0
+
+    public func findNextInLog() {
+        setOpen("log", true)
+        logFindNextRequest += 1
     }
 
     /// A window the app layer opens or brings to the front (`openWindow(id:)`), with a serial so the same window
