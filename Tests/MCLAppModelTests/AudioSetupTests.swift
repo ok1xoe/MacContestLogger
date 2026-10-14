@@ -15,8 +15,10 @@ import Testing
         #expect(app.model.audio.userNames.contains(AudioSetupModel.meterUser))
         // A block peaking at half scale: about −6 dBFS.
         let value = Int16(16_384)
-        let block: [UInt8] = (0..<AudioCapture.block).flatMap { _ in
-            [UInt8(truncatingIfNeeded: value), UInt8(truncatingIfNeeded: value >> 8)]
+        var block: [UInt8] = []
+        for _ in 0..<AudioCapture.block {
+            block.append(UInt8(truncatingIfNeeded: value))
+            block.append(UInt8(truncatingIfNeeded: value >> 8))
         }
         app.model.audio.capture.accept(block, generation: try #require(app.keying.lastAudioGeneration))
         await eventually("level") { Int(setup.peakDb.rounded()) == -6 }
@@ -39,8 +41,12 @@ import Testing
         #expect(!setup.testing)
         let played: [UInt8] = try #require(app.keying.playedPcm.last)
         #expect(played.count == AudioSetupModel.toneRate * 2)
-        let peak: Int = stride(from: 0, to: played.count, by: 2)
-            .map { abs(Int(Int16(played[$0]) | Int16(played[$0 + 1]) << 8)) }.max() ?? 0
+        var peak: Int = 0
+        for i in stride(from: 0, to: played.count, by: 2) {
+            let low: UInt16 = UInt16(played[i])
+            let high: UInt16 = UInt16(played[i + 1]) << 8
+            peak = max(peak, abs(Int(Int16(bitPattern: low | high))))
+        }
         #expect(peak <= 8_193 && peak > 8_000)
         #expect(!fake.writes.contains("T 1"))
     }

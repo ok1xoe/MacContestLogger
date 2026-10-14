@@ -38,6 +38,12 @@ struct MainWindowView: View {
             })
     }
 
+    /// The window title: with a `{SETWAVDIR}` other than the operator, its value.
+    private static func title(wavDir: String?) -> String {
+        guard let wavDir else { return "MacContestLogger" }
+        return "MacContestLogger — WavDir: " + wavDir
+    }
+
     @ViewBuilder private var content: some View {
         if let app = host.model {
             loaded(app)
@@ -45,7 +51,7 @@ struct MainWindowView: View {
                 .frame(minWidth: 820, minHeight: 330)
                 .fixedSize()
                 // N1MM: a `{SETWAVDIR}` other than the operator shows in the title.
-                .navigationTitle(app.operating.wavDirName.map { "MacContestLogger — WavDir: " + $0 } ?? "MacContestLogger")
+                .navigationTitle(Self.title(wavDir: app.operating.wavDirName))
                 .onAppear {
                     binder.setStore(app.geometry)
                     reopenWindows(app)
