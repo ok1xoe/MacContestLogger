@@ -52,7 +52,7 @@ import Testing
         func children(_ id: String) throws -> [String] {
             try #require(Self.entry(id, in: entries)).children.filter { !$0.isSeparator }.map(\.id)
         }
-        #expect(try children("file") == ["contest.new", "contest.open", "file.openRecent", "database.new",
+        #expect(try children("file") == ["contest.new", "contest.open", "contest.setup", "file.openRecent", "database.new",
                                          "database.open", "file.copyContest", "file.import", "file.export",
                                          "file.post3830", "settings.print"])
         #expect(try children("file.import") == ["settings.import", "settings.merge", "callhistory.import"])
@@ -66,7 +66,7 @@ import Testing
                                           "contest.updateCallHistory", "callhistory.clear", "beacons.load",
                                           "contest.editor"])
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
-                                             "settings.callHistoryLookup"])
+                                             "settings.callHistoryLookup", "settings.exchangeAbbreviations"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.report",
                                          "help.dataFolder"])

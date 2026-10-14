@@ -233,7 +233,13 @@ public final class EntryModel {
 
     /// Kotlin `contestReady`.
     public var contestReady: Bool {
-        contest.isActive && contest.isComplete(call: form.call, exchange: form.contestExchange)
+        contest.isActive && contest.isComplete(call: form.call, exchange: effectiveExchange)
+    }
+
+    /// The typed exchange with the user's abbreviations replaced (N1MM Change Exchange Abbreviations).
+    var effectiveExchange: JavaLinkedMap<String> {
+        guard contest.isActive else { return form.contestExchange }
+        return ExchangeAbbreviations.load(dataDir: dataDir).apply(form.contestExchange, fields: fields)
     }
 
     /// The contest's dupe. Free logging (no active contest) has none: a repeated call is not flagged.
@@ -400,7 +406,7 @@ public final class EntryModel {
         }
         if contest.isActive, !KotlinStrings.isBlank(form.call) {
             contest.preview(call: form.call, band: band?.adif ?? "", mode: form.mode.rawValue,
-                            exchange: form.contestExchange, ownQth: previewQth)
+                            exchange: effectiveExchange, ownQth: previewQth)
         }
         updateBandStatuses()
         let dupe: Bool = isDupe
@@ -559,6 +565,13 @@ public final class EntryModel {
             at = parsed
         }
         let contestPath: Bool = contest.isActive
+        if contestPath {
+            // N1MM exchange abbreviations: the QSO is logged with the replacements.
+            let replaced: JavaLinkedMap<String> = effectiveExchange
+            if replaced != form.contestExchange {
+                form.contestExchange = replaced
+            }
+        }
         let bandAdif: String = band?.adif ?? ""
         // AutoTRXUpdate: the QSO carries the transmitted frequency (the form keeps the dial).
         var logged: EntryForm = form

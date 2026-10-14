@@ -247,4 +247,27 @@ import Testing
         #expect(!String(decoding: (try? JSONEncoder().encode(ContestSetup())) ?? Data(), as: UTF8.self)
             .contains("firstSerial"))
     }
+
+    @Test func ownCountryAndEntityConditions() throws {
+        let s = try SessionFixture.session(Self.definition(scoring: """
+            qsoPoints:
+                mode: FIRST_MATCH
+                default: 1
+                rules:
+                  - { when: { ownDxccIn: [CZ] , entityIn: [291] }, value: { fixed: 5 } }
+                  - { when: { ownEntityIn: [503] }, value: { fixed: 2 } }
+              total: "qsoPoints"
+            """))
+        #expect(try Self.log(s, "W1AW", Self.t0).points == 5)
+        #expect(try Self.log(s, "DL1ABC", Self.t0).points == 2)
+        let other = try SessionFixture.session(Self.definition(scoring: """
+            qsoPoints:
+                mode: FIRST_MATCH
+                default: 1
+                rules:
+                  - { when: { ownDxccIn: [US] }, value: { fixed: 9 } }
+              total: "qsoPoints"
+            """))
+        #expect(try Self.log(other, "W1AW", Self.t0).points == 1)
+    }
 }

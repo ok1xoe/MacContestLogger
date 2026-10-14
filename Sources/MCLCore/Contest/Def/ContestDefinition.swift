@@ -382,6 +382,12 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         /// The QSO time is in the UTC window `"HHMM-HHMM"` (both minutes included; `"2200-0559"` wraps midnight).
         /// N1MM `PointsMultAtTimeGMT`. Swift-only key.
         public var timeBetween: String?
+        /// My own country is one of these DXCC codes (like `dxccIn` for the worked station). Swift-only key.
+        public var ownDxccIn: [String?]?
+        /// The worked / my own station's ADIF DXCC entity number is one of these (`291` = USA, `1` = Canada, `6` = Alaska):
+        /// unlike the country codes of `dxccIn` they tell Alaska, Hawaii or Asiatic Russia apart. Swift-only keys.
+        public var entityIn: [Int?]?
+        public var ownEntityIn: [Int?]?
 
         public var not: Condition? {
             get { notBox?.value }
@@ -393,8 +399,12 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
                     otherContinent: Bool? = nil, continentIs: String? = nil, ownContinentIs: String? = nil,
                     workedClass: String? = nil, dxccIn: [String?]? = nil, bandIn: [String?]? = nil,
                     mode: String? = nil, fieldEquals: FieldEquals? = nil, fieldPresent: String? = nil,
-                    expr: String? = nil, bonusStation: Bool? = nil, timeBetween: String? = nil) {
+                    expr: String? = nil, bonusStation: Bool? = nil, timeBetween: String? = nil,
+                    ownDxccIn: [String?]? = nil, entityIn: [Int?]? = nil, ownEntityIn: [Int?]? = nil) {
             self.timeBetween = timeBetween
+            self.ownDxccIn = ownDxccIn
+            self.entityIn = entityIn
+            self.ownEntityIn = ownEntityIn
             self.allOf = allOf
             self.anyOf = anyOf
             self.notBox = not.map(ConditionBox.init)
@@ -433,6 +443,9 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             expr = object.string("expr")
             bonusStation = object.bool("bonusStation")
             timeBetween = object.string("timeBetween")
+            ownDxccIn = object.list("ownDxccIn", of: String.self)
+            entityIn = object.list("entityIn", of: Int32.self).map { $0.map { $0.map(Int.init) } }
+            ownEntityIn = object.list("ownEntityIn", of: Int32.self).map { $0.map { $0.map(Int.init) } }
         }
     }
 

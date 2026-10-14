@@ -103,6 +103,17 @@ public enum ConditionEvaluator {
         if let window = c.timeBetween, !inWindow(window, ctx.date ?? Date()) {
             return false
         }
+        if let list = c.ownDxccIn {
+            guard let own = ctx.ownEntity, contains(list, own.countryCode) else {
+                return false
+            }
+        }
+        if let list = c.entityIn {
+            guard let code = ctx.workedEntity?.adifDxcc, list.contains(Int(code)) else { return false }
+        }
+        if let list = c.ownEntityIn {
+            guard let code = ctx.ownEntity?.adifDxcc, list.contains(Int(code)) else { return false }
+        }
         return true
     }
 

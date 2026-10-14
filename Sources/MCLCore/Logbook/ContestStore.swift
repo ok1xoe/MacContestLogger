@@ -119,6 +119,32 @@ public final class ContestStore {
         return true
     }
 
+    /// N1MM „Delete" in the contest list: the contest's row, its QSOs (tombstones included) and its QTCs, in one
+    /// transaction. Returns the number of live QSOs deleted; `nil` when the contest is not in the table.
+    @discardableResult
+    public func delete(contestId: String) throws -> Int? {
+        guard try find(contestId) != nil else { return nil }
+        let count = try connection.prepare("SELECT COUNT(*) FROM qso WHERE contest_id=? AND deleted=0")
+        defer { count.finalize() }
+        try count.bindText(contestId, at: 1)
+        let live: Int = try count.step() ? Int(count.columnInt64(at: 0)) : 0
+        try connection.execute("BEGIN")
+        do {
+            for sql in ["DELETE FROM qso WHERE contest_id=?", "DELETE FROM qtc WHERE contest_id=?",
+                        "DELETE FROM contests WHERE contest_id=?"] {
+                let stmt = try connection.prepare(sql)
+                defer { stmt.finalize() }
+                try stmt.bindText(contestId, at: 1)
+                try stmt.step()
+            }
+            try connection.execute("COMMIT")
+        } catch {
+            try? connection.execute("ROLLBACK")
+            throw error
+        }
+        return live
+    }
+
     public func find(_ contestId: String) throws -> ContestRow? {
         let stmt = try connection.prepare("SELECT * FROM contests WHERE contest_id=?")
         defer { stmt.finalize() }

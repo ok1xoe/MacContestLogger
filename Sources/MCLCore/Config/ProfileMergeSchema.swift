@@ -28,7 +28,7 @@ enum ProfileMergeSchema {
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
     /// switches and extra
     /// files (`callHistory*`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
-    /// `contestSetups.*.functionKeyFiles`) and its first serial (`contestSetups.*.firstSerial`).
+    /// `contestSetups.*.functionKeyFiles`) its first serial and master.scp (`contestSetups.*.firstSerial`, `contestSetups.*.scpFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
@@ -63,6 +63,7 @@ enum ProfileMergeSchema {
             Property("callHistoryFile", .string, .fieldDefault),
             Property("functionKeyFiles", .map(.string), .fieldDefault),
             Property("firstSerial", .int, .fieldDefault),
+            Property("scpFile", .string, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.DxClusterConfig": [
             Property("spotFilterHiddenBands", .list(.string), .fieldDefault),

@@ -189,7 +189,9 @@ public final class DialogsModel {
             if !open {
                 newContest = nil
             } else if newContest == nil {
-                newContest = NewContestModel(contests: contest.runtime.available, config: config, now: now)
+                let model = NewContestModel(contests: contest.runtime.available, config: config, now: now)
+                newContest = model
+                loadLastSetup(model)
             }
         case .contests:
             if open && !showContestBrowser {
@@ -287,13 +289,61 @@ public final class DialogsModel {
         setOpen(.contests, true)
     }
 
+    /// N1MM „Populate all from last log": the setup of the last log opened in this database, read off the main thread.
+    private func loadLastSetup(_ model: NewContestModel) {
+        run { dialogs in
+            await dialogs.contest.refreshRecent()
+            guard let last = dialogs.contest.recent.first?.contestId else { return }
+            let setup: ContestSetup? = await dialogs.contest.storedSetup(last)
+            if dialogs.newContest === model {
+                model.lastSetup = setup
+            }
+        }
+    }
+
+    /// File → „Nastavení závodu…" (N1MM: the Contest Setup of an open log): the open contest's setup in the contest
+    /// window; OK writes it back to the log. Without an open contest only the status says so.
+    public func openContestSetup() {
+        guard let id = contest.activeId, let definition = contest.definition else {
+            status.show(EntryTexts.noActiveContest)
+            return
+        }
+        let model = NewContestModel(editing: id, definition: definition, setup: contest.activeSetup ?? ContestSetup(),
+                                    config: config, now: now)
+        model.logOperators = { [weak logbook] in
+            logbook?.rows.filter { !$0.deleted }.map(\.operator) ?? []
+        }
+        newContest = model
+    }
+
+    /// N1MM „Delete" in the contest list (after the window's confirmation): the contest is removed, the list re-read.
+    public func deleteContest(_ contestId: String) {
+        run { dialogs in
+            guard await dialogs.contest.deleteContest(contestId) else { return }
+            await dialogs.loadBrowser()
+        }
+    }
+
     /// New contest „OK": the setup is remembered for the definition (prefill next time), the window closes and the
-    /// contest is created and started (Kotlin order).
+    /// contest is created and started (Kotlin order). In the edit mode the setup is written to the open log.
     public func confirmNewContest() {
         guard let model = newContest else { return }
         let setup: ContestSetup = model.setup()
         guard let id = model.selectedId else {
             setOpen(.newContest, false)
+            return
+        }
+        if let editing = model.editingContestId {
+            let form: NewContestForm = model.form
+            config.config.contestSetups[id] = setup
+            config.save(failureKey: "Uložení setupu selhalo (%s)")
+            setOpen(.newContest, false)
+            run { dialogs in
+                guard dialogs.contest.activeId == editing else { return }
+                if await dialogs.contest.updateSetup({ $0 = form.applied(to: $0) }) {
+                    dialogs.status.show("Nastavení závodu uloženo")
+                }
+            }
             return
         }
         config.config.contestSetups[id] = setup

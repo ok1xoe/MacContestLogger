@@ -26,6 +26,10 @@ public struct NewContestForm: Equatable, Sendable {
     public var callHistoryFile: String
     /// N1MM Associated Files: the contest's function key files (`ContestSetup.functionKeyFiles`, kept as saved).
     public var functionKeyFiles: [String: String] = [:]
+    /// N1MM Associated Files: the contest's own master.scp (`ContestSetup.scpFile`); empty = the global one.
+    public var scpFile: String = ""
+    /// N1MM „start the serial from other than 1": the first serial of the log (`ContestSetup.firstSerial`).
+    public var firstSerial: Int = 1
 
     public init(category: [String: String] = [:], sentExchange: [String: String] = [:], operators: String = "",
                 soapbox: String = "", startedAt: String = "", endedAt: String = "", callHistoryFile: String = "") {
@@ -59,6 +63,7 @@ public struct NewContestForm: Equatable, Sendable {
         form.soapbox = saved?.soapbox ?? ""
         form.callHistoryFile = saved?.callHistoryFile ?? ""
         form.functionKeyFiles = saved?.functionKeyFiles ?? [:]
+        form.scpFile = saved?.scpFile ?? ""
         let midnight: Int64 = todayMidnightUtc(now)
         if let start = expectedStart(definition, now: now), !savedStartIsCurrent(saved, definition, now: now) {
             // N1MM: the start defaults to the next weekday the contest usually starts on (`period.startWeekday`).
@@ -136,7 +141,61 @@ public struct NewContestForm: Equatable, Sendable {
         setup.endedAt = endedAt
         setup.callHistoryFile = KotlinText.trim(callHistoryFile)
         setup.functionKeyFiles = functionKeyFiles
+        setup.scpFile = KotlinText.trim(scpFile)
+        setup.firstSerial = max(1, firstSerial)
         return setup
+    }
+
+    /// The form over the stored setup of an existing log (File → Contest setup): every value as stored, the sent
+    /// fields of the definition that the setup lacks are empty.
+    public static func editing(definition: ContestDefinition, setup: ContestSetup) -> NewContestForm {
+        var form = NewContestForm(category: setup.category, sentExchange: setup.sentExchange,
+                                  operators: setup.operators, soapbox: setup.soapbox, startedAt: setup.startedAt,
+                                  endedAt: setup.endedAt, callHistoryFile: setup.callHistoryFile)
+        for field in CategoryCatalog.sentFields(definition) {
+            guard let id = field.id, form.sentExchange[id] == nil else { continue }
+            form.sentExchange[id] = ""
+        }
+        form.functionKeyFiles = setup.functionKeyFiles
+        form.scpFile = setup.scpFile
+        form.firstSerial = setup.firstSerial
+        return form
+    }
+
+    /// The edited form written over the stored setup: TOUR, skeds and bonus stations stay.
+    public func applied(to stored: ContestSetup) -> ContestSetup {
+        var out: ContestSetup = setup()
+        out.tour = stored.tour
+        out.skeds = stored.skeds
+        out.bonusStations = stored.bonusStations
+        return out
+    }
+
+    /// N1MM „Populate all from last log": the Cabrillo categories and the operators of the previous log; a band or
+    /// mode the chosen contest does not offer stays as it is.
+    public mutating func populate(from last: ContestSetup, bandOptions: [String], modeOptions: [String]) {
+        for (key, value) in last.category {
+            if key == "BAND", !bandOptions.contains(value) { continue }
+            if key == "MODE", !modeOptions.contains(value) { continue }
+            category[key] = value
+        }
+        if !KotlinText.isBlank(last.operators) {
+            operators = last.operators
+        }
+    }
+
+    /// N1MM „Update Ops from Log": the distinct operators of the log's QSOs in their first order (blank ones and the
+    /// station call alone do not make a list: then the station call stays).
+    public static func operators(fromLog calls: [String]) -> String {
+        var seen = Set<String>()
+        var out: [String] = []
+        for raw in calls {
+            let call: String = KotlinText.trim(raw).uppercased()
+            if !call.isEmpty, seen.insert(call).inserted {
+                out.append(call)
+            }
+        }
+        return out.joined(separator: " ")
     }
 
     /// Default of a fixed category when nothing is stored.

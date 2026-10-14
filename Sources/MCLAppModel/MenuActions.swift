@@ -49,6 +49,9 @@ public enum MenuActions {
         case saveFunctionKeys(kind: FunctionKeyKind, suggestedName: String)
         /// N1MM Import Call History: one or more files (multiple selection) → `importCallHistoryFiles`.
         case openCallHistoryImport
+        /// N1MM Config → Change Exchange Abbreviations: the table file (created with a short header when missing) in
+        /// the text editor; it is read again whenever it changes.
+        case openFile(URL)
     }
 
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to
@@ -80,6 +83,18 @@ public enum MenuActions {
         }
         if id == "help.dataFolder" {
             return .openDataFolder(app.dataDir)
+        }
+        if id == "settings.exchangeAbbreviations" {
+            let url: URL = app.dataDir.appendingPathComponent(ExchangeAbbreviations.fileName)
+            if !FileManager.default.fileExists(atPath: url.path) {
+                do {
+                    try Data(ExchangeAbbreviations.template.utf8).write(to: url, options: .atomic)
+                } catch {
+                    app.status.show("Soubor zkratek nejde založit: %s", .string(ErrorText.message(error)))
+                    return nil
+                }
+            }
+            return .openFile(url)
         }
         if id == "edit.editCurrent" {
             (app.activeEntry ?? app.entry).editCurrentContact()
@@ -163,6 +178,8 @@ public enum MenuActions {
             app.contest.deactivate()
         case "contest.open":
             app.dialogs.setOpen(.contests, true)
+        case "contest.setup":
+            app.dialogs.openContestSetup()
         case "contest.rescore":
             app.contest.requestRescore(manual: true)
         case "file.copyContest":

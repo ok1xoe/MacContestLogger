@@ -1,3 +1,4 @@
+import AppKit
 import MCLAppModel
 import MCLCore
 import SwiftUI
@@ -13,7 +14,8 @@ struct NewContestWindowView: View {
 
     var body: some View {
         DialogWindowView(host: host, dialog: .newContest, padding: 0, title: { app in
-            app.language.tr("Nový závod")
+            app.dialogs.newContest?.isEditing == true ? app.language.tr("Nastavení závodu")
+                : app.language.tr("Nový závod")
         }) { app in
             if let form = app.dialogs.newContest {
                 NewContestContent(app: app, form: form)
@@ -49,7 +51,7 @@ private struct NewContestContent: View {
                 }
                 Divider()
                 HStack(spacing: 8) {
-                    Button(language.tr("OK")) {
+                    Button(form.isEditing ? language.tr("Uložit") : language.tr("OK")) {
                         app.dialogs.confirmNewContest()
                     }
                     .buttonStyle(.borderedProminent)
@@ -65,12 +67,50 @@ private struct NewContestContent: View {
 
     private var contestGroup: some View {
         FormGroup(title: language.tr("Závod")) {
-            Text(verbatim: language.tr(
-                "Vyber závod z adresáře definic. Formulář níže se sestaví podle jeho konfigurace."))
-                .windowFont(11)
-                .foregroundStyle(.secondary)
-            OptionMenu(value: form.selectedLabel, options: form.labels.map(\.text)) { label in
-                form.select(label: label)
+            if form.isEditing {
+                Text(verbatim: form.selectedLabel)
+                    .windowFont(13, weight: .semibold)
+                Text(verbatim: language.tr("Mění se nastavení otevřeného deníku; QSO zůstávají."))
+                    .windowFont(11)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text(verbatim: language.tr(
+                    "Vyber závod z adresáře definic. Formulář níže se sestaví podle jeho konfigurace."))
+                    .windowFont(11)
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    TextField(text: Binding(get: { form.search }, set: { form.search = $0 })) {
+                        Text(verbatim: language.tr("Hledat závod"))
+                    }
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel(Text(verbatim: language.tr("Hledat závod")))
+                    Toggle(isOn: Binding(get: { form.sortByName }, set: { form.sortByName = $0 })) {
+                        Text(verbatim: language.tr("Řadit podle názvu"))
+                    }
+                }
+                OptionMenu(value: form.selectedLabel, options: form.visibleLabels) { label in
+                    form.select(label: label)
+                }
+            }
+            HStack(spacing: 8) {
+                Button(language.tr("Pravidla závodu")) {
+                    if let url = form.rulesUrl {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                .disabled(form.rulesUrl == nil)
+                Button(language.tr("Nápověda k nastavení")) {
+                    if let url = NewContestModel.setupHelpUrl {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                if !form.isEditing {
+                    Button(language.tr("Vyplnit podle posledního závodu")) {
+                        form.populateFromLast()
+                    }
+                    .disabled(form.lastSetup == nil)
+                    .help(language.tr("Kategorie a operátoři podle naposledy otevřeného závodu"))
+                }
             }
         }
     }
@@ -133,6 +173,26 @@ private struct NewContestContent: View {
                     EmptyView()
                 }
                 .textFieldStyle(.roundedBorder)
+                .accessibilityLabel(Text(verbatim: language.tr("Operators")))
+                if form.isEditing {
+                    Button(language.tr("Operátoři z deníku")) {
+                        form.updateOperatorsFromLog()
+                    }
+                    .help(language.tr("Všichni operátoři zapsaní u QSO tohoto deníku"))
+                }
+            }
+            HStack(spacing: 12) {
+                Text(verbatim: language.tr("První pořadové číslo"))
+                    .frame(width: 140, alignment: .leading)
+                TextField(text: Binding(get: { form.firstSerialText }, set: { form.firstSerialText = $0 })) {
+                    EmptyView()
+                }
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 90)
+                .accessibilityLabel(Text(verbatim: language.tr("První pořadové číslo")))
+                Text(verbatim: language.tr("pro pokračování v dalším dílu závodu"))
+                    .windowFont(11)
+                    .foregroundStyle(.secondary)
             }
             Text(verbatim: language.tr("Soapbox"))
                 .windowFont(11)
@@ -141,6 +201,27 @@ private struct NewContestContent: View {
                 .frame(height: 120)
                 .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.secondary.opacity(0.4)))
             callHistoryRow
+            scpRow
+        }
+    }
+
+    /// N1MM Contest Setup → Associated Files: the contest's own master.scp (empty = the one from Settings).
+    private var scpRow: some View {
+        HStack(spacing: 12) {
+            Text(verbatim: language.tr("master.scp závodu"))
+                .frame(width: 140, alignment: .leading)
+            TextField(text: Binding(get: { form.form.scpFile }, set: { form.form.scpFile = $0 })) {
+                Text(verbatim: language.tr("prázdné = soubor z Nastavení"))
+            }
+            .textFieldStyle(.roundedBorder)
+            .accessibilityLabel(Text(verbatim: language.tr("master.scp závodu")))
+            Button {
+                ExportPanels.openFile(message: language.tr("Vyber soubor master.scp pro tento závod")) { url in
+                    form.form.scpFile = url.path
+                }
+            } label: {
+                Text(verbatim: language.tr("Vybrat soubor…"))
+            }
         }
     }
 

@@ -24,6 +24,8 @@ contests/wae-cw.yaml
 contests/wae-ssb.yaml
 contests/ww-digi.yaml
 digi_frequencies.yaml
+multipliers/arrl_sections.csv
+multipliers/arrl_sections.yaml
 multipliers/cq_zones.yaml
 multipliers/dxcc_entities.yaml
 multipliers/grid_fields.yaml

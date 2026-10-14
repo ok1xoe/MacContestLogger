@@ -18,6 +18,7 @@ public enum DefaultMenu {
         "callhistory.clear": "Vymazat call history…",
         "callhistory.import": "Importovat call history…",
         "settings.callHistoryLookup": "Zapnout dohledávání v call history",
+        "settings.exchangeAbbreviations": "Zkratky výměny…",
         "tools.addCallToCountry": "Přiřadit volačku k zemi…",
         "file.post3830": "Odeslat výsledek na 3830…",
         "file.import": "Import",
@@ -55,6 +56,7 @@ public enum DefaultMenu {
         "contest": "Závod",
         "contest.new": "Nový závod…",
         "contest.open": "Otevřít závod…",
+        "contest.setup": "Nastavení závodu…",
         "contest.rescore": "Přepočítat skóre",
         "contest.postcontest": "Dodatečné zadání (papírový deník)",
         "contest.editor": "Editor definic…",
@@ -138,7 +140,7 @@ public enum DefaultMenu {
             leaf("tab.bandplan"), leaf("tab.digifreq"), leaf("tab.map"), leaf("tab.plugins"),
         ])
         let file = node("file", [
-            leaf("contest.new"), leaf("contest.open"), leaf("file.openRecent"), leaf("sep.file.1"),
+            leaf("contest.new"), leaf("contest.open"), leaf("contest.setup"), leaf("file.openRecent"), leaf("sep.file.1"),
             leaf("database.new"), leaf("database.open"), leaf("file.copyContest"), leaf("sep.file.2"),
             node("file.import", [leaf("settings.import"), leaf("settings.merge"), leaf("callhistory.import")]),
             node("file.export", [
@@ -162,7 +164,7 @@ public enum DefaultMenu {
         ])
         let settings = node("settings", [
             settingsOpen, leaf("settings.keys"), leaf("settings.profiles"), leaf("sep.settings.1"),
-            leaf("settings.callHistoryLookup"),
+            leaf("settings.callHistoryLookup"), leaf("settings.exchangeAbbreviations"),
         ])
         let help = node("help", [
             leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("sep.help.1"),

@@ -87,7 +87,7 @@ extension EntryModel {
             let at: Date = now()
             for row in EntryGrid.of(contest).rows {
                 if let result = contest.runtime.peek(call: form.call, band: row.band.adif, mode: mode,
-                                                     exchange: form.contestExchange, ownQth: previewQth, at: at) {
+                                                     exchange: effectiveExchange, ownQth: previewQth, at: at) {
                     next[row.band] = CallBandStatus(result)
                 }
             }

@@ -23,10 +23,13 @@ public struct ContestSetup: Codable, Equatable, Sendable {
     /// N1MM „start the serial number from other than 1" (the next part of a contest): the serial of the first QSO.
     /// Swift-only key, written only when it is not 1.
     public var firstSerial: Int = 1
+    /// N1MM Contest Setup → Associated Files: the contest's own master.scp; empty = the global `AppConfig.scpFile`.
+    /// Swift-only key, written only when set.
+    public var scpFile: String = ""
 
     enum CodingKeys: String, CodingKey {
         case category, sentExchange, operators, soapbox, startedAt, endedAt, tour, skeds, bonusStations
-        case callHistoryFile, functionKeyFiles, firstSerial
+        case callHistoryFile, functionKeyFiles, firstSerial, scpFile
     }
 
     public init() {}
@@ -46,6 +49,7 @@ public struct ContestSetup: Codable, Equatable, Sendable {
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
         functionKeyFiles = c.value(.functionKeyFiles, default: d.functionKeyFiles)
         firstSerial = max(1, c.value(.firstSerial, default: d.firstSerial))
+        scpFile = c.value(.scpFile, default: d.scpFile)
     }
 
     /// The synthesized encoding, except that an empty `callHistoryFile` / `functionKeyFiles` is left out (the setup v1.1.1 writes).
@@ -68,6 +72,9 @@ public struct ContestSetup: Codable, Equatable, Sendable {
         }
         if firstSerial != 1 {
             try c.encode(firstSerial, forKey: .firstSerial)
+        }
+        if !scpFile.isEmpty {
+            try c.encode(scpFile, forKey: .scpFile)
         }
     }
 }
