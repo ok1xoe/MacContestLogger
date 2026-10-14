@@ -329,10 +329,11 @@ final class FakeKeyingHardware: @unchecked Sendable {
         ports.voicePttDelay = { [self] ms, cancelled in
             pttDelay(ms, cancelled)
         }
-        ports.voicePlayer = { [self] device in
+        ports.voicePlayer = { [self] device, gain in
             { [self] file, cancelled in
                 let probe: String = lock.withLock { playProbe }?() ?? ""
-                record("play \(file.description.split(separator: "/").last ?? "") on \(device() ?? "-")" + probe)
+                let level: String = gain() < 0.999 ? " at \(Int((gain() * 100).rounded()))%" : ""
+                record("play \(file.description.split(separator: "/").last ?? "") on \(device() ?? "-")" + level + probe)
                 if cancelled() {
                     return
                 }

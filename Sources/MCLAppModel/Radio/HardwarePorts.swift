@@ -78,7 +78,9 @@ public struct HardwarePorts: Sendable {
     /// `WinkeyerKeyer.open(port, wpm)` (blocks; called on the keyer lane).
     public var openWinkeyer: @Sendable (String, Int) throws -> any CwKeyer = { _, _ in throw InertHardwareError() }
     /// `SoundCard.player { outputDevice }` — the voice keyer's audio output (plays on the voice keyer's queue).
-    public var voicePlayer: @Sendable (@escaping @Sendable () -> String?) -> VoiceKeyer.AudioOut = { _ in
+    /// The second closure is the playback level (0…1).
+    public var voicePlayer: @Sendable (@escaping @Sendable () -> String?, @escaping @Sendable () -> Double)
+        -> VoiceKeyer.AudioOut = { _, _ in
         { _, _ in throw InertHardwareError() }
     }
     /// The voice keyer's wait between PTT on and the audio (`nil` = the real wait of `VoiceKeyer`; tests hold it).
@@ -143,7 +145,7 @@ public struct HardwarePorts: Sendable {
     public static let live: HardwarePorts = {
         var ports: HardwarePorts = liveRadio
         ports.openWinkeyer = { port, wpm in try WinkeyerKeyer.open(portPath: port, wpm: wpm) }
-        ports.voicePlayer = { device in SoundCard.player(deviceName: device) }
+        ports.voicePlayer = { device, gain in SoundCard.player(deviceName: device, gain: gain) }
         ports.recordMessage = { target, device in try SoundCard.record(target: target, deviceName: device) }
         ports.microphoneAccess = { await MicrophoneAccess.request() }
         ports.synthesize = { cacheDir, voice, text in MacSpeech(cacheDir: cacheDir, voice: voice).synthesize(text) }

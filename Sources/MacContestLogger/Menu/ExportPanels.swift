@@ -1,5 +1,6 @@
 import AppKit
 import MCLAppModel
+import MCLCore
 
 /// The AppKit side of the menu's requests (`MenuActions.Request`): the save, open and directory panels
 /// of Kotlin's AWT `FileDialog`s, the print dialog and the DXCC refill confirmation. A panel's choice starts the work
@@ -26,6 +27,13 @@ enum ExportPanels {
                 : app.language.tr("Export call history ve formátu N1MM")
             save(message: message, name: name) { file in
                 app.dataTools.startExportCallHistory(to: file, format: format)
+            }
+        case .saveFunctionKeys(let kind, let name):
+            save(message: app.language.tr("Export F-kláves (%s) do souboru .mc", .string(kind.rawValue)), name: name) { file in
+                let keys: FunctionKeySet = kind.messages(in: app.config.config)
+                if !FunctionKeyFilesModel.write(keys, kind: kind, to: file) {
+                    app.status.show("Soubor F-kláves %s nejde uložit", .string(file.path))
+                }
             }
         case .saveCabrillo(let name):
             save(message: app.language.tr("Export deníku do Cabrilla"), name: name) { file in

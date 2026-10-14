@@ -22,6 +22,18 @@ public final class AudioModel {
         self.config = config
     }
 
+    @ObservationIgnored private var setupModel: AudioSetupModel?
+
+    /// Settings → Audio: the level meter and the test tone.
+    public var setup: AudioSetupModel {
+        if let setupModel {
+            return setupModel
+        }
+        let model = AudioSetupModel(audio: self, hardware: hardware)
+        setupModel = model
+        return model
+    }
+
     /// The users holding the input.
     public var userNames: Set<String> {
         users.users

@@ -124,6 +124,13 @@ equivalent of **Export Call History**:
 
 Callsigns are sorted. The loaded file is not changed. Without a call history the status line says so.
 
+## Exporting the function keys
+
+**Soubor → Export → Function Keys (.mc)…** (N1MM "Export Function Keys to file") saves the
+F-key messages the entry window's keys send now (CW, SSB or digital, by the mode) as an N1MM
+`.mc` file: the 12 Run messages, then the 12 S&P ones. Loading a file and the contest's own
+files are in Settings → Function Keys ([cw-keyer.md](cw-keyer.md#function-key-files-mc)).
+
 ## Printing the log
 
 **"Soubor → Tisk deníku…"** (File → Print log...) opens the system print

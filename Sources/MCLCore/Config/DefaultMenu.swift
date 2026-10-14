@@ -14,6 +14,7 @@ public enum DefaultMenu {
         "settings.exportAdifRange": "ADIF podle data…",
         "callhistory.exportN1mm": "Call history (N1MM)…",
         "callhistory.exportCsv": "Call history (CSV)…",
+        "fkeys.export": "Function Keys (.mc)…",
         "callhistory.clear": "Vymazat call history…",
         "callhistory.import": "Importovat call history…",
         "settings.callHistoryLookup": "Zapnout dohledávání v call history",
@@ -143,7 +144,7 @@ public enum DefaultMenu {
             node("file.export", [
                 leaf("settings.export"), leaf("settings.exportAdifRange"), leaf("settings.exportCabrillo"),
                 leaf("settings.exportEdi"), leaf("settings.exportOther"), leaf("callhistory.exportN1mm"),
-                leaf("callhistory.exportCsv"),
+                leaf("callhistory.exportCsv"), leaf("fkeys.export"),
             ]),
             leaf("sep.file.3"), leaf("file.post3830"), leaf("settings.print"),
         ])

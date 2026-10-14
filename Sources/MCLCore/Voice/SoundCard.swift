@@ -35,19 +35,44 @@ public enum SoundCard {
     }
 
     /// Player for `VoiceKeyer`; the device is read at each playback (a change in Settings applies immediately).
-    public static func player(deviceName: @escaping @Sendable () -> String?) -> VoiceKeyer.AudioOut {
-        player(deviceName: deviceName) { format, device in
+    /// `gain` (0…1, read at each playback): the playback level of Settings → Audio.
+    public static func player(deviceName: @escaping @Sendable () -> String?,
+                              gain: @escaping @Sendable () -> Double = { 1 }) -> VoiceKeyer.AudioOut {
+        player(deviceName: deviceName, gain: gain) { format, device in
             try EngineOutput(format: format, deviceName: device)
         }
     }
 
     /// `player` over any output (tests substitute a replacement — no device).
-    static func player(deviceName: @escaping @Sendable () -> String?,
+    static func player(deviceName: @escaping @Sendable () -> String?, gain: @escaping @Sendable () -> Double = { 1 },
                        output: @escaping @Sendable (WavFile.PcmFormat, String?) throws -> any SoundOutput)
         -> VoiceKeyer.AudioOut {
         { file, cancelled in
-            try play(file, deviceName: deviceName(), cancelled: cancelled, output: output)
+            try play(file, deviceName: deviceName(), cancelled: cancelled, gain: gain(), output: output)
         }
+    }
+
+    /// Signed little-endian PCM (16, 24 or 32 bits) scaled by `gain` (0…1); other widths and a gain of 1 unchanged.
+    public static func scaled(_ bytes: [UInt8], bits: Int, gain: Double) -> [UInt8] {
+        let g: Double = max(0, min(1, gain))
+        let width: Int = bits / 8
+        guard g < 0.999, bits % 8 == 0, (2...4).contains(width) else { return bytes }
+        var out: [UInt8] = bytes
+        var i = 0
+        while i + width <= out.count {
+            var value: Int64 = 0
+            for k in 0..<width {
+                value |= Int64(out[i + k]) << (8 * k)
+            }
+            let shift: Int64 = 64 - Int64(width * 8)
+            value = (value << shift) >> shift
+            let scaledValue: Int64 = Int64((Double(value) * g).rounded())
+            for k in 0..<width {
+                out[i + k] = UInt8(truncatingIfNeeded: scaledValue >> (8 * k))
+            }
+            i += width
+        }
+        return out
     }
 
     /// Plays a wav (blocks until the end or `cancelled() == true`; cancellation is checked before each block
@@ -66,13 +91,14 @@ public enum SoundCard {
     /// always closed. **Divergence:** the output is opened only before the first written block (Java opens it right after
     /// parsing) — a message cancelled before the start or a wav without data does not open the device at all, and so does not report
     /// its unavailability.
-    static func play(_ file: JavaPath, deviceName: String?, cancelled: () -> Bool,
+    static func play(_ file: JavaPath, deviceName: String?, cancelled: () -> Bool, gain: Double = 1,
                      output: SoundOutputFactory) throws {
         let bytes = try readFile(file.description)
         guard let wav = WavFile.parse(bytes) else {
             throw AudioIOError("Nepodporovaný formát wav: " + fileName(file))
         }
-        let (format, stream) = wav.playable()
+        let (format, raw) = wav.playable()
+        let stream: [UInt8] = scaled(raw, bits: format.bits, gain: gain)
         let step = 4096 - 4096 % max(1, format.frameSize)
         var line: (any SoundOutput)?
         defer { line?.close() }

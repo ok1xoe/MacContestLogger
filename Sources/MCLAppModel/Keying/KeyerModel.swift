@@ -42,7 +42,7 @@ public final class KeyerModel {
     @ObservationIgnored let language: LanguageModel
     @ObservationIgnored let clock: any RescoreClock
     @ObservationIgnored private let operating: OperatingModel
-    @ObservationIgnored private weak var rig: RigModel?
+    @ObservationIgnored private(set) weak var rig: RigModel?
     @ObservationIgnored private let activeCat: ActiveCatBox
     /// A keyer may be open on the lane (Kotlin `cwKeyer != null`): set when a job that opens it is queued, cleared
     /// by the reset and the quit. Esc aborts only then (Kotlin), but never misses a keyer still being opened.

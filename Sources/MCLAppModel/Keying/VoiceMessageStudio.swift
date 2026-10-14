@@ -356,7 +356,7 @@ public final class VoiceMessageStudio {
         let flag = StudioPlaybackFlag()
         playback = flag
         playingSlot = request.slot
-        let audio = hardware.voicePlayer { nil }
+        let audio = hardware.voicePlayer({ nil }, { 1 })
         playbackLane.submit({ () -> String? in
             do {
                 try audio(path) { flag.isCancelled }
