@@ -156,10 +156,11 @@ import Testing
         // 11 keys of the {END}, rig, antenna, CAT and Telnet macros and
         // 13 keys of the function key files (.mc load, save and clipboard, the contest's associated files, the operators' own files, the F-key buttons' right click and hover text) and
         // 13 keys of the ESM key assignments, partial calls, the call / exchange separator, F-key stacking and the CQ repeat's maximum duration and
-        // 9 keys of the two-radio, audio, OTRSP, contest swap and needed-QSO macros.
-        #expect(map.count == 1_791)
+        // 9 keys of the two-radio, audio, OTRSP, contest swap and needed-QSO macros and
+        // 11 keys of the audio setup (level meter, test tone, message level, radio 2 output) and the advanced voicing of serial numbers.
+        #expect(map.count == 1_802)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_791)
+        #expect(german.count == 1_802)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

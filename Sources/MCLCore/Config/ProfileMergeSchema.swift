@@ -109,6 +109,10 @@ enum ProfileMergeSchema {
         "cz.ok1xoe.maccontestlogger.config.RunModeConfig": [
             Property("repeatMaxMinutes", .int, .fieldDefault),
         ],
+        "cz.ok1xoe.maccontestlogger.config.VoiceKeyerConfig": [
+            Property("outputDevice2", .string, .fieldDefault),
+            Property("outputLevel", .int, .fieldDefault),
+        ],
         "cz.ok1xoe.maccontestlogger.config.CwKeyerConfig": [
             Property("stackMessages", .boolean, .fieldDefault),
         ],

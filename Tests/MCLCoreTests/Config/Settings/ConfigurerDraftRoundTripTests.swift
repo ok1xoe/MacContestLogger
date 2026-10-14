@@ -147,6 +147,8 @@ import Testing
         expected.esm.callExchangeSeparator = " "
         expected.runMode.repeatMaxMinutes = 0
         expected.cwKeyer.stackMessages = false
+        expected.voiceKeyer.outputDevice2 = ""
+        expected.voiceKeyer.outputLevel = 100
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
@@ -391,6 +393,8 @@ import Testing
 
     static func wireOther(_ w: inout Wiring) {
         w.same(\.vkOutput, \.voiceKeyer.outputDevice, "Speakers X")
+        w.same(\.vkOutput2, \.voiceKeyer.outputDevice2, "Speakers Radio 2")
+        w.number(\.vkOutputLevel, \.voiceKeyer.outputLevel, 63)
         w.same(\.vkInput, \.voiceKeyer.inputDevice, "Mic Y")
         w.same(\.rxAudio, \.rxAudioDevice, "Line In Z")
         w.same(\.ttsVoice, \.ttsVoice, "Zuzana")

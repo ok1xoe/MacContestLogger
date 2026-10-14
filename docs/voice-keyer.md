@@ -13,6 +13,13 @@ and DXLog
 - **Output (transmitter):** the audio device that leads to the transmitter input,
   typically the "USB Audio CODEC" of the rig or interface.
 - **Input (recording):** the microphone used to record messages.
+- **Radio 2 output (SO2R):** in SO2R the messages of radio 2 go to this device (N1MM's
+  sound card per radio); empty = the same output as radio 1.
+- **Message level (%):** the playback level of the messages (100 = as recorded).
+- **Output test (1 kHz tone):** a one-second tone on the output at the message level, to
+  set the transmitter's audio drive. It goes to the sound card only: the PTT is not keyed.
+- **Measure the input level** (Receive group): a meter of the saved receiver input
+  (the waterfall's and CW reader's device) in dBFS while it is on.
 - **PTT via CAT:** keying is done with the rigctld command `T 1` / `T 0`; the
   transceiver must be connected. Without CAT, or with the option turned off, the
   transmitter's VOX does the keying.
@@ -22,6 +29,10 @@ and DXLog
 - **Wav directory:** an empty field means `~/Library/Application Support/MacContestLogger/wav`.
 - **Letters and digits:** subdirectory for announcing the callsign and numbers,
   the default is `LettersFiles/{OPERATOR}`.
+- **Advanced voicing of serial numbers** (N1MM): when the letters directory holds
+  `0.wav`…`19.wav`, `20.wav`, `30.wav`…`90.wav`, `HUNDRED.wav` and `THOUSAND.wav`, `#` is
+  voiced in words (123 = "one hundred twenty three": `1`, `HUNDRED`, `20`, `3`). With any of
+  them missing it is voiced digit by digit as before; the Audio tab says which applies.
 
 **"Nastavení → Function Keys"** (Settings → Function Keys): messages F1–F12, a
 separate set for **Run** and for **S&P**. Which set is used is determined by the

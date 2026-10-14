@@ -1789,5 +1789,16 @@
  "Není jiný naposledy otevřený závod": "No other recently opened contest",
  "Potřebná stanice %s (%s z %s)": "Needed station %s (%s of %s)",
  "Potřebné stanice: neznámé pásmo": "Needed stations: unknown band",
- "Žádná potřebná stanice na pásmu %s": "No needed station on %s"
+ "Žádná potřebná stanice na pásmu %s": "No needed station on %s",
+ "Výstup rádia 2 (SO2R; prázdné = jako rádio 1)": "Radio 2 output (SO2R; empty = as radio 1)",
+ "Hlasitost zpráv (%)": "Message level (%)",
+ "Zastavit test": "Stop the test",
+ "Test výstupu (tón 1 kHz)": "Output test (1 kHz tone)",
+ "Zastavit měření": "Stop measuring",
+ "Měřit úroveň vstupu": "Measure the input level",
+ "Úroveň vstupu přijímače": "Receiver input level",
+ "Čísla se hlásí slovy (0–19, desítky, HUNDRED, THOUSAND): soubory jsou úplné.": "Numbers are voiced as words (0–19, tens, HUNDRED, THOUSAND): the files are complete.",
+ "Hlášení čísel slovy vyžaduje 0.wav…19.wav, 20.wav…90.wav, HUNDRED.wav a THOUSAND.wav; chybí %s, čísla se hlásí po číslicích.": "Voicing numbers as words needs 0.wav…19.wav, 20.wav…90.wav, HUNDRED.wav and THOUSAND.wav; %s missing, numbers are voiced digit by digit.",
+ "Test přehraje tón jen do zvukové karty, vysílač se neklíčuje (PTT zůstane vypnuté).": "The test plays the tone to the sound card only; the transmitter is not keyed (PTT stays off).",
+ "Měří uložený vstup přijímače (po Použít); špičky kolem −10 až −3 dBFS jsou v pořádku, 0 dBFS = přebuzení.": "Measures the saved receiver input (after Apply); peaks around −10 to −3 dBFS are fine, 0 dBFS = overload."
 }

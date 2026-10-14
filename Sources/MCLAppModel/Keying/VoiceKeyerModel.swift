@@ -80,7 +80,7 @@ public final class VoiceKeyerModel {
         studio = VoiceMessageStudio(VoiceMessageStudio.Dependencies(
             hardware: dependencies.hardware, config: dependencies.config, operating: dependencies.operating,
             clock: dependencies.clock, dataDir: dependencies.dataDir))
-        voiceKeyer = VoiceKeyer(audio: dependencies.hardware.voicePlayer { settings.outputDevice },
+        voiceKeyer = VoiceKeyer(audio: dependencies.hardware.voicePlayer({ settings.outputDevice }, { settings.gain }),
                                 ptt: { on in try ptt.set(on) },
                                 pttDelayMs: { settings.pttDelayMs }, delay: dependencies.hardware.voicePttDelay)
         studio.voice = self
@@ -149,7 +149,8 @@ public final class VoiceKeyerModel {
             text: texts.joined(separator: ","), wavDir: wavDirectory, lettersPath: app.voiceKeyer.lettersPath,
             context: planContext(hisCall: hisCall, freqHz: freqHz, keys: set.map(\.text)),
             ttsVoice: app.ttsVoice, synthesize: hardware.synthesize)
-        settings.update(outputDevice: app.voiceKeyer.outputDevice, pttDelayMs: app.voiceKeyer.pttDelayMs)
+        settings.update(outputDevice: outputDevice(app), pttDelayMs: app.voiceKeyer.pttDelayMs,
+                        gain: Double(app.voiceKeyer.outputLevel) / 100)
         ptt.arm(target: keyer.activeRigLane(), viaCat: app.voiceKeyer.pttViaCat)
         generation &+= 1
         let planGeneration: Int64 = generation
@@ -160,6 +161,30 @@ public final class VoiceKeyerModel {
             self.planned(outcome, indices: indices, key: last)
         })
         return nil
+    }
+
+    /// N1MM advanced voicing of serial numbers: the files missing in the letters directory (all = not set up).
+    public func advancedNumberFilesMissing() -> [String] {
+        let app: AppConfig = config.config
+        guard let wav = try? JavaPath(wavDirectory),
+              let letters = try? VoiceMessagePlanner.resolveDir(app.voiceKeyer.lettersPath,
+                                                               operatorCall: operating.operatorCall, wavDir: wav,
+                                                               wavDirName: operating.wavDirName) else {
+            return VoiceMessagePlanner.advancedNumberFiles
+        }
+        return VoiceMessagePlanner.advancedNumberFiles.filter { name in
+            guard let file = try? letters.resolve(name + ".wav") else { return true }
+            return !FileManager.default.fileExists(atPath: file.description)
+        }
+    }
+
+    /// N1MM SO2R sound: radio 2's messages go to its own output when one is set.
+    private func outputDevice(_ app: AppConfig) -> String {
+        let second: String = KotlinStrings.trim(app.voiceKeyer.outputDevice2)
+        if let rig = keyer?.rig, rig.vfo.so2r, rig.vfo.activeVfo == 1, !second.isEmpty {
+            return second
+        }
+        return app.voiceKeyer.outputDevice
     }
 
     private func planContext(hisCall: String, freqHz: Int64, keys: [String]) -> VoiceMessagePlanner.Context {
@@ -504,10 +529,14 @@ private enum RecordStart: Sendable {
 
 /// What the voice keyer's threads read: the output device and the PTT delay of the message being played.
 private final class VoiceSettingsBox: Sendable {
-    private let state = OSAllocatedUnfairLock(initialState: (device: "", delay: Int32(150)))
+    private let state = OSAllocatedUnfairLock(initialState: (device: "", delay: Int32(150), gain: 1.0))
 
-    func update(outputDevice: String, pttDelayMs: Int) {
-        state.withLock { $0 = (outputDevice, Int32(clamping: pttDelayMs)) }
+    func update(outputDevice: String, pttDelayMs: Int, gain: Double = 1) {
+        state.withLock { $0 = (outputDevice, Int32(clamping: pttDelayMs), gain) }
+    }
+
+    var gain: Double {
+        state.withLock { $0.gain }
     }
 
     var outputDevice: String {

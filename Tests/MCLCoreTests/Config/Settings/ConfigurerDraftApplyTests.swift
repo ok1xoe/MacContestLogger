@@ -320,7 +320,7 @@ import Testing
                                "saveSpots", "randomizeSpotFrequencies",
                                "spotComment", "spotAllSpQsos", "specialCalls", "specialCallsIncludeBonus",
                                "nextCallKey", "callStackOrder", "keyMap", "sendPartialCalls", "callExchangeSeparator",
-                               "repeatMaxMinutes", "stackMessages",
+                               "repeatMaxMinutes", "stackMessages", "outputDevice2", "outputLevel",
                                "callStackClearOnBandChange", "digitalCallStacking",
                                "rttyInterface",
                                "tncType",

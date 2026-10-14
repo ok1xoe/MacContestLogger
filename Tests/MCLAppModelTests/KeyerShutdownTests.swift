@@ -87,7 +87,7 @@ import Testing
         #expect(inert.isInert)
         let path = try JavaPath("/nonexistent/cq.wav")
         #expect(throws: InertHardwareError.self) { _ = try inert.openWinkeyer("fake", 28) }
-        #expect(throws: InertHardwareError.self) { try inert.voicePlayer { nil }(path, { false }) }
+        #expect(throws: InertHardwareError.self) { try inert.voicePlayer({ nil }, { 1 })(path, { false }) }
         #expect(throws: InertHardwareError.self) { _ = try inert.recordMessage(path, nil) }
         #expect(throws: InertHardwareError.self) { _ = try inert.makeFldigi("127.0.0.1", 1) }
         #expect(inert.synthesize(path, "", "test") == nil)

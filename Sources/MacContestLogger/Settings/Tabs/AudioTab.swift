@@ -27,7 +27,10 @@ struct AudioTab: View {
             filesGroup
         }
         .onAppear { app.settingsTools.loadAudioDevices() }
+        .onDisappear { app.audio.setup.stopMeter() }
     }
+
+    private var setup: AudioSetupModel { app.audio.setup }
 
     private var systemDefault: String {
         language.tr(SettingsTools.systemDefaultDevice)
@@ -56,6 +59,26 @@ struct AudioTab: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            HStack(alignment: .bottom, spacing: 12) {
+                SettingsField(caption: language.tr("Výstup rádia 2 (SO2R; prázdné = jako rádio 1)")) {
+                    device($draft.vkOutput2, tools.outputDevices)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                SettingsField(caption: language.tr("Hlasitost zpráv (%)")) {
+                    SettingsTextField(text: $draft.vkOutputLevel, filter: .digits(limit: 3))
+                }
+                .frame(width: 140)
+                SettingsButton(setup.testing ? language.tr("Zastavit test") : language.tr("Test výstupu (tón 1 kHz)"),
+                               borderless: true) {
+                    setup.playTestTone(device: draft.vkOutput,
+                                       level: Int(draft.vkOutputLevel.trimmingCharacters(in: .whitespaces)) ?? 100)
+                }
+            }
+            SettingsCaption(language.tr(
+                "Test přehraje tón jen do zvukové karty, vysílač se neklíčuje (PTT zůstane vypnuté)."))
+            if let problem = setup.problem {
+                SettingsCaption(problem)
+            }
         }
     }
 
@@ -73,6 +96,25 @@ struct AudioTab: View {
                 }
                 .frame(width: 120)
             }
+            HStack(spacing: 12) {
+                SettingsButton(setup.metering ? language.tr("Zastavit měření") : language.tr("Měřit úroveň vstupu"),
+                               borderless: true) {
+                    if setup.metering {
+                        setup.stopMeter()
+                    } else {
+                        Task { await setup.startMeter() }
+                    }
+                }
+                ProgressView(value: max(0, min(1, (setup.peakDb + 60) / 60)))
+                    .frame(maxWidth: 240)
+                    .accessibilityLabel(Text(verbatim: language.tr("Úroveň vstupu přijímače")))
+                    .accessibilityValue(Text(verbatim: String(Int(setup.peakDb.rounded())) + " dBFS"))
+                Text(verbatim: setup.metering ? String(Int(setup.peakDb.rounded())) + " dBFS" : "")
+                    .windowFont(11, design: .monospaced)
+                    .frame(width: 80, alignment: .leading)
+            }
+            SettingsCaption(language.tr(
+                "Měří uložený vstup přijímače (po Použít); špičky kolem −10 až −3 dBFS jsou v pořádku, 0 dBFS = přebuzení."))
         }
     }
 
@@ -107,6 +149,17 @@ struct AudioTab: View {
             SettingsField(caption: language.tr("Písmena a číslice (relativně k wav)")) {
                 SettingsTextField(text: $draft.vkLettersPath)
             }
+            SettingsCaption(advancedVoicing)
         }
+    }
+
+    /// N1MM advanced voicing of serial numbers: the files it needs in the letters directory.
+    private var advancedVoicing: String {
+        let missing: [String] = app.keyer.voice.advancedNumberFilesMissing()
+        if missing.isEmpty {
+            return language.tr("Čísla se hlásí slovy (0–19, desítky, HUNDRED, THOUSAND): soubory jsou úplné.")
+        }
+        return language.tr("Hlášení čísel slovy vyžaduje 0.wav…19.wav, 20.wav…90.wav, HUNDRED.wav a THOUSAND.wav; chybí %s, čísla se hlásí po číslicích.",
+                           .int(missing.count))
     }
 }

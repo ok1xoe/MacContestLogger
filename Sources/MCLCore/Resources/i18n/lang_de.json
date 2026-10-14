@@ -1789,5 +1789,16 @@
  "Není jiný naposledy otevřený závod": "Kein anderer zuletzt geöffneter Contest",
  "Potřebná stanice %s (%s z %s)": "Benötigte Station %s (%s von %s)",
  "Potřebné stanice: neznámé pásmo": "Benötigte Stationen: unbekanntes Band",
- "Žádná potřebná stanice na pásmu %s": "Keine benötigte Station auf %s"
+ "Žádná potřebná stanice na pásmu %s": "Keine benötigte Station auf %s",
+ "Výstup rádia 2 (SO2R; prázdné = jako rádio 1)": "Ausgang Radio 2 (SO2R; leer = wie Radio 1)",
+ "Hlasitost zpráv (%)": "Nachrichtenpegel (%)",
+ "Zastavit test": "Test stoppen",
+ "Test výstupu (tón 1 kHz)": "Ausgangstest (1-kHz-Ton)",
+ "Zastavit měření": "Messung stoppen",
+ "Měřit úroveň vstupu": "Eingangspegel messen",
+ "Úroveň vstupu přijímače": "Empfänger-Eingangspegel",
+ "Čísla se hlásí slovy (0–19, desítky, HUNDRED, THOUSAND): soubory jsou úplné.": "Zahlen werden als Wörter gesprochen (0–19, Zehner, HUNDRED, THOUSAND): die Dateien sind vollständig.",
+ "Hlášení čísel slovy vyžaduje 0.wav…19.wav, 20.wav…90.wav, HUNDRED.wav a THOUSAND.wav; chybí %s, čísla se hlásí po číslicích.": "Zahlen als Wörter brauchen 0.wav…19.wav, 20.wav…90.wav, HUNDRED.wav und THOUSAND.wav; %s fehlen, Zahlen werden Ziffer für Ziffer gesprochen.",
+ "Test přehraje tón jen do zvukové karty, vysílač se neklíčuje (PTT zůstane vypnuté).": "Der Test spielt den Ton nur auf die Soundkarte; der Sender wird nicht getastet (PTT bleibt aus).",
+ "Měří uložený vstup přijímače (po Použít); špičky kolem −10 až −3 dBFS jsou v pořádku, 0 dBFS = přebuzení.": "Misst den gespeicherten Empfängereingang (nach Übernehmen); Spitzen um −10 bis −3 dBFS sind in Ordnung, 0 dBFS = Übersteuerung."
 }

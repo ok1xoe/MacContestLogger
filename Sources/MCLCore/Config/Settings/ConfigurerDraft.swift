@@ -174,6 +174,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     // MARK: Voice keyer, modes, steps, appearance, antennas, rotator, SO2R — `CD:248-289`
 
     public var vkOutput: String = ""
+    public var vkOutput2: String = ""
+    public var vkOutputLevel: String = ""
     public var vkInput: String = ""
     public var rxAudio: String = ""
     public var ttsVoice: String = ""
@@ -510,6 +512,8 @@ extension ConfigurerDraft {
 
     private mutating func loadOther(_ config: AppConfig) {
         vkOutput = config.voiceKeyer.outputDevice
+        vkOutput2 = config.voiceKeyer.outputDevice2
+        vkOutputLevel = String(config.voiceKeyer.outputLevel)
         vkInput = config.voiceKeyer.inputDevice
         rxAudio = config.rxAudioDevice
         ttsVoice = config.ttsVoice

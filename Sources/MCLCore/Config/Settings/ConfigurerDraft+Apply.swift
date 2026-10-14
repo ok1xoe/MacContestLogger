@@ -139,6 +139,8 @@ extension ConfigurerDraft {
 
     private func applyVoiceKeyer(_ vk: inout VoiceKeyerConfig) {
         vk.outputDevice = vkOutput
+        vk.outputDevice2 = vkOutput2
+        vk.outputLevel = Self.clamped(vkOutputLevel, 0, 100) ?? vk.outputLevel
         vk.inputDevice = vkInput
         vk.pttViaCat = vkPttViaCat
         vk.pttDelayMs = Self.trimmedInt(vkPttDelay) ?? vk.pttDelayMs

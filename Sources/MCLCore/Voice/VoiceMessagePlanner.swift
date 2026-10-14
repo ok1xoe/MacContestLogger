@@ -283,7 +283,12 @@ public enum VoiceMessagePlanner {
             }
             switch token.uppercased() {
             case "!": voice(ctx.hisCall, lettersDir, exists, &files, &missing)
-            case "#": voice(String(ctx.serial), lettersDir, exists, &files, &missing)
+            case "#":
+                if let words = advancedNumber(Int(ctx.serial), lettersDir, exists) {
+                    files += words
+                } else {
+                    voice(String(ctx.serial), lettersDir, exists, &files, &missing)
+                }
             case "*", "{MYCALL}": voice(ctx.myCall, lettersDir, exists, &files, &missing)
             case "@": voice(frequency(ctx.freqHz), lettersDir, exists, &files, &missing)
             default:
@@ -424,6 +429,46 @@ public enum VoiceMessagePlanner {
         let khz = tenths / 10
         let dec = tenths % 10
         return dec == 0 ? String(khz) : String(khz) + "." + String(dec)
+    }
+
+    /// The files of N1MM's advanced voicing of serial numbers: `0.wav`…`19.wav`, the tens `20.wav`…`90.wav`,
+    /// `HUNDRED.wav` and `THOUSAND.wav` (123 = 1, HUNDRED, 20, 3). All of them must exist in the letters directory,
+    /// otherwise `nil` — the number is voiced digit by digit as before.
+    public static let advancedNumberFiles: [String] = (0...19).map(String.init) + stride(from: 20, through: 90, by: 10)
+        .map(String.init) + ["HUNDRED", "THOUSAND"]
+
+    static func advancedNumber(_ number: Int, _ letters: JavaPath, _ exists: (JavaPath) -> Bool) -> [JavaPath]? {
+        guard number >= 0, number < 1_000_000 else { return nil }
+        let paths: [String: JavaPath] = Dictionary(uniqueKeysWithValues: advancedNumberFiles.map {
+            ($0, letters.resolve(fileName: $0 + ".wav"))
+        })
+        guard paths.values.allSatisfy(exists) else { return nil }
+        return numberWords(number).compactMap { paths[$0] }
+    }
+
+    /// 1205 → `1 THOUSAND 2 HUNDRED 5`; 0 → `0`.
+    static func numberWords(_ number: Int) -> [String] {
+        if number == 0 {
+            return ["0"]
+        }
+        var words: [String] = []
+        if number >= 1000 {
+            words += numberWords(number / 1000) + ["THOUSAND"]
+        }
+        let hundreds: Int = number % 1000 / 100
+        if hundreds > 0 {
+            words += [String(hundreds), "HUNDRED"]
+        }
+        let rest: Int = number % 100
+        if rest > 0 && rest < 20 {
+            words.append(String(rest))
+        } else if rest >= 20 {
+            words.append(String(rest / 10 * 10))
+            if rest % 10 > 0 {
+                words.append(String(rest % 10))
+            }
+        }
+        return words
     }
 
     /// Splits text into recordings: the longest recorded snippet (at least 2 characters `[A-Z0-9]`), otherwise character by

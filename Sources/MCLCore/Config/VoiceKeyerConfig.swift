@@ -19,6 +19,15 @@ public struct VoiceKeyerConfig: Codable, Equatable, Sendable {
     public var outputDevice: String = ""
     /// Recording device for recording messages; empty = system default.
     public var inputDevice: String = ""
+    /// N1MM SO2R sound: the output of radio 2's messages (empty = the same as radio 1). Swift-only key.
+    public var outputDevice2: String = ""
+    /// The playback level of the messages in percent (N1MM Logger+ Audio Setup). Swift-only key.
+    public var outputLevel: Int = 100 {
+        didSet {
+            let clamped: Int = max(0, min(100, outputLevel))
+            if clamped != outputLevel { outputLevel = clamped }
+        }
+    }
     /// Key the transmitter via CAT (rigctld `T 1`); otherwise rely on VOX.
     public var pttViaCat: Bool = true
     /// Delay between PTT and the start of audio; always clamped to `0...2000`.
@@ -61,6 +70,7 @@ public struct VoiceKeyerConfig: Codable, Equatable, Sendable {
     enum CodingKeys: String, CodingKey {
         case outputDevice, inputDevice, pttViaCat, pttDelayMs, maxRecordSeconds
         case wavDir, lettersPath, runMessages, spMessages
+        case outputDevice2, outputLevel
     }
 
     public init() {}
@@ -70,6 +80,8 @@ public struct VoiceKeyerConfig: Codable, Equatable, Sendable {
         let d = VoiceKeyerConfig()
         outputDevice = c.value(.outputDevice, default: d.outputDevice)
         inputDevice = c.value(.inputDevice, default: d.inputDevice)
+        outputDevice2 = c.value(.outputDevice2, default: d.outputDevice2)
+        outputLevel = max(0, min(100, c.value(.outputLevel, default: d.outputLevel)))
         pttViaCat = c.value(.pttViaCat, default: d.pttViaCat)
         pttDelayMs = VoiceKeyerConfig.clampPttDelay(c.value(.pttDelayMs, default: d.pttDelayMs))
         maxRecordSeconds = VoiceKeyerConfig.clampMaxRecordSeconds(
