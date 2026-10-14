@@ -43,7 +43,10 @@ public final class LogbookHandle: @unchecked Sendable {
 
     /// Opens (or creates) the database file. Blocking.
     public static func open(name: String, url: URL) throws -> LogbookHandle {
-        try LogbookHandle(name: name, url: url, repository: LogbookRepository(url: url))
+        let repository = try LogbookRepository(url: url)
+        // N1MM's transaction file next to the database (`<file>.trn`).
+        repository.journal = TransactionJournal(url: TransactionJournal.fileURL(forDatabase: url))
+        return try LogbookHandle(name: name, url: url, repository: repository)
     }
 
     /// An in-memory database (tests).

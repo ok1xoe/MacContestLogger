@@ -1912,5 +1912,10 @@
  "Soubor cílů závodu": "Contest goal file",
  "prázdné = cíle zůstanou, jak jsou": "empty = the goals stay as they are",
  "Vyber soubor cílů pro tento závod": "Choose the goal file for this contest",
- "Soubor cílů závodu %s nejde načíst": "The contest goal file %s cannot be read"
+ "Soubor cílů závodu %s nejde načíst": "The contest goal file %s cannot be read",
+ "Obnovit QSO z transakčního souboru…": "Recover QSOs from transaction file…",
+ "Transakční soubor deníku (.trn)": "Log transaction file (.trn)",
+ "Transakční soubor %s nejde přečíst (%s)": "The transaction file %s cannot be read (%s)",
+ "Z transakčního souboru %s obnoveno %s QSO, přeskočeno %s už uložených, %s nečitelných řádků": "Transaction file %s: %s QSOs recovered, %s already stored skipped, %s unreadable lines",
+ "Obnova z transakčního souboru: není otevřený závod": "Transaction file recovery: no contest is open"
 }

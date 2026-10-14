@@ -1912,5 +1912,10 @@
  "Soubor cílů závodu": "Zieldatei des Contests",
  "prázdné = cíle zůstanou, jak jsou": "leer = die Ziele bleiben unverändert",
  "Vyber soubor cílů pro tento závod": "Zieldatei für diesen Contest wählen",
- "Soubor cílů závodu %s nejde načíst": "Die Zieldatei des Contests %s kann nicht gelesen werden"
+ "Soubor cílů závodu %s nejde načíst": "Die Zieldatei des Contests %s kann nicht gelesen werden",
+ "Obnovit QSO z transakčního souboru…": "QSOs aus Transaktionsdatei wiederherstellen…",
+ "Transakční soubor deníku (.trn)": "Transaktionsdatei des Logs (.trn)",
+ "Transakční soubor %s nejde přečíst (%s)": "Die Transaktionsdatei %s kann nicht gelesen werden (%s)",
+ "Z transakčního souboru %s obnoveno %s QSO, přeskočeno %s už uložených, %s nečitelných řádků": "Transaktionsdatei %s: %s QSOs wiederhergestellt, %s bereits gespeicherte übersprungen, %s unlesbare Zeilen",
+ "Obnova z transakčního souboru: není otevřený závod": "Wiederherstellung aus der Transaktionsdatei: kein Contest geöffnet"
 }
