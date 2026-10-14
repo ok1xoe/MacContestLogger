@@ -1767,5 +1767,18 @@
  "Soubor F-kláves %s nejde uložit": "The function key file %s cannot be saved",
  "F-klávesy závodu načteny: %s": "The contest's function keys loaded: %s",
  "F-klávesy operátora %s": "Function keys of operator %s",
- "Kopírovat do schránky": "Copy to clipboard"
+ "Kopírovat do schránky": "Copy to clipboard",
+ "Opakování CQ vypnuto po %s min (nejdelší doba)": "CQ repeat off after %s min (maximum duration)",
+ "Opravenou volačku poslat jen v části, která se změnila (Send partial calls)": "Send only the changed part of a corrected call (Send partial calls)",
+ "Mezi jeho volačkou a výměnou (CW)": "Between his call and the exchange (CW)",
+ "Text mezi F5 a F2 poslanými spolu, např. mezera nebo „ 5NN“; výchozí je mezera.": "The text between F5 and F2 sent together, e.g. a space or \" 5NN\"; a space by default.",
+ "F-klávesa stisknutá během vysílání se zařadí za běžící zprávu (CW, SSB; jinak ji přeruší)": "A function key pressed while sending is queued after the message (CW, SSB; otherwise it interrupts it)",
+ "Přiřazení F-kláves pro ESM (výchozí F1, F2, F3, F4, F5, F6, F8):": "Function key assignments for ESM (default F1, F2, F3, F4, F5, F6, F8):",
+ "Nejdelší opakování CQ (min)": "Maximum CQ repeat (min)",
+ "Po této době se opakování CQ samo vypne; 0 = bez omezení.": "After this time the CQ repeat switches itself off; 0 = no limit.",
+ "Konec QSO (TU)": "End of QSO (TU)",
+ "Moje volačka": "My call",
+ "Jeho volačka": "His call",
+ "QSO B4": "QSO B4",
+ "Znovu?": "Again?"
 }

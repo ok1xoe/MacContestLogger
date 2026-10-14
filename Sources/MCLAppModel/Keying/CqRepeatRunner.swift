@@ -94,6 +94,9 @@ final class CqRepeatRunner {
     private func keysChanged() {
         let now: Keys? = currentKeys()
         guard now != keys else { return }
+        if now?.enabled == true && keys?.enabled != true {
+            loop.resetDuration()
+        }
         keys = now
         timer?.cancel()
         timer = nil
@@ -120,7 +123,7 @@ final class CqRepeatRunner {
             enabled: enabled(entry), callBlank: KotlinStrings.isBlank(entry.form.call),
             keyable: keyable,
             isSending: keyer.isSending, postContest: operating.postContest, txLocked: keyer.tx.txGate() != nil,
-            repeatSeconds: config.config.runMode.repeatSeconds)
+            repeatSeconds: config.config.runMode.repeatSeconds, maxMinutes: config.config.runMode.repeatMaxMinutes)
         perform(loop.next(inputs), entry: entry)
     }
 
@@ -134,7 +137,7 @@ final class CqRepeatRunner {
             }
         case .sendF1:
             failureBaseline = keyer.sendFailures
-            entry.sendKeys([EsmEngine.f1], refocus: false)
+            entry.sendKeys([config.config.esm.keys.cq], refocus: false)
             step()
         case .stop(let reason):
             failureBaseline = nil
@@ -156,6 +159,8 @@ final class CqRepeatRunner {
             message = KeyerTexts.cqRepeat(false, seconds: config.config.runMode.repeatSeconds)
         case .sendFailed:
             message = nil
+        case .maxDuration:
+            message = .tr("Opakování CQ vypnuto po %s min (nejdelší doba)", .int(config.config.runMode.repeatMaxMinutes))
         }
         if let message {
             status.showJoined(message.parts, separator: "")

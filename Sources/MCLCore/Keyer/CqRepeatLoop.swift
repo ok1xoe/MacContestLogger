@@ -41,6 +41,8 @@ public struct CqRepeatLoop: Sendable, Equatable {
         case notKeyable
         /// The F1 send failed (the keyer reported an error).
         case sendFailed
+        /// N1MM „Max Repeat / Dueling CQ duration": the repeat ran its maximum time.
+        case maxDuration
     }
 
     /// What the runner does next.
@@ -71,9 +73,12 @@ public struct CqRepeatLoop: Sendable, Equatable {
         public var txLocked: Bool
         /// `config.runMode.repeatSeconds`.
         public var repeatSeconds: Double
+        /// `config.runMode.repeatMaxMinutes`: the longest the repeat runs (0 = no limit).
+        public var maxMinutes: Int
 
         public init(enabled: Bool, callBlank: Bool, keyable: Bool, isSending: Bool, postContest: Bool = false,
-                    txLocked: Bool = false, repeatSeconds: Double) {
+                    txLocked: Bool = false, repeatSeconds: Double, maxMinutes: Int = 0) {
+            self.maxMinutes = maxMinutes
             self.enabled = enabled
             self.callBlank = callBlank
             self.keyable = keyable
@@ -91,6 +96,8 @@ public struct CqRepeatLoop: Sendable, Equatable {
     }
 
     private(set) var phase: Phase = .waitBeforeSend
+    /// The time the repeat has run since it was switched on: the sum of its waits (sending and pauses).
+    public private(set) var elapsedMillis: Int64 = 0
 
     public init() {}
 
@@ -117,6 +124,11 @@ public struct CqRepeatLoop: Sendable, Equatable {
         phase = .waitBeforeSend
     }
 
+    /// The repeat was switched on: its maximum duration counts from now.
+    public mutating func resetDuration() {
+        elapsedMillis = 0
+    }
+
     /// The runner's F1 send (after `.sendF1`) failed: the loop stops instead of retrying after the pause.
     public mutating func sendFailed() -> Action {
         phase = .waitBeforeSend
@@ -125,6 +137,14 @@ public struct CqRepeatLoop: Sendable, Equatable {
 
     /// The next step of the loop.
     public mutating func next(_ inputs: Inputs) -> Action {
+        let action: Action = step(inputs)
+        if case .wait(let milliseconds) = action {
+            elapsedMillis = elapsedMillis &+ milliseconds
+        }
+        return action
+    }
+
+    private mutating func step(_ inputs: Inputs) -> Action {
         guard inputs.enabled, inputs.callBlank else {
             phase = .waitBeforeSend
             return .idle
@@ -143,6 +163,9 @@ public struct CqRepeatLoop: Sendable, Equatable {
             }
             if inputs.txLocked {
                 return .stop(.txLockout)
+            }
+            if inputs.maxMinutes > 0 && elapsedMillis >= Int64(inputs.maxMinutes) * 60_000 {
+                return .stop(.maxDuration)
             }
             phase = .gap
             return .sendF1

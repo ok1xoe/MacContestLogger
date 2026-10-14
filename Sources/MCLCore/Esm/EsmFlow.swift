@@ -34,10 +34,13 @@ public enum EsmFlow {
         /// stack and that key holds `{LOGTHENPOP}`; the end of a Run QSO then sends it instead of TU (F3), and the
         /// macro logs the QSO and starts the next one.
         public var nextCallKey: Int?
+        /// The ESM key assignments.
+        public var keyMap: EsmKeyMap
 
         public init(progress: EsmProgress, run: Bool, call: String, dupe: Bool, exchangeValid: Bool,
-                    options: EsmEngine.Options, nextCallKey: Int? = nil) {
+                    options: EsmEngine.Options, nextCallKey: Int? = nil, keyMap: EsmKeyMap = .n1mm) {
             self.nextCallKey = nextCallKey
+            self.keyMap = keyMap
             self.progress = progress
             self.run = run
             self.call = call
@@ -49,14 +52,16 @@ public enum EsmFlow {
         var step: EsmEngine.Step {
             let base: EsmEngine.Step = EsmEngine.decide(
                 progress.state(run: run, call: call, dupe: dupe, exchangeValid: exchangeValid), options)
-            return EsmFlow.withNextCallKey(base, run: run, nextCallKey: nextCallKey)
+            let mapped = EsmEngine.Step(keys: keyMap.keys(base.keys), log: base.log, focus: base.focus)
+            return EsmFlow.withNextCallKey(mapped, run: run, nextCallKey: nextCallKey, endKey: keyMap.end)
         }
     }
 
     /// N1MM ESM with call stacking: a Run step that ends the QSO with TU (F3) and logs sends the Next Call key in
     /// place of F3 and does not log itself (`{LOGTHENPOP}` in that key logs and moves on to the next call).
-    public static func withNextCallKey(_ step: EsmEngine.Step, run: Bool, nextCallKey: Int?) -> EsmEngine.Step {
-        guard run, step.log, let key = nextCallKey, let last = step.keys.last, last == EsmEngine.f3 else {
+    public static func withNextCallKey(_ step: EsmEngine.Step, run: Bool, nextCallKey: Int?,
+                                       endKey: Int = EsmEngine.f3) -> EsmEngine.Step {
+        guard run, step.log, let key = nextCallKey, let last = step.keys.last, last == endKey else {
             return step
         }
         return EsmEngine.Step(keys: Array(step.keys.dropLast()) + [key], log: false, focus: .exchange)
@@ -127,14 +132,14 @@ public enum EsmFlow {
     /// `SEND_CALL_EXCHANGE` sends F5+F2 when the mode transmits (and does not log); `TU_AND_LOG` sends F3 when the
     /// exchange is valid, then logs; `LOG_WITHOUT_SENDING` does the same only outside ESM.
     public static func shortcutKeys(_ action: ShortcutAction, canTransmit: Bool, esmActive: Bool,
-                                    exchangeValid: Bool) -> [Int]? {
+                                    exchangeValid: Bool, keyMap: EsmKeyMap = .n1mm) -> [Int]? {
         switch action {
         case .sendCallExchange:
-            return canTransmit ? [EsmEngine.f5, EsmEngine.f2] : nil
+            return canTransmit ? [keyMap.hisCall, keyMap.exchange] : nil
         case .tuAndLog:
-            return canTransmit && exchangeValid ? [EsmEngine.f3] : nil
+            return canTransmit && exchangeValid ? [keyMap.end] : nil
         case .logWithoutSending:
-            return !esmActive && canTransmit && exchangeValid ? [EsmEngine.f3] : nil
+            return !esmActive && canTransmit && exchangeValid ? [keyMap.end] : nil
         default:
             return nil
         }

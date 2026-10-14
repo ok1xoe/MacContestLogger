@@ -56,6 +56,9 @@ public final class KeyerModel {
     /// The release before a disconnect and the quit send `T 0` to them.
     @ObservationIgnored private let unreleasedTune = UnreleasedRigs()
     @ObservationIgnored private var lampTimer: (any RescoreTimer)?
+    /// N1MM F-key stacking: the keys queued after the lit message and their estimated durations (the keyer already
+    /// has their text); each lights when the one before has been sent.
+    @ObservationIgnored private var cwQueue: [(key: Int, millis: Int64)] = []
     @ObservationIgnored private var closed: Bool = false
 
     struct Dependencies {
@@ -132,6 +135,11 @@ public final class KeyerModel {
             return
         }
         tx.announceTx()
+        if config.config.cwKeyer.stackMessages, lamp.key != nil, !lamp.digitalSending {
+            stackCw(message, key: key)
+            return
+        }
+        cwQueue.removeAll()
         let begin: SendLamp.Begin = lamp.begin(key: key)
         let wpm: Int = cwSpeed
         let request: KeyerLane.OpenRequest = openRequest()
@@ -158,9 +166,55 @@ public final class KeyerModel {
             }
             let millis: Int64 = SendLamp.estimateMillis(message, wpm: wpm)
             self.lampTimer = self.clock.schedule(afterMilliseconds: Int(clamping: millis)) { [weak self] in
-                self?.lamp.finish(begin.token)
+                self?.lampElapsed(begin.token)
             }
         })
+    }
+
+    /// N1MM F-key stacking: the message goes to the keyer after the one being sent (no abort) and its key lights when
+    /// the queue reaches it.
+    private func stackCw(_ message: CwMessage, key: Int) {
+        let wpm: Int = cwSpeed
+        let request: KeyerLane.OpenRequest = openRequest()
+        let lane: KeyerLane = self.lane
+        let millis: Int64 = SendLamp.estimateMillis(message, wpm: wpm)
+        lane.run({ devices -> String?? in
+            do {
+                let keyer: any CwKeyer = try lane.keyerOrOpen(devices, request)
+                try keyer.send(message, wpm: wpm)
+                return .none
+            } catch {
+                return .some(KeyingErrors.javaMessage(error))
+            }
+        }, then: { [weak self] failure in
+            guard let self else { return }
+            if case .some(let text) = failure {
+                self.show(KeyerTexts.cwFailure(text))
+                self.noteSendFailure()
+                return
+            }
+            if self.lamp.key == nil {
+                self.light(key, millis: millis)
+            } else {
+                self.cwQueue.append((key, millis))
+            }
+        })
+    }
+
+    /// The lit message's estimated time is over: the next stacked key lights, if any.
+    private func lampElapsed(_ token: Int64) {
+        guard lamp.finish(token) else { return }
+        if !cwQueue.isEmpty {
+            let next = cwQueue.removeFirst()
+            light(next.key, millis: next.millis)
+        }
+    }
+
+    private func light(_ key: Int, millis: Int64) {
+        let begin: SendLamp.Begin = lamp.begin(key: key)
+        lampTimer = clock.schedule(afterMilliseconds: Int(clamping: millis)) { [weak self] in
+            self?.lampElapsed(begin.token)
+        }
     }
 
     /// Kotlin `sendCwText(text, hisCall)` (`AS:1620-1624`): free CW text with the F-key macros (`-1` lights nothing).
@@ -206,6 +260,7 @@ public final class KeyerModel {
             }
             return simulated
         }
+        cwQueue.removeAll()
         guard keyerMayBeOpen else { return false }
         let wasSending: Bool = lamp.abortCw()
         lampTimer?.cancel()
@@ -473,6 +528,7 @@ public final class KeyerModel {
         closed = true
         tuneTimeout?.cancel()
         lampTimer?.cancel()
+        cwQueue.removeAll()
         tuneGeneration &+= 1
         let wasTuning: Bool = isTuning
         isTuning = false

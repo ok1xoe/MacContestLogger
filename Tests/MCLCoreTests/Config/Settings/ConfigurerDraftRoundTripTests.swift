@@ -142,6 +142,11 @@ import Testing
         expected.functionKeysPerOperator = false
         expected.clubLog.ctyEnabled = true
         expected.esm.nextCallKey = -1
+        expected.esm.keyMap = EsmKeyMap.n1mm.keys
+        expected.esm.sendPartialCalls = false
+        expected.esm.callExchangeSeparator = " "
+        expected.runMode.repeatMaxMinutes = 0
+        expected.cwKeyer.stackMessages = false
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
@@ -451,6 +456,11 @@ import Testing
         w.same(\.esmSpCallOnce, \.esm.spCallOnce, true)
         w.same(\.esmWorkDupes, \.esm.workDupes, false)
         w.same(\.esmNextCallKey, \.esm.nextCallKey, 11)
+        w.same(\.esmKeyMap, \.esm.keyMap, [11, 1, 2, 3, 4, 5, 9])
+        w.same(\.esmSendPartialCalls, \.esm.sendPartialCalls, true)
+        w.same(\.esmCallExchangeSeparator, \.esm.callExchangeSeparator, "/")
+        w.number(\.repeatMaxMinutes, \.runMode.repeatMaxMinutes, 29)
+        w.same(\.cwStackMessages, \.cwKeyer.stackMessages, true)
         w.same(\.callStackOrder, \.esm.callStackOrder, "LIFO")
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)

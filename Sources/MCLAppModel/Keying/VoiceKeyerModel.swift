@@ -45,6 +45,8 @@ public final class VoiceKeyerModel {
     @ObservationIgnored private var voiceToken: Int64 = 0
     /// N1MM `{END}`: the macros the playing message runs once it has played to its end (for `voiceToken`).
     @ObservationIgnored private var deferred: (actions: [CwMessage.Action], commands: [MacroCommand])?
+    /// N1MM F-key stacking: the presses queued after the message playing (or being planned).
+    @ObservationIgnored private var queue: [(indices: [Int], hisCall: String, freqHz: Int64, opposite: Bool)] = []
     /// Cancels a plan or a recording start in flight.
     @ObservationIgnored private var generation: Int64 = 0
     /// Kotlin `recording`.
@@ -125,6 +127,11 @@ public final class VoiceKeyerModel {
             keyer.noteSendFailure()
             return nil
         }
+        if config.config.cwKeyer.stackMessages, playingKey != nil || planning {
+            // N1MM: the message plays in full after the one playing.
+            queue.append((indices, hisCall, freqHz, opposite))
+            return nil
+        }
         keyer.tx.announceTx()
         let set: [FunctionKeyMessage] = messages(opposite: opposite)
         let texts: [String] = indices.compactMap { index in
@@ -171,6 +178,7 @@ public final class VoiceKeyerModel {
         case .failed(let message):
             show(.tr("Hlasový klíč: %s", .string(message)))
             keyer?.noteSendFailure()
+            queue.removeAll()
         case .plan(let plan, let wav):
             if !plan.unknownMacros.isEmpty {
                 show(.tr("%s: makra %s zatím neumím — vynechána", .string(label),
@@ -196,6 +204,7 @@ public final class VoiceKeyerModel {
                 if !plan.missing.isEmpty || (leading.isEmpty && plan.unknownMacros.isEmpty) {
                     keyer?.noteSendFailure()
                 }
+                playQueued()
                 return
             }
             operating.noteVaryUsed(plan.varyUsed)
@@ -237,6 +246,11 @@ public final class VoiceKeyerModel {
                     performAction?(action)
                 }
             }
+            if error == nil {
+                playQueued()
+            } else {
+                queue.removeAll()
+            }
         }
         if let error {
             show(.tr("Hlasový klíč: %s", .string(error)))
@@ -244,9 +258,20 @@ public final class VoiceKeyerModel {
         }
     }
 
+    /// The next stacked press, once the message before it has played.
+    private func playQueued() {
+        guard !queue.isEmpty, playingKey == nil, !planning else { return }
+        let next = queue.removeFirst()
+        if let message = play(next.indices, hisCall: next.hisCall, freqHz: next.freqHz, opposite: next.opposite) {
+            show(message)
+            queue.removeAll()
+        }
+    }
+
     /// Kotlin `stopVoice()` (`AS:1384-1396`): a recording is saved, otherwise the message (or its plan) is stopped;
     /// `true` = something was stopped.
     public func stop() -> Bool {
+        queue.removeAll()
         if recording != nil || recordingStarting {
             finishRecording()
             return true

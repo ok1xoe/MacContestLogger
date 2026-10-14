@@ -30,6 +30,9 @@ public struct CwKeyerConfig: Codable, Equatable, Sendable {
     public var cutNumbers: Bool = false
     public var leadingZeros: Bool = false
     public var cutStyle: CutStyle = .tn
+    /// N1MM F-key stacking: a key pressed while a message is sent is queued after it (sent in full, in order)
+    /// instead of interrupting it. Swift-only key.
+    public var stackMessages: Bool = false
     /// Always exactly `VoiceKeyerConfig.keyCount` items.
     public var runMessages: [FunctionKeyMessage] = CwKeyerConfig.defaultRun() {
         didSet {
@@ -45,7 +48,7 @@ public struct CwKeyerConfig: Codable, Equatable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case method, winkeyerPort, speed, cutNumbers, leadingZeros, cutStyle, runMessages, spMessages
+        case method, winkeyerPort, speed, cutNumbers, leadingZeros, cutStyle, runMessages, spMessages, stackMessages
     }
 
     public init() {}
@@ -59,6 +62,7 @@ public struct CwKeyerConfig: Codable, Equatable, Sendable {
         cutNumbers = c.value(.cutNumbers, default: d.cutNumbers)
         leadingZeros = c.value(.leadingZeros, default: d.leadingZeros)
         cutStyle = c.value(.cutStyle, default: d.cutStyle)
+        stackMessages = c.value(.stackMessages, default: d.stackMessages)
         runMessages = CwKeyerConfig.normalized(c.value(.runMessages, default: d.runMessages))
         spMessages = CwKeyerConfig.normalized(c.value(.spMessages, default: d.spMessages))
     }

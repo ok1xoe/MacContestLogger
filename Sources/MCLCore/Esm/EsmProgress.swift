@@ -18,11 +18,12 @@ public struct EsmProgress: Hashable, Sendable {
     public static let empty = EsmProgress(exchangeSent: false, myCallSent: false, sentCall: nil)
 
     /// State after transmitting keys (whether by Enter or manually by an F-key).
-    public func afterSent(_ keys: [Int], _ call: String?) -> EsmProgress {
+    /// `map`: the ESM key assignments (which key is the exchange, my call, his call).
+    public func afterSent(_ keys: [Int], _ call: String?, map: EsmKeyMap = .n1mm) -> EsmProgress {
         EsmProgress(
-            exchangeSent: exchangeSent || keys.contains(EsmEngine.f2),
-            myCallSent: myCallSent || keys.contains(EsmEngine.f4),
-            sentCall: keys.contains(EsmEngine.f5) ? EsmProgress.normalize(call) : sentCall)
+            exchangeSent: exchangeSent || keys.contains(map.exchange),
+            myCallSent: myCallSent || keys.contains(map.myCall),
+            sentCall: keys.contains(map.hisCall) ? EsmProgress.normalize(call) : sentCall)
     }
 
     /// Exchange spoken live (phone, N2IC): space from the call field to the exchange in Run

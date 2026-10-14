@@ -36,7 +36,8 @@ extension EntryModel {
 
     private var esmInput: EsmFlow.Input {
         EsmFlow.Input(progress: esmProgress, run: operating.isRun, call: form.call, dupe: isDupe,
-                      exchangeValid: exchangeValid, options: operating.esmOptions, nextCallKey: nextCallKey)
+                      exchangeValid: exchangeValid, options: operating.esmOptions, nextCallKey: nextCallKey,
+                      keyMap: config.config.esm.keys)
     }
 
     /// The N1MM Next Call key ESM sends instead of TU: configured, holding `{LOGTHENPOP}` in the set of this mode, and
@@ -417,7 +418,7 @@ extension EntryModel {
     /// `SEND_CALL_EXCHANGE`, `TU_AND_LOG`, `LOG_WITHOUT_SENDING` (`EP:875-884`).
     private func sendAndLog(_ action: ShortcutAction) {
         if let keys = EsmFlow.shortcutKeys(action, canTransmit: canTransmit, esmActive: esmActive,
-                                           exchangeValid: exchangeValid) {
+                                           exchangeValid: exchangeValid, keyMap: config.config.esm.keys) {
             sendKeys(keys, refocus: false)
         }
         if action != .sendCallExchange {
@@ -568,7 +569,12 @@ extension EntryModel {
             return
         }
         if !outcome.keys.isEmpty {
+            // N1MM „Send partial calls": the corrected call's resend carries only the part that changed.
+            if config.config.esm.sendPartialCalls, operating.isRun, esmProgress.callCorrected(form.call) {
+                partialCallSend = PartialCall.part(sent: esmProgress.sentCall, call: form.call)
+            }
             sendKeys(outcome.keys, refocus: false)
+            partialCallSend = nil
         }
         if outcome.log {
             submit()
@@ -910,7 +916,7 @@ extension EntryModel {
         guard config.config.digital.afcOnCq, case .digital(_, let index, _) = transmission else { return }
         if !operating.isRun {
             digitalKeyer?.set(.afc, false)
-        } else if index == EsmEngine.f1 || index == EsmEngine.f3 {
+        } else if index == config.config.esm.keys.cq || index == config.config.esm.keys.end {
             digitalKeyer?.set(.afc, true)
         }
     }
@@ -946,8 +952,9 @@ extension EntryModel {
             takeStacked(next)
         }
         guard !KotlinStrings.isBlank(form.call) else { return }
-        let keys: [Int] = InsertKey.keys(run: operating.isRun, esm: esmActive, dupe: isDupe,
-                                         workDupes: operating.esmOptions.workDupes, exchangeValid: exchangeValid)
+        let keys: [Int] = config.config.esm.keys.keys(
+            InsertKey.keys(run: operating.isRun, esm: esmActive, dupe: isDupe,
+                           workDupes: operating.esmOptions.workDupes, exchangeValid: exchangeValid))
         if !keys.isEmpty && canTransmit {
             sendKeys(keys, refocus: false)
         }
@@ -1055,10 +1062,11 @@ extension EntryModel {
                 let next: String? = callStack?.next
                 // The ESM progress of the next QSO: the keys the rest of the message plays to it ({F5}, {F2}).
                 let keys: [Int] = texts.flatMap { CallStackMacro.functionKeys(in: $0) }
-                logThenPop(next: next, progress: next.map { EsmProgress.empty.afterSent(keys, $0) })
+                let map: EsmKeyMap = config.config.esm.keys
+                logThenPop(next: next, progress: next.map { EsmProgress.empty.afterSent(keys, $0, map: map) })
                 if next == nil {
                     // Nothing on the stack: the QSO is logged and TU (F3) is sent instead.
-                    sendKeys([EsmEngine.f3], opposite: opposite, refocus: false)
+                    sendKeys([config.config.esm.keys.end], opposite: opposite, refocus: false)
                     return false
                 }
             case CallStackMacro.soCallStack:
@@ -1096,6 +1104,9 @@ extension EntryModel {
             digital: FunctionKeySet(run: app.digital.runMessages, sp: app.digital.spMessages),
             cwBase: base, exchangeValid: exchangeValid, stackNext: operating.isRun ? callStack?.next : nil,
             serialAfterLog: logbook.nextSerial + 1, grabNext: grabList?.highlighted)
+        context.esmKeys = app.esm.keys
+        context.callExchangeSeparator = app.esm.callExchangeSeparator
+        context.partialCall = partialCallSend
         context.cwBase.hisName = callHistoryName
         context.cwBase.digitalButtons = app.digital.diMessages.map(\.text)
         fillMacroData(&context.cwBase, app: app)

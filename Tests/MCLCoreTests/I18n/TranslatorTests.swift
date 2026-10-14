@@ -154,10 +154,11 @@ import Testing
         // 5 keys of the wipe-other-window and last-CQ-frequency keys and SH/DX in the call field and
         // 10 keys of the Run/Mult and pass frequency keys and
         // 11 keys of the {END}, rig, antenna, CAT and Telnet macros and
-        // 13 keys of the function key files (.mc load, save and clipboard, the contest's associated files, the operators' own files, the F-key buttons' right click and hover text).
-        #expect(map.count == 1_769)
+        // 13 keys of the function key files (.mc load, save and clipboard, the contest's associated files, the operators' own files, the F-key buttons' right click and hover text) and
+        // 13 keys of the ESM key assignments, partial calls, the call / exchange separator, F-key stacking and the CQ repeat's maximum duration.
+        #expect(map.count == 1_782)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_769)
+        #expect(german.count == 1_782)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

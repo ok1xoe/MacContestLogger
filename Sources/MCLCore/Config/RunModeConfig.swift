@@ -15,7 +15,15 @@ public struct RunModeConfig: Codable, Equatable, Sendable {
         }
     }
 
-    enum CodingKeys: String, CodingKey { case autoSwitch, runOnCqFrequency, repeatSeconds }
+    /// N1MM „Max Repeat / Dueling CQ duration (minutes)": the CQ repeat switches itself off after this long; 0 = no
+    /// limit. Swift-only key.
+    public var repeatMaxMinutes: Int = 0 {
+        didSet {
+            if repeatMaxMinutes < 0 { repeatMaxMinutes = 0 }
+        }
+    }
+
+    enum CodingKeys: String, CodingKey { case autoSwitch, runOnCqFrequency, repeatSeconds, repeatMaxMinutes }
 
     public init() {}
 
@@ -25,6 +33,7 @@ public struct RunModeConfig: Codable, Equatable, Sendable {
         autoSwitch = c.value(.autoSwitch, default: d.autoSwitch)
         runOnCqFrequency = c.value(.runOnCqFrequency, default: d.runOnCqFrequency)
         repeatSeconds = RunModeConfig.normalizedRepeatSeconds(c.value(.repeatSeconds, default: d.repeatSeconds))
+        repeatMaxMinutes = max(0, c.value(.repeatMaxMinutes, default: d.repeatMaxMinutes))
     }
 
     private static func normalizedRepeatSeconds(_ value: Double) -> Double {
