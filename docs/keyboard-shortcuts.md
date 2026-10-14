@@ -71,6 +71,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Alt+K** | Settings → Function Keys |
 | **Ctrl+K** | **keyboard CW** window — typed text is sent word by word or on Enter, Esc stops; in a digital mode the Digital Interface's TX window (transmitting) |
 | **Ctrl+Alt+P** | **pass** — hands the callsign from the field to another station of the network log (directly to the only online station, otherwise a choice in the Network status window) |
+| **Ctrl+Alt+M** | multi-op: this station's type **Run ↔ Mult** (saved, shown to the other stations; Settings → Cluster) |
+| **Alt+Z** | multi-op: sets this station's **pass frequency** (kHz, the current one offered; empty = clear) and announces it to all stations; a call passed to this station then lands in its band map on that frequency |
 | **Ctrl+Alt+G** | the callsign from the field onto the [call stack](call-stacking.md); the fields are wiped for the next call |
 | **Alt+G** / **Ctrl+Alt+K** | the next callsign from the [call stack](call-stacking.md) (own and partner's) into a wiped entry window; Alt+G in a digital mode takes the Digital Interface's [Grab window](digital-modes.md#the-grab-window) callsign first |
 | **Cmd+Alt+← / →** | digital SO2V/SO2R: VFO A / rig 1 with Digital Interface 1, VFO B / rig 2 with Digital Interface 2 (N1MM Ctrl+←/→) |

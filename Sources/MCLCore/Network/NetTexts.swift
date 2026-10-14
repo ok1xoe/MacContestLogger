@@ -18,6 +18,11 @@ public enum NetTexts {
     static let passChooseKey = "Pass %s: vyber stanici v okně Stav sítě"
     static let partnerNotConnectedKey = "Partner: síťový deník není připojený"
     static let passNoteKey = "u mě %.1f"
+    static let passFreqFromKey = "Pass frekvence %s: %s kHz"
+    static let passFreqClearedKey = "Pass frekvence %s zrušena"
+    static let passFreqSentKey = "Pass frekvence %s kHz oznámena ostatním stanicím"
+    static let passFreqSentClearedKey = "Pass frekvence zrušena"
+    static let passFreqNotConnectedKey = "Pass frekvence: síťový deník není připojený"
 
     /// A Java string concatenation / `String.valueOf` of a possibly missing text.
     static func text(_ value: String?) -> String {

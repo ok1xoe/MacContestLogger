@@ -270,6 +270,9 @@ public struct NetMessageWire: WireMessage {
     public static let chat = "CHAT"
     public static let pass = "PASS"
     public static let stack = "STACK"
+    /// N1MM Alt+Z: the sender's pass frequency (`freqHz`, 0 = cleared), to all stations. v1.1.1 shows it as a plain
+    /// line.
+    public static let passFrequency = "PASSFREQ"
 
     public var type: String?
     public var id: String?

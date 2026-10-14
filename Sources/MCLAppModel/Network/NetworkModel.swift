@@ -19,6 +19,9 @@ public final class NetworkModel {
         set { chat.passPending = newValue }
     }
 
+    /// The pass frequency this station announced last (Alt+Z), 0 = none.
+    public private(set) var ownPassFrequencyHz: Int = 0
+
     @ObservationIgnored private let cluster: ClusterSyncModel
     @ObservationIgnored private let status: StatusModel
     @ObservationIgnored private let language: LanguageModel
@@ -135,7 +138,8 @@ public final class NetworkModel {
         let passed: String = call ?? NetMessages.defaultPassCall(pending: chat.passPending,
                                                                  typedCall: cluster.sources.typedCall())
         guard let message = NetMessages.passMessage(to: to, call: passed, peers: peers(), myFreqHz: ownFrequency(),
-                                                    translator: language.translator) else { return }
+                                                    translator: language.translator,
+                                                    passFrequencyHz: chat.passFrequencies[to]) else { return }
         cluster.send(type: NetMessageWire.pass, to: message.to, text: message.note, call: message.call,
                      freqHz: message.freqHz, mode: message.mode) { [weak self] result in
             self?.passSent(result, to: to, call: passed)
@@ -148,6 +152,26 @@ public final class NetworkModel {
             show(chat.sentPass(sent, to: to, call: call, now: instant))
         case .failure(let error):
             show(NetMessages.failure("Pass", message: ErrorText.message(error)))
+        }
+    }
+
+    /// N1MM Alt+Z: this station's pass frequency (kHz, empty = clear) to all stations; a PASS to this station then
+    /// lands there. A text that is no frequency does nothing.
+    public func setPassFrequency(_ text: String) {
+        guard let hz = NetMessages.passFrequencyHz(text) else { return }
+        guard cluster.isRunning else {
+            show(NetMessages.passFrequencyNotConnectedStatus)
+            return
+        }
+        cluster.send(type: NetMessageWire.passFrequency, to: "", text: "", call: nil, freqHz: hz, mode: nil) {
+            [weak self] result in
+            switch result {
+            case .success:
+                self?.ownPassFrequencyHz = hz
+                self?.show(NetMessages.sentPassFrequency(hz))
+            case .failure(let error):
+                self?.show(NetMessages.failure("Pass", message: ErrorText.message(error)))
+            }
         }
     }
 

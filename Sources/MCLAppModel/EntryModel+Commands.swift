@@ -258,8 +258,34 @@ extension EntryModel {
             network?.startPass()
         case .popStack:
             grabFromStack()
+        case .toggleStationType:
+            toggleStationType()
+        case .passFrequency:
+            promptPassFrequency()
         default:
             unavailable()
+        }
+    }
+
+    /// N1MM Ctrl+Alt+M: the multi-op station type Run ↔ Mult (saved; the network status carries it).
+    func toggleStationType() {
+        let next: OperatingGuard.StationType = config.config.cluster.stationType == .run ? .mult : .run
+        config.config.cluster.stationType = next
+        config.saveSilently()
+        status.show("Typ stanice: %s", .string(next.rawValue))
+    }
+
+    /// N1MM Alt+Z: the pass frequency (kHz, the current one offered; empty = clear) for the other stations.
+    func promptPassFrequency() {
+        guard let network else {
+            unavailable()
+            return
+        }
+        let initial: String = form.freqHz > 0 ? FrequencyText.formatKHz(Double(form.freqHz) / 1000) : ""
+        dialogs.prompt(title: ContestMessage("Pass frekvence"),
+                       hint: ContestMessage("Frekvence v kHz, na které přijímáš předané stanice (prázdné = zrušit)"),
+                       initial: initial) { [weak network] text in
+            network?.setPassFrequency(text)
         }
     }
 
