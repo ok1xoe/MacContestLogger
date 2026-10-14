@@ -31,18 +31,20 @@ public struct MultiplierEvaluator: Sendable {
     /// Preview without writing to the tracker.
     ///
     /// - Throws: `MultiplierError.failure` when a binding refers to a set that is not in the registry.
-    public func preview(_ definition: ContestDefinition,
-                        _ context: QsoContext) throws(MultiplierError) -> [MultiplierEvalResult] {
+    public func preview(_ definition: ContestDefinition, _ context: QsoContext,
+                        session: Int64? = nil) throws(MultiplierError) -> [MultiplierEvalResult] {
         var unchanged = tracker
-        return try Self.evaluate(definition, context, registry, &unchanged, commit: false)
+        return try Self.evaluate(definition, context, registry, &unchanged, commit: false, session: session)
     }
 
     /// Evaluates and counts. On an error the bindings evaluated before it stay in the tracker.
     ///
     /// - Throws: `MultiplierError.failure` when a binding refers to a set that is not in the registry.
-    public mutating func commit(_ definition: ContestDefinition,
-                                _ context: QsoContext) throws(MultiplierError) -> [MultiplierEvalResult] {
-        try Self.evaluate(definition, context, registry, &tracker, commit: true)
+    /// `session`: the contest session the multipliers count in (`period.sessions.resetMultipliers`), `nil` = the
+    /// whole contest.
+    public mutating func commit(_ definition: ContestDefinition, _ context: QsoContext,
+                                session: Int64? = nil) throws(MultiplierError) -> [MultiplierEvalResult] {
+        try Self.evaluate(definition, context, registry, &tracker, commit: true, session: session)
     }
 
     /// Java `MultiplierEvaluator.scopeKey(scope, ctx)` (shared by the dupe check and the bonuses).
@@ -56,11 +58,12 @@ public struct MultiplierEvaluator: Sendable {
     /// Swift skips it (a deliberate divergence from Java v1.1.1).
     private static func evaluate(_ definition: ContestDefinition, _ context: QsoContext,
                                  _ registry: MultiplierSetRegistry, _ tracker: inout MultiplierTracker,
-                                 commit: Bool) throws(MultiplierError) -> [MultiplierEvalResult] {
+                                 commit: Bool, session: Int64? = nil) throws(MultiplierError)
+        -> [MultiplierEvalResult] {
         guard let multipliers = definition.multipliers else { return [] }
         var out: [MultiplierEvalResult] = []
         for case let binding? in multipliers where applies(definition, binding, context) {
-            out.append(try evaluateBinding(binding, context, registry, &tracker, commit: commit))
+            out.append(try evaluateBinding(binding, context, registry, &tracker, commit: commit, session: session))
         }
         return out
     }
@@ -69,6 +72,9 @@ public struct MultiplierEvaluator: Sendable {
     /// without a condition or without `workedClass` it always applies, otherwise a class match by UTF-16.
     private static func applies(_ definition: ContestDefinition, _ binding: ContestDefinition.MultiplierBinding,
                                 _ context: QsoContext) -> Bool {
+        if let when = binding.when, !((try? ConditionEvaluator.eval(when, context)) ?? false) {
+            return false
+        }
         let condition = binding.appliesWhen ?? sourceFieldAppliesWhen(definition, binding)
         guard let workedClass = condition?.workedClass else { return true }
         return JavaText.equals(workedClass, context.workedClass)
@@ -94,9 +100,10 @@ public struct MultiplierEvaluator: Sendable {
 
     private static func evaluateBinding(_ binding: ContestDefinition.MultiplierBinding, _ context: QsoContext,
                                         _ registry: MultiplierSetRegistry, _ tracker: inout MultiplierTracker,
-                                        commit: Bool) throws(MultiplierError) -> MultiplierEvalResult {
+                                        commit: Bool, session: Int64?) throws(MultiplierError) -> MultiplierEvalResult {
         let set = try registry.get(binding.set)
-        let scopeKey = ScopeKey.make(binding.scope, context)
+        // A session of its own (resetMultipliers) goes after the band, so band weights still find the band.
+        let scopeKey = ScopeKey.make(binding.scope, context) + (session.map { "|S\($0)" } ?? "")
         let fromCallsign = JavaChar.equalsIgnoreCase("callsign", binding.from)
 
         let resolution = fromCallsign

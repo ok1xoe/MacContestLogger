@@ -13,13 +13,17 @@ public struct ExchangeContext: Sendable {
     public let nextSerial: Int32
     public let station: JavaLinkedMap<String>
     public let roverQth: String?
+    /// The call of the previous QSO (a `DERIVED` field with `derive: lastCall2L` / `lastCallSuffix`, Swift-only), `nil` = none.
+    public let lastCall: String?
 
     /// Java canonical constructor; without `roverQth` it is the Java three-parameter one (`""`).
-    public init(mode: Mode?, nextSerial: Int32, station: JavaLinkedMap<String>, roverQth: String? = "") {
+    public init(mode: Mode?, nextSerial: Int32, station: JavaLinkedMap<String>, roverQth: String? = "",
+                lastCall: String? = nil) {
         self.mode = mode
         self.nextSerial = nextSerial
         self.station = station
         self.roverQth = roverQth
+        self.lastCall = lastCall
     }
 
     /// Java `ExchangeContext.of(mode, nextSerial)` — an empty station (`Map.of()`).

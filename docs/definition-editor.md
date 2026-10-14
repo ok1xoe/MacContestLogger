@@ -57,6 +57,28 @@ ui: { entryOrder: [call, rst, nr], logColumns: [time, call, band, mode, rst, nr]
 - the multiplier **set** = the id of a set in `<data>/multipliers/` (the list is
   at the bottom of the right panel).
 
+### Further rules (N1MM UDC equivalents)
+
+| Key | What it does | N1MM UDC |
+|---|---|---|
+| `when: { timeBetween: "2200-0559" }` | a condition that holds for QSOs in this UTC window (both minutes included, it may wrap midnight) | `PointsMultAtTimeGMT` |
+| `qsoPoints.factors: [ { when: …, factor: 2 } ]` | the points of a QSO are multiplied by the factor of every entry whose condition holds (time, band, mode, continent, country…) | `PointsMultAtTime…`, `PointsMultByBand/Mode/Continent/Country` |
+| `scoring.powerFactor: { HIGH: 1, LOW: 2, QRP: 4 }` | the final score is multiplied by the factor of the power category chosen in the contest setup (`HP`/`LP` work as keys too); a category not listed = ×1 | `PowerMult` |
+| a multiplier's `when: { not: { ownDxcc: true } }` | the multiplier counts only for QSOs meeting the condition — e.g. not for my own country, only for some countries (`dxccIn`) or continents | `DoNotCountMeAsMult`, `CountMultOnlyFor`, `DoNotCountMultOnlyFor` |
+| `dupe: { none: true }` | no dupe check, a station may be worked any number of times | `DupeType 4` |
+| `dupe: { reworkMinutes: 30 }` | the same station (within `scope`) may be worked again 30 minutes after the last QSO that counted | `DupeQSOMinutesAgo` |
+| `dupe: { byField: qth }` | the received field is part of the dupe: a mobile or rover in another county / grid is a new station | `DupeSqlString` |
+| `period.sessions: { start: "1200", minutes: 60, resetMultipliers: true }` | in every session the multipliers count anew | `ResetMultsEverySession` |
+| `numbering: { perBand: true }` | the serial number runs on each band separately; with `multiOpOnly: true` only in a multi-transmitter category (`MULTI-OP` with `UNLIMITED` / `DISTRIBUTED`) | `QsoNumbersByBand 1` / `2` |
+| `workable: { continentIs: EU }` | who may be worked (any condition); a QSO outside it is logged with a warning and scores no points and no multipliers | `IsWorkable` |
+| sent field `source: DERIVED` with `derive: lastCall2L` / `lastCallSuffix` | the last two letters / the suffix of the previous QSO's call (anything after `/` is ignored) is sent | `Last2L`, `LastCallSuff` |
+| `period: { startWeekday: SAT, startTime: "1200" }` | the New contest dialog proposes the next such date as the start (unless the saved start is still running) | `StartOfContest` |
+
+A received or sent field of type `IOTA` is written to Cabrillo with the dash (`EU123` → `EU-123`).
+
+Points taken from an exchange value (`Exchange, *`) are `value: { expr: "nr" }`; points for a filled field
+(`IsMisc`) are a rule with `when: { fieldPresent: misc }`.
+
 Full examples are in the built-in definitions (`contest-data/contests/` — CQ WW,
 WPX, IARU, OK-OM DX...); it is best to **duplicate** one and edit it. Converters
 for foreign N1MM (UDC) and DXLog definitions exist only in the earlier Java

@@ -152,9 +152,42 @@ public struct ExchangeEngine: Sendable {
             return context.station.containsKey(field.id) ? context.station[field.id] : ""
         case .ROVER_QTH:
             return context.roverQth ?? ""
-        case .MANUAL, .DERIVED:
+        case .DERIVED:
+            return field.derivesFromLastCall.map { LastCall.value($0, context.lastCall) } ?? ""
+        case .MANUAL:
             return ""
         }
+    }
+}
+
+/// N1MM `Last2L` / `LastCallSuff`: parts of the previous QSO's call (anything after `/` is ignored).
+public enum LastCall {
+
+    public enum Part: Sendable {
+        case lastTwoLetters, suffix
+    }
+
+    public static func value(_ part: Part, _ call: String?) -> String {
+        part == .lastTwoLetters ? lastTwoLetters(call) : suffix(call)
+    }
+
+    /// The base of a call: the part before the first `/`, upper case.
+    static func base(_ call: String?) -> String {
+        let trimmed: String = KotlinText.trim(call ?? "").uppercased()
+        return String(trimmed.split(separator: "/", omittingEmptySubsequences: false).first ?? "")
+    }
+
+    /// The last two letters (`OK1XOE` → `OE`); `""` without a previous call.
+    public static func lastTwoLetters(_ call: String?) -> String {
+        let letters: [Character] = base(call).filter { $0.isASCII && $0.isLetter }
+        return String(letters.suffix(2))
+    }
+
+    /// The letters after the last digit (`OK1XOE` → `XOE`, `DL0ABC` → `ABC`); `""` without a previous call.
+    public static func suffix(_ call: String?) -> String {
+        let base: String = base(call)
+        guard let digit = base.lastIndex(where: { $0.isASCII && $0.isNumber }) else { return "" }
+        return String(base[base.index(after: digit)...])
     }
 }
 

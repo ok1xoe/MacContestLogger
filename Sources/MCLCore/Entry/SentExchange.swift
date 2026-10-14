@@ -16,13 +16,13 @@ public enum SentExchange {
     /// The `ROVER_QTH` value is the county line joined with `/` (`DAD/JEF`) when the county line is
     /// non-empty, otherwise the configured rover QTH as is (`config.station.roverQth`, not trimmed).
     public static func text(definition: ContestDefinition?, setup: ContestSetup?, mode: Mode, serial: Int,
-                            roverQth: String, countyLine: [String]) -> String {
+                            roverQth: String, countyLine: [String], lastCall: String? = nil) -> String {
         guard let definition else {
             return ""
         }
         let qth: String = countyLine.isEmpty ? roverQth : countyLine.joined(separator: "/")
         let context = ExchangeContext(mode: mode, nextSerial: Int32(truncatingIfNeeded: serial),
-                                      station: station(setup), roverQth: qth)
+                                      station: station(setup), roverQth: qth, lastCall: lastCall)
         let values = ExchangeEngine().sentDefaults(definition, context)
         var parts: [String] = []
         for entry in values.entries {
@@ -38,12 +38,12 @@ public enum SentExchange {
     /// position). `nil` outside a contest and when the definition has no sent fields — a list of
     /// fields that are all empty gives dashes (`"- -"`), not `nil`.
     public static func flat(definition: ContestDefinition?, setup: ContestSetup?, mode: Mode, serial: Int,
-                            rstSent: String, ownQth: String?) -> String? {
+                            rstSent: String, ownQth: String?, lastCall: String? = nil) -> String? {
         guard let definition else {
             return nil
         }
         let context = ExchangeContext(mode: mode, nextSerial: Int32(truncatingIfNeeded: serial),
-                                      station: station(setup), roverQth: ownQth ?? "")
+                                      station: station(setup), roverQth: ownQth ?? "", lastCall: lastCall)
         let values = ExchangeEngine().sentDefaults(definition, context)
         var parts: [String] = []
         for field in definition.exchange?.sent ?? [] {

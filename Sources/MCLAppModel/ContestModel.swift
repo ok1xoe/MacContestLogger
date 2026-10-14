@@ -200,6 +200,13 @@ public final class ContestModel {
         let columns: [LogTableColumns.Column] = LogTableColumns.visible(
             usesSerial: runtime.usesSerial, usesExchangeBeyondRst: runtime.usesExchangeBeyondRst,
             contestActive: runtime.isActive)
+        let numbering = LogbookModel.Numbering(
+            first: runtime.isActive ? activeSetup?.firstSerial ?? 1 : 1,
+            perBand: runtime.isActive && (runtime.definition?.numbering?.perBand(category: activeSetup?.category ?? [:])
+                                          ?? false))
+        if logbook.numbering != numbering {
+            logbook.numbering = numbering
+        }
         let key = ColumnsKey(activeId: runtime.activeId, columns: columns)
         if key != columnsKey {
             columnsKey = key
@@ -476,6 +483,7 @@ public final class ContestModel {
             switch effect {
             case .setSessionExtras(let tour, let bonusStations):
                 runtime.setSessionExtras(tour: tour, bonusStations: bonusStations)
+                runtime.setPowerCategory(plan.setup?.category["POWER"])
             case .activateDefinition:
                 let previous: (id: String?, name: String?) = (runtime.activeId, runtime.activeName)
                 defer {
@@ -716,6 +724,10 @@ public final class ContestModel {
         }
         if activeId == id {
             activeSetup = setup
+            if runtime.powerCategory != setup.category["POWER"] {
+                runtime.setPowerCategory(setup.category["POWER"])
+            }
+            sync()
         }
         return true
     }

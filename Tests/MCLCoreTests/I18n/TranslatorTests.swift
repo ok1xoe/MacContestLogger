@@ -159,9 +159,9 @@ import Testing
         // 9 keys of the two-radio, audio, OTRSP, contest swap and needed-QSO macros and
         // 11 keys of the audio setup (level meter, test tone, message level, radio 2 output) and the advanced voicing of serial numbers and
         // 2 keys of File → Export → Function Keys.
-        #expect(map.count == 1_804)
+        #expect(map.count == 1_805)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_804)
+        #expect(german.count == 1_805)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

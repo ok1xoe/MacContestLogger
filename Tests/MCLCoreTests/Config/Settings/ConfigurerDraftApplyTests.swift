@@ -305,7 +305,7 @@ import Testing
                                "resetRxAfterRunQso", "macroQsyStepKHz", "functionKeysPerOperator",
                                "ctyEnabled",
                                "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",
-                               "callHistoryFile", "functionKeyFiles",
+                               "callHistoryFile", "functionKeyFiles", "firstSerial",
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",
                                "checkReverseThreshold", "checkReverseFromStart", "showUnmatchedCallMark",

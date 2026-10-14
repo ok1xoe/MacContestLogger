@@ -252,8 +252,8 @@ public final class EntryModel {
     /// The sent exchange shown in the panel header (`sentExchangeText`).
     public var sentExchangeText: String {
         SentExchange.text(definition: contest.definition, setup: contest.activeSetup, mode: form.mode,
-                          serial: logbook.nextSerial, roverQth: config.config.station.roverQth,
-                          countyLine: countyLine)
+                          serial: logbook.nextSerial(band: band), roverQth: config.config.station.roverQth,
+                          countyLine: countyLine, lastCall: logbook.rows.last?.call)
     }
 
     // MARK: - typing
@@ -576,7 +576,8 @@ public final class EntryModel {
             let usesRover: Bool = contest.usesRoverQth
             let units: Int = QsoAssembly.loggingQths(countyLine: countyLine, usesRoverQth: usesRover,
                                                      roverQth: config.config.station.roverQth).count
-            copies = contestCopies(logged, serial: logbook.reserveSerial(units: units), note: note, at: at)
+            copies = contestCopies(logged, serial: logbook.reserveSerial(units: units, band: band), note: note,
+                                   at: at)
         } else {
             let serial: Int = logbook.reserveSerial()
             let qso = QsoAssembly.free(form: logged, serial: serial, runMode: runMode, note: note, at: at)
@@ -675,13 +676,14 @@ public final class EntryModel {
         let setup: ContestSetup? = contest.activeSetup
         let mode: Mode = form.mode
         let rstSent: String = form.rstSent
+        let lastCall: String? = logbook.rows.last?.call
         return QsoAssembly.contestQsos(
             form: form, fields: fields, rstFieldIds: EntryForm.rstFieldIds(fields), serial: serial, runMode: runMode,
             countyLine: countyLine, usesRoverQth: contest.usesRoverQth, roverQth: config.config.station.roverQth,
             note: note, at: at
         ) { qth in
             SentExchange.flat(definition: definition, setup: setup, mode: mode, serial: serial, rstSent: rstSent,
-                              ownQth: qth)
+                              ownQth: qth, lastCall: lastCall)
         }
     }
 
@@ -734,6 +736,9 @@ public final class EntryModel {
                                      exchange: work.exchange, ownQth: copy.qth, at: work.at ?? now())
             if let logged, logbook.outwardGate(prepared) {
                 logbook.onLiveScored?(prepared, logged)
+            }
+            if let logged, !logged.workable {
+                status.show("Pozor: %s podle pravidel závodu nelze pracovat — zapsáno bez bodů", .string(work.call))
             }
             if let logged, !logged.counted {
                 if KotlinStrings.isBlank(work.band) {

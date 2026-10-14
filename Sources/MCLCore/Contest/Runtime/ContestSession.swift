@@ -73,14 +73,18 @@ public final class ContestSession: Sendable {
         public let dupe: Bool
         public let multipliers: [MultiplierEvalResult]
         public let counted: Bool
+        /// `false`: the definition's `workable` condition (N1MM `IsWorkable`) rules the station out — no points and no
+        /// multipliers.
+        public let workable: Bool
 
         public init(context: QsoContext, points: Int32, dupe: Bool, multipliers: [MultiplierEvalResult],
-                    counted: Bool = true) {
+                    counted: Bool = true, workable: Bool = true) {
             self.context = context
             self.points = points
             self.dupe = dupe
             self.multipliers = multipliers
             self.counted = counted
+            self.workable = workable
         }
     }
 
@@ -117,6 +121,8 @@ public final class ContestSession: Sendable {
         var bonusesAwarded: Set<[UInt16]> = []
         var tour: Tour?
         var bonusCalls: [String] = []
+        /// The Cabrillo power category of the contest setup (`scoring.powerFactor`).
+        var powerCategory: String?
     }
 
     public let definition: ContestDefinition
@@ -310,6 +316,24 @@ public final class ContestSession: Sendable {
 
     // MARK: - TOUR and bonus stations
 
+    /// `workable` (N1MM `IsWorkable`): `true` without the key; an expression error counts as workable.
+    static func isWorkable(_ definition: ContestDefinition, _ context: QsoContext) -> Bool {
+        guard let workable = definition.workable else { return true }
+        return (try? ConditionEvaluator.eval(workable, context)) ?? true
+    }
+
+    /// `period.sessions.resetMultipliers` (N1MM `ResetMultsEverySession`): the session number the multipliers are
+    /// counted in, `nil` = the whole contest.
+    static func multiplierSession(_ definition: ContestDefinition, _ tour: Tour?, _ at: Int64?) -> Int64? {
+        guard definition.period?.sessions?.resetMultipliers == true, let tour, let at else { return nil }
+        return tour.session(epochSecond: at)
+    }
+
+    /// The Cabrillo power category chosen in the contest setup (`scoring.powerFactor`, N1MM `PowerMult`).
+    public func setPowerCategory(_ category: String?) {
+        state.withLock { $0.powerCategory = category }
+    }
+
     /// TOUR session: dupe only within a session. Applies to further writes — when it changes the
     /// contest must be recomputed (a new session).
     public func setTour(_ tour: Tour?) {
@@ -397,16 +421,23 @@ public final class ContestSession: Sendable {
                         ownQth: String? = nil, at: Date = Date()) throws(ContestSessionError) -> LogResult {
         let context = try build(call, band, mode, receivedRaw, ownQth, at)
         let points: Int32
+        let workable: Bool = Self.isWorkable(definition, context)
         do {
-            points = try PointsCalculator.points(definition, context)
+            points = workable ? try PointsCalculator.points(definition, context) : 0
         } catch {
             throw .expression(error)
         }
         let second = Tour.epochSecond(of: at)
-        let (dupe, evaluator) = state.withLock { ($0.dupe.isDupe(context, atEpochSecond: second), $0.evaluator) }
+        let (dupe, evaluator, tour) = state.withLock {
+            ($0.dupe.isDupe(context, atEpochSecond: second), $0.evaluator, $0.tour)
+        }
         do {
-            return LogResult(context: context, points: points, dupe: dupe,
-                             multipliers: try evaluator.preview(definition, context))
+            let multipliers: [MultiplierEvalResult] = workable
+                ? try evaluator.preview(definition, context,
+                                        session: Self.multiplierSession(definition, tour, second))
+                : []
+            return LogResult(context: context, points: points, dupe: dupe, multipliers: multipliers,
+                             workable: workable)
         } catch {
             throw .multiplier(error)
         }
@@ -453,6 +484,12 @@ public final class ContestSession: Sendable {
     private static func commit(_ definition: ContestDefinition, _ context: QsoContext, _ at: Int64?,
                                _ state: inout State) -> Result<LogResult, ContestSessionError> {
         let isDupe = state.dupe.isDupe(context, atEpochSecond: at)
+        if !isWorkable(definition, context) {
+            // N1MM IsWorkable: logged, but no points, multipliers or bonuses.
+            state.dupe.add(context, atEpochSecond: at)
+            state.qsoCount = JavaMath.addInt(state.qsoCount, 1)
+            return .success(LogResult(context: context, points: 0, dupe: isDupe, multipliers: [], workable: false))
+        }
         let points: Int32
         if isDupe && (definition.dupe?.dupeWorthZero ?? true) {
             points = 0
@@ -465,7 +502,8 @@ public final class ContestSession: Sendable {
         }
         let multipliers: [MultiplierEvalResult]
         do {
-            multipliers = try state.evaluator.commit(definition, context)
+            multipliers = try state.evaluator.commit(definition, context,
+                                                     session: multiplierSession(definition, state.tour, at))
         } catch {
             return .failure(.multiplier(error))
         }
@@ -557,13 +595,16 @@ public final class ContestSession: Sendable {
     /// Score by `scoring.total`. QTC points = `(long) qtcCount * qtc.points` (without `scoring.qtc`
     /// zero). A formula expression error propagates (also nesting above 12 — never a silent zero).
     public func score() throws(ExpressionError) -> ScoreState {
-        let snapshot = state.withLock { ($0.qsoPoints, $0.bonusPoints, $0.qtcCount, $0.qsoCount, $0.evaluator.tracker) }
-        let (qsoPoints, bonusPoints, qtcCount, qsoCount, tracker) = snapshot
+        let snapshot = state.withLock {
+            ($0.qsoPoints, $0.bonusPoints, $0.qtcCount, $0.qsoCount, $0.evaluator.tracker, $0.powerCategory)
+        }
+        let (qsoPoints, bonusPoints, qtcCount, qsoCount, tracker, power) = snapshot
         var qtcPoints: Int64 = 0
         if let qtc = definition.scoring?.qtc {
             qtcPoints = JavaMath.multiplyLong(Int64(qtcCount), Int64(qtc.pointsOrDefault))
         }
         return try ScoreEngine.compute(definition, qsoPoints: qsoPoints, bonusPoints: bonusPoints,
-                                       qtcPoints: qtcPoints, qsoCount: qsoCount, tracker: tracker)
+                                       qtcPoints: qtcPoints, qsoCount: qsoCount, powerCategory: power,
+                                       tracker: tracker)
     }
 }

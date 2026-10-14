@@ -228,6 +228,23 @@ import Testing
         #expect(app.model.logbook.nextSerial == 3)
     }
 
+    /// N1MM „start the serial from other than 1" (`ContestSetup.firstSerial`) and numbering per band.
+    @Test func firstSerialAndNumberingPerBand() async throws {
+        let app = try await TestApp.make()
+        try await app.startCqWwCw()
+        #expect(await app.model.contest.updateSetup { $0.firstSerial = 101 })
+        #expect(app.model.logbook.nextSerial == 101)
+        await app.logContestQso(call: "DL1ABC", zone: "14")
+        await app.logContestQso(call: "W1AW", zone: "5")
+        #expect(app.model.logbook.rows.map(\.serialSent) == [101, 102])
+        let logbook: LogbookModel = app.model.logbook
+        logbook.numbering = LogbookModel.Numbering(first: 1, perBand: true)
+        let band: Band? = logbook.rows.first?.band
+        #expect(band != nil)
+        #expect(logbook.nextSerial(band: band) == 3)
+        #expect(logbook.nextSerial(band: band == .m40 ? .m80 : .m40) == 1)
+    }
+
     @Test func sentExchangeTextShowsTheStation() async throws {
         let app = try await TestApp.make()
         #expect(app.model.entry.sentExchangeText == "")
