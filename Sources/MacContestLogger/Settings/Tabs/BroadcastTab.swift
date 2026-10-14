@@ -19,6 +19,11 @@ struct BroadcastTab: View {
             SettingsToggleRow(label: language.tr("Score (skóre)"), isOn: $draft.bcScoreEnabled,
                               text: $draft.bcScoreTargets)
             SettingsToggleRow(label: "Application Info", isOn: $draft.bcAppInfoEnabled, text: $draft.bcAppInfoTargets)
+            SettingsToggleRow(label: "Spots", isOn: $draft.bcSpotsEnabled, text: $draft.bcSpotsTargets)
+            SettingsToggleRow(label: language.tr("Lookup (volačka před zápisem)"), isOn: $draft.bcLookupEnabled,
+                              text: $draft.bcLookupTargets)
+            SettingsCheckbox(label: language.tr("All QSOs: přeposílat kontakty ostatních stanic na cíle Contacts"),
+                             isOn: $draft.bcAllQsosEnabled)
         }
     }
 }

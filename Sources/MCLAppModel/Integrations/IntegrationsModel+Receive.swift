@@ -319,13 +319,15 @@ extension IntegrationsModel {
         }
         n1mmGeneration += 1
         let generation: Int = n1mmGeneration
+        let share: Bool = c.sharePort
         let ports: UdpPorts = deps.network.udp
         let handler: @Sendable (String) -> Void = { [weak self] xml in
             MainHop.post { self?.enqueueIngest(.n1mm(xml)) }
         }
         lane.submit({ () -> ListenerStart in
             do {
-                guard let listener = try ports.makeN1mmListener(target.host, Int(target.port), handler) else {
+                let make = share ? (ports.makeSharedN1mmListener ?? ports.makeN1mmListener) : ports.makeN1mmListener
+                guard let listener = try make(target.host, Int(target.port), handler) else {
                     return .none
                 }
                 listener.start()
@@ -366,13 +368,15 @@ extension IntegrationsModel {
         }
         adifGeneration += 1
         let generation: Int = adifGeneration
+        let share: Bool = c.sharePort
         let ports: UdpPorts = deps.network.udp
         let handler: @Sendable (String) -> Void = { [weak self] adif in
             MainHop.post { self?.enqueueIngest(.adif(adif, source: "ADIF")) }
         }
         lane.submit({ () -> ListenerStart in
             do {
-                guard let listener = try ports.makeAdifListener(target.host, Int(target.port), handler) else {
+                let make = share ? (ports.makeSharedAdifListener ?? ports.makeAdifListener) : ports.makeAdifListener
+                guard let listener = try make(target.host, Int(target.port), handler) else {
                     return .none
                 }
                 listener.start()
@@ -442,6 +446,9 @@ extension IntegrationsModel {
     /// logs two QSOs.
     func enqueueIngest(_ item: IngestItem) {
         guard !isClosed, ingestQueue.count < Self.maxPendingIngest else { return }
+        if case .n1mm(let xml) = item {
+            forwardReceived(xml)
+        }
         ingestQueue.append(item)
         guard ingestTask == nil else { return }
         ingestTask = Task { @MainActor [weak self] in

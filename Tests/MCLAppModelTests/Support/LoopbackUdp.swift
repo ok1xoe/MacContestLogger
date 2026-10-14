@@ -196,6 +196,17 @@ func loopbackUdpPorts(_ counts: UdpFactoryCounts = UdpFactoryCounts()) -> UdpPor
             counts.broadcaster()
             return try LoopbackBroadcaster()
         })
+        .sharing(
+            n1mm: { host, _, handler in
+                checkLoopbackHost(host)
+                counts.listener()
+                return try N1mmListener(bindHost: "127.0.0.1", bindPort: 0, sharePort: true, handler: handler)
+            },
+            adif: { host, _, handler in
+                checkLoopbackHost(host)
+                counts.listener()
+                return try AdifUdpListener(bindHost: "127.0.0.1", bindPort: 0, sharePort: true, handler: handler)
+            })
 }
 
 /// WSJT-X packets the listener understands that the core does not encode.

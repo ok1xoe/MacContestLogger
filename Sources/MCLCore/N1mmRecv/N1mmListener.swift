@@ -15,19 +15,21 @@ public final class N1mmListener: Sendable {
 
     /// Java order: `InetAddress.getByName(bindHost)` (`UnknownHostException`, `N1MM.unresolved`), then
     /// the port check (`IllegalArgumentException: port out of range:<n>`), then bind/join. Blocking (DNS).
-    public convenience init(bindHost: String, bindPort: Int, handler: @escaping @Sendable (String) -> Void) throws {
-        try self.init(bindHost: bindHost, bindPort: bindPort, multicastInterface: nil, handler: handler)
+    public convenience init(bindHost: String, bindPort: Int, sharePort: Bool = false,
+                            handler: @escaping @Sendable (String) -> Void) throws {
+        try self.init(bindHost: bindHost, bindPort: bindPort, multicastInterface: nil, sharePort: sharePort,
+                      handler: handler)
     }
 
     /// `multicastInterface` only for tests (interface index for the join; default = Java's default interface).
-    init(bindHost: String, bindPort: Int, multicastInterface: UInt32?,
+    init(bindHost: String, bindPort: Int, multicastInterface: UInt32?, sharePort: Bool = false,
          handler: @escaping @Sendable (String) -> Void) throws {
         let address: JavaInetAddress = try JavaInetAddress.byName(bindHost)
         if address.isMulticast {
             let index: UInt32 = multicastInterface ?? DefaultMulticastInterface.index
             self.receiver = try UdpReceiver.multicast(group: address, port: bindPort, interfaceIndex: index)
         } else {
-            self.receiver = try UdpReceiver.unicast(address: address, port: bindPort)
+            self.receiver = try UdpReceiver.unicast(address: address, port: bindPort, share: sharePort)
         }
         self.handler = handler
     }

@@ -57,6 +57,12 @@ extension ConfigurerDraft {
         if bcScoreEnabled != broadcast.scoreEnabled || Self.differs(Self.trim(bcScoreTargets), broadcast.scoreTargets) {
             return true
         }
+        if bcSpotsEnabled != broadcast.spotsEnabled || Self.differs(Self.trim(bcSpotsTargets), broadcast.spotsTargets)
+            || bcLookupEnabled != broadcast.lookupEnabled
+            || Self.differs(Self.trim(bcLookupTargets), broadcast.lookupTargets)
+            || bcAllQsosEnabled != broadcast.allQsosEnabled {
+            return true
+        }
         return bcAppInfoEnabled != broadcast.appInfoEnabled
             || Self.differs(Self.trim(bcAppInfoTargets), broadcast.appInfoTargets)
     }
@@ -72,11 +78,13 @@ extension ConfigurerDraft {
     /// `n1mmDiffers`.
     public func n1mmDiffers(_ n1mm: N1mmRecvConfig) -> Bool {
         nrReceiveEnabled != n1mm.receiveEnabled || Self.differs(Self.trim(nrReceiveBind), n1mm.receiveBind)
+            || nrSharePort != n1mm.sharePort
     }
 
     /// `adifUdpDiffers`.
     public func adifUdpDiffers(_ adif: AdifUdpConfig) -> Bool {
         auReceiveEnabled != adif.receiveEnabled || Self.differs(Self.trim(auReceiveBind), adif.receiveBind)
+            || auSharePort != adif.sharePort
     }
 
     /// Kotlin `String !=` (UTF-16 units, no canonical equivalence).

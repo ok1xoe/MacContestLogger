@@ -228,7 +228,20 @@ broadcast address such as `192.168.1.255:12060` works (the socket has `SO_BROADC
 | `RadioInfo` | every 10 s and on every change | radio number, RX and TX frequency (split), mode, own call, operator, Run/S&P, selected antenna, focus/active radio, stereo, split, transmitting, rig name, aux antenna; in SO2R one packet per radio (`RadioNr` 1 and 2) |
 | `dynamicresults` | every 10 s in a contest | contest, call, operators, the category class, club, QTH (country, zones, section, state, grid), a breakdown of QSOs and points per band and mode with QSO/point/multiplier totals, score |
 | `AppInfo` | when the broadcast starts | database, contest, station |
+| `spot` (Spots) | a spot appears in or leaves the band map | DX call, frequency (kHz), spotter, `add`/`delete`, mode, comment, status for this station (`dupe`, `single`/`double`/`triple mult`, `new qso`) and the status list (adds `cq`) |
+| `lookupinfo` (Lookup) | Space in the call field, before logging | the `contactinfo` tag list for the typed call (prefixes, frequency, mode, operator) |
 
 The exchange parts come from the contest definition's received fields: a `LOCATOR` field goes to
 `gridsquare`, a CQ/ITU zone to `zone`, a state, province, district, HQ or IOTA reference to `qth`, and
 fields whose id is `sec`/`section`, `name`, `power`/`pwr`, `prec` or `ck`/`check` to those tags.
+
+**All QSOs** (a check box under the packet rows) forwards contacts this station did not log to the
+Contacts targets with `IsOriginal` set to `False`: QSOs the station network (MQTT cluster) brings in from
+other stations, and `contactinfo` packets received from other loggers (N1MM receive). A packet that already
+says `IsOriginal False` is never forwarded again, so two stations that both forward cannot start a packet
+storm.
+
+**Shared receive port.** The N1MM and ADIF receivers (WSJT/JTDX tab) have a *Share the port with other
+applications* switch: the socket is bound with `SO_REUSEADDR`/`SO_REUSEPORT`, so another program can listen
+on the same port. Broadcast datagrams (to `x.x.x.255`) reach every listener; a unicast datagram reaches only
+one of them, so send to the subnet broadcast address when several programs share a port.

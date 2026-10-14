@@ -132,7 +132,9 @@ public final class IntegrationsModel {
         let radio: Bool = b.radioEnabled && !KotlinStrings.isBlank(b.radioTargets)
         let score: Bool = b.scoreEnabled && !KotlinStrings.isBlank(b.scoreTargets)
         let appInfo: Bool = b.appInfoEnabled && !KotlinStrings.isBlank(b.appInfoTargets)
-        guard contacts || radio || score || appInfo, !isClosed, broadcast == nil else { return }
+        let spots: Bool = b.spotsEnabled && !KotlinStrings.isBlank(b.spotsTargets)
+        let lookup: Bool = b.lookupEnabled && !KotlinStrings.isBlank(b.lookupTargets)
+        guard contacts || radio || score || appInfo || spots || lookup, !isClosed, broadcast == nil else { return }
         guard !deps.network.isInert else {
             logInert("broadcast")
             return
@@ -299,6 +301,91 @@ public final class IntegrationsModel {
         guard let service = broadcast else { return }
         let data: BroadcastXml.ContactData = contactData(qso)
         lane.submit { service.sendContactDelete(data) }
+    }
+
+    // MARK: - spots, lookup, All QSOs
+
+    /// The spots last reported (`call|freqHz` → the spot), so a change is sent as `add` / `delete`.
+    @ObservationIgnored private var reportedSpots: [String: DxSpot] = [:]
+
+    /// The band map's spots changed: N1MM „Spots" — every spot that appeared is sent as `add` with its status,
+    /// every one that went as `delete`. Nothing while the type is off.
+    public func spotsChanged(_ spots: [DxSpot]) {
+        guard let service = broadcast, config.broadcast.spotsEnabled, outwardAllowed() else {
+            reportedSpots = [:]
+            return
+        }
+        var current: [String: DxSpot] = [:]
+        for spot in spots {
+            current[KotlinStrings.uppercase(spot.dxCall) + "|" + String(spot.freqHz)] = spot
+        }
+        let analyzer: SpotAnalyzer? = deps.analyzer()
+        let now: Date = deps.now()
+        let station: String = config.station.call
+        var packets: [BroadcastXml.SpotData] = []
+        for (key, spot) in current.sorted(by: { $0.key < $1.key }) where reportedSpots[key] == nil {
+            packets.append(Self.spotData(spot, action: "add", analyzer: analyzer, station: station, now: now))
+        }
+        for (key, spot) in reportedSpots.sorted(by: { $0.key < $1.key }) where current[key] == nil {
+            packets.append(Self.spotData(spot, action: "delete", analyzer: analyzer, station: station, now: now))
+        }
+        reportedSpots = current
+        guard !packets.isEmpty else { return }
+        let outgoing: [BroadcastXml.SpotData] = packets
+        lane.submit {
+            for packet in outgoing {
+                service.sendSpot(packet)
+            }
+        }
+    }
+
+    static func spotData(_ spot: DxSpot, action: String, analyzer: SpotAnalyzer?, station: String,
+                         now: Date) -> BroadcastXml.SpotData {
+        let status: SpotStatus = analyzer?.spotStatus(spot) ?? .neutral
+        let isCq: Bool = KotlinStrings.uppercase(spot.comment).contains("CQ")
+        let words = BroadcastXml.spotStatus(dupe: status.dupe, newMults: status.newMultCount, isCq: isCq)
+        let mode: String = analyzer?.resolveSpotMode(call: spot.dxCall, freqHz: spot.freqHz, comment: spot.comment) ?? ""
+        return BroadcastXml.SpotData(
+            stationName: station, dxCall: spot.dxCall, freqHz: Int64(spot.freqHz), spotter: spot.spotter,
+            timestamp: now, action: action, mode: mode, comment: spot.comment, status: words.status,
+            statusList: words.list)
+    }
+
+    /// N1MM „Lookup": the call typed in an entry window when Space leaves the call field (before logging).
+    public func callLookedUp(call: String, freqHz: Int, mode: Mode?, radioNr: Int) {
+        guard let service = broadcast, config.broadcast.lookupEnabled, outwardAllowed(),
+              !KotlinStrings.isBlank(call) else { return }
+        var qso = Qso()
+        qso.call = KotlinStrings.uppercase(KotlinStrings.trim(call))
+        qso.timestampUtc = deps.now()
+        qso.freqHz = freqHz
+        qso.band = Band.from(frequencyHz: freqHz)
+        qso.mode = mode
+        qso.operator = deps.operating.operatorCall
+        qso.runMode = deps.operating.runMode
+        let dxcc: DxccEntity? = deps.contest.runtime.dxccLookup?.resolve(qso.call)
+        qso.continent = dxcc?.continents?.first.flatMap { $0 } ?? ""
+        let data: BroadcastXml.ContactData = contactData(qso, radioNr: radioNr)
+        lane.submit { service.sendLookup(data) }
+    }
+
+    /// N1MM „All QSOs": QSOs the station network stored from other stations, forwarded with `IsOriginal` False.
+    public func forwardRemote(_ qsos: [Qso]) {
+        guard let service = broadcast, config.broadcast.allQsosEnabled, config.broadcast.contactsEnabled,
+              outwardAllowed(), !qsos.isEmpty else { return }
+        let all: [BroadcastXml.ContactData] = qsos.map { contactData($0) }
+        lane.submit {
+            for data in all {
+                service.forwardContact(data)
+            }
+        }
+    }
+
+    /// N1MM „All QSOs" for a `contactinfo` received from another logger.
+    func forwardReceived(_ xml: String) {
+        guard let service = broadcast, config.broadcast.allQsosEnabled, config.broadcast.contactsEnabled,
+              outwardAllowed() else { return }
+        lane.submit { service.forwardContact(xml: xml) }
     }
 
     /// BCLOG: the whole log once as contact infos.

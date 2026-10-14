@@ -399,6 +399,8 @@ import Testing
                                "spotFilterRemoveBusted",
                                "spotFilterBustedTwoChars",
                                "spotFilterPreferredSpotters",
-                               "blacklistEnabled"])
+                               "blacklistEnabled",
+                               "spotsEnabled", "spotsTargets", "lookupEnabled", "lookupTargets", "allQsosEnabled",
+                               "sharePort"])
     }
 }

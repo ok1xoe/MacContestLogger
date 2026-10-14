@@ -1917,5 +1917,8 @@
  "Transakční soubor deníku (.trn)": "Log transaction file (.trn)",
  "Transakční soubor %s nejde přečíst (%s)": "The transaction file %s cannot be read (%s)",
  "Z transakčního souboru %s obnoveno %s QSO, přeskočeno %s už uložených, %s nečitelných řádků": "Transaction file %s: %s QSOs recovered, %s already stored skipped, %s unreadable lines",
- "Obnova z transakčního souboru: není otevřený závod": "Transaction file recovery: no contest is open"
+ "Obnova z transakčního souboru: není otevřený závod": "Transaction file recovery: no contest is open",
+ "Lookup (volačka před zápisem)": "Lookup (call before logging)",
+ "All QSOs: přeposílat kontakty ostatních stanic na cíle Contacts": "All QSOs: forward other stations' contacts to the Contacts targets",
+ "Sdílet port s dalšími aplikacemi": "Share the port with other applications"
 }

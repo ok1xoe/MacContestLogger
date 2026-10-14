@@ -120,6 +120,8 @@ public final class BroadcastService: @unchecked Sendable {
     private let radioTargets: [Target]
     private let scoreTargets: [Target]
     private let appInfoTargets: [Target]
+    private let spotsTargets: [Target]
+    private let lookupTargets: [Target]
 
     private let lock = NSLock()
     private var jobs: [BroadcastCancellation] = []
@@ -141,6 +143,8 @@ public final class BroadcastService: @unchecked Sendable {
         self.radioTargets = Target.parseAll(config.radioTargets)
         self.scoreTargets = Target.parseAll(config.scoreTargets)
         self.appInfoTargets = Target.parseAll(config.appInfoTargets)
+        self.spotsTargets = Target.parseAll(config.spotsTargets)
+        self.lookupTargets = Target.parseAll(config.lookupTargets)
     }
 
     public func sendContactInfo(_ c: BroadcastXml.ContactData) {
@@ -161,6 +165,31 @@ public final class BroadcastService: @unchecked Sendable {
 
     public func sendScore(_ s: BroadcastXml.ScoreData) {
         maybe(config.scoreEnabled, scoreTargets) { BroadcastXml.dynamicResults(s) }
+    }
+
+    /// N1MM „Spots": a spot added to or removed from the band map.
+    public func sendSpot(_ s: BroadcastXml.SpotData) {
+        maybe(config.spotsEnabled, spotsTargets) { BroadcastXml.spot(s) }
+    }
+
+    /// N1MM „Lookup": `lookupinfo` for a call typed but not logged.
+    public func sendLookup(_ c: BroadcastXml.ContactData) {
+        maybe(config.lookupEnabled, lookupTargets) { BroadcastXml.lookupInfo(c) }
+    }
+
+    /// N1MM „All QSOs": a contact another station logged, to the contact targets with `IsOriginal` False.
+    public func forwardContact(_ c: BroadcastXml.ContactData) {
+        var copy = c
+        var extras: BroadcastXml.ContactExtras = copy.extras ?? BroadcastXml.ContactExtras()
+        extras.isOriginal = false
+        copy.extras = extras
+        maybe(config.contactsEnabled && config.allQsosEnabled, contactsTargets) { BroadcastXml.contactInfo(copy) }
+    }
+
+    /// N1MM „All QSOs" for a received `contactinfo` datagram: forwarded once (a forwarded copy is not).
+    public func forwardContact(xml: String) {
+        guard BroadcastXml.isOriginal(xml) else { return }
+        maybe(config.contactsEnabled && config.allQsosEnabled, contactsTargets) { BroadcastXml.forwarded(xml) }
     }
 
     public func sendAppInfo(_ a: BroadcastXml.AppInfoData) {
