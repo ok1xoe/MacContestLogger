@@ -221,6 +221,18 @@ public final class ContestSession: Sendable {
 
     // MARK: - multipliers for the UI
 
+    /// The first multiplier binding whose set matches (the one `multiplierGrid` shows); `nil` without one.
+    public func firstBinding(matching: (ContestDefinition.MultiplierBinding, any MultiplierSet) -> Bool)
+        -> ContestDefinition.MultiplierBinding? {
+        for case let binding? in definition.multipliers ?? [] {
+            guard let set = try? registry.get(binding.set) else { continue }
+            if matching(binding, set) {
+                return binding
+            }
+        }
+        return nil
+    }
+
     /// Multiplier grid for the first binding (in definition order) whose set passes the predicate
     /// (set type or its id). An enumerable set (DXCC, zones) → rows = all values
     /// in set order; otherwise (grid field, WPX) only the worked keys from the tracker and

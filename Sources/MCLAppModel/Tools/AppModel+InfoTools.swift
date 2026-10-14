@@ -176,13 +176,18 @@ extension AppModel {
         let feed: SpotFeed = model.spotFeed
         let rig: RigModel = model.rig
         let language: LanguageModel = model.language
+        let config: ConfigModel = model.config
+        let logbook: LogbookModel = model.logbook
+        let entry: EntryModel = model.entry
         model.infoTools = InfoTools(
             info: info, goals: goals, statistics: statistics, score: score, dupesheet: dupesheet, dupesheet2: dupesheet2,
             skeds: skeds,
             skedWatcher: skedWatcher, tourWatcher: tourWatcher, qtc: qtc, bandNotes: bandNotes,
             propagation: propagation, worldMap: worldMap, makeGrid: { kind in
-                MultGridModel(kind: kind, contest: contest, analysis: analysis, feed: feed, rig: rig,
-                              language: language)
+                let grid = MultGridModel(kind: kind, contest: contest, analysis: analysis, feed: feed, rig: rig,
+                                         language: language, config: config, logbook: logbook)
+                grid.setRoverQth = { [weak entry] text in entry?.setRoverQth(text) }
+                return grid
             })
         model.infoStrip.sources.bandNote = { [weak bandNotes] in
             bandNotes?.stripNote()
