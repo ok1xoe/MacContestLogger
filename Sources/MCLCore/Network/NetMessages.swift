@@ -93,6 +93,8 @@ public struct NetMessages: Sendable, Equatable {
     public private(set) var stack: [String] = []
     /// A call prepared for passing; the network status window offers a "pass" button per station.
     public var passPending: String = ""
+    /// The pass frequencies the other stations announced (N1MM Alt+Z), by station id.
+    public private(set) var passFrequencies: [String: Int] = [:]
 
     public init() {}
 
@@ -117,6 +119,8 @@ public struct NetMessages: Sendable, Equatable {
             return receiveStack(w)
         case NetMessageWire.pass:
             return receivePass(w, from: from, to: to, time: time, catFreqHz: catFreqHz, tunedHz: tunedHz)
+        case NetMessageWire.passFrequency:
+            return receivePassFrequency(w, from: from, to: to, time: time)
         default:
             let type: String = NetTexts.text(w.type)
             let call: String = NetTexts.text(w.call)
@@ -161,6 +165,48 @@ public struct NetMessages: Sendable, Equatable {
         effects.append(.status(status))
         return effects
     }
+
+    /// N1MM Alt+Z of another station: its pass frequency is remembered (a later PASS to it carries it) and shown.
+    private mutating func receivePassFrequency(_ w: NetMessageWire, from: String, to: String,
+                                               time: String) -> [NetEffect] {
+        let station: String = w.fromStation ?? ""
+        guard !station.isEmpty else { return [] }
+        let status: EntryStatus
+        if w.freqHz > 0 {
+            passFrequencies[station] = w.freqHz
+            let khz: String = Self.kHz(w.freqHz)
+            addLine(ChatLine(time: time, from: from, to: to, text: "PASS FREQ " + khz, own: false))
+            status = .tr(NetTexts.passFreqFromKey, .string(station), .string(khz))
+        } else {
+            passFrequencies[station] = nil
+            addLine(ChatLine(time: time, from: from, to: to, text: "PASS FREQ -", own: false))
+            status = .tr(NetTexts.passFreqClearedKey, .string(station))
+        }
+        return [.status(status)]
+    }
+
+    /// `%.1f` kHz of a frequency in Hz.
+    static func kHz(_ hz: Int) -> String {
+        JavaFormat.format("%.1f", .double(Double(hz) / 1000))
+    }
+
+    /// The pass frequency typed for Alt+Z (kHz, `,` or `.`): Hz, 0 for an empty text (= clear), `nil` for a text that
+    /// is no frequency.
+    public static func passFrequencyHz(_ text: String) -> Int? {
+        if KotlinText.isBlank(text) {
+            return 0
+        }
+        let hz: Int64 = FrequencyText.parseHz(text)
+        guard hz > 0, hz <= Int64(Int32.max) else { return nil }
+        return Int(hz)
+    }
+
+    /// The status after the own pass frequency was sent.
+    public static func sentPassFrequency(_ hz: Int) -> EntryStatus {
+        hz > 0 ? .tr(NetTexts.passFreqSentKey, .string(kHz(hz))) : .tr(NetTexts.passFreqSentClearedKey)
+    }
+
+    public static let passFrequencyNotConnectedStatus: EntryStatus = .tr(NetTexts.passFreqNotConnectedKey)
 
     /// `fromStation` plus ` (operator)` for a non-blank operator.
     static func sender(_ w: NetMessageWire) -> String {
@@ -293,14 +339,16 @@ public struct NetMessages: Sendable, Equatable {
     /// `passCall`: `nil` when the network is not connected (`peers == nil`) or the call is blank, else the message with
     /// the frequency and mode of the target station (0 and `""` for an unknown one).
     public static func passMessage(to: String, call: String, peers: [StationNetwork.Peer]?, myFreqHz: Int,
-                                   translator: Translator) -> PassMessage? {
+                                   translator: Translator, passFrequencyHz: Int? = nil) -> PassMessage? {
         guard let peers else { return nil }
         if KotlinText.isBlank(call) {
             return nil
         }
         let peer: StationNetwork.Peer? = peers.first { JavaText.equals(to, $0.status.stationId) }
+        // A station that announced a pass frequency (Alt+Z) gets the call there, otherwise on its own frequency.
+        let freqHz: Int = passFrequencyHz.flatMap { $0 > 0 ? $0 : nil } ?? peer?.status.freqHz ?? 0
         return PassMessage(to: to, call: call, note: passNote(myFreqHz: myFreqHz, translator: translator),
-                           freqHz: peer?.status.freqHz ?? 0, mode: peer?.status.mode ?? "")
+                           freqHz: freqHz, mode: peer?.status.mode ?? "")
     }
 
     /// `stackCall`: not connected → status; a blank call or target → nothing; else the call trimmed and uppercased.

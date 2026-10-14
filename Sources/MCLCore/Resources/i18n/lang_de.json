@@ -1733,5 +1733,15 @@
  "Na poslední CQ frekvenci (libovolné pásmo)": "Zur letzten CQ-Frequenz (beliebiges Band)",
  "Zatím nebylo žádné CQ": "Noch kein CQ",
  "Druhé okno není otevřené (SO2V / SO2R)": "Das andere Eingabefenster ist nicht offen (SO2V / SO2R)",
- "%s → DX Cluster": "%s → DX-Cluster"
+ "%s → DX Cluster": "%s → DX-Cluster",
+ "Multi-op: stanice Run / Mult": "Multi-OP: Station Run / Mult",
+ "Multi-op: pass frekvence (všem stanicím)": "Multi-OP: Pass-Frequenz (an alle Stationen)",
+ "Typ stanice: %s": "Stationstyp: %s",
+ "Pass frekvence": "Pass-Frequenz",
+ "Frekvence v kHz, na které přijímáš předané stanice (prázdné = zrušit)": "Frequenz in kHz, auf der du übergebene Stationen aufnimmst (leer = löschen)",
+ "Pass frekvence %s: %s kHz": "Pass-Frequenz %s: %s kHz",
+ "Pass frekvence %s zrušena": "Pass-Frequenz %s gelöscht",
+ "Pass frekvence %s kHz oznámena ostatním stanicím": "Pass-Frequenz %s kHz den anderen Stationen mitgeteilt",
+ "Pass frekvence zrušena": "Pass-Frequenz gelöscht",
+ "Pass frekvence: síťový deník není připojený": "Pass-Frequenz: das Netzwerk-Log ist nicht verbunden"
 }

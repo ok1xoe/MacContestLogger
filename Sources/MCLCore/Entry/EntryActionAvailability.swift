@@ -85,7 +85,7 @@ public enum EntryActionAvailability {
         case .nextSpotUp, .nextSpotDown, .nextMultUp, .nextMultDown, .nextSelfUp, .nextSelfDown, .spotIt,
              .spotWithComment, .store, .mark, .removeSpot, .removeSpotBlacklist, .dxClusterWindow:
             return .spots
-        case .passCall, .popStack:
+        case .passCall, .popStack, .toggleStationType, .passFrequency:
             return .network
         }
     }

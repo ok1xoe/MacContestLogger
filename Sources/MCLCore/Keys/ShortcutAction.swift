@@ -88,6 +88,10 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case wipeOther
     /// N1MM Ctrl+Alt+Q: the last CQ frequency on any band.
     case jumpLastCq
+    /// N1MM Ctrl+Alt+M: the multi-op station type Run ↔ Mult.
+    case toggleStationType
+    /// N1MM Alt+Z: set the pass frequency, broadcast to the other stations.
+    case passFrequency
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -167,12 +171,14 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .cwReverse: Spec(name: "CW_REVERSE", id: "cw_reverse", label: "CW reverse zap / vyp", defaultKeys: "Ctrl+Alt+R")
         case .wipeOther: Spec(name: "WIPE_OTHER", id: "wipe_other", label: "Vymazat pole druhého okna", defaultKeys: "Ctrl+Shift+W")
         case .jumpLastCq: Spec(name: "JUMP_LAST_CQ", id: "jump_last_cq", label: "Na poslední CQ frekvenci (libovolné pásmo)", defaultKeys: "Ctrl+Alt+Q")
+        case .toggleStationType: Spec(name: "TOGGLE_STATION_TYPE", id: "run_mult", label: "Multi-op: stanice Run / Mult", defaultKeys: "Ctrl+Alt+M")
+        case .passFrequency: Spec(name: "PASS_FREQUENCY", id: "pass_freq", label: "Multi-op: pass frekvence (všem stanicím)", defaultKeys: "Alt+Z")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

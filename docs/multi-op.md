@@ -42,6 +42,11 @@ The recipient gets the callsign in its **bandmap** at its own frequency (spotter
 `PASS-<station>`), in the chat and in the status line; the text also contains the frequency
 of the passing station.
 
+**Pass frequency (Alt+Z).** A station can announce where it takes passed stations: **Alt+Z**
+asks for the frequency in kHz (the current one is offered; empty = clear) and sends it to all
+stations. A call passed to that station then lands in its bandmap on the pass frequency instead
+of its current one. Older versions only show the announcement as a line in the chat.
+
 ## Partner and call stacking
 
 ![Partner window with the call stack](img/partner.png)
@@ -101,6 +106,7 @@ logged number.
 
 - **Typ stanice** (Station type; DXLog Station type): *RUN* or *MULT*. A MULT station may only
   log a QSO that brings a new multiplier. The others see the type in Network Status.
+  **Ctrl+Alt+M** switches between RUN and MULT from the keyboard (N1MM Run/Mult).
 - **Pravidla provozu při zápisu** (Operating rules on write): *Nehlídat* (Do not check) /
   *Upozornit* (Warn, the default) / *Nezapsat* (Do not log). The tool checks the N-minutes-on-a-band
   rule (for example CQ WW M/S 10 min) and the limit of band changes per hour (for example
