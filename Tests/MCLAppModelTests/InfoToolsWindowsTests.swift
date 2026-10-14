@@ -263,6 +263,34 @@ import Testing
         score.close()
     }
 
+    @Test func theScoreSummaryCarriesTheStationTheSetupAndTheTable() async throws {
+        let tool = try await ToolApp.make(configure: { config, _ in
+            config.station.call = "OK1XOE"
+            config.station.gridSquare = "JN79"
+        })
+        let score: ScoreWindowModel = tool.tools.score
+        #expect(score.windowTitle == "Skóre — OK1XOE")
+        #expect(score.summaryText == nil)
+        var setup = ContestSetup()
+        setup.category = ["OPERATOR": "SINGLE-OP", "POWER": "LOW"]
+        setup.sentExchange = ["zone": "15"]
+        #expect(await tool.model.contest.createAndStart(definitionId: "cq-ww-cw", setup: setup))
+        await tool.log("DL1ABC")
+        score.open()
+        tool.clock.advance(by: 300)
+        await score.settle()
+        let name = try #require(score.contestName)
+        let text = try #require(score.summaryText)
+        let lines: [String] = text.components(separatedBy: "\n")
+        #expect(lines[0] == name + " — OK1XOE")
+        #expect(lines.contains("Kategorie:     OPERATOR SINGLE-OP · POWER LOW"))
+        #expect(lines.contains("Výměna:        zone 15"))
+        #expect(lines.contains("Lokátor:       JN79"))
+        #expect(lines.contains { $0.hasPrefix("Pásmo") && $0.contains("QSO") }, "\(lines)")
+        #expect(lines.contains { $0.hasPrefix("Body ") }, "\(lines)")
+        score.close()
+    }
+
     @Test func theScoreOutsideAContestSaysSo() async throws {
         let tool = try await ToolApp.make()
         let score: ScoreWindowModel = tool.tools.score

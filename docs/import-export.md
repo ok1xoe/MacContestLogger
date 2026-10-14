@@ -57,7 +57,7 @@ summary...) writes into the chosen directory:
 |---|---|
 | `<CALLSIGN>.csv` | CSV (comma, quoting per RFC 4180) — time, callsign, band, kHz, mode, reports, numbers, exchanges, country, continent, Run/S&P, operator, X-QSO, note |
 | `<CALLSIGN>.txt` | a text listing with fixed columns — for printing or as an attachment |
-| `<CALLSIGN>-summary.txt` | summary: contest, station, period, QSOs / points / multipliers / score (recalculated), band × mode table |
+| `<CALLSIGN>-summary.txt` | summary: contest, station, the contest setup and station details (category, sent exchange, operators, start, locator, zones…), period, QSOs / points / multipliers / score (recalculated), band × mode table |
 
 ## Merging logs
 

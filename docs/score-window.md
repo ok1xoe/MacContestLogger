@@ -16,6 +16,12 @@ An equivalent of N1MM+ **Score Summary**
 - It is computed by replaying the whole log (like Rescore), so it is correct after editing QSOs
   or importing; X-QSOs and deleted QSOs are not counted. It refreshes itself after every
   change to the log.
+- The window title carries the station call (**Skóre — OK1XOE**), the contest's name is shown above the table
+  (N1MM *Display Contest Name*).
+- **Kopírovat vše** (Copy all), **Uložit…** (N1MM *Print to file*) and **Tisk…** (Print) — also in the table's
+  right-click menu — copy, save or print the summary as text: `<contest> — <call>`, the contest setup and station
+  (category, sent exchange, operators, start, name, locator, zones, country; empty values left out), then the
+  table, the per-mode totals and the score formula.
 
 ## Rescoring the last N hours
 
