@@ -162,10 +162,11 @@ import Testing
         // 19 keys of the log window's row actions, view options, deleted QSOs and the edit dialog's arrows and
         // 5 keys of the log window's previous QSOs pane and the rates at a QSO and
         // 14 keys of the Statistics window's dimensions, its graph, the dupes switch and its copy, save and print and
-        // 15 keys of the Multipliers window's bands displayed, expected multipliers and right-click menu.
-        #expect(map.count == 1_889)
+        // 15 keys of the Multipliers window's bands displayed, expected multipliers and right-click menu and
+        // 13 keys of the Move Multipliers window's spotted stations view.
+        #expect(map.count == 1_902)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_889)
+        #expect(german.count == 1_902)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

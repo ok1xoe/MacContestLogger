@@ -15,7 +15,8 @@ extension AppModel {
         model.simulator = simulator
         model.moveMults = MoveMultsModel(MoveMultsModel.Dependencies(
             contest: model.contest, logbook: model.logbook, operating: model.operating, rig: model.rig,
-            keyer: model.keyer, status: model.status, language: model.language, now: environment.now))
+            keyer: model.keyer, status: model.status, language: model.language, now: environment.now,
+            config: model.config, analysis: model.spotAnalysis, feed: model.spotFeed))
         model.qtcSending = QtcSending(keyer: model.keyer)
 
         // Closing the simulator window stops the session, whatever the view does.

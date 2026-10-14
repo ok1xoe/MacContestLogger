@@ -1,3 +1,4 @@
+import AppKit
 import MCLAppModel
 import MCLCore
 import SwiftUI
@@ -239,6 +240,29 @@ private struct MoveMultsContent: View {
                 .accessibilityIdentifier("movemults.noContest")
             Spacer(minLength: 0)
         } else {
+            VStack(alignment: .leading, spacing: 6) {
+                Picker(selection: Binding(get: { model.showSpots }, set: { model.setShowSpots($0) })) {
+                    Text(verbatim: language.tr("Poslední QSO")).tag(false)
+                    Text(verbatim: language.tr("Spotované stanice")).tag(true)
+                } label: {
+                    EmptyView()
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+                .windowFont(12)
+                .accessibilityLabel(Text(verbatim: language.tr("Zobrazení přesunu násobičů")))
+                .accessibilityIdentifier("movemults.view")
+                if model.showSpots {
+                    MoveMultsSpotsView(model: model, language: language)
+                } else {
+                    recentQsos(model, language: language)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func recentQsos(_ model: MoveMultsModel, language: LanguageModel) -> some View {
             let rows: [MoveMultsModel.Row] = model.rows
             VStack(alignment: .leading, spacing: 6) {
                 ToolHint(text: MoveRequest.hint(translate: language.translator))
@@ -256,7 +280,6 @@ private struct MoveMultsContent: View {
                     }
                 }
             }
-        }
     }
 
     private func rowView(_ row: MoveMultsModel.Row, model: MoveMultsModel) -> some View {
@@ -282,6 +305,153 @@ private struct MoveMultsContent: View {
             Spacer(minLength: 0)
         }
         .padding(.vertical, 2)
+    }
+}
+
+/// N1MM's Move Multipliers over the spot table: the options, Refresh, and a row per spotted call and mode with a cell
+/// per band (shaded where spotted). A click on a shaded cell tunes to that spot, on the call to its next spotted band;
+/// with Shift the spot goes to VFO B. „Skrýt řádek" hides the row until Refresh.
+private struct MoveMultsSpotsView: View {
+    let model: MoveMultsModel
+    let language: LanguageModel
+
+    var body: some View {
+        let bands: [Band] = model.bands
+        VStack(alignment: .leading, spacing: 6) {
+            options(bands)
+            Divider()
+            let rows: [SpotMoveMults.Row] = model.visibleSpotRows
+            if rows.isEmpty {
+                Text(verbatim: language.tr("Žádné spotované stanice."))
+                    .windowFont(13)
+                    .foregroundStyle(.secondary)
+            }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 1) {
+                    header(bands)
+                    ForEach(rows) { row in
+                        rowView(row, bands: bands)
+                    }
+                }
+            }
+        }
+        .onAppear {
+            model.refreshSpots()
+        }
+    }
+
+    private func options(_ bands: [Band]) -> some View {
+        HStack(spacing: 8) {
+            Button(language.tr("Aktualizovat")) {
+                model.refreshSpots()
+            }
+            .accessibilityIdentifier("movemults.refresh")
+            Picker(selection: Binding(get: { model.display }, set: { model.setDisplay($0) })) {
+                Text(verbatim: language.tr("Násobiče")).tag(SpotMoveMults.Display.multipliers)
+                Text(verbatim: language.tr("Body QSO")).tag(SpotMoveMults.Display.points)
+                Text(verbatim: language.tr("Počty QSO")).tag(SpotMoveMults.Display.counts)
+            } label: {
+                Text(verbatim: language.tr("Zobrazit"))
+            }
+            .fixedSize()
+            .accessibilityIdentifier("movemults.display")
+            if model.display != .multipliers {
+                TextField(language.tr("Rozsah"), text: Binding(get: { model.rangeText },
+                                                               set: { model.setRangeText($0) }))
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 60)
+                    .help(language.tr("Rozsah počtu, např. 0-6 nebo 3"))
+                    .accessibilityLabel(Text(verbatim: language.tr("Rozsah")))
+            }
+            Picker(selection: Binding(get: { model.modes }, set: { model.setModes($0) })) {
+                Text(verbatim: language.tr("Módy závodu")).tag(SpotMoveMults.ModeFilter.contest)
+                Text(verbatim: language.tr("Vše")).tag(SpotMoveMults.ModeFilter.all)
+                Text(verbatim: "CW").tag(SpotMoveMults.ModeFilter.cw)
+                Text(verbatim: "Phone").tag(SpotMoveMults.ModeFilter.phone)
+                Text(verbatim: "Digi").tag(SpotMoveMults.ModeFilter.digi)
+            } label: {
+                Text(verbatim: language.tr("Módy"))
+            }
+            .fixedSize()
+            Menu(language.tr("Pásma")) {
+                ForEach(MultGridExtras.bandChoices, id: \.self) { band in
+                    Toggle(isOn: Binding(get: { bands.contains(band) }, set: { model.setBand(band, shown: $0) })) {
+                        Text(verbatim: band.adif)
+                    }
+                }
+            }
+            .fixedSize()
+            Spacer(minLength: 0)
+        }
+        .windowFont(12)
+    }
+
+    private func header(_ bands: [Band]) -> some View {
+        HStack(spacing: 2) {
+            Text(verbatim: language.tr("Volačka"))
+                .frame(width: 100, alignment: .leading)
+            Text(verbatim: language.tr("Mód"))
+                .frame(width: 56, alignment: .leading)
+            ForEach(bands, id: \.self) { band in
+                Text(verbatim: MultGridExtras.header(band))
+                    .frame(width: 40)
+            }
+        }
+        .windowFont(11, weight: .bold, design: .monospaced)
+        .accessibilityHidden(true)
+    }
+
+    private func rowView(_ row: SpotMoveMults.Row, bands: [Band]) -> some View {
+        HStack(spacing: 2) {
+            Button {
+                model.tuneNext(row, otherVfo: NSEvent.modifierFlags.contains(.shift))
+            } label: {
+                Text(verbatim: row.call)
+                    .windowFont(12, weight: .bold, design: .monospaced)
+                    .frame(width: 100, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("movemults.call.\(row.id)")
+            Text(verbatim: row.mode)
+                .windowFont(11)
+                .foregroundStyle(.secondary)
+                .frame(width: 56, alignment: .leading)
+            ForEach(bands, id: \.self) { band in
+                cell(row, band: band)
+            }
+        }
+        .contextMenu {
+            Button(language.tr("Skrýt řádek")) {
+                model.hide(row)
+            }
+        }
+    }
+
+    @ViewBuilder private func cell(_ row: SpotMoveMults.Row, band: Band) -> some View {
+        let text: String = model.cellText(row, band: band)
+        let spotted: Bool = row.cells[band.adif]?.spot != nil
+        let mults: Int = row.cells[band.adif]?.newMults ?? 0
+        let label = Text(verbatim: text)
+            .windowFont(11, design: .monospaced)
+            .foregroundStyle(mults > 0 && model.display == .multipliers
+                ? Color(argb: mults > 1 ? MultGridLayout.spottedDblColor : MultGridLayout.spottedColor)
+                : Color.primary)
+            .frame(width: 40, height: 18)
+            .background(spotted ? Color.accentColor.opacity(0.25) : Color.clear)
+        if spotted {
+            Button {
+                model.tune(row, band: band, otherVfo: NSEvent.modifierFlags.contains(.shift))
+            } label: {
+                label
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(verbatim: row.call + " " + band.adif))
+            .accessibilityValue(Text(verbatim: text))
+        } else {
+            label
+                .accessibilityLabel(Text(verbatim: row.call + " " + band.adif))
+                .accessibilityValue(Text(verbatim: text))
+        }
     }
 }
 

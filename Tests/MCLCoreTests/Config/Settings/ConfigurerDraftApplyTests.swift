@@ -303,6 +303,7 @@ import Testing
                                "entryShowUtcClock",
                                "logShowModeColumn",
                                "multGridBands", "multExpected", "multGridShowAll",
+                               "moveMultsDisplay", "moveMultsRange", "moveMultsBands", "moveMultsModes",
                                "entryHiddenSections",
                                "resetRxAfterRunQso", "macroQsyStepKHz", "functionKeysPerOperator",
                                "ctyEnabled",
