@@ -52,6 +52,10 @@ import Testing
         #expect(text.contains("<call>OK1ABC</call>"))
         #expect(text.contains("<mycall>OK1XOE</mycall>"))
         #expect(text.contains("<app>MacContestLogger</app>"))
+        // N1MM's full field set: the prefixes, the zone from the exchange, the radio.
+        #expect(text.contains("<wpxprefix>OK1</wpxprefix>"))
+        #expect(text.contains("<zone>15</zone>"))
+        #expect(text.contains("<radionr>1</radionr>"))
         // Only the contact type has a target: nothing else was sent to it.
         #expect(!sink.texts.contains { $0.contains("<RadioInfo>") })
     }
@@ -98,6 +102,7 @@ import Testing
         #expect(appInfo.texts.contains { $0.contains("<dbname>logbook.sqlite</dbname>") })
         await score.waitFor("<dynamicresults>")
         #expect(score.texts.contains { $0.contains("<call>OK1XOE</call>") })
+        #expect(score.texts.contains { $0.contains("<breakdown>") && $0.contains("band=\"total\"") })
     }
 
     @Test func theRadioIsBroadcastWhileCatRuns() async throws {
@@ -121,6 +126,9 @@ import Testing
         #expect(text.contains("<StationName>OK1XOE</StationName>"))
         #expect(text.contains("<IsRunning>False</IsRunning>"))
         #expect(text.contains("<Mode>CW</Mode>"))
+        #expect(text.contains("<RadioNr>1</RadioNr>"))
+        #expect(text.contains("<RadioName>Fake 1</RadioName>"))
+        #expect(text.contains("<IsTransmitting>False</IsTransmitting>"))
     }
 
     @Test func bclogSendsTheWholeLogAndCountsIt() async throws {
