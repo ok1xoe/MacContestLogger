@@ -194,6 +194,7 @@ public final class IntegrationsModel {
         s.runMode = deps.operating.runMode
         s.catConnected = deps.rig.catConnected
         s.rig = deps.rig.activeState
+        s.auxAntenna = deps.rig.auxAntenna
         s.isContestActive = deps.contest.isActive
         s.score = deps.contest.score
         if !outwardAllowed() {

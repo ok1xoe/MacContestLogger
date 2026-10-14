@@ -153,6 +153,8 @@ public enum CwMessageBuilder {
         "{ENABLENET}": .netOn, "{DISABLENET}": .netOff, "{SPOTME}": .spotMe,
         "{CQ}": .cq, "{QSYCQ}": .cqFrequency, "{EXCHSENT}": .exchangeSent, "{CTRLHOME}": .ctrlHome,
         "{FORCELOG}": .forceLog, "{FORCELOGNOTE}": .forceLogNote, "{SPACE}": .space,
+        "{PGUP}": .pageUp, "{PGDN}": .pageDown, "{FREQUP}": .freqUp, "{FREQDN}": .freqDown,
+        "{TURNROTOR}": .turnRotor, "{LONGPATH}": .longPath, "{STOPROTOR}": .stopRotor,
     ]
 
     /// Builds the message (`nil` template = empty message, like Java `null`).
@@ -233,18 +235,34 @@ public enum CwMessageBuilder {
         var actionList: [CwMessage.Action] = []
         var commands: [MacroCommand] = []
         var unknown: [String] = []
+        var deferredActions: [CwMessage.Action] = []
+        var deferredCommands: [MacroCommand] = []
+        var afterEnd = false
         var text: [UInt16] = []
         var i = 0
         while i < t.count {
             let c = t[i]
             if c == 0x7B { // {
-                guard let end = t[i...].firstIndex(of: 0x7D) else {
+                guard let end = macroEnd(t, from: i) else {
                     i += 1
                     continue
                 }
                 let raw: [UInt16] = Array(t[i...end])
                 let macro = upperRoot(raw)
                 i = end + 1
+                if macro == "{END}" {
+                    afterEnd = true
+                    continue
+                }
+                if afterEnd {
+                    // N1MM: after `{END}` only the macros that do not send run, once the message has been sent.
+                    if let action = actions[macro] {
+                        deferredActions.append(action)
+                    } else if let command = MacroCommand.parse(JavaChar.string(raw)) {
+                        deferredCommands.append(command)
+                    }
+                    continue
+                }
                 if macro == "{ENTERLF}" || macro == "{ENTER}" {
                     flush(&text, &parts)
                     parts.append(CwMessage.newline)
@@ -283,6 +301,9 @@ public enum CwMessageBuilder {
                 continue
             }
             i += 1
+            if afterEnd {
+                continue
+            }
             switch c {
             case 0x2A: text.append(contentsOf: ctx.myCall.utf16) // *
             case 0x21: text.append(contentsOf: hisCall(ctx).utf16) // !
@@ -303,7 +324,27 @@ public enum CwMessageBuilder {
         }
         flush(&text, &parts)
         return CwMessage(parts: parts, actions: actionList, unknownMacros: unknown, commands: commands,
-                         varyUsed: varyUsed)
+                         varyUsed: varyUsed, deferredActions: deferredActions, deferredCommands: deferredCommands)
+    }
+
+    /// The closing brace of the macro opened at `start`: the first `}`, or for a macro that may nest another
+    /// (`{SETWAVDIR {OPERATOR}_2}`) the balancing one.
+    private static func macroEnd(_ t: [UInt16], from start: Int) -> Int? {
+        guard let first = t[start...].firstIndex(of: 0x7D) else { return nil }
+        let head: String = upperRoot(Array(t[start..<min(t.count, start + 10)]))
+        guard MacroCommand.nests(head) else { return first }
+        var depth = 0
+        for index in start..<t.count {
+            if t[index] == 0x7B {
+                depth += 1
+            } else if t[index] == 0x7D {
+                depth -= 1
+                if depth == 0 {
+                    return index
+                }
+            }
+        }
+        return first
     }
 
     /// Macro value, `nil` = unknown macro.

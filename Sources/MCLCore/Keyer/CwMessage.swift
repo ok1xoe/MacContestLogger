@@ -73,6 +73,18 @@ public struct CwMessage: Equatable, Sendable {
         case forceLogNote = "FORCE_LOG_NOTE"
         /// `{SPACE}` (N1MM): the space bar in the call field — on to the exchange (Swift-only).
         case space = "SPACE"
+        /// `{PGUP}` / `{PGDN}` (N1MM): the rig down / up by the PgUp/PgDn step of Settings → Other (Swift-only).
+        case pageUp = "PAGE_UP"
+        case pageDown = "PAGE_DOWN"
+        /// `{FREQUP}` / `{FREQDN}` (N1MM): the rig up / down by the same step, typically after `{END}` (Sprint QSY).
+        case freqUp = "FREQ_UP"
+        case freqDown = "FREQ_DOWN"
+        /// `{TURNROTOR}`, `{LONGPATH}`, `{STOPROTOR}` (N1MM): the rotator to the call's bearing, the long path, stop.
+        case turnRotor = "TURN_ROTOR"
+        case longPath = "LONG_PATH"
+        case stopRotor = "STOP_ROTOR"
+        /// `{TX}` in CW and SSB (N1MM): the active rig's PTT on until Esc (a manual PTT, with the tune's safeguard).
+        case manualPtt = "MANUAL_PTT"
     }
 
     /// Message parts in transmission order.
@@ -85,14 +97,20 @@ public struct CwMessage: Equatable, Sendable {
     public let commands: [MacroCommand]
     /// The `{VARYMSG1}` / `{VARYMSG2}` macros this message used (1, 2): their counters move on when it is sent.
     public let varyUsed: [Int]
+    /// N1MM `{END}`: the actions and commands after it, performed once the message has been sent (its text after
+    /// `{END}` is never sent).
+    public let deferredActions: [Action]
+    public let deferredCommands: [MacroCommand]
 
     public init(parts: [Part], actions: [Action] = [], unknownMacros: [String] = [], commands: [MacroCommand] = [],
-                varyUsed: [Int] = []) {
+                varyUsed: [Int] = [], deferredActions: [Action] = [], deferredCommands: [MacroCommand] = []) {
         self.parts = parts
         self.actions = actions
         self.unknownMacros = unknownMacros
         self.commands = commands
         self.varyUsed = varyUsed
+        self.deferredActions = deferredActions
+        self.deferredCommands = deferredCommands
     }
 
     /// Nothing to transmit (no text and no prosign — even empty text counts as "something", as in Java).
@@ -112,7 +130,8 @@ public struct CwMessage: Equatable, Sendable {
     /// The message with the line breaks as spaces (CW keyers).
     public var withoutNewlines: CwMessage {
         CwMessage(parts: parts.map { $0 == Self.newline ? .text(" ") : $0 }, actions: actions,
-                  unknownMacros: unknownMacros, commands: commands, varyUsed: varyUsed)
+                  unknownMacros: unknownMacros, commands: commands, varyUsed: varyUsed,
+                  deferredActions: deferredActions, deferredCommands: deferredCommands)
     }
 
     /// The message as plain text — for keyers without prosigns and speed changes (CAT) and for display. A prosign is

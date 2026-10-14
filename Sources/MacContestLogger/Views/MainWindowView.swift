@@ -44,6 +44,8 @@ struct MainWindowView: View {
                 .environment(\.windowFontSize, session.fontSize)
                 .frame(minWidth: 820, minHeight: 330)
                 .fixedSize()
+                // N1MM: a `{SETWAVDIR}` other than the operator shows in the title.
+                .navigationTitle(app.operating.wavDirName.map { "MacContestLogger — WavDir: " + $0 } ?? "MacContestLogger")
                 .onAppear {
                     binder.setStore(app.geometry)
                     reopenWindows(app)

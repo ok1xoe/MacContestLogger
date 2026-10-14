@@ -52,6 +52,7 @@ enum ProfileMergeSchema {
             Property("entryShowUtcClock", .boolean, .fieldDefault),
             Property("entryHiddenSections", .list(.string), .fieldDefault),
             Property("resetRxAfterRunQso", .boolean, .fieldDefault),
+            Property("macroQsyStepKHz", .int, .fieldDefault),
             Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
             Property("callHistoryExtraFiles", .list(.string), .fieldDefault),
             Property("callHistoryShowUserInfo", .boolean, .fieldDefault),

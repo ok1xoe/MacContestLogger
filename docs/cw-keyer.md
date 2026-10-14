@@ -117,8 +117,26 @@ duration is calculated from real Morse code timing and the speed.
 
 Characters a keyer cannot send (`:` in `{TIMEGMT}`, for example) are left out.
 
-N1MM interface-control macros (`{CAT1ASC}`, `{TX}`/`{RX}`, `{KEYBOARD}`...) are not
-sent and are reported in the status line as unknown.
+### Actions after the message, rig and station macros
+
+| Macro | Action |
+|---|---|
+| `{END}` | the end of the text: what follows is never sent; the macros after it run once the message has been sent (`TU {END}{FREQUP}` moves up after "TU"). Esc or a newer message cancels them |
+| `{PGUP}` / `{PGDN}` | the rig down / up by the step of "Nastavení → Ostatní → QSY makry {PGUP}/{PGDN}" (Settings → Other, 1 kHz by default) |
+| `{FREQUP}` / `{FREQDN}` | the rig up / down by the same step (Sprint QSY, usually after `{END}`) |
+| `{TURNROTOR}`, `{LONGPATH}`, `{STOPROTOR}` | the rotator to the bearing of the call in the callsign field, to its long path, stop |
+| `{TX}` | in a message that sends nothing else: the active rig's PTT on over CAT until Esc (with the 30 s safeguard of the tune) |
+| `{CAT1ASC cmd}` / `{CAT1HEX hex}` | a raw CAT command to radio 1 (`CAT2…` radio 2), through `rigctld`'s `w` command. Several commands are separated by `\`; an ASCII command may hold bytes as `<FE>`; HEX is pairs of hex digits (spaces ignored) |
+| `{CATA1ASC …}`, `{CATI1ASC …}` (and `2`, `HEX`) | the same, only while radio 1 is the active / the inactive one |
+| `{CATACTASC …}` / `{CATACTHEX …}` | the same to the active radio |
+| `{CATDELAY n}` | a pause of n × 50 ms (at most 1 s) after the message's CAT commands |
+| `{ANTRX1TOGGLE}`…`{ANTRX4TOGGLE}` | the active rig's antenna port n (hamlib `Y n 0`); the same port again toggles its RX antenna (`Y n 1`); never while transmitting |
+| `{AUXANTSEL nn}` | the antenna with code nn from the antenna table, as if chosen by hand ([antennas.md](antennas.md)); the UDP RadioInfo carries it as `AuxAntSelected` |
+| `{TELNET cmd}` | sends the command to the DX cluster (Telnet window) |
+| `{SETWAVDIR text}` | the value of `{WAVDIR}` in the voice messages' paths (`{SETWAVDIR {OPERATOR}_2}`); the main window's title shows it. A change of operator resets it |
+
+CAT commands are rig-specific and are sent as written: check them against your rig's manual.
+Other N1MM interface-control macros (`{KEYBOARD}`...) are not sent and are reported in the status line as unknown.
 
 ## CW from the keyboard
 

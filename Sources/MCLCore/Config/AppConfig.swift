@@ -217,6 +217,12 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var entryHiddenSections: [String] = []
     /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
     public var resetRxAfterRunQso: Bool = false
+    /// N1MM „PgUp/PgDn Incr (kHz)": the QSY step of the `{PGUP}`/`{PGDN}`/`{FREQUP}`/`{FREQDN}` macros. Swift-only key.
+    public var macroQsyStepKHz: Int = 1 {
+        didSet {
+            if macroQsyStepKHz <= 0 { macroQsyStepKHz = 1 }
+        }
+    }
 
     /// The Check window (N1MM right-click menu, see `CheckSettings`). Swift-only keys.
     public var checkHiddenPanes: [String] = []
@@ -277,6 +283,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case entryShowUtcClock
         case entryHiddenSections
         case resetRxAfterRunQso
+        case macroQsyStepKHz
         case checkHiddenPanes, checkPaneWeights, checkYankOrder, checkYankAllowDupes, checkFavorEndDifferences
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
@@ -402,6 +409,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         entryShowUtcClock = c.value(.entryShowUtcClock, default: d.entryShowUtcClock)
         entryHiddenSections = c.value(.entryHiddenSections, default: d.entryHiddenSections)
         resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
+        let qsyStep: Int = c.value(.macroQsyStepKHz, default: d.macroQsyStepKHz)
+        macroQsyStepKHz = qsyStep <= 0 ? 1 : qsyStep
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
         callHistoryLookupEnabled = c.value(.callHistoryLookupEnabled, default: d.callHistoryLookupEnabled)
         callHistoryExtraFiles = c.value(.callHistoryExtraFiles, default: d.callHistoryExtraFiles)

@@ -133,6 +133,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var cwSpeedStepSecondary: String = ""
     public var clearPrefilledExchange: Bool = false
     public var resetRxAfterRunQso: Bool = false
+    /// The `{PGUP}`/`{PGDN}` QSY step (kHz), as typed.
+    public var macroQsyStepKHz: String = ""
     public var clEnabled: Bool = false
     public var clEmail: String = ""
     public var clPassword: String = ""
@@ -462,6 +464,7 @@ extension ConfigurerDraft {
         cwSpeedStepSecondary = String(config.cwSpeedStepSecondary)
         clearPrefilledExchange = config.clearPrefilledExchange
         resetRxAfterRunQso = config.resetRxAfterRunQso
+        macroQsyStepKHz = String(config.macroQsyStepKHz)
         clEnabled = config.clubLog.enabled
         clEmail = config.clubLog.email
         clPassword = config.clubLog.appPassword

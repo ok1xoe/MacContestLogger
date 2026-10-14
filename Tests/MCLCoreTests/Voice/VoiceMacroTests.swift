@@ -84,7 +84,8 @@ import Testing
 
     @Test func unknownMacrosAreReportedAndNeverPlayed() throws {
         let p = try Self.plan("{CAT1ASC 7},cq.wav,{NOPE},{MYCALL}")
-        #expect(p.unknownMacros == ["{CAT1ASC 7}", "{NOPE}"])
+        #expect(p.unknownMacros == ["{NOPE}"])
+        #expect(p.commands == [.cat(CatMacro(target: .radio(0), commands: ["7"]))])
         #expect(p.missing.isEmpty)
         #expect(p.files.first == Self.file("cq.wav"))
         // `{MYCALL}` is still the spoken callsign (letters), not an unknown macro.

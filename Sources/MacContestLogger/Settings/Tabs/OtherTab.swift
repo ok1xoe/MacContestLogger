@@ -51,6 +51,10 @@ struct OtherTab: View {
                     SettingsTextField(text: $draft.tuneStepSsb, filter: .digits(limit: 4))
                 }
                 .frame(maxWidth: .infinity)
+                SettingsField(caption: language.tr("QSY makry {PGUP}/{PGDN} (kHz)")) {
+                    SettingsTextField(text: $draft.macroQsyStepKHz, filter: .digits(limit: 3))
+                }
+                .frame(maxWidth: .infinity)
             }
         }
     }

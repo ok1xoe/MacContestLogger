@@ -29,6 +29,8 @@ public enum VoiceMessagePlanner {
         public var functionKeys: [String]
         /// How many times `{VARYMSG1}` / `{VARYMSG2}` were sent before (Swift-only).
         public var varyCounts: [Int] = []
+        /// N1MM `{SETWAVDIR}`: the value of `{WAVDIR}` when it is not the operator (Swift-only).
+        public var wavDirName: String?
 
         public init(operatorCall: String, myCall: String, hisCall: String, serial: Int32, freqHz: Int64,
                     functionKeys: [String] = []) {
@@ -60,6 +62,9 @@ public enum VoiceMessagePlanner {
         public var commands: [MacroCommand] = []
         /// The `{VARYMSGn}` macros the message used.
         public var varyUsed: [Int] = []
+        /// N1MM `{END}`: the actions and commands after it, performed once the message has played to its end.
+        public var deferredActions: [CwMessage.Action] = []
+        public var deferredCommands: [MacroCommand] = []
 
         public init(files: [JavaPath], missing: [String], steps: [Step]? = nil, unknownMacros: [String] = []) {
             self.files = files
@@ -89,6 +94,8 @@ public enum VoiceMessagePlanner {
         "{CLEARRIT}": .clearRit, "{RITCLEAR}": .clearRit, "{CQFREQ}": .cqFrequency, "{NOSPLIT}": .splitOff,
         "{SPOTME}": .spotMe, "{CQ}": .cq, "{QSYCQ}": .cqFrequency, "{EXCHSENT}": .exchangeSent,
         "{CTRLHOME}": .ctrlHome, "{FORCELOG}": .forceLog, "{FORCELOGNOTE}": .forceLogNote, "{SPACE}": .space,
+        "{PGUP}": .pageUp, "{PGDN}": .pageDown, "{FREQUP}": .freqUp, "{FREQDN}": .freqDown, "{TURNROTOR}": .turnRotor,
+        "{LONGPATH}": .longPath, "{STOPROTOR}": .stopRotor, "{TX}": .manualPtt,
     ]
 
     /// Items of a message with `{F1}`…`{F12}` replaced by the items of that key (depth ≤ 2 as in CW; deeper stays
@@ -128,8 +135,9 @@ public enum VoiceMessagePlanner {
     /// Speech synthesis (TTS) to a wav file; `nil` = synthesis failed (Java `Speech`).
     public typealias Speech = (String) -> JavaPath?
 
-    /// Replacement of `{OPERATOR}`/`{WAVDIR}` and unification of path separators.
-    static func expandPath(_ token: String, _ operatorCall: String?) -> String {
+    /// Replacement of `{OPERATOR}`/`{WAVDIR}` and unification of path separators; `wavDirName` (N1MM `{SETWAVDIR}`)
+    /// replaces `{WAVDIR}` instead of the operator.
+    static func expandPath(_ token: String, _ operatorCall: String?, wavDirName: String? = nil) -> String {
         let op: String
         if let operatorCall, !JavaText.isBlank(operatorCall) {
             op = JavaText.trim(operatorCall).uppercased()
@@ -137,15 +145,15 @@ public enum VoiceMessagePlanner {
             op = ""
         }
         var out = JavaText.replace(token, "{OPERATOR}", op)
-        out = JavaText.replace(out, "{WAVDIR}", op)
+        out = JavaText.replace(out, "{WAVDIR}", wavDirName ?? op)
         out = JavaText.replace(out, "{operator}", op)
         return JavaText.replace(out, "\\", "/")
     }
 
     /// Directory (relative to wav, or absolute) with the operator substituted.
-    public static func resolveDir(_ template: String, operatorCall: String?, wavDir: JavaPath)
-        throws(JavaInvalidPathError) -> JavaPath {
-        let path = try JavaPath(expandPath(template, operatorCall))
+    public static func resolveDir(_ template: String, operatorCall: String?, wavDir: JavaPath,
+                                  wavDirName: String? = nil) throws(JavaInvalidPathError) -> JavaPath {
+        let path = try JavaPath(expandPath(template, operatorCall, wavDirName: wavDirName))
         return path.isAbsolute ? path : wavDir.resolve(path).normalize()
     }
 
@@ -217,13 +225,26 @@ public enum VoiceMessagePlanner {
             let expanded = VaryMessage.expand(key, counts: ctx.varyCounts)
             return expanded.text
         }
+        var afterEnd = false
+        var deferredActions: [CwMessage.Action] = []
+        var deferredCommands: [MacroCommand] = []
         for token in items(vary.text, keys) {
             if token.isEmpty || JavaChar.equalsIgnoreCase(token, "empty.wav") {
                 continue
             }
             let macro = token.uppercased()
             if macro == "{END}" {
-                break
+                afterEnd = true
+                continue
+            }
+            if afterEnd {
+                // N1MM: after `{END}` only the macros that play nothing run, once the message has played.
+                if let action = actions[macro] {
+                    deferredActions.append(action)
+                } else if let command = MacroCommand.parse(token), !command.isWavDir {
+                    deferredCommands.append(command)
+                }
+                continue
             }
             if let action = actions[macro] {
                 if files.count > flushed {
@@ -234,7 +255,10 @@ public enum VoiceMessagePlanner {
                 continue
             }
             if let command = MacroCommand.parse(token) {
-                commands.append(command)
+                // `{SETWAVDIR}` is applied by the app before the message is planned (its files use it).
+                if !command.isWavDir {
+                    commands.append(command)
+                }
                 continue
             }
             if CallStackMacro.handledBeforeVoice.contains(macro) {
@@ -263,7 +287,7 @@ public enum VoiceMessagePlanner {
             case "*", "{MYCALL}": voice(ctx.myCall, lettersDir, exists, &files, &missing)
             case "@": voice(frequency(ctx.freqHz), lettersDir, exists, &files, &missing)
             default:
-                let rel = expandPath(token, ctx.operatorCall)
+                let rel = expandPath(token, ctx.operatorCall, wavDirName: ctx.wavDirName)
                 let relPath = try JavaPath(rel)
                 let path = relPath.isAbsolute ? relPath : wavDir.resolve(relPath).normalize()
                 if exists(path) {
@@ -284,6 +308,8 @@ public enum VoiceMessagePlanner {
         var plan = Plan(files: files, missing: missing, steps: steps, unknownMacros: unknown)
         plan.commands = commands
         plan.varyUsed = varyUsed
+        plan.deferredActions = deferredActions
+        plan.deferredCommands = deferredCommands
         return plan
     }
 
@@ -337,7 +363,8 @@ public enum VoiceMessagePlanner {
         let name = item.uppercased()
         switch name {
         case "{LOG}", "{WIPE}", "{RUN}", "{S&P}", "{END}", "{CLEARRIT}", "{RITCLEAR}", "{CQFREQ}", "{NOSPLIT}",
-             "{SPOTME}", "{CQ}", "{QSYCQ}", "{EXCHSENT}", "{CTRLHOME}", "{FORCELOG}", "{FORCELOGNOTE}", "{SPACE}":
+             "{SPOTME}", "{CQ}", "{QSYCQ}", "{EXCHSENT}", "{CTRLHOME}", "{FORCELOG}", "{FORCELOGNOTE}", "{SPACE}",
+             "{PGUP}", "{PGDN}", "{FREQUP}", "{FREQDN}", "{TURNROTOR}", "{LONGPATH}", "{STOPROTOR}", "{TX}":
             return true
         default:
             guard name.hasPrefix("{F"), name.hasSuffix("}"), let number = Int(name.dropFirst(2).dropLast()) else {

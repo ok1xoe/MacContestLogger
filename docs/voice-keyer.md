@@ -78,7 +78,10 @@ performed, never played as files (the same set and meaning as in
 | `{CQ}`, `{QSYCQ}`, `{EXCHSENT}`, `{CTRLHOME}`, `{FORCELOG}`, `{FORCELOGNOTE}`, `{SPACE}` | as in [cw-keyer.md](cw-keyer.md#more-macros-n1mm) |
 | `{COMMENT text}` | adds the text to the QSO's note; performed when the message starts |
 | `{VARYMSG1&a.wav&b.wav&N&}` | alternating message, as in CW (`{VARYMSG2 &TU.wav&TUMYCALL.wav&2&}` plays the longer thank-you after every second QSO) |
-| `{END}` | ends the message; everything after it is ignored |
+| `{END}` | ends the message: no file after it is played; its macros run once the message has played to its end (not after Esc or an error) |
+| `{PGUP}`, `{PGDN}`, `{FREQUP}`, `{FREQDN}`, `{TURNROTOR}`, `{LONGPATH}`, `{STOPROTOR}`, `{CAT…}`, `{CATDELAY n}`, `{ANTRXnTOGGLE}`, `{AUXANTSEL nn}`, `{TELNET cmd}` | as in [cw-keyer.md](cw-keyer.md#actions-after-the-message-rig-and-station-macros) |
+| `{TX}` | the rig's PTT on until Esc (a manual PTT, with the 30 s safeguard) |
+| `{SETWAVDIR text}` | the `{WAVDIR}` of the paths, applied before this message's files are looked up |
 | `{LOGTHENPOP}`, `{LOGTHENNEXT}`, `{SOCALLSTACK}`, `{STACKANOTHER}`, `{CLRSTACK}` | the [call stack](call-stacking.md); performed **before** the message plays, so `!` and `{F5}` already mean the next call |
 
 Order: items run left to right. A macro runs once the audio before it has finished
@@ -88,7 +91,7 @@ keyed; a message of macros only (`{WIPE}`) does not key the transmitter at all.
 Esc stops the message and the macros after the point where it stopped do not run
 (no `{LOG}` after an interrupted message); the same applies after an audio error.
 
-Any other `{...}` item (for example `{CAT1ASC}`) is not performed and is not looked
+Any other `{...}` item (for example `{KEYBOARD}`) is not performed and is not looked
 up as a file; the status line warns about it.
 
 ## Recording and choosing messages in Settings
