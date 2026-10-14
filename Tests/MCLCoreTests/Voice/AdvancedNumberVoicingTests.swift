@@ -22,28 +22,46 @@ import Testing
     private static func plan(serial: Int32, all: Bool) throws -> VoiceMessagePlanner.Plan {
         var ctx = VoiceMessagePlannerTests.ctx
         ctx.serial = serial
-        let names: Set<String> = Set(VoiceMessagePlanner.advancedNumberFiles.filter { all || $0 != "THOUSAND" }
-            .map { $0 + ".wav" } + ["1.wav", "2.wav", "3.wav"])
+        var names: Set<String> = ["1.wav", "2.wav", "3.wav"]
+        for name in VoiceMessagePlanner.advancedNumberFiles where all || name != "THOUSAND" {
+            names.insert(name + ".wav")
+        }
         return try VoiceMessagePlanner.plan("#", ctx: ctx, wavDir: wav, lettersDir: letters, exists: { path in
             names.contains(path.description.split(separator: "/").last.map(String.init) ?? "")
         }, speech: nil)
     }
 
+    private static func names(_ files: [JavaPath]) -> [String] {
+        var out: [String] = []
+        for file in files {
+            let parts: [Substring] = file.description.split(separator: "/")
+            out.append(parts.last.map(String.init) ?? "")
+        }
+        return out
+    }
+
     @Test func serialsAreVoicedAsWordsWhenAllFilesExist() throws {
         let words = try Self.plan(serial: 123, all: true)
-        #expect(words.files.map { $0.description.split(separator: "/").last.map(String.init) ?? "" }
-            == ["1.wav", "HUNDRED.wav", "20.wav", "3.wav"])
+        #expect(Self.names(words.files) == ["1.wav", "HUNDRED.wav", "20.wav", "3.wav"])
         // A missing file: digit by digit (the longest recorded snippet), as before.
         let digits = try Self.plan(serial: 123, all: false)
-        #expect(digits.files.map { $0.description.split(separator: "/").last.map(String.init) ?? "" }
-            == ["12.wav", "3.wav"])
+        #expect(Self.names(digits.files) == ["12.wav", "3.wav"])
     }
 
     @Test func playbackLevelScalesSigned16Bit() {
         let samples: [Int16] = [1000, -1000, 32_767, -32_768]
-        let bytes: [UInt8] = samples.flatMap { [UInt8(truncatingIfNeeded: $0), UInt8(truncatingIfNeeded: $0 >> 8)] }
+        var bytes: [UInt8] = []
+        for sample in samples {
+            bytes.append(UInt8(truncatingIfNeeded: sample))
+            bytes.append(UInt8(truncatingIfNeeded: sample >> 8))
+        }
         let half: [UInt8] = SoundCard.scaled(bytes, bits: 16, gain: 0.5)
-        let back: [Int16] = stride(from: 0, to: half.count, by: 2).map { Int16(half[$0]) | Int16(half[$0 + 1]) << 8 }
+        var back: [Int16] = []
+        for i in stride(from: 0, to: half.count, by: 2) {
+            let low: UInt16 = UInt16(half[i])
+            let high: UInt16 = UInt16(half[i + 1]) << 8
+            back.append(Int16(bitPattern: low | high))
+        }
         #expect(back == [500, -500, 16_384, -16_384])
         #expect(SoundCard.scaled(bytes, bits: 16, gain: 1) == bytes)
         #expect(SoundCard.scaled(bytes, bits: 8, gain: 0.5) == bytes)

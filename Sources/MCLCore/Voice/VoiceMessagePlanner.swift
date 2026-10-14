@@ -434,14 +434,25 @@ public enum VoiceMessagePlanner {
     /// The files of N1MM's advanced voicing of serial numbers: `0.wav`…`19.wav`, the tens `20.wav`…`90.wav`,
     /// `HUNDRED.wav` and `THOUSAND.wav` (123 = 1, HUNDRED, 20, 3). All of them must exist in the letters directory,
     /// otherwise `nil` — the number is voiced digit by digit as before.
-    public static let advancedNumberFiles: [String] = (0...19).map(String.init) + stride(from: 20, through: 90, by: 10)
-        .map(String.init) + ["HUNDRED", "THOUSAND"]
+    public static let advancedNumberFiles: [String] = {
+        var names: [String] = []
+        for n in 0...19 {
+            names.append(String(n))
+        }
+        for tens in 2...9 {
+            names.append(String(tens * 10))
+        }
+        names.append("HUNDRED")
+        names.append("THOUSAND")
+        return names
+    }()
 
     static func advancedNumber(_ number: Int, _ letters: JavaPath, _ exists: (JavaPath) -> Bool) -> [JavaPath]? {
         guard number >= 0, number < 1_000_000 else { return nil }
-        let paths: [String: JavaPath] = Dictionary(uniqueKeysWithValues: advancedNumberFiles.map {
-            ($0, letters.resolve(fileName: $0 + ".wav"))
-        })
+        var paths: [String: JavaPath] = [:]
+        for name in advancedNumberFiles {
+            paths[name] = letters.resolve(fileName: name + ".wav")
+        }
         guard paths.values.allSatisfy(exists) else { return nil }
         return numberWords(number).compactMap { paths[$0] }
     }

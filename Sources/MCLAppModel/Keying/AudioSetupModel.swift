@@ -109,8 +109,11 @@ public final class AudioSetupModel {
     nonisolated static func tone() -> [UInt8] {
         var out: [UInt8] = []
         out.reserveCapacity(toneRate * 2)
+        let step: Double = 2 * Double.pi * 1000 / Double(toneRate)
         for n in 0..<toneRate {
-            let value = Int16((sin(2 * Double.pi * 1000 * Double(n) / Double(toneRate)) * 16_384).rounded())
+            let phase: Double = step * Double(n)
+            let sample: Double = sin(phase) * 16_384
+            let value: Int16 = Int16(sample.rounded())
             let bits = UInt16(bitPattern: value)
             out.append(UInt8(truncatingIfNeeded: bits))
             out.append(UInt8(truncatingIfNeeded: bits >> 8))
