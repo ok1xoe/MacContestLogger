@@ -73,13 +73,17 @@ import Testing
     @Test func bearingLineNeedsACountryAndThePosition() async throws {
         let app = try await TestApp.make()
         app.model.entry.callChanged("DL1ABC")
-        // The fixture's countries have no coordinates.
+        // The fixture's countries have no coordinates: the country alone.
+        #expect(app.model.entry.bearingLine == "Germany")
+        app.model.entry.callChanged("")
         #expect(app.model.entry.bearingLine == nil)
         #expect(InfoLines.bearing(nil) == nil)
+        #expect(InfoLines.countryAndBearing(nil) == nil)
         let info = CallsignInfo(prefix: "GI", entityName: "Northern Ireland", continent: "EU", cqZone: 14,
                                 shortPathDeg: 51, longPathDeg: 231, distanceKm: 4847, distanceMiles: 3012,
                                 sunrise: nil, sunset: nil, dxLocalTime: nil, dxDayOfWeek: nil)
         #expect(InfoLines.bearing(info) == "SP 51° LP 231° · 4847 km")
+        #expect(InfoLines.countryAndBearing(info) == "Northern Ireland · SP 51° LP 231° · 4847 km")
     }
 
     @Test func callBandStatusFromMultipliers() {

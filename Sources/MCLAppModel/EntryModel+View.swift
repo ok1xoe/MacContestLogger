@@ -97,8 +97,8 @@ extension EntryModel {
         }
     }
 
-    /// N1MM's bearing line: short and long path beam headings and the short-path distance to the typed call's
-    /// country; `nil` without a call, a country or the station's position.
+    /// N1MM's status line of the typed call: its country, then the short and long path beam headings and the
+    /// short-path distance (when the station's position is known); `nil` without a call or a country.
     public var bearingLine: String? {
         let call: String = InfoLines.normalizedCall(form.call)
         guard !call.isEmpty else { return nil }
@@ -107,6 +107,6 @@ extension EntryModel {
         let info: CallsignInfo? = try? InfoLines.callsignInfo(typedCall: call, lookup: contest.runtime.dxccLookup,
                                                               myLat: position.lat, myLon: position.lon,
                                                               now: JavaInstant(date: now()))
-        return InfoLines.bearing(info)
+        return InfoLines.countryAndBearing(info)
     }
 }

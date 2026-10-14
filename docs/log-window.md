@@ -17,8 +17,15 @@ Right-click a QSO (as N1MM's [Log window right-click menu](https://n1mmwp.hamdoc
 | **Přehrát nahrávku QSO** (Play QSO recording) | plays the recording of the QSO |
 | **Naladit na frekvenci QSO** (Jump to this frequency) | tunes the rig to the QSO's frequency and mode |
 | **Přepočítat od tohoto QSO** (Rescore from this QSO on) | rescores the QSOs from this one on (in a contest), like [Rescore last N hours](score-window.md#rescoring-the-last-n-hours) |
+| **Rate k tomuto QSO v okně Info** (Show rates to this QSO in Info) | opens the Info window with its rate graphs as they were at this QSO (the log up to it, at its time); **Aktuální rate** (Current rates) there goes back to now |
 | **Kopírovat jako ADIF** (Copy as ADIF) | copies the QSO — or the whole selection it is part of — to the clipboard as ADIF |
 | **Smazat QSO** (Delete QSO) | deletes the QSO; it can be restored, see [Deleted QSOs](#deleted-qsos) |
+
+## Previous QSOs of the typed call
+
+As N1MM's lower pane of the Log window, while a call is typed in the entry window the bottom of the log window lists
+the QSOs already logged with it — time, band, mode, reports, the sent and received serial numbers, the exchange and
+the note — or says there is none yet.
 
 ## View options
 

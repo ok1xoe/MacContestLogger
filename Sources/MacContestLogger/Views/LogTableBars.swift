@@ -315,3 +315,41 @@ struct DeleteSelectionSheet: View {
         }
     }
 }
+
+/// N1MM's lower pane of the log window: the QSOs already logged with the call typed in the entry window, with all
+/// their fields (the sent serial, the exchange, the note…).
+struct LogPreviousQsosPane: View {
+    let app: AppModel
+    let table: LogTableModel
+
+    var body: some View {
+        let language: LanguageModel = app.language
+        let call: String = table.typedCall
+        let rows: [Qso] = table.previousQsos
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: rows.isEmpty ? language.tr("%s: zatím žádné QSO", .string(call))
+                : language.tr("Předchozí QSO s %s: %s", .string(call), .int(rows.count)))
+                .windowFont(12, weight: .semibold)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("log.previous.title")
+            if !rows.isEmpty {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 1) {
+                        ForEach(Array(rows.enumerated()), id: \.offset) { _, qso in
+                            Text(verbatim: LogTableModel.previousLine(qso))
+                                .windowFont(12, design: .monospaced)
+                                .lineLimit(1)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 96)
+                .accessibilityLabel(Text(verbatim: language.tr("Předchozí QSO s %s: %s", .string(call),
+                                                               .int(rows.count))))
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+    }
+}

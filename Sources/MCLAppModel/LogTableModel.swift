@@ -30,6 +30,8 @@ public final class LogTableModel {
         case jumpToFrequency
         /// N1MM „Rescore from this point on": a rescore of the QSOs from this one on.
         case rescoreFromHere
+        /// N1MM „Show rates to this QSO in Info": the Info window's rate graphs at this QSO.
+        case ratesToHere
         /// N1MM „Copy as ADIF": the row, or the selection it is part of, to the clipboard as ADIF.
         case copyAdif
         /// A bulk action over the selection (the selection bar's actions in the menu).
@@ -49,6 +51,8 @@ public final class LogTableModel {
                 return ContestMessage("Naladit na frekvenci QSO")
             case .rescoreFromHere:
                 return ContestMessage("Přepočítat od tohoto QSO")
+            case .ratesToHere:
+                return ContestMessage("Rate k tomuto QSO v okně Info")
             case .copyAdif:
                 return ContestMessage("Kopírovat jako ADIF")
             case .deleteOne:
@@ -94,6 +98,9 @@ public final class LogTableModel {
         public var edit: @MainActor (Int64) -> Void = { _ in }
         public var tune: @MainActor (Int64, Mode?) -> Void = { _, _ in }
         public var rescoreFrom: @MainActor (Date) -> Void = { _ in }
+        public var ratesTo: @MainActor (Int64) -> Void = { _ in }
+        /// The call typed in the active entry window (the previous QSOs pane).
+        public var typedCall: @MainActor () -> String = { "" }
         public var copy: @MainActor (String) -> Void = { _ in }
         /// Whether a contest is open (the rescore item).
         public var contestActive: @MainActor () -> Bool = { false }
@@ -139,6 +146,14 @@ public final class LogTableModel {
         }
         actions.copy = { [weak app] text in
             app?.clipboard(text)
+        }
+        actions.ratesTo = { [weak app] id in
+            guard let app else { return }
+            app.windows.setOpen("rate", true)
+            app.info.showRates(atQso: id)
+        }
+        actions.typedCall = { [weak app] in
+            app?.typedCall ?? ""
         }
         actions.contestActive = { [weak contest = app.contest] in
             contest?.runtime.isActive ?? false
@@ -251,6 +266,40 @@ public final class LogTableModel {
         actions.setModeColumn(on)
     }
 
+    // MARK: - previous QSOs of the typed call
+
+    /// The call typed in the active entry window, normalized (`""` = none).
+    public var typedCall: String {
+        InfoLines.normalizedCall(actions.typedCall())
+    }
+
+    /// N1MM's lower pane of the log window: the logged QSOs with the typed call, oldest first.
+    public var previousQsos: [Qso] {
+        let call: String = typedCall
+        guard !call.isEmpty else { return [] }
+        return logbook.rows.filter { $0.call == call }
+    }
+
+    /// One QSO of the pane: time, band, mode, reports, serial numbers, exchange and note.
+    public static func previousLine(_ qso: Qso) -> String {
+        var parts: [String] = [LogTableColumns.timeText(qso.timestampUtc), qso.band?.adif ?? "",
+                               qso.mode?.rawValue ?? "", qso.rstSent, qso.rstRcvd]
+        if let sent = qso.serialSent {
+            parts.append("#" + String(sent))
+        }
+        if let received = qso.serialRcvd {
+            parts.append("→ " + String(received))
+        }
+        parts.append(qso.exchangeRcvd)
+        if !KotlinStrings.isBlank(qso.comment) {
+            parts.append("· " + qso.comment)
+        }
+        if qso.xqso {
+            parts.append("X-QSO")
+        }
+        return parts.filter { !$0.isEmpty }.joined(separator: "  ")
+    }
+
     // MARK: - deleted QSOs (N1MM DELETEDQS)
 
     /// The deleted QSOs shown in the „Smazaná QSO" sheet; `nil` = the sheet is closed.
@@ -361,6 +410,9 @@ public final class LogTableModel {
         if actions.contestActive(), qso.timestampUtc != nil {
             items.append(.rescoreFromHere)
         }
+        if qso.timestampUtc != nil {
+            items.append(.ratesToHere)
+        }
         items += [.copyAdif, .deleteOne]
         return items
     }
@@ -410,6 +462,8 @@ public final class LogTableModel {
             if let time = row(id)?.timestampUtc {
                 actions.rescoreFrom(time)
             }
+        case .ratesToHere:
+            actions.ratesTo(id)
         case .copyAdif:
             copyAdif(row: id)
         case .deleteOne:

@@ -74,6 +74,20 @@ public final class InfoModel {
     public private(set) var isOpen = false
     /// The latest finished snapshot of the log.
     public private(set) var stats: ContestStats = ContestStats.of([])
+    /// N1MM „Show rates to this QSO in Info": the rate graphs as they were at a logged QSO (its time and the log up to
+    /// it); `nil` = now.
+    public private(set) var ratesAt: RatesAt?
+
+    /// The QSO the rate graphs are shown at.
+    public struct RatesAt: Equatable, Sendable {
+        public let call: String
+        public let time: Date
+        let stats: ContestStats
+
+        public static func == (lhs: RatesAt, rhs: RatesAt) -> Bool {
+            lhs.call == rhs.call && lhs.time == rhs.time
+        }
+    }
     /// The moment of the last tick.
     public private(set) var now: JavaInstant
     public private(set) var header: InfoHeader
@@ -157,6 +171,26 @@ public final class InfoModel {
         let empty: ContestStats = ContestStats.of([])
         offTime = InfoTimers.offTime(mode: "sinceLastQso", stats: empty, now: start, rules: nil, contestStart: nil)
         nearTerm = RatePanel.nearTerm(stats: empty, now: start, goal: nil)
+    }
+
+    // MARK: - rates at a QSO
+
+    /// Shows the rate graphs at the logged QSO `id`: the log up to it (by time) at its time.
+    public func showRates(atQso id: Int64) {
+        guard let qso = logbook.rows.first(where: { $0.id == id }), let time = qso.timestampUtc else { return }
+        let upTo: [Qso] = logbook.rows.filter { row in
+            guard let rowTime = row.timestampUtc else { return false }
+            return rowTime <= time
+        }
+        ratesAt = RatesAt(call: qso.call, time: time, stats: ContestStats.of(upTo))
+        recompute()
+    }
+
+    /// Back to the rates of now.
+    public func showCurrentRates() {
+        guard ratesAt != nil else { return }
+        ratesAt = nil
+        recompute()
     }
 
     // MARK: - open and close
@@ -285,8 +319,10 @@ public final class InfoModel {
         let goalAt: (JavaInstant) -> Int? = { instant in
             RatePanel.goal(goals: goalSet, contestStart: start, showGoals: showGoals, at: instant)
         }
-        nearTerm = RatePanel.nearTerm(stats: stats, now: at, goal: goalAt(at), translate: translator)
-        trend = try? RatePanel.trend(stats: stats, now: at, minutes: settings.trendMinutes, goalAt: goalAt,
+        let rateStats: ContestStats = ratesAt?.stats ?? stats
+        let rateNow: JavaInstant = ratesAt.map { JavaInstant(date: $0.time) } ?? at
+        nearTerm = RatePanel.nearTerm(stats: rateStats, now: rateNow, goal: goalAt(rateNow), translate: translator)
+        trend = try? RatePanel.trend(stats: rateStats, now: rateNow, minutes: settings.trendMinutes, goalAt: goalAt,
                                      translate: translator)
     }
 

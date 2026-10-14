@@ -52,7 +52,7 @@ import Testing
         let id: Int64 = try id(app, "DL1ABC")
         let items: [LogTableModel.MenuItem] = table.menuItems(forRow: id)
         #expect(items == [.edit, .toggleXqso(isXqso: false), .playRecording, .jumpToFrequency, .rescoreFromHere,
-                          .copyAdif, .deleteOne])
+                          .ratesToHere, .copyAdif, .deleteOne])
         recorder.contest = false
         #expect(!table.menuItems(forRow: id).contains(.rescoreFromHere), "rescoring needs an open contest")
         // A selection of two or more: its bulk actions with the ADIF copy.

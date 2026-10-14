@@ -59,6 +59,20 @@ private struct InfoContent: View {
         let language: LanguageModel = app.language
         VStack(alignment: .leading, spacing: 0) {
             infoLines(info)
+            if let at = info.ratesAt {
+                HStack(spacing: 8) {
+                    Text(verbatim: language.tr("Rate k QSO %s (%s)", .string(at.call),
+                                               .string(LogTableColumns.timeText(at.time))))
+                        .windowFont(12, weight: .semibold)
+                        .foregroundStyle(InfoColors.operatorCall)
+                    Button(language.tr("Aktuální rate")) {
+                        info.showCurrentRates()
+                    }
+                    .windowFont(12)
+                }
+                .padding(.top, 6)
+                .accessibilityIdentifier("info.ratesAt")
+            }
             HStack(alignment: .top, spacing: 20) {
                 NearTermChart(rates: info.nearTerm,
                               summary: AccessibilityText.rateBarsValue(info.nearTerm, translator: language.translator))
