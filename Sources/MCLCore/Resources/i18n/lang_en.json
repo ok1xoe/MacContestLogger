@@ -1743,5 +1743,16 @@
  "Pass frekvence %s zrušena": "Pass frequency %s cleared",
  "Pass frekvence %s kHz oznámena ostatním stanicím": "Pass frequency %s kHz announced to the other stations",
  "Pass frekvence zrušena": "Pass frequency cleared",
- "Pass frekvence: síťový deník není připojený": "Pass frequency: the network log is not connected"
+ "Pass frekvence: síťový deník není připojený": "Pass frequency: the network log is not connected",
+ "{TELNET}: DX cluster není připojený": "{TELNET}: the DX cluster is not connected",
+ "QSY makry {PGUP}/{PGDN} (kHz)": "{PGUP}/{PGDN} macro QSY (kHz)",
+ "CAT makro: TRX %s není připojený": "CAT macro: rig %s is not connected",
+ "CAT makro: %s": "CAT macro: %s",
+ "Anténa: během vysílání se nepřepíná": "Antenna: not switched while transmitting",
+ "Anténa ANT%s": "Antenna ANT%s",
+ "Anténa ANT%s + RX anténa": "Antenna ANT%s + RX antenna",
+ "Anténa: TRX není připojený": "Antenna: the rig is not connected",
+ "Anténa: %s": "Antenna: %s",
+ "Anténa s kódem %s není v tabulce antén": "No antenna with code %s in the antenna table",
+ "PTT zapnuto ({TX}; Esc ukončí, pojistka 30 s)": "PTT on ({TX}; Esc ends it, 30 s safeguard)"
 }

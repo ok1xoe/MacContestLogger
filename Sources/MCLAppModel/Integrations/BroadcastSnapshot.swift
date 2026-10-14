@@ -17,6 +17,8 @@ struct BroadcastSnapshot: Sendable {
     var activeId: String?
     /// The stable session number of N1MM `contestnr`.
     var contestNr: Int32 = 0
+    /// N1MM `{AUXANTSEL}`: the antenna the macro selected.
+    var auxAntenna: AntennaEntry?
 }
 
 /// The lock around the snapshot.
@@ -35,7 +37,7 @@ final class BroadcastSnapshotBox: Sendable {
     func radioData() -> BroadcastXml.RadioData? {
         let s: BroadcastSnapshot = value
         return BroadcastMapping.radioData(stationCall: s.stationCall, catConnected: s.catConnected, rig: s.rig,
-                                          operatorCall: s.operatorCall, runMode: s.runMode)
+                                          operatorCall: s.operatorCall, runMode: s.runMode, auxAntenna: s.auxAntenna)
     }
 
     /// `AppState.scoreData()` over the snapshot.

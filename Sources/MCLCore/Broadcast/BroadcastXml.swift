@@ -58,6 +58,9 @@ public enum BroadcastXml {
         public var mode: String?
         public var opCall: String?
         public var isRunning: Bool
+        /// N1MM `{AUXANTSEL nn}`: the antenna selected by the macro (its code and name), `nil` = none (Swift-only).
+        public var auxAntennaCode: Int?
+        public var auxAntennaName: String = ""
 
         public init(stationName: String?, freqHz: Int64, mode: String?, opCall: String?, isRunning: Bool) {
             self.stationName = stationName
@@ -174,6 +177,10 @@ public enum BroadcastXml {
         b += tag("IsTransmitting", "False")
         b += tag("IsStereo", "False")
         b += tag("IsSplit", "False")
+        if let code = r.auxAntennaCode {
+            b += tag("AuxAntSelected", String(code))
+            b += tag("AuxAntSelectedName", r.auxAntennaName)
+        }
         b += "</RadioInfo>"
         return b
     }

@@ -26,6 +26,10 @@ public final class RigModel {
     public internal(set) var vfo: VfoState
     /// `currentAntenna` and its identity (rules (a)–(c)).
     public internal(set) var antenna = AntennaApply()
+    /// N1MM `{AUXANTSEL nn}`: the antenna it selected last (announced in the UDP RadioInfo).
+    public internal(set) var auxAntenna: AntennaEntry?
+    /// N1MM `{ANTRXnTOGGLE}`: the port and RX antenna state per rig index.
+    @ObservationIgnored var macroAntenna: [Int: MacroAntennaState] = [:]
     /// Kotlin `focusVfoRequest`: the entry window `vfo` takes the focus (the view clears it).
     public var focusVfoRequest: Int?
 

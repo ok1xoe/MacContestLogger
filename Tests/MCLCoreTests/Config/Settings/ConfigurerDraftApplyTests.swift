@@ -302,7 +302,7 @@ import Testing
                                "entryBandButtonsClick",
                                "entryShowUtcClock",
                                "entryHiddenSections",
-                               "resetRxAfterRunQso",
+                               "resetRxAfterRunQso", "macroQsyStepKHz",
                                "ctyEnabled",
                                "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",
                                "callHistoryFile",

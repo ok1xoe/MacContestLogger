@@ -40,10 +40,13 @@ public enum BroadcastMapping {
 
     /// `radioData()`: nothing while the radio is not connected or reports no state.
     public static func radioData(stationCall: String, catConnected: Bool, rig: RigState?, operatorCall: String,
-                                 runMode: RunMode) -> BroadcastXml.RadioData? {
+                                 runMode: RunMode, auxAntenna: AntennaEntry? = nil) -> BroadcastXml.RadioData? {
         guard catConnected, let rig else { return nil }
-        return BroadcastXml.RadioData(stationName: stationCall, freqHz: rig.freqHz, mode: rig.mode?.rawValue ?? "",
-                                      opCall: operatorCall, isRunning: runMode == .run)
+        var data = BroadcastXml.RadioData(stationName: stationCall, freqHz: rig.freqHz, mode: rig.mode?.rawValue ?? "",
+                                          opCall: operatorCall, isRunning: runMode == .run)
+        data.auxAntennaCode = auxAntenna?.code
+        data.auxAntennaName = auxAntenna?.name ?? ""
+        return data
     }
 
     /// `scoreData()`: nothing outside a contest or before the first score. The contest name falls back to the

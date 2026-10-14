@@ -264,7 +264,7 @@ extension RigModel {
             band: band, azimuth: azimuth, antennas: config.config.antennas, activeVfo: vfo.activeVfo,
             viaRig: config.config.antennaViaRig, rigConnected: active.connected)
         antenna = next
-        apply(plan)
+        applyAntennaPlan(plan)
     }
 
     /// Kotlin `nextAntenna()` (a key): the band's next antenna.
@@ -280,7 +280,7 @@ extension RigModel {
         case .none(let message):
             show(message)
         case .apply(let plan):
-            apply(plan)
+            applyAntennaPlan(plan)
         }
     }
 
@@ -291,7 +291,7 @@ extension RigModel {
 
     /// Kotlin `applyAntenna`: the status at once; OTRSP `AUX` and the rig's connector in the background,
     /// results ignored.
-    private func apply(_ plan: AntennaApply.Plan?) {
+    func applyAntennaPlan(_ plan: AntennaApply.Plan?) {
         guard let plan else { return }
         peripherals.otrspAux(port: plan.otrspAux.port, code: plan.otrspAux.code)
         if let code = plan.rigAntenna {

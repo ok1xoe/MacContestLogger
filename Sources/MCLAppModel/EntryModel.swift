@@ -39,6 +39,9 @@ public final class EntryModel {
     public internal(set) var lastPaperTime: Date?
     /// Kotlin `state.pendingNote`: the Ctrl+N note for the QSO in progress.
     public internal(set) var pendingNote: String?
+    /// N1MM `{END}`: the macros waiting for the transmission to finish, and the generation that cancels them.
+    @ObservationIgnored var pendingDeferred: (actions: [CwMessage.Action], commands: [MacroCommand])?
+    @ObservationIgnored var deferredGeneration: Int = 0
     /// The typed call's status on each band of the band buttons (`updateBandStatuses`).
     public internal(set) var bandStatuses: [Band: CallBandStatus] = [:]
     /// The exchange values the call history or a spot filled in (field id → value), for N1MM „Clear auto-populated

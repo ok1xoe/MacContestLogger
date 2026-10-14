@@ -203,7 +203,7 @@ public final class BroadcastService: @unchecked Sendable {
     /// One pass of the radio loop (Kotlin `radioLoop` without `delay`).
     func radioStep(ticks: Int32) {
         guard let r = radioProvider() else { return }
-        let key: String = String(r.freqHz) + "/" + (r.mode ?? "null")
+        let key: String = String(r.freqHz) + "/" + (r.mode ?? "null") + (r.auxAntennaCode.map { "/" + String($0) } ?? "")
         lock.lock()
         let send: Bool = key != lastRadioKey || ticks % 10 == 0
         if send {

@@ -152,10 +152,11 @@ import Testing
         // 11 keys of the cluster queries about a station and the spot history and
         // 9 keys of the filter width and CW reverse keys, the secondary CW speed step and the rotator keys' N1MM defaults and
         // 5 keys of the wipe-other-window and last-CQ-frequency keys and SH/DX in the call field and
-        // 10 keys of the Run/Mult and pass frequency keys.
-        #expect(map.count == 1_745)
+        // 10 keys of the Run/Mult and pass frequency keys and
+        // 11 keys of the {END}, rig, antenna, CAT and Telnet macros.
+        #expect(map.count == 1_756)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_745)
+        #expect(german.count == 1_756)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

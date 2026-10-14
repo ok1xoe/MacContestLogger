@@ -102,6 +102,9 @@ public struct FunctionKeyOutcome: Equatable, Sendable {
     public var commands: [MacroCommand] = []
     /// The `{VARYMSGn}` macros of the sent message (their counters move on).
     public var varyUsed: [Int] = []
+    /// N1MM `{END}`: what runs once the transmission has finished (nothing when it is stopped or nothing is sent).
+    public var deferredActions: [CwMessage.Action] = []
+    public var deferredCommands: [MacroCommand] = []
     /// F1 sent: `onCqSent(freqHz)` — CQ frequency remembered, Run (N1MM "CQ key is special").
     public var cqSentFreqHz: Int64?
     /// Ctrl+Shift+F in phone: start/stop recording this key.
@@ -205,6 +208,8 @@ public enum FunctionKeyRouter {
         out.commands = message.commands
         if !message.isEmpty {
             out.varyUsed = message.varyUsed
+            out.deferredActions = digital ? message.deferredActions : cwActions(message.deferredActions)
+            out.deferredCommands = message.deferredCommands
         }
         if digital {
             if !message.isEmpty {
@@ -225,10 +230,16 @@ public enum FunctionKeyRouter {
                 out.transmission = .cw(message.withoutNewlines, index: index)
             }
         }
-        out.actions = digital ? message.actions
-            : message.actions.filter {
-                ![.digitalTx, .digitalRx, .clearTx, .toggleTx, .align, .afcOn, .afcOff, .netOn, .netOff].contains($0)
-            }
+        // N1MM `{TX}` in CW: a message that sends nothing keys the PTT by hand (Esc releases it).
+        let manualPtt: Bool = message.isEmpty && message.actions.contains(.digitalTx)
+        out.actions = digital ? message.actions : cwActions(message.actions) + (manualPtt ? [.manualPtt] : [])
+    }
+
+    /// The actions of a CW message: the digital-only ones are dropped.
+    private static func cwActions(_ actions: [CwMessage.Action]) -> [CwMessage.Action] {
+        actions.filter {
+            ![.digitalTx, .digitalRx, .clearTx, .toggleTx, .align, .afcOn, .afcOff, .netOn, .netOff].contains($0)
+        }
     }
 
     /// `{LOGTHENPOP}` / `{LOGTHENNEXT}` (N1MM, Run only): the text before the macro goes to the station being logged,
@@ -272,7 +283,9 @@ public enum FunctionKeyRouter {
         parts += second.parts
         return CwMessage(parts: parts, actions: first.actions + [.logThenPop] + second.actions,
                          unknownMacros: first.unknownMacros + second.unknownMacros,
-                         commands: first.commands + second.commands, varyUsed: first.varyUsed + second.varyUsed)
+                         commands: first.commands + second.commands, varyUsed: first.varyUsed + second.varyUsed,
+                         deferredActions: first.deferredActions + second.deferredActions,
+                         deferredCommands: first.deferredCommands + second.deferredCommands)
     }
 
     /// A refused press: nothing sent, the ESM progress and the last sent keys stay.

@@ -39,6 +39,8 @@ public protocol KeyerPort: Sendable {
     @MainActor func toggleTune() -> EntryStatus?
     /// PgUp/PgDn in CW: the CW speed by `deltaWpm`; the result is a status to show (`nil` = none).
     @MainActor func changeCwSpeed(by deltaWpm: Int) -> EntryStatus?
+    /// N1MM `{TX}` in CW / SSB: the active rig's PTT on until Esc; the result is a status to show (`nil` = none).
+    @MainActor func manualPtt() -> EntryStatus?
 }
 
 extension KeyerPort {
@@ -51,6 +53,10 @@ extension KeyerPort {
     }
 
     public func changeCwSpeed(by deltaWpm: Int) -> EntryStatus? {
+        .tr(EntryTexts.unavailable)
+    }
+
+    public func manualPtt() -> EntryStatus? {
         .tr(EntryTexts.unavailable)
     }
 }

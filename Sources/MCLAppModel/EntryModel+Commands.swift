@@ -174,6 +174,7 @@ extension EntryModel {
         // Esc releases a plugin's PTT too (plugin transmissions stay blocked until allowed again), and goes on to
         // stop everything else.
         rig?.operatorStopped()
+        cancelDeferred()
         let pluginPtt: Bool = rig?.releasePluginPtt(stoppingEverything: true) ?? false
         let keyer: any KeyerPort = ports.keyer
         if keyer.isTuning {
@@ -634,9 +635,8 @@ extension EntryModel {
             operating.noteVaryUsed(outcome.varyUsed)
         }
         // The parameterized macros first: a `{COMMENT}` belongs to the QSO a `{LOG}` of the same message logs.
-        for command in outcome.commands {
-            performMacroCommand(command)
-        }
+        performMacroCommands(outcome.commands)
+        scheduleDeferred(outcome)
         for action in outcome.actions {
             if action == .logThenPop {
                 logThenPop(next: outcome.stackNextCall, progress: outcome.stackProgress,
@@ -746,15 +746,113 @@ extension EntryModel {
             forceLog()
         case .space:
             jumpToExchange()
+        case .pageUp, .freqDown:
+            // N1MM: {PGUP} moves the rig down and {PGDN} up by the PgUp/PgDn step.
+            macroQsy(-config.config.macroQsyStepKHz)
+        case .pageDown, .freqUp:
+            macroQsy(config.config.macroQsyStepKHz)
+        case .turnRotor:
+            rig?.rotator.turnToCall(KotlinStrings.trim(form.call), longPath: false)
+        case .longPath:
+            rig?.rotator.turnToCall(KotlinStrings.trim(form.call), longPath: true)
+        case .stopRotor:
+            rig?.rotator.stop()
+        case .manualPtt:
+            if let message = ports.keyer.manualPtt() {
+                show(message)
+            }
         }
     }
 
     /// A parameterized macro of a sent message (N1MM `{COMMENT text}`…).
     func performMacroCommand(_ command: MacroCommand) {
-        switch command {
-        case .comment(let text):
-            addComment(text)
+        performMacroCommands([command])
+    }
+
+    /// The parameterized macros of a message in order; `{CATDELAY}` pauses the rig's lane after the message's last CAT
+    /// command (N1MM: wherever it stands).
+    func performMacroCommands(_ commands: [MacroCommand]) {
+        var delay = 0
+        for case .catDelay(let n) in commands {
+            delay = n
         }
+        let lastCat: Int? = commands.lastIndex { if case .cat = $0 { true } else { false } }
+        for (index, command) in commands.enumerated() {
+            switch command {
+            case .comment(let text):
+                addComment(text)
+            case .cat(let macro):
+                rig?.sendMacroCat(macro, delayMs: index == lastCat ? delay * 50 : 0)
+            case .catDelay:
+                break
+            case .telnet(let text):
+                if clusterCommand?(text) != true {
+                    show(.tr("{TELNET}: DX cluster není připojený"))
+                }
+            case .setWavDir(let text):
+                operating.setWavDir(text)
+            case .auxAntenna(let code):
+                rig?.selectAntenna(code: code)
+            case .antennaRx(let port):
+                rig?.toggleRxAntenna(port: port, transmitting: ports.keyer.isSending)
+            }
+        }
+    }
+
+    /// `{PGUP}` / `{PGDN}` / `{FREQUP}` / `{FREQDN}`: the entry window and the rig by `deltaKHz`.
+    private func macroQsy(_ deltaKHz: Int) {
+        let current: Int64 = form.freqHz
+        guard current > 0 else { return }
+        let hz: Int64 = current + Int64(deltaKHz) * 1000
+        guard hz > 0 else { return }
+        form.freqKHz = FrequencyText.formatHz(hz)
+        ports.rig.qsy(hz: hz)
+        fieldFrequencyChanged()
+        updatePreview()
+        reportTuned(hz)
+    }
+
+    // MARK: - {END}
+
+    /// N1MM `{END}`: the macros after it run once the transmission has finished. A message that sent nothing drops
+    /// them; a newer message or Esc cancels them.
+    private func scheduleDeferred(_ outcome: FunctionKeyOutcome) {
+        deferredGeneration &+= 1
+        pendingDeferred = nil
+        guard outcome.transmission != nil,
+              !outcome.deferredActions.isEmpty || !outcome.deferredCommands.isEmpty,
+              ports.keyer.isSending else { return }
+        pendingDeferred = (outcome.deferredActions, outcome.deferredCommands)
+        watchDeferred(deferredGeneration)
+    }
+
+    private func watchDeferred(_ generation: Int) {
+        withObservationTracking {
+            _ = ports.keyer.isSending
+        } onChange: { [weak self] in
+            MainHop.post {
+                self?.deferredCheck(generation)
+            }
+        }
+    }
+
+    private func deferredCheck(_ generation: Int) {
+        guard generation == deferredGeneration, let pending = pendingDeferred else { return }
+        if ports.keyer.isSending {
+            watchDeferred(generation)
+            return
+        }
+        pendingDeferred = nil
+        performMacroCommands(pending.commands)
+        for action in pending.actions {
+            performMacroAction(action)
+        }
+    }
+
+    /// Esc: the `{END}` macros of the stopped message never run.
+    func cancelDeferred() {
+        deferredGeneration &+= 1
+        pendingDeferred = nil
     }
 
     /// `{COMMENT text}`: the text joins the note of the QSO in progress, or of the last logged QSO when the call

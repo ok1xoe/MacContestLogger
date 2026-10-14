@@ -281,6 +281,7 @@ extension ConfigurerDraft {
         config.cwSpeedStepSecondary = Self.clamped(cwSpeedStepSecondary, 1, 10) ?? 1
         config.clearPrefilledExchange = clearPrefilledExchange
         config.resetRxAfterRunQso = resetRxAfterRunQso
+        config.macroQsyStepKHz = Self.clamped(macroQsyStepKHz, 1, 100) ?? 1
         config.clubLog.enabled = clEnabled
         config.clubLog.email = Self.trim(clEmail)
         config.clubLog.appPassword = clPassword

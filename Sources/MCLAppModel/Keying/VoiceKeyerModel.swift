@@ -43,6 +43,8 @@ public final class VoiceKeyerModel {
     @ObservationIgnored private let dataDir: URL
     /// Kotlin `voiceToken`.
     @ObservationIgnored private var voiceToken: Int64 = 0
+    /// N1MM `{END}`: the macros the playing message runs once it has played to its end (for `voiceToken`).
+    @ObservationIgnored private var deferred: (actions: [CwMessage.Action], commands: [MacroCommand])?
     /// Cancels a plan or a recording start in flight.
     @ObservationIgnored private var generation: Int64 = 0
     /// Kotlin `recording`.
@@ -129,6 +131,12 @@ public final class VoiceKeyerModel {
             guard index >= 0, index < set.count, !KotlinStrings.isBlank(set[index].text) else { return nil }
             return set[index].text
         }
+        // N1MM: `{SETWAVDIR}` runs before the message's wav files are looked up.
+        for item in texts.flatMap({ $0.split(separator: ",") }) {
+            if let command = MacroCommand.parse(item.trimmingCharacters(in: .whitespaces)), command.isWavDir {
+                performCommand?(command)
+            }
+        }
         let app: AppConfig = config.config
         let request = PlanRequest(
             text: texts.joined(separator: ","), wavDir: wavDirectory, lettersPath: app.voiceKeyer.lettersPath,
@@ -153,6 +161,7 @@ public final class VoiceKeyerModel {
                                                   serial: Int32(clamping: nextSerial()), freqHz: freqHz,
                                                   functionKeys: keys)
         context.varyCounts = operating.varyCounts
+        context.wavDirName = operating.wavDirName
         return context
     }
 
@@ -192,6 +201,8 @@ public final class VoiceKeyerModel {
             operating.noteVaryUsed(plan.varyUsed)
             voiceToken &+= 1
             let token: Int64 = voiceToken
+            deferred = plan.deferredActions.isEmpty && plan.deferredCommands.isEmpty
+                ? nil : (plan.deferredActions, plan.deferredCommands)
             playingKey = key
             // Runs on the voice queue: the action is performed on the main actor and the next audio starts only after it
             // has completed, however long that takes (a local model call). Only a hung main actor (10 s) aborts the
@@ -216,6 +227,16 @@ public final class VoiceKeyerModel {
     private func finished(token: Int64, error: String?) {
         if voiceToken == token {
             playingKey = nil
+            let after = deferred
+            deferred = nil
+            if error == nil, let after {
+                for command in after.commands {
+                    performCommand?(command)
+                }
+                for action in after.actions {
+                    performAction?(action)
+                }
+            }
         }
         if let error {
             show(.tr("Hlasový klíč: %s", .string(error)))
@@ -426,7 +447,7 @@ private struct PlanRequest: Sendable {
         do {
             let wav = try JavaPath(wavDir)
             let letters: JavaPath = try VoiceMessagePlanner.resolveDir(lettersPath, operatorCall: context.operatorCall,
-                                                                       wavDir: wav)
+                                                                       wavDir: wav, wavDirName: context.wavDirName)
             let cache: JavaPath = try wav.resolve(".tts-cache")
             let voice: String = ttsVoice
             let synthesize = self.synthesize

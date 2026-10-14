@@ -46,6 +46,11 @@ struct LiveKeyer: KeyerPort {
         return nil
     }
 
+    func manualPtt() -> EntryStatus? {
+        model?.setTune(true, viaPtt: true)
+        return nil
+    }
+
     func changeCwSpeed(by deltaWpm: Int) -> EntryStatus? {
         model?.changeCwSpeed(deltaWpm)
         return nil

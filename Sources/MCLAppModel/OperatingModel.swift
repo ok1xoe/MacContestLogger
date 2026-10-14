@@ -25,8 +25,17 @@ public final class OperatingModel {
     public private(set) var cqRepeat: Bool = false
     /// Kotlin `postContest` (POSTCONTEST): the time field is shown, nothing is sent.
     public private(set) var postContest: Bool = false
-    /// The operator at the key (Kotlin `operatorCall`: the configured operator, otherwise the station call).
-    public var operatorCall: String
+    /// The operator at the key (Kotlin `operatorCall`: the configured operator, otherwise the station call). A new
+    /// operator resets `{SETWAVDIR}` (N1MM: OPON sets `{WAVDIR}` to the operator).
+    public var operatorCall: String {
+        didSet {
+            if operatorCall != oldValue {
+                wavDirName = nil
+            }
+        }
+    }
+    /// N1MM `{SETWAVDIR}`: the value of `{WAVDIR}` when it is not the operator's call (`nil`).
+    public private(set) var wavDirName: String?
     /// Kotlin `lastSentKeys` (`=` in ESM resends them).
     public var lastSentKeys: [Int] = []
     /// N1MM `{VARYMSG1}` / `{VARYMSG2}`: how many times each was sent (shared by every mode and entry window).
@@ -65,6 +74,13 @@ public final class OperatingModel {
 
     public var isRun: Bool {
         runMode == .run
+    }
+
+    /// `{SETWAVDIR text}`: `{OPERATOR}` in the text is the operator's call; the operator's own call clears it.
+    public func setWavDir(_ text: String) {
+        let value: String = KotlinStrings.trim(text.replacingOccurrences(of: "{OPERATOR}", with: operatorCall,
+                                                                        options: .caseInsensitive))
+        wavDirName = value.isEmpty || value.uppercased() == operatorCall.uppercased() ? nil : value
     }
 
     /// A sent message used these `{VARYMSGn}` macros (1, 2): their counters move on.

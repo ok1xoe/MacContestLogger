@@ -229,7 +229,10 @@ public final class KeyerModel {
     /// Winkeyer tunes on the keyer lane (`key immediate`). A CAT tune (`CatCwKeyer.tune` = the rig's PTT) runs on the
     /// tuned rig's own `RigLane`, so its off is ordered before any disconnect of that rig, and goes to the rig that
     /// was tuned even after an SO2R switch.
-    public func setTune(_ on: Bool) {
+    ///
+    /// `viaPtt` (N1MM `{TX}` in CW / SSB): the active rig's PTT over CAT whatever the CW keyer, with the same Esc and
+    /// safeguard.
+    public func setTune(_ on: Bool, viaPtt: Bool = false) {
         if on == isTuning || (on && closed) {
             return
         }
@@ -251,7 +254,7 @@ public final class KeyerModel {
         }
         if on {
             prepareKeyer()
-            if config.config.cwKeyer.method == .cat, let index = rig?.vfo.activeCatIndex {
+            if config.config.cwKeyer.method == .cat || viaPtt, let index = rig?.vfo.activeCatIndex {
                 tunedRig = index
             }
         }
@@ -263,7 +266,12 @@ public final class KeyerModel {
         } else {
             keyerTune(on, failed: failed)
         }
-        if on {
+        if on && viaPtt {
+            status.show("PTT zapnuto ({TX}; Esc ukončí, pojistka 30 s)")
+            tuneTimeout = clock.schedule(afterMilliseconds: 30_000) { [weak self] in
+                self?.setTune(false)
+            }
+        } else if on {
             status.show("LADĚNÍ — nosná (Ctrl+T nebo Esc ukončí, pojistka 30 s)")
             tuneTimeout = clock.schedule(afterMilliseconds: 30_000) { [weak self] in
                 self?.setTune(false)
