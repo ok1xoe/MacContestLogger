@@ -61,7 +61,7 @@ struct RotatorWindowView: View {
                 }
             }
             manualRow(app)
-            Text(verbatim: language.tr("Alt+J na volačku, Ctrl+Alt+J dlouhou cestou, Alt+L stop"))
+            Text(verbatim: language.tr("Alt+J na volačku, Alt+L dlouhou cestou, Ctrl+Alt+J stop"))
                 .windowFont(11)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -115,13 +115,17 @@ enum EntryCoreParitySections {
         return [(path, [F.tx(combo.format()), X.b(KeyCombo.isModifierKey(code)), X.b(combo.isAllowedShortcut)])]
     }
 
-    /// The Java v1.1.1 default of an action. The two spot jumps are a deliberate divergence: Java keeps Ctrl+↓/↑,
-    /// Swift defaults to Cmd+↓/↑ because macOS takes Ctrl+arrows for Mission Control (pinned in
-    /// `KeyBindingsTests`/`KeyComboMeasuredTests`). The reference is replayed with Java's keys for those two.
+    /// The Java v1.1.1 default of an action. Deliberate divergences: Java keeps Ctrl+↓/↑ for the spot jumps, Swift
+    /// defaults to Cmd+↓/↑ because macOS takes Ctrl+arrows for Mission Control; the rotator's long path and stop follow
+    /// N1MM (Alt+L / Ctrl+Alt+J, Java had them swapped); RIT clear moved to Ctrl+Alt+Shift+R because Ctrl+Alt+R is N1MM's
+    /// CW reverse (pinned in `KeyBindingsTests`/`KeyComboMeasuredTests`). The reference is replayed with Java's keys.
     static func javaDefaultKeys(_ action: ShortcutAction) -> String {
         switch action {
         case .nextSpotUp: "Ctrl+DOWN"
         case .nextSpotDown: "Ctrl+UP"
+        case .rotorLong: "Ctrl+Alt+J"
+        case .rotorStop: "Alt+L"
+        case .ritClear: "Ctrl+Alt+R"
         default: action.defaultKeys
         }
     }

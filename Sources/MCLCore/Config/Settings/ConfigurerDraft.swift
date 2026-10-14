@@ -129,6 +129,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     /// The Dupesheet windows sort each column by suffix.
     public var dupesheetSortBySuffix: Bool = true
     public var showSentCw: Bool = false
+    /// Shift+PgUp/PgDn CW speed step (WPM), as typed.
+    public var cwSpeedStepSecondary: String = ""
     public var clearPrefilledExchange: Bool = false
     public var resetRxAfterRunQso: Bool = false
     public var clEnabled: Bool = false
@@ -457,6 +459,7 @@ extension ConfigurerDraft {
         preferredCallbook = config.preferredCallbook
         dupesheetSortBySuffix = config.dupesheetSortBySuffix
         showSentCw = config.showSentCw
+        cwSpeedStepSecondary = String(config.cwSpeedStepSecondary)
         clearPrefilledExchange = config.clearPrefilledExchange
         resetRxAfterRunQso = config.resetRxAfterRunQso
         clEnabled = config.clubLog.enabled

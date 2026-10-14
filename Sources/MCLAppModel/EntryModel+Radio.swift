@@ -149,6 +149,12 @@ extension EntryModel {
         case .rotorStop: rig.rotator.stop()
         case .bandUp: stepBand(1)
         case .bandDown: stepBand(-1)
+        case .toggleFilter:
+            guard let controls = bandmapControls else { return unavailable() }
+            controls.toggleFilterWidth()
+        case .cwReverse:
+            guard let controls = bandmapControls else { return unavailable() }
+            controls.toggleCwReverse()
         default:
             unavailable()
         }

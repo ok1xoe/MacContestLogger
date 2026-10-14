@@ -278,6 +278,7 @@ extension ConfigurerDraft {
         config.preferredCallbook = CallbookService(configValue: preferredCallbook).rawValue
         config.dupesheetSortBySuffix = dupesheetSortBySuffix
         config.showSentCw = showSentCw
+        config.cwSpeedStepSecondary = Self.clamped(cwSpeedStepSecondary, 1, 10) ?? 1
         config.clearPrefilledExchange = clearPrefilledExchange
         config.resetRxAfterRunQso = resetRxAfterRunQso
         config.clubLog.enabled = clEnabled

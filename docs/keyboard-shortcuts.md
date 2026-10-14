@@ -59,7 +59,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Shift+F1…F12** | message from the opposite set (Run ↔ S&P); holding Shift shows the labels |
 | **Ctrl+Shift+F1…F12** | records a message (phone) |
 | **=** | in ESM repeats the last message |
-| **PgUp / PgDn** | CW speed ±2 WPM |
+| **PgUp / PgDn** | CW speed ± the CW speed step (2 WPM by default) |
+| **Shift+PgUp / PgDn** | CW speed ± the secondary step (1 WPM by default; Settings → Other) |
 | **Ctrl+G** | cut numbers on / off |
 | **Ctrl+M** | ESM on / off |
 | **Alt+R** / **Ctrl+R** | CQ repeat on / off; pause between CQs |
@@ -89,6 +90,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Ctrl+Enter** | frequency in the callsign field = transmit (split) frequency |
 | **Alt+F10** | swaps VFO A ↔ B |
 | **Alt+F12** | VFO A frequency to VFO B |
+| **Alt+'** | the rig's filter to the other width of its mode, wide ↔ narrow (the band map's Wide/Narrow button; widths in Settings → DX Cluster) |
+| **Ctrl+Alt+R** | CW reverse on / off (the rig's CW ↔ CWR mode, the filter width kept) |
 
 ## Bandmap and spots
 
@@ -117,8 +120,8 @@ Ctrl+Alt+Shift+0…Z), see [DX cluster → Band map top bar](dx-cluster.md#band-
 | Key | Action |
 |---|---|
 | **Alt+J** | rotator to the callsign in the field (otherwise the last QSO), short path |
-| **Ctrl+Alt+J** | the same via the long path |
-| **Alt+L** | stop the rotator |
+| **Alt+L** | the same via the long path |
+| **Ctrl+Alt+J** | stop the rotator |
 | **Ctrl+Alt+A** | next antenna for the band |
 
 ## Other
@@ -174,7 +177,7 @@ SO2R/SO2V (**\\**, Pause, Ctrl+←/→, Alt+F5/F6, Ctrl+Alt+D), filters **Alt+'*
 | Key / command | Action |
 |---|---|
 | **Ctrl+Alt+→ / ←** | RIT one step up / down (20 Hz CW and digital, 100 Hz phone) |
-| **Ctrl+Alt+R** | RIT off |
+| **Ctrl+Alt+Shift+R** | RIT off (Ctrl+Alt+R is CW reverse, as in N1MM) |
 | `RIT 120`, `RIT -50` | RIT to the given offset in Hz |
 | `NORIT`, `RITCLEAR` | RIT off |
 

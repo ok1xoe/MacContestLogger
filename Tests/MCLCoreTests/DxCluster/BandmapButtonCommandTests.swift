@@ -42,6 +42,16 @@ import Testing
         #expect(PluginCatPolicy.refusal("M CW 250") == nil)
     }
 
+    /// Ctrl+Alt+R: CW ↔ CWR with the passband kept (clamped to what raw CAT accepts); other modes have none.
+    @Test func cwReverseToggle() {
+        #expect(CwReverseToggle.command(rawMode: "CW", passbandHz: 500) == "M CWR 500")
+        #expect(CwReverseToggle.command(rawMode: " cwr ", passbandHz: 250) == "M CW 250")
+        #expect(CwReverseToggle.command(rawMode: "CW", passbandHz: -1) == "M CWR 0")
+        #expect(CwReverseToggle.command(rawMode: "USB", passbandHz: 2_400) == nil)
+        #expect(CwReverseToggle.command(rawMode: "", passbandHz: 0) == nil)
+        #expect(PluginCatPolicy.refusal("M CWR 500") == nil)
+    }
+
     @Test func configurationLimitsAndWidths() throws {
         var config = DxClusterConfig()
         config.bandmapButtons = (0..<40).map { DxClusterCommand(label: String($0), command: "") }

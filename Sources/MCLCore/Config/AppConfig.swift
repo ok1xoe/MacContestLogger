@@ -199,6 +199,12 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var dupesheetSortBySuffix = true
     /// N1MM „Display Sent CW": the CW being sent is shown in the status line. Swift-only key.
     public var showSentCw: Bool = false
+    /// N1MM „Secondary CW Speed Step" (Shift+PgUp/PgDn, WPM). Swift-only key.
+    public var cwSpeedStepSecondary: Int = 1 {
+        didSet {
+            if cwSpeedStepSecondary <= 0 { cwSpeedStepSecondary = 1 }
+        }
+    }
     /// N1MM „Clear auto-populated exchange on callsign change": a call change clears the exchange values the call history or a spot filled in. Swift-only key.
     public var clearPrefilledExchange: Bool = false
     /// The bands (ADIF names) whose buttons the Entry window does not show. Swift-only key.
@@ -264,6 +270,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
         case showSentCw
+        case cwSpeedStepSecondary
         case clearPrefilledExchange
         case entryHiddenBands
         case entryBandButtonsClick
@@ -387,6 +394,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         showUnmatchedCallMark = c.value(.showUnmatchedCallMark, default: d.showUnmatchedCallMark)
         dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
         showSentCw = c.value(.showSentCw, default: d.showSentCw)
+        let secondaryStep: Int = c.value(.cwSpeedStepSecondary, default: d.cwSpeedStepSecondary)
+        cwSpeedStepSecondary = secondaryStep <= 0 ? 1 : secondaryStep
         clearPrefilledExchange = c.value(.clearPrefilledExchange, default: d.clearPrefilledExchange)
         entryHiddenBands = c.value(.entryHiddenBands, default: d.entryHiddenBands)
         entryBandButtonsClick = c.value(.entryBandButtonsClick, default: d.entryBandButtonsClick)
