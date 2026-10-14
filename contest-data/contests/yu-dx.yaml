@@ -1,0 +1,48 @@
+schemaVersion: 1
+id: yu-dx
+metadata:
+  name: "YU DX HF Contest"
+  organizer: "SRS (Amateur Radio Association of Serbia)"
+  description: "1200 UTC Saturday - 1159 UTC Sunday, last full weekend of September; 80-10 m CW and SSB. YU/YT stations send RS(T) + county (30 three-letter codes), others RS(T) + serial. Points: YU station 10, other continent 4, same continent 2, own country 1, YU-YU 1. Multipliers per band regardless of mode: outside YU = DXCC countries + YU counties; in YU = DXCC countries. Same station once per band per mode. Simplification: the Cabrillo sent exchange is written for a non-YU entrant (RST + serial)."
+  officialUrl: "https://yudx.yu1srs.org.rs/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: yu, when: { entityIn: [296] } }
+  - { id: dx, when: { not: { entityIn: [296] } } }
+
+exchange:
+  sent:
+    - { id: rst,      type: RST,    source: AUTO_RST }
+    - { id: nr,       type: SERIAL, source: AUTO_SERIAL }
+    - { id: mycounty, type: TEXT,   source: FROM_STATION }   # YU stations only: own county (not written to Cabrillo)
+  received:
+    - { id: rst,    type: RST,      required: true }
+    - { id: county, type: DISTRICT, required: true, appliesWhen: { workedClass: yu },
+        validation: { regex: "^[A-Z]{3}$" } }
+    - { id: nr,     type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },        value: { fixed: 1 } }    # own country, also YU-YU
+      - { when: { workedClass: yu },      value: { fixed: 10 } }
+      - { when: { otherContinent: true }, value: { fixed: 4 } }
+      - { when: { sameContinent: true },  value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: counties,  set: yu_counties,   from: county,   scope: PER_BAND, appliesWhen: { workedClass: yu },
+      when: { not: { ownEntityIn: [296] } } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: YUDX, sentOrder: [rst, nr], receivedOrder: [rst, county, nr] }
+ui:
+  entryOrder: [call, county, nr]
+  logColumns: [time, call, band, mode, rst, county, nr, points, mult]

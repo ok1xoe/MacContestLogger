@@ -1,0 +1,48 @@
+schemaVersion: 1
+id: ea-rtty
+metadata:
+  name: "EA RTTY Contest (EARTTY)"
+  organizer: "URE"
+  description: "EA stations send province, others a serial; EA4URE sends HQ. Points EA-EA 2, EA-DX 1, DX-DX 1, DX-EA 3. Multipliers per band: DXCC entities (for EADX-100), 52 Spanish provinces + EA4URE, JA/W/VE/VK call areas. Simplified: call areas are approximated by the WPX prefix; sent field is the serial (EA stations replace it by their province)."
+  officialUrl: "https://concursos.ure.es/en/eartty/bases/"
+# usually April (2026: 4-5 April), 1200 UTC Saturday to 1159 UTC Sunday
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+stationClasses:
+  # Spain, Balearic, Canary, Ceuta & Melilla
+  - { id: ea, when: { entityIn: [281, 21, 29, 32] } }
+  - { id: dx, when: { not: { entityIn: [281, 21, 29, 32] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }   # EA stations: province (change the source)
+  received:
+    - { id: rst,  type: RST,      required: true }
+    - { id: prov, type: DISTRICT, required: true, appliesWhen: { workedClass: ea } }   # province or HQ
+    - { id: nr,   type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: { allOf: [ { ownEntityIn: [281, 21, 29, 32] }, { workedClass: ea } ] }, value: { fixed: 2 } }
+      - { when: { ownEntityIn: [281, 21, 29, 32] }, value: { fixed: 1 } }
+      - { when: { workedClass: ea }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+  - { id: provinces, set: ea_provinces,  from: prov,     scope: PER_BAND, appliesWhen: { workedClass: ea } }
+  # JA/W/VE/VK call areas (approximation: WPX prefix)
+  - { id: areas, set: wpx_prefixes, from: callsign, scope: PER_BAND, when: { entityIn: [291, 1, 339, 150] } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: EARTTY, sentOrder: [rst, nr], receivedOrder: [rst, prov, nr] }
+ui:
+  entryOrder: [call, prov, nr]
+  logColumns: [time, call, band, mode, rst, prov, nr, points, mult]

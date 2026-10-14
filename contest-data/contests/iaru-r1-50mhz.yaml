@@ -1,0 +1,38 @@
+schemaVersion: 1
+id: iaru-r1-50mhz
+metadata:
+  name: "IARU Region 1 50 MHz Contest (CW/SSB)"
+  organizer: "IARU Region 1"
+  description: "Third weekend of June, 1400-1400 UTC. RS(T) + serial + 6-char locator (4 chars from outside Region 1). Points = distance in km truncated + 1; no multipliers."
+  officialUrl: "https://www.iaru-r1.org/wp-content/uploads/2026/09/Rules-IARU-R1-VHF-up-Contests.pdf"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1400" }
+bands: [6m]
+modes: [CW, SSB, FM]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: nr,  type: SERIAL,  source: AUTO_SERIAL }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: nr,  type: SERIAL,  required: true }
+    - { id: loc, type: LOCATOR, required: true, validation: { regex: "^[A-Ra-r]{2}[0-9]{2}([A-Xa-x]{2})?$" } }
+
+scoring:
+  qsoPoints:
+    # truncated km + 1
+    mode: SUM
+    default: 1
+    rules:
+      - { when: {}, value: { fixed: 1 } }
+      - { when: {}, value: { perKm: { field: loc, factor: 1, round: FLOOR, min: 0 } } }
+  total: "qsoPoints"
+
+numbering: { perBand: true }
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: IARU-R1-50, sentOrder: [rst, nr, loc], receivedOrder: [rst, nr, loc] }
+ui:
+  entryOrder: [call, nr, loc]
+  logColumns: [time, call, band, mode, rst, nr, loc, points]

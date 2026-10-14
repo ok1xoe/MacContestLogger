@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: ok-vhf-activity
+metadata:
+  name: "VKV Provozní aktiv (OK Activity Contest VHF-UHF-SHF)"
+  organizer: "ČRK (evaluated by OK1KPA)"
+  description: "Third Sunday of every month, 0800-1100 UTC. RS(T) + serial + 6-char locator, each station once per band. Points by large-square rings: own square 2, adjacent squares 3, each further ring +1; multipliers = large squares per band (own square always counts); score per band = points x squares. Simplified: the ring is approximated from the distance (2 + round(km / 140)); the own square is not added automatically; points and squares of all bands are summed instead of per-band scores."
+  officialUrl: "https://ceskyradioklub.cz/zavody/vkv-zavody/podminky-vkv-zavodu/vkv-provozni-aktiv"
+period: { durationHours: 3, startWeekday: SUN, startTime: "0800" }
+bands: [2m, 70cm, 23cm, 13cm, 9cm, 6cm, 3cm]
+modes: [CW, SSB, FM]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: nr,  type: SERIAL,  source: AUTO_SERIAL }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: nr,  type: SERIAL,  required: false }   # non-competing stations need not send a number
+    - { id: loc, type: LOCATOR, required: true, validation: { regex: "^[A-Ra-r]{2}[0-9]{2}[A-Xa-x]{2}$" } }
+
+scoring:
+  qsoPoints:
+    # approximation of the square-ring points: 2 + rings (about 140 km per ring)
+    mode: SUM
+    default: 2
+    rules:
+      - { when: {}, value: { fixed: 2 } }
+      - { when: {}, value: { perKm: { field: loc, factor: 0.0071428571, round: ROUND, min: 0 } } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: squares, set: grid_squares, from: loc, scope: PER_BAND }
+
+numbering: { perBand: true }
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: OK-VHF-PA, sentOrder: [rst, nr, loc], receivedOrder: [rst, nr, loc] }
+ui:
+  entryOrder: [call, nr, loc]
+  logColumns: [time, call, band, mode, rst, nr, loc, points, mult]

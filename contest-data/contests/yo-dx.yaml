@@ -1,0 +1,60 @@
+schemaVersion: 1
+id: yo-dx
+metadata:
+  name: "YO DX HF Contest"
+  organizer: "FRR (Romanian Amateur Radio Federation)"
+  description: "1200 UTC Saturday - 1159 UTC Sunday, last full weekend of August. YO stations send RS(T) + county (42 codes incl. BU), others RS(T) + serial. Points outside YO: YO station 8, other continent 4, same continent 2, own country 1; in YO: YO-DX (outside Europe) 8, YO-EU 4, YO-YO 0. Multipliers per band regardless of mode: outside YO = YO counties + DXCC countries; in YO = DXCC countries. Same station once per band per mode. Simplifications: written from the 2020 rules (latest published by FRR); /MM stations (4 points, no multiplier) not recognised; the Cabrillo sent exchange is written for a non-YO entrant (RST + serial)."
+  officialUrl: "https://www.radioamator.ro/contest/us/YODX%202020%20en.pdf"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: yo, when: { entityIn: [275] } }
+  - { id: dx, when: { not: { entityIn: [275] } } }
+
+exchange:
+  sent:
+    - { id: rst,      type: RST,    source: AUTO_RST }
+    - { id: nr,       type: SERIAL, source: AUTO_SERIAL }
+    - { id: mycounty, type: TEXT,   source: FROM_STATION }   # YO stations only: own county (not written to Cabrillo)
+  received:
+    - { id: rst,    type: RST,      required: true }
+    - { id: county, type: DISTRICT, required: true, appliesWhen: { workedClass: yo },
+        validation: { regex: "^[A-Z]{2}$" } }
+    - { id: nr,     type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # I am in YO
+      - { when: { ownEntityIn: [275], workedClass: yo }, value: { fixed: 0 } }
+      - { when: { ownEntityIn: [275], continentIs: EU }, value: { fixed: 4 } }
+      - { when: { ownEntityIn: [275] },                  value: { fixed: 8 } }
+      # I am outside YO
+      - { when: { workedClass: yo },      value: { fixed: 8 } }
+      - { when: { ownDxcc: true },        value: { fixed: 1 } }
+      - { when: { otherContinent: true }, value: { fixed: 4 } }
+      - { when: { sameContinent: true },  value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: counties,  set: yo_counties,   from: county,   scope: PER_BAND, appliesWhen: { workedClass: yo },
+      when: { not: { ownEntityIn: [275] } } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: YO-DX-HF, sentOrder: [rst, nr], receivedOrder: [rst, county, nr] }
+ui:
+  entryOrder: [call, county, nr]
+  logColumns: [time, call, band, mode, rst, county, nr, points, mult]
+operating:
+  rules:
+  # MOST: 10-minute rule.
+  - when:
+      OPERATOR: "MULTI-OP"
+    bandChange:
+      minimumMinutes: 10

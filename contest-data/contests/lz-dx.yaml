@@ -1,0 +1,56 @@
+schemaVersion: 1
+id: lz-dx
+metadata:
+  name: "LZ DX Contest"
+  organizer: "BFRA"
+  description: "24 h from Saturday 1200 UTC, the weekend before CQ WW CW. LZ stations send RS(T) + district (28 codes), others RS(T) + ITU zone. Points: QSO with LZ 10, other continent 3, same continent (own country included) 1, LZ-LZ 1. Multipliers per band regardless of mode: non-LZ = ITU zones + LZ districts; LZ = ITU zones + DXCC countries. A station may be worked once per mode per band."
+  officialUrl: "https://lzdx.bfra.bg/rulesen.html"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: lz, when: { entityIn: [212] } }
+  - { id: dx, when: { not: { entityIn: [212] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: exch, type: TEXT, source: FROM_STATION }     # LZ: district; others: ITU zone
+  received:
+    - { id: rst,      type: RST,      required: true }
+    - { id: district, type: DISTRICT, required: true, appliesWhen: { workedClass: lz },
+        validation: { regex: "^[A-Z]{2}$" } }
+    - { id: zone,     type: ITU_ZONE, required: true, appliesWhen: { workedClass: dx },
+        validation: { min: 1, max: 75 }, estimate: ituZone }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },        value: { fixed: 1 } }    # LZ-LZ, or own country
+      - { when: { workedClass: lz },      value: { fixed: 10 } }
+      - { when: { otherContinent: true }, value: { fixed: 3 } }
+      - { when: { sameContinent: true },  value: { fixed: 1 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: zones,     set: itu_zones,     from: zone,     scope: PER_BAND, appliesWhen: { workedClass: dx } }
+  - { id: districts, set: lz_districts,  from: district, scope: PER_BAND, appliesWhen: { workedClass: lz },
+      when: { not: { ownEntityIn: [212] } } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND, when: { ownEntityIn: [212] } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: LZ-DX, sentOrder: [rst, exch], receivedOrder: [rst, district, zone] }
+ui:
+  entryOrder: [call, district, zone]
+  logColumns: [time, call, band, mode, rst, district, zone, points, mult]
+operating:
+  rules:
+  # Multi-op: 10-minute rule for band and mode changes of the run station.
+  - when:
+      OPERATOR: "MULTI-OP"
+    bandChange:
+      minimumMinutes: 10

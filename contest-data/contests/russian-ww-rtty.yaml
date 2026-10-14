@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: russian-ww-rtty
+metadata:
+  name: "Russian WW RTTY Contest"
+  organizer: "Radio Magazine / Russian Contest Club"
+  description: "1200 UTC Saturday - 1159 UTC Sunday, 1st weekend of September (5-6 Sep 2026); RTTY on 80-10 m. Russian stations send RST + two-letter oblast code, others RST + serial. Points for non-Russian stations: Russian station 10, own country 2, other country on own continent 3, other continent 5; for Russian stations: Russia on own continent 2, Russia on another continent 5, other country on own continent 3, other continent 5. Multipliers per band: Russian oblasts (rda_oblasts) + DXCC countries. Simplifications: WAE-only countries count as their DXCC entity; RI1AN Antarctic stations are not recognised as Russian (FJL is); /MM (5 points, no multiplier) not recognised; the Cabrillo sent exchange is written for a non-Russian entrant (RST + serial)."
+  officialUrl: "https://www.contest.ru/russian-ww-rtty-contest-rules-en/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+stationClasses:
+  # European Russia, Asiatic Russia, Kaliningrad, Franz Josef Land
+  - { id: ru, when: { entityIn: [54, 15, 126, 61] } }
+  - { id: dx, when: { not: { entityIn: [54, 15, 126, 61] } } }
+
+exchange:
+  sent:
+    - { id: rst,      type: RST,    source: AUTO_RST }
+    - { id: nr,       type: SERIAL, source: AUTO_SERIAL }
+    - { id: myoblast, type: TEXT,   source: FROM_STATION }   # Russian stations only: own oblast (not written to Cabrillo)
+  received:
+    - { id: rst,    type: RST,    required: true }
+    - { id: oblast, type: TEXT,   required: true, appliesWhen: { workedClass: ru },
+        validation: { regex: "^[A-Z]{2}$" } }
+    - { id: nr,     type: SERIAL, required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # I am in Russia
+      - { when: { ownEntityIn: [54, 15, 126, 61], workedClass: ru, sameContinent: true }, value: { fixed: 2 } }
+      - { when: { ownEntityIn: [54, 15, 126, 61], workedClass: ru },                      value: { fixed: 5 } }
+      # anyone else working Russia
+      - { when: { workedClass: ru },      value: { fixed: 10 } }
+      - { when: { ownDxcc: true },        value: { fixed: 2 } }
+      - { when: { sameContinent: true },  value: { fixed: 3 } }
+      - { when: { otherContinent: true }, value: { fixed: 5 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: oblasts,   set: rda_oblasts,   from: oblast,   scope: PER_BAND, appliesWhen: { workedClass: ru } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: RADIO-WW-RTTY, sentOrder: [rst, nr], receivedOrder: [rst, oblast, nr] }
+ui:
+  entryOrder: [call, oblast, nr]
+  logColumns: [time, call, band, mode, rst, oblast, nr, points, mult]
+operating:
+  rules:
+  # Multi-op single TX: 10-minute band change rule.
+  - when:
+      OPERATOR: "MULTI-OP"
+    bandChange:
+      minimumMinutes: 10

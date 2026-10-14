@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: arrl-vhf-jan
+metadata:
+  name: "ARRL January VHF Contest"
+  organizer: "ARRL"
+  description: "third or fourth full weekend of January (as announced), 1900 UTC Saturday to 0359 UTC Monday. Any mode on bands above 50 MHz; W/VE work everybody, DX work W/VE only. Exchange: 4-character grid square. Points: 50/144 MHz 1, 432 MHz 2, 1296 MHz 4, 2.3 GHz and up 8 (222 and 902 MHz are not available in the program). Multipliers: grid squares per band. A station may be worked again on a band from another grid (rovers): the received grid is part of the dupe check. Not representable: the rover's extra multiplier for each grid activated, and the rover's own grid changes (enter the current grid in the station data)."
+  officialUrl: "https://www.arrl.org/january-vhf"
+period: { durationHours: 33, startWeekday: SAT, startTime: "1900" }
+bands: [6m, 2m, 70cm, 23cm, 13cm, 9cm, 6cm, 3cm]
+modes: [CW, SSB, FM, AM, FT8, FT4, Q65, JT65, DIGITAL]
+
+exchange:
+  sent:
+    - { id: grid, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: grid, type: LOCATOR, required: true, validation: { regex: "^[A-R]{2}[0-9]{2}$" }, estimate: grid }
+
+# DX stations may only contact W/VE (48 states + DC, Canada)
+workable:
+  anyOf:
+    - { ownEntityIn: [291, 1] }
+    - { entityIn: [291, 1] }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1                                    # 50 and 144 MHz
+    rules:
+      - { when: { bandIn: [70cm] },                   value: { fixed: 2 } }
+      - { when: { bandIn: [23cm] },                   value: { fixed: 4 } }
+      - { when: { bandIn: [13cm, 9cm, 6cm, 3cm] },    value: { fixed: 8 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: grids, set: grid_squares, from: grid, scope: PER_BAND }
+
+# once per band from each grid (a rover in a new grid is a new station)
+dupe: { scope: PER_BAND, byField: grid }
+
+cabrillo: { contestName: ARRL-VHF-JAN, sentOrder: [grid], receivedOrder: [grid] }
+ui:
+  entryOrder: [call, grid]
+  logColumns: [time, call, band, mode, grid, points, mult]

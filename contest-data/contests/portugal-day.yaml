@@ -1,0 +1,49 @@
+schemaVersion: 1
+id: portugal-day
+metadata:
+  name: "Portugal Day Contest"
+  organizer: "REP"
+  description: "Portuguese stations (CT, CU, CT3) send RST + district / county, others RST + serial. Points: DX-CT 10, CT-DX 1, CT-CT 5, DX-DX 1 same continent / 2 other continent. Multipliers per band regardless of mode: each district/county worth 5, each DXCC entity worth 1. Simplified: dupe assumed once per band and mode (the rules do not state it)."
+  officialUrl: "https://portugaldaycontest.rep.pt/rules_regras/Portugal_Day_Contest_EN.pdf"
+# second weekend of June, 1200 UTC Saturday to 1159 UTC Sunday
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  # Portugal, Azores, Madeira
+  - { id: ct, when: { entityIn: [272, 149, 256] } }
+  - { id: dx, when: { not: { entityIn: [272, 149, 256] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }   # CT stations: district (change the source)
+  received:
+    - { id: rst,  type: RST,      required: true }
+    - { id: dist, type: DISTRICT, required: true, appliesWhen: { workedClass: ct } }
+    - { id: nr,   type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: { allOf: [ { ownEntityIn: [272, 149, 256] }, { workedClass: ct } ] }, value: { fixed: 5 } }
+      - { when: { ownEntityIn: [272, 149, 256] }, value: { fixed: 1 } }
+      - { when: { workedClass: ct }, value: { fixed: 10 } }
+      - { when: { otherContinent: true }, value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # a district / county is worth 5 multiplier points
+  - { id: districts, set: pt_districts, from: dist, scope: PER_BAND, appliesWhen: { workedClass: ct },
+      bandWeights: { 80m: 5, 40m: 5, 20m: 5, 15m: 5, 10m: 5 } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: PORTUGAL-DAY, sentOrder: [rst, nr], receivedOrder: [rst, dist, nr] }
+ui:
+  entryOrder: [call, dist, nr]
+  logColumns: [time, call, band, mode, rst, dist, nr, points, mult]

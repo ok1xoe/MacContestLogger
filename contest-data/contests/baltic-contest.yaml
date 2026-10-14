@@ -1,0 +1,48 @@
+schemaVersion: 1
+id: baltic-contest
+metadata:
+  name: "Baltic Contest"
+  organizer: "LRSF (Lithuanian Radio Sport Federation)"
+  description: "80 m night contest, RS(T) + serial, each station once per mode. Points: ES/YL/LY stations 1 for Europe, 2 for other continents; European stations 10 for ES/YL/LY, 1 for others; non-European stations 20 for ES/YL/LY, 1 for others. No multipliers. QSOs with Russia and Belarus do not count."
+  officialUrl: "http://www.lrsf.lt/en/balticcontestrules/"
+# May (2026: 16 May), 2100 UTC Saturday to 0200 UTC Sunday
+period: { durationHours: 5, startWeekday: SAT, startTime: "2100" }
+bands: [80m]
+modes: [CW, SSB]
+
+stationClasses:
+  # Estonia, Latvia, Lithuania
+  - { id: baltic, when: { entityIn: [52, 145, 146] } }
+  - { id: other,  when: { not: { entityIn: [52, 145, 146] } } }
+
+# Russia (European, Asiatic, Kaliningrad) and Belarus are not counted
+workable: { not: { entityIn: [54, 15, 126, 27] } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      # Baltic participant
+      - { when: { allOf: [ { ownEntityIn: [52, 145, 146] }, { continentIs: EU } ] }, value: { fixed: 1 } }
+      - { when: { ownEntityIn: [52, 145, 146] }, value: { fixed: 2 } }
+      # European participant
+      - { when: { allOf: [ { workedClass: baltic }, { ownContinentIs: EU } ] }, value: { fixed: 10 } }
+      # non-European participant
+      - { when: { workedClass: baltic }, value: { fixed: 20 } }
+  total: "qsoPoints"
+
+dupe: { scope: PER_MODE }
+
+cabrillo: { contestName: BALTIC-CONTEST, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, mode, rst, nr, points]

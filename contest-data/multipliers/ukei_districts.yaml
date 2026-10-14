@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: ukei_districts
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "UK/EI district codes (UKEI DX)", description: "The 155 two-letter UK/EI district codes from Appendix 2 of the official UK/EI DX Contest rules." }
+valuesFile: ukei_districts.csv

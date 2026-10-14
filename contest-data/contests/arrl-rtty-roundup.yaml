@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: arrl-rtty-roundup
+metadata:
+  name: "ARRL RTTY Roundup"
+  organizer: "ARRL"
+  description: "First full weekend of January (never on 1 January), 1800 UTC Saturday to 2359 UTC Sunday; single operators 24 of the 30 hours. RTTY only, 80-10 m. Everybody works everybody, once per band. W/VE (48 states + DC, Canada) send RST + state/province, DX send RST + serial number. 1 point per QSO. Multipliers once per contest: US states + DC, Canadian provinces/territories and DXCC entities other than USA and Canada (KL7 and KH6 count as DXCC entities). The sent exchange is the fixed station value (DX entrants send their serial number by hand)."
+  officialUrl: "https://www.arrl.org/rtty-roundup"
+period: { durationHours: 30, startWeekday: SAT, startTime: "1800" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+stationClasses:
+  - { id: wve, when: { entityIn: [291, 1] } }
+  - { id: dx,  when: { not: { entityIn: [291, 1] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: exch, type: TEXT, source: FROM_STATION }    # W/VE: state/province
+  received:
+    - { id: rst,   type: RST,    required: true }
+    - { id: state, type: STATE,  required: true, appliesWhen: { workedClass: wve } }
+    - { id: nr,    type: SERIAL, required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: areas,     set: na_areas,      from: state,    scope: ONCE }   # states + DC + VE
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE, appliesWhen: { workedClass: dx } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: ARRL-RTTY, sentOrder: [rst, exch], receivedOrder: [rst, state, nr] }
+ui:
+  entryOrder: [call, state, nr]
+  logColumns: [time, call, band, rst, state, nr, points, mult]
+operating:
+  rules:
+  # Special rule 1: single operators 24 of 30 hours, off times at least 30 minutes
+  - when:
+      OPERATOR: "SINGLE-OP"
+    offTime:
+      minimumMinutes: 30
+      requiredMinutes: 360

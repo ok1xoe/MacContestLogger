@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: xe_call_areas
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "Mexican call areas (Rookie Roundup)"
+  description: "The 5 Mexican call areas counted as multipliers in the ARRL Rookie Roundup."
+valuesFile: xe_call_areas.csv

@@ -1,0 +1,10 @@
+schemaVersion: 1
+id: ja_prefectures
+kind: FIXED
+keyType: INTEGER
+enumerable: true
+metadata:
+  name: "JA prefectures (JIDX)"
+  description: "47 Japanese prefectures 01-47 plus JD1 islands 48 Ogasawara, 49 Minamitorishima, 50 Okinotorishima, as numbered in the official JIDX list jidxmult.lst. Keys without leading zero (01 = 1)."
+validation: { keyPattern: "^([1-9]|[1-4][0-9]|50)$" }
+valuesFile: ja_prefectures.csv

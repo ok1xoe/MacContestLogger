@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: holyland_areas
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "Holyland areas (4X/4Z)"
+  description: "Open set: Holyland 'Area' = 10x10 km grid square (letter + 2 digits) + region (2 letters), e.g. F15TA, H08HF. Hundreds of valid areas; only the format is checked."
+validation: { keyPattern: "^[A-Z][0-9]{2}[A-Z]{2}$" }

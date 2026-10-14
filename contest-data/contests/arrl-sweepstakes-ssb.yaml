@@ -1,0 +1,45 @@
+schemaVersion: 1
+id: arrl-sweepstakes-ssb
+metadata:
+  name: "ARRL November Sweepstakes — SSB"
+  organizer: "ARRL"
+  description: "third full weekend of November, 2100 UTC Saturday to 0259 UTC Monday, 24 of the 30 hours. W/VE (incl. US territories) work W/VE only, each station once regardless of band. Exchange: serial number, precedence (Q, A, B, U, M, S), call sign, check (2-digit year first licensed), ARRL/RAC section. 2 points per QSO, multipliers are ARRL/RAC sections once per contest. The exchange is entered field by field (the call sign in the exchange is not logged separately)."
+  officialUrl: "https://www.arrl.org/sweepstakes"
+period: { durationHours: 30, startWeekday: SAT, startTime: "2100" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+exchange:
+  sent:
+    - { id: nr,   type: SERIAL,  source: AUTO_SERIAL }
+    - { id: prec, type: TEXT,    source: FROM_STATION }
+    - { id: ck,   type: TEXT,    source: FROM_STATION }
+    - { id: sec,  type: TEXT,    source: FROM_STATION }
+  received:
+    - { id: nr,   type: SERIAL,  required: true }
+    - { id: prec, type: TEXT,    required: true, validation: { regex: "^[QABUMS]$" } }
+    - { id: ck,   type: TEXT,    required: true, validation: { regex: "^[0-9]{2}$" } }
+    - { id: sec,  type: TEXT,    required: true }
+
+# W/VE incl. US territories and possessions only
+workable:
+  entityIn: [291, 1, 6, 110, 202, 285, 43, 182, 9, 20, 103, 123, 138, 166, 174, 197, 297]
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 2 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: sections, set: arrl_sections, from: sec, scope: ONCE }
+
+dupe: { scope: ONCE }
+
+cabrillo: { contestName: ARRL-SS-SSB, sentOrder: [nr, prec, ck, sec], receivedOrder: [nr, prec, ck, sec] }
+ui:
+  entryOrder: [call, nr, prec, ck, sec]
+  logColumns: [time, call, band, nr, prec, ck, sec, points, mult]
+operating:
+  # Special rule 1.1: 24 of the 30 hours, off times at least 30 minutes
+  offTime:
+    minimumMinutes: 30
+    requiredMinutes: 360

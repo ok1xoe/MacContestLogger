@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: licence_years
+kind: FIXED
+keyType: INTEGER
+enumerable: false
+metadata:
+  name: "Year of first licence"
+  description: "Open set for SCC RTTY: the four-digit year of the operator's first licence."
+validation: { keyPattern: "^(19[0-9]{2}|20[0-9]{2})$" }

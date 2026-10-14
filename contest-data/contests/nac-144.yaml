@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: nac-144
+metadata:
+  name: "Nordic Activity Contest (NAC) — 144 MHz"
+  organizer: "Nordic VHF societies (NRAU)"
+  description: "Monthly, 1st Tuesday, 1900-2300 local Scandinavian time (1800-2200 UTC in winter, 1700-2100 UTC in summer). RS(T) + 6-char locator, each station once per test. Points = 1 per km + 500 for each new large square (JO59). Simplified: rules taken from the Norwegian NAC rules (LA1KKA, 2021); the period start is set for winter time; the 25 %/50 % error reductions are left to log checking."
+  officialUrl: "https://qsl.net/l/la1kka/vhf/regler_2021.html"
+period: { durationHours: 4, startWeekday: TUE, startTime: "1800" }
+bands: [2m]
+modes: [CW, SSB, FM]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: loc, type: LOCATOR, required: true, validation: { regex: "^[A-Ra-r]{2}[0-9]{2}([A-Xa-x]{2})?$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: {}, value: { perKm: { field: loc, factor: 1, round: ROUND, min: 1 } } }
+  # 500 bonus points for each new large square
+  total: "qsoPoints + 500 * multTotal"
+
+multipliers:
+  - { id: squares, set: grid_squares, from: loc, scope: ONCE }
+
+dupe: { scope: ONCE }
+
+cabrillo: { contestName: NAC, sentOrder: [rst, loc], receivedOrder: [rst, loc] }
+ui:
+  entryOrder: [call, loc]
+  logColumns: [time, call, mode, rst, loc, points, mult]

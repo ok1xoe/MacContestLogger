@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: agcw_members
+kind: FIXED
+keyType: INTEGER
+enumerable: false
+metadata:
+  name: "AGCW member numbers"
+  description: "Open set: AGCW-DL membership numbers (digits only; non-members send NM and are not a multiplier)."
+validation: { keyPattern: "^[0-9]{1,6}$" }

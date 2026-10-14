@@ -105,4 +105,25 @@ import Testing
         default: return "AB"
         }
     }
+
+    /// OK DX RTTY rule 8a: outside OK/OL every OK/OL station is a multiplier on each band; OK stations count DXCC only.
+    @Test func okDxRttyCountsOkStations() throws {
+        let dxcc = try SessionFixture.dxcc()
+        let registry = try MultiplierSetRegistry(dxcc: dxcc).loadDir(Self.root.appendingPathComponent("multipliers"))
+        let definition = try ContestDefinitionLoader.loadFile(
+            Self.root.appendingPathComponent("contests/ok-dx-rtty.yaml"))
+        func score(_ myCall: String) throws -> ScoreState {
+            let session = ContestSession(definition: definition, dxcc: dxcc, registry: registry, myCall: myCall)
+            for (call, band) in [("OK1ABC", "20m"), ("OK1XYZ", "20m"), ("OK1ABC", "40m"), ("W1AW", "20m")] {
+                _ = try session.log(call: call, band: band, mode: "RTTY",
+                                    receivedRaw: SessionFixture.raw(("rst", "599"), ("zone", "15")),
+                                    at: Date(timeIntervalSince1970: 1_795_867_500))
+            }
+            return try session.score()
+        }
+        // DL: OK and US per band (3) + OK1ABC, OK1XYZ on 20 m and OK1ABC on 40 m (3).
+        #expect(try score("DL1ABC").multTotal == 6)
+        // OK: DXCC only (OK on 20 and 40 m, US on 20 m).
+        #expect(try score("OK1XOE").multTotal == 3)
+    }
 }

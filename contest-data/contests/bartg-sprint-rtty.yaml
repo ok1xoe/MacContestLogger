@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: bartg-sprint-rtty
+metadata:
+  name: "BARTG RTTY Sprint (January)"
+  organizer: "BARTG"
+  description: "Serial number only (no RST), 1 point per QSO; multipliers DXCC entities and JA/W/VE/VK call areas once per contest, continents once (max 6), score = points x mults x continents. Simplified: call areas are approximated by the WPX prefix."
+  officialUrl: "https://bartg.org.uk/wp-content/uploads/2025/05/bartg-sprint-rules-2025-v3.pdf"
+# fourth full weekend of January, 1200 UTC Saturday to 1159 UTC Sunday
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+exchange:
+  sent:
+    - { id: nr, type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: nr, type: SERIAL, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  bonuses:
+    # continents count once in the contest; bonusPoints = number of continents worked
+    - { id: cont-eu, when: { continentIs: EU }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-as, when: { continentIs: AS }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-af, when: { continentIs: AF }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-na, when: { continentIs: NA }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-sa, when: { continentIs: SA }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-oc, when: { continentIs: OC }, value: { fixed: 1 }, scope: ONCE }
+  total: "qsoPoints * multTotal * max(1, bonusPoints)"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE }
+  # JA/W/VE/VK call areas (approximation: WPX prefix of USA, Canada, Japan, Australia)
+  - { id: areas, set: wpx_prefixes, from: callsign, scope: ONCE, when: { entityIn: [291, 1, 339, 150] } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: BARTG-SPRINT, sentOrder: [nr], receivedOrder: [nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, nr, points, mult]

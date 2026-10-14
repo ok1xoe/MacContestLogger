@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: iota_refs
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "IOTA references (open)"
+  description: "Open set of IOTA references: continent code AF, AN, AS, EU, NA, OC or SA and 3 digits, with or without a dash. EU-005 and EU005 are different keys, so enter references in one form (the IOTA contest definition asks for the form without the dash)."
+validation: { keyPattern: "^(AF|AN|AS|EU|NA|OC|SA)-?[0-9]{3}$" }

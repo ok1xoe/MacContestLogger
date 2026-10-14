@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: ok-dx-rtty
+metadata:
+  name: "OK DX RTTY Contest"
+  organizer: "ČRK (Czech Radio Club)"
+  description: "RTTY, 24 h on the Saturday of the 3rd full weekend of December. Exchange RST + CQ zone. Points: 10-20 m 1 (own continent) / 2 (other continent), 40-80 m 3 / 6. Multipliers: DXCC countries on each band; for stations outside OK/OL every OK/OL station worked on each band is an extra multiplier. Single-op all-band and multi-op may change band only once per 5 minutes."
+  officialUrl: "http://okrtty.crk.cz/index.php?page=english"
+period: { durationHours: 24, startWeekday: SAT, startTime: "0000" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+stationClasses:
+  - { id: ok, when: { entityIn: [503] } }      # OK/OL (Czech Republic)
+  - { id: dx, when: { not: { entityIn: [503] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,     source: AUTO_RST }
+    - { id: zone, type: CQ_ZONE, source: FROM_STATION }
+  received:
+    - { id: rst,  type: RST,     required: true }
+    - { id: zone, type: CQ_ZONE, required: true, validation: { min: 1, max: 40 }, estimate: cqZone }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # own continent includes own country
+      - { when: { sameContinent: true,  bandIn: [80m, 40m] }, value: { fixed: 3 } }
+      - { when: { otherContinent: true, bandIn: [80m, 40m] }, value: { fixed: 6 } }
+      - { when: { sameContinent: true },  value: { fixed: 1 } }   # 20/15/10 m
+      - { when: { otherContinent: true }, value: { fixed: 2 } }   # 20/15/10 m
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+  # Rule 8a: for stations outside OK/OL every OK/OL station worked is a multiplier on each band
+  - { id: okstations, set: worked_calls, from: callsign, scope: PER_BAND,
+      when: { allOf: [ { entityIn: [503] }, { not: { ownEntityIn: [503] } } ] } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: OK-DX-RTTY, sentOrder: [rst, zone], receivedOrder: [rst, zone] }
+ui:
+  entryOrder: [call, zone]
+  logColumns: [time, call, band, mode, rst, zone, points, mult]
+operating:
+  # Rule 4: A1, A2 (single-op all band) and C (multi-op) may change band only once in 5 minutes.
+  rules:
+  - when:
+      OPERATOR: "SINGLE-OP"
+      BAND: "ALL"
+    bandChange:
+      minimumMinutes: 5
+  - when:
+      OPERATOR: "MULTI-OP"
+    bandChange:
+      minimumMinutes: 5

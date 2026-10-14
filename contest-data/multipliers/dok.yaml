@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: dok
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "DARC/VFDB DOK"
+  description: "Open set: DOK (local chapter code) sent by German stations - regular DOKs are a letter + two digits (A01, Z99), special DOKs are 2-8 letters/digits (e.g. 50FMC). NM (non-member) is not a multiplier and is rejected by the pattern."
+validation: { keyPattern: "^(?!NM$)(?=.*[A-Z])[A-Z0-9]{2,8}$" }

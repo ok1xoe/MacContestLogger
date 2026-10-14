@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: pt_districts
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "Portugal Day Contest districts and counties"
+  description: "18 districts of mainland Portugal plus the counties (concelhos) of Madeira and the Azores, abbreviations from the REP rules."
+valuesFile: pt_districts.csv

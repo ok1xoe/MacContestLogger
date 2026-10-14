@@ -289,6 +289,27 @@ import Testing
         #expect(app.model.suggestions.chFilled.isEmpty)
     }
 
+    /// N1MM: the locator of an earlier QSO in the log (also of the same base call) is prefilled.
+    @Test func locatorFromAnEarlierQsoInTheLog() async throws {
+        let app = try await TestApp.make()
+        var setup = ContestSetup()
+        setup.sentExchange = ["loc": "JO70FC"]
+        #expect(await app.model.contest.createAndStart(definitionId: "iaru-r1-vhf", setup: setup))
+        let entry: EntryModel = app.model.entry
+        entry.setFrequency("144300")
+        entry.callChanged("OK1ABC")
+        entry.editContestField("rst", "599")
+        entry.editContestField("nr", "5")
+        entry.editContestField("loc", "JN79AB")
+        entry.submit()
+        await entry.settle()
+        #expect(app.model.logbook.rows.count == 1)
+        entry.callChanged("OK1ABC/P")
+        await settleHelp(app)
+        app.suggestionClock.advance(by: SuggestionsModel.fillDelayMilliseconds)
+        #expect(entry.form.contestExchange["loc"] == "JN79AB")
+    }
+
     @Test func infoStripReadsTheEntryAndOperatingStates() async throws {
         let app = try await TestApp.make()
         #expect(app.model.infoStrip.text == "")

@@ -1,0 +1,30 @@
+schemaVersion: 1
+id: vhf-dx
+metadata:
+  name: "VHFDX — VHF/UHF general logging"
+  description: "N1MM VHFDX: general VHF and up logging with the other station's locator; points = kilometres from my locator (the log shows the distance), duplicates only flagged."
+bands: [6m, 2m, 70cm, 23cm, 13cm, 9cm, 6cm, 3cm]
+modes: [CW, SSB, FM, DIGITAL, FT8, Q65]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: loc, type: LOCATOR, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: {}, value: { perKm: { field: loc, factor: 1, round: CEIL, min: 1 } } }
+  total: "qsoPoints"
+
+dupe: { scope: PER_BAND_MODE, dupeWorthZero: false }
+
+cabrillo: { contestName: VHFDX, sentOrder: [rst, loc], receivedOrder: [rst, loc] }
+ui:
+  entryOrder: [call, loc]
+  logColumns: [time, call, band, mode, rst, loc, points]

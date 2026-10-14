@@ -1,0 +1,49 @@
+schemaVersion: 1
+id: king-of-spain-ssb
+metadata:
+  name: "His Majesty The King of Spain Contest — SSB"
+  organizer: "URE"
+  description: "1200 UTC Saturday - 1159 UTC Sunday, 4th full weekend of June; 160-10 m. Spanish stations (EA, EA6, EA8, EA9) send RST + province, EF0F sends SMR, others RST + serial. Points: in Spain EA-EA 2, EA-DX 1; outside Spain DX-DX 1, DX-EA 3. Multipliers per band, the same for everyone: EADX-100 entities + 52 Spanish provinces + SMR. Each station once per band. Simplifications: EADX-100 entities are approximated by DXCC entities; the Cabrillo sent exchange is written for a non-EA entrant (RST + serial)."
+  officialUrl: "https://concursos.ure.es/en/s-m-el-rey-de-espana-ssb/bases/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+stationClasses:
+  # Spain, Balearic Is., Canary Is., Ceuta & Melilla
+  - { id: ea, when: { entityIn: [281, 21, 29, 32] } }
+  - { id: dx, when: { not: { entityIn: [281, 21, 29, 32] } } }
+
+exchange:
+  sent:
+    - { id: rst,    type: RST,    source: AUTO_RST }
+    - { id: nr,     type: SERIAL, source: AUTO_SERIAL }
+    - { id: myprov, type: TEXT,   source: FROM_STATION }   # EA stations only: own province (not written to Cabrillo)
+  received:
+    - { id: rst,      type: RST,      required: true }
+    - { id: province, type: PROVINCE, required: true, appliesWhen: { workedClass: ea },
+        validation: { regex: "^[A-Z]{1,3}$" } }
+    - { id: nr,       type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      # I am in Spain
+      - { when: { ownEntityIn: [281, 21, 29, 32], workedClass: ea }, value: { fixed: 2 } }
+      - { when: { ownEntityIn: [281, 21, 29, 32] },                  value: { fixed: 1 } }
+      # I am outside Spain
+      - { when: { workedClass: ea }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: provinces, set: ea_provinces,  from: province, scope: PER_BAND, appliesWhen: { workedClass: ea } }
+  - { id: entities,  set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: EA-MAJESTAD-SSB, sentOrder: [rst, nr], receivedOrder: [rst, province, nr] }
+ui:
+  entryOrder: [call, province, nr]
+  logColumns: [time, call, band, mode, rst, province, nr, points, mult]

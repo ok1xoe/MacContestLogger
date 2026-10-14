@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: uba_sections
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "UBA sections (UBA DX Contest)"
+  description: "Open set: three-letter UBA section abbreviation sent by Belgian stations (ACC, ANT…, UBA for the national stations). XXX (non-member) is not a multiplier and is rejected by the pattern."
+validation: { keyPattern: "^(?!XXX$)[A-Z]{3}$" }

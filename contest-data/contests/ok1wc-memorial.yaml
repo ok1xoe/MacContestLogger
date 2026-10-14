@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: ok1wc-memorial
+metadata:
+  name: "Memoriál OK1WC (MWC)"
+  organizer: "OK1WC memorial team / ČRK"
+  description: "Weekly, every Monday 1630-1729 UTC, CW on 80/40 m. RST + serial, 1 point per QSO; multipliers = last character (A-Z, 0-9) of the worked station's call suffix, per band."
+  officialUrl: "https://memorial-ok1wc.cz/index.php?page=rules2l"
+period: { durationHours: 1, startWeekday: MON, startTime: "1630" }
+bands: [80m, 40m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }   # letters only / non-competitor: log 1
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # the last character of the worked call (OK1ABC/P -> C), per band
+  - { id: lastchar, set: last_letters, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: OK1WC, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points]

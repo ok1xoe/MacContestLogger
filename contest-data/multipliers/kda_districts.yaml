@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: kda_districts
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "Kazakhstan KDA districts (UN DX)"
+  description: "Open set: KDA district code sent by Kazakh stations in the UN DX Contest, one letter + two digits (e.g. L17). The full list is on undxc.kz (KDA Districts) and is not enumerated here."
+validation: { keyPattern: "^[A-Z][0-9]{2}$" }

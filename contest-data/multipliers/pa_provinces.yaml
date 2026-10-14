@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: pa_provinces
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Dutch provinces (PACC)", description: "The 12 two-letter province codes from the official PACC rules." }
+valuesFile: pa_provinces.csv

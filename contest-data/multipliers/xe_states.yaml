@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: xe_states
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "Mexican states (open)"
+  description: "Open set of Mexican state abbreviations as sent by XE stations (ARRL 10-Meter Contest). Not enumerated: the official ARRL Contest Multipliers List abbreviations were not verified, so any 2-4 letter code is accepted."
+validation: { keyPattern: "^[A-Z]{2,4}$" }

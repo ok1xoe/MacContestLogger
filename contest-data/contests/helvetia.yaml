@@ -1,0 +1,55 @@
+schemaVersion: 1
+id: helvetia
+metadata:
+  name: "USKA Helvetia Contest"
+  organizer: "USKA"
+  description: "1300 UTC Saturday - 1259 UTC Sunday, last full weekend of April; 160-10 m, CW, SSB and digital (one digital mode per band). Swiss stations send RS(T) + canton, others RS(T) + serial. Points: QSO with Switzerland 10, same continent 1, other continent 3. Multipliers per band for everyone: Swiss cantons + DXCC countries (Switzerland included). Same station once per band per mode (a second digital mode on the same band is not blocked here). Single-op: at least 6 h rest in at most two periods (the two-period limit is not checked). Simplification: the Cabrillo sent exchange is written for a non-Swiss entrant (RST + serial)."
+  officialUrl: "https://uska.ch/en/helvetia-contest-2/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1300" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB, RTTY, PSK, FT8, FT4]
+
+stationClasses:
+  - { id: hb, when: { entityIn: [287] } }
+  - { id: dx, when: { not: { entityIn: [287] } } }
+
+exchange:
+  sent:
+    - { id: rst,      type: RST,    source: AUTO_RST }
+    - { id: nr,       type: SERIAL, source: AUTO_SERIAL }
+    - { id: mycanton, type: TEXT,   source: FROM_STATION }   # Swiss stations only: own canton (not written to Cabrillo)
+  received:
+    - { id: rst,    type: RST,      required: true }
+    - { id: canton, type: PROVINCE, required: true, appliesWhen: { workedClass: hb },
+        validation: { regex: "^[A-Z]{2}$" } }
+    - { id: nr,     type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { workedClass: hb },      value: { fixed: 10 } }
+      - { when: { sameContinent: true },  value: { fixed: 1 } }
+      - { when: { otherContinent: true }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: cantons,   set: hb_cantons,    from: canton,   scope: PER_BAND, appliesWhen: { workedClass: hb } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+# once per band in CW, SSB and one digital mode (digital modes are not merged here)
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: HELVETIA, sentOrder: [rst, nr], receivedOrder: [rst, canton, nr] }
+ui:
+  entryOrder: [call, canton, nr]
+  logColumns: [time, call, band, mode, rst, canton, nr, points, mult]
+operating:
+  rules:
+  # Single operators: at least 6 hours of rest (rule 2.9).
+  - when:
+      OPERATOR: "SINGLE-OP"
+    offTime:
+      minimumMinutes: 60
+      requiredMinutes: 360

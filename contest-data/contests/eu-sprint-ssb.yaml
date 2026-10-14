@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: eu-sprint-ssb
+metadata:
+  name: "EU Sprint — SSB"
+  organizer: "EU Sprint Gang"
+  description: "Saturday 1500-1859 UTC (spring and autumn editions); 80, 40, 20 m, SSB only, single operator. Exchange: both call signs + serial number + operator name (no RST). European stations work everyone, stations outside Europe only Europe. 1 point per QSO, each station once per band, no multipliers (score = QSO points). QSY rule: the station that called CQ must move at least 2 kHz (later rules: 5 kHz on SSB) after each QSO and leave the frequency to the caller - it cannot be enforced by the logger; repeating both calls is up to the operator. Note: the contest is listed as inactive since 2023 (WA7BNM); written from the last published rules."
+  officialUrl: "https://www.qsl.net/eusprint/"
+period: { durationHours: 4, startWeekday: SAT, startTime: "1500" }
+bands: [80m, 40m, 20m]
+modes: [SSB]
+
+# Stations outside Europe score only with European stations.
+workable: { anyOf: [ { ownContinentIs: EU }, { continentIs: EU } ] }
+
+exchange:
+  sent:
+    - { id: nr,   type: SERIAL, source: AUTO_SERIAL }
+    - { id: name, type: TEXT,   source: FROM_STATION }    # operator name / nickname (same all contest)
+  received:
+    - { id: nr,   type: SERIAL, required: true }
+    - { id: name, type: TEXT,   required: true, validation: { regex: "^[A-Z0-9]{1,15}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints"                 # no multipliers
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: EU-SPRINT-SSB, sentOrder: [nr, name], receivedOrder: [nr, name] }
+ui:
+  entryOrder: [call, nr, name]
+  logColumns: [time, call, band, mode, nr, name, points]

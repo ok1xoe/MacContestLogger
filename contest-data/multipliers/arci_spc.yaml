@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: arci_spc
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "QRP ARCI SPC (state / province / country)"
+  description: "Open set: US state or Canadian province abbreviation, or the country prefix of a DX station, as sent in the exchange."
+validation: { keyPattern: "^[A-Z0-9]{1,5}$" }

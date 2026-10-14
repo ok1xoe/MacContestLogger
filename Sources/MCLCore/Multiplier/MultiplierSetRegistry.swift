@@ -142,6 +142,13 @@ public final class MultiplierSetRegistry: Sendable {
         if JavaChar.equalsIgnoreCase("wpx", type) {
             return WpxMultiplierSet(id: definition.id)
         }
+        // Swift-only algorithms over the worked call.
+        if JavaChar.equalsIgnoreCase("callsign", type) {
+            return CallsignMultiplierSet(id: definition.id, kind: .callsign)
+        }
+        if JavaChar.equalsIgnoreCase("lastLetter", type) {
+            return CallsignMultiplierSet(id: definition.id, kind: .lastLetter)
+        }
         throw .failure("neznámý algoritmus '\(Self.show(type))' u sady '\(Self.show(definition.id))'")
     }
 

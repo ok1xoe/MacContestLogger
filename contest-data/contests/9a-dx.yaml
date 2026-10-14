@@ -1,0 +1,81 @@
+schemaVersion: 1
+id: 9a-dx
+metadata:
+  name: "9A DX Contest (Croatian DX Contest)"
+  organizer: "HRS (Croatian Amateur Radio Association)"
+  description: "1400 UTC Saturday - 1359 UTC Sunday, 3rd full weekend of December; 160-10 m CW and SSB, everybody works everybody. 9A stations send RS(T) + licence-plate county abbreviation, others RS(T) + ITU zone. Points for 9A: 9A-9A 1, Europe 4 (160/80) / 2, outside Europe 10 (160/80) / 8 (40) / 6; outside 9A: 9A station 10 (160-40) / 6, other continent 6 / 3, own continent incl. own country 2 / 1; every QSO 2300-0459 UTC +2 points. Multipliers per band and mode: non-9A = ITU zones + 9A county abbreviations; 9A = ITU zones + DXCC countries (9A-9A gives no county multiplier). Simplifications: county abbreviations are an open 2-letter set (the official list is an image on the rules page); WAE-only countries count as their DXCC entity."
+  officialUrl: "https://www.hamradio.hr/9a-dx-contest/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1400" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: s9a, when: { entityIn: [497] } }
+  - { id: dx,  when: { not: { entityIn: [497] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: exch, type: TEXT, source: FROM_STATION }     # 9A: county abbreviation; others: ITU zone
+  received:
+    - { id: rst,    type: RST,      required: true }
+    - { id: county, type: DISTRICT, required: true, appliesWhen: { workedClass: s9a },
+        validation: { regex: "^[A-Z]{2}$" } }
+    - { id: zone,   type: ITU_ZONE, required: true, appliesWhen: { workedClass: dx },
+        validation: { min: 1, max: 75 }, estimate: ituZone }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1                    # own continent / own country on 20-10 m
+    rules:
+      # night bonus: +2 points per QSO 2300-0459 UTC (rules duplicated with the window)
+      - { when: { ownEntityIn: [497], workedClass: s9a, timeBetween: "2300-0459" }, value: { fixed: 3 } }
+      - { when: { ownEntityIn: [497], continentIs: EU, bandIn: [160m, 80m], timeBetween: "2300-0459" }, value: { fixed: 6 } }
+      - { when: { ownEntityIn: [497], continentIs: EU, timeBetween: "2300-0459" }, value: { fixed: 4 } }
+      - { when: { ownEntityIn: [497], bandIn: [160m, 80m], timeBetween: "2300-0459" }, value: { fixed: 12 } }
+      - { when: { ownEntityIn: [497], bandIn: [40m], timeBetween: "2300-0459" }, value: { fixed: 10 } }
+      - { when: { ownEntityIn: [497], timeBetween: "2300-0459" }, value: { fixed: 8 } }
+      - { when: { workedClass: s9a, bandIn: [160m, 80m, 40m], timeBetween: "2300-0459" }, value: { fixed: 12 } }
+      - { when: { workedClass: s9a, timeBetween: "2300-0459" }, value: { fixed: 8 } }
+      - { when: { otherContinent: true, bandIn: [160m, 80m, 40m], timeBetween: "2300-0459" }, value: { fixed: 8 } }
+      - { when: { otherContinent: true, timeBetween: "2300-0459" }, value: { fixed: 5 } }
+      - { when: { bandIn: [160m, 80m, 40m], timeBetween: "2300-0459" }, value: { fixed: 4 } }
+      - { when: { timeBetween: "2300-0459" }, value: { fixed: 3 } }
+      # rest of the contest
+      # 9A-9A, any band
+      - { when: { ownEntityIn: [497], workedClass: s9a }, value: { fixed: 1 } }
+      - { when: { ownEntityIn: [497], continentIs: EU, bandIn: [160m, 80m] }, value: { fixed: 4 } }
+      - { when: { ownEntityIn: [497], continentIs: EU }, value: { fixed: 2 } }
+      # 9A: outside Europe
+      - { when: { ownEntityIn: [497], bandIn: [160m, 80m] }, value: { fixed: 10 } }
+      - { when: { ownEntityIn: [497], bandIn: [40m] }, value: { fixed: 8 } }
+      - { when: { ownEntityIn: [497] }, value: { fixed: 6 } }
+      # outside 9A
+      - { when: { workedClass: s9a, bandIn: [160m, 80m, 40m] }, value: { fixed: 10 } }
+      - { when: { workedClass: s9a }, value: { fixed: 6 } }
+      - { when: { otherContinent: true, bandIn: [160m, 80m, 40m] }, value: { fixed: 6 } }
+      - { when: { otherContinent: true }, value: { fixed: 3 } }
+      # own continent incl. own country
+      - { when: { bandIn: [160m, 80m, 40m] }, value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: zones,     set: itu_zones,     from: zone,     scope: PER_BAND_MODE, appliesWhen: { workedClass: dx } }
+  - { id: counties,  set: hr_counties,   from: county,   scope: PER_BAND_MODE, appliesWhen: { workedClass: s9a },
+      when: { not: { ownEntityIn: [497] } } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND_MODE, when: { ownEntityIn: [497] } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: 9A-DX, sentOrder: [rst, exch], receivedOrder: [rst, county, zone] }
+ui:
+  entryOrder: [call, county, zone]
+  logColumns: [time, call, band, mode, rst, county, zone, points, mult]
+operating:
+  rules:
+  # Multi-op single TX: 10-minute rule for the run station.
+  - when:
+      OPERATOR: "MULTI-OP"
+    bandChange:
+      minimumMinutes: 10

@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: winter-field-day
+metadata:
+  name: "Winter Field Day"
+  organizer: "Winter Field Day Association"
+  description: "Last full weekend of January, 30 hours from 1600 UTC Saturday. Exchange: category (number of transmitters) + class H/I/O/M (e.g. 2O) + ARRL/RAC section (MX for Mexico, DX otherwise). Phone 1 point, CW and digital 2 points; each station once per band and mode. FT8/FT4 are not allowed; 12/17/30/60 m are excluded. The final score = QSO points x objective multiplier (self-declared objectives: alternative power, away from home, QRP...), which cannot be computed - the score shown is QSO points only. Digital sub-modes are separate dupe modes in the program."
+  officialUrl: "https://winterfieldday.org/"
+period: { durationHours: 30, startWeekday: SAT, startTime: "1600" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m, 6m, 2m, 70cm, 23cm]
+modes: [CW, SSB, FM, AM, RTTY, PSK, DIGITAL]
+
+exchange:
+  sent:
+    - { id: cat, type: TEXT, source: FROM_STATION }    # e.g. 2O
+    - { id: sec, type: TEXT, source: FROM_STATION }    # ARRL/RAC section, MX or DX
+  received:
+    - { id: cat, type: TEXT, required: true, validation: { regex: "^[0-9]{1,2}[HIOM]$" } }
+    - { id: sec, type: TEXT, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2                                    # CW and digital
+    rules:
+      - { when: { anyOf: [ { mode: SSB }, { mode: FM }, { mode: AM } ] }, value: { fixed: 1 } }
+  total: "qsoPoints"            # x objective multiplier (not representable)
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: WFD, sentOrder: [cat, sec], receivedOrder: [cat, sec] }
+ui:
+  entryOrder: [call, cat, sec]
+  logColumns: [time, call, band, mode, cat, sec, points]

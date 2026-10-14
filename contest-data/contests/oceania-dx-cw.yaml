@@ -1,0 +1,59 @@
+schemaVersion: 1
+id: oceania-dx-cw
+metadata:
+  name: "Oceania DX Contest — CW"
+  organizer: "WIA / NZART (OCDX Contest Committee)"
+  description: "24 h from 0600 UTC Saturday, the weekend after the Phone section (2nd Saturday of October in 2026). Exchange RS(T) + serial. Oceania stations work everyone; non-Oceania stations score only with Oceania (non-OC to non-OC = no points, no multiplier). Points per QSO: 160 m 20, 80 m 10, 40 m 5, 20 m 1, 15 m 2, 10 m 3. Multipliers: WPX prefixes per band. Each station once per band."
+  officialUrl: "https://www.oceaniadxcontest.com/rules/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "0600" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # neither station in Oceania: no points
+      - { when: { allOf: [ { not: { ownContinentIs: OC } }, { not: { continentIs: OC } } ] }, value: { fixed: 0 } }
+      - { when: { bandIn: [160m] }, value: { fixed: 20 } }
+      - { when: { bandIn: [80m] },  value: { fixed: 10 } }
+      - { when: { bandIn: [40m] },  value: { fixed: 5 } }
+      - { when: { bandIn: [20m] },  value: { fixed: 1 } }
+      - { when: { bandIn: [15m] },  value: { fixed: 2 } }
+      - { when: { bandIn: [10m] },  value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: prefixes, set: wpx_prefixes, from: callsign, scope: PER_BAND,
+      when: { anyOf: [ { ownContinentIs: OC }, { continentIs: OC } ] } }
+
+dupe: { scope: PER_BAND }
+
+numbering: { perBand: true, multiOpOnly: true }   # multi-op may number per band
+
+cabrillo: { contestName: OCEANIA-DX-CW, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points, mult]
+operating:
+  rules:
+  # M1: at most 10 band changes per clock hour; M2: 8 per transmitter.
+  - when:
+      OPERATOR: "MULTI-OP"
+      TRANSMITTER: "ONE"
+    bandChange:
+      perHour: 10
+  - when:
+      OPERATOR: "MULTI-OP"
+      TRANSMITTER: "TWO"
+    bandChange:
+      perHour: 8

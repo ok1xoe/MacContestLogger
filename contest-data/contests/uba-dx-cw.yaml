@@ -1,0 +1,69 @@
+schemaVersion: 1
+id: uba-dx-cw
+metadata:
+  name: "UBA DX Contest — CW"
+  organizer: "UBA"
+  description: "24 h from Saturday 1300 UTC (last Saturday of February). Belgian stations send RS(T) + serial + UBA section (XXX = non-member), others RS(T) + serial. Points in Belgium: ON 1, EU-country 2, other 3; outside Belgium: ON 10, EU-country 3, other 1. Multipliers per band: in Belgium DXCC countries + UBA sections; outside Belgium UBA sections + Belgian prefixes + EU DXCC countries. QSOs with Russia/Belarus score nothing. Simplification: the post-log-check bonus for the percentage of Belgian QSOs is not computed; the Cabrillo sent exchange is written for a non-Belgian entrant (RST + serial)."
+  officialUrl: "https://www.uba.be/en/hf/contest-rules/uba-dx-contest"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1300" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+# QSOs with Russia (European, Asiatic, Kaliningrad) and Belarus count 0 points and 0 multipliers.
+workable: { not: { entityIn: [54, 15, 126, 27] } }
+
+stationClasses:
+  - { id: be, when: { entityIn: [209] } }
+  # DXCC countries of the European Union listed in the rules (Belgium itself is class be)
+  - { id: eu, when: { entityIn: [215, 497, 257, 272, 256, 149, 230, 281, 21, 29, 245, 52, 227, 79, 84, 453, 63, 239, 248, 225, 254, 146, 212, 206, 224, 5, 167, 503, 504, 221, 263, 499, 284, 269, 236, 45, 40, 180, 214, 145, 275] } }
+  - { id: dx, when: { not: { entityIn: [209] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,    source: AUTO_RST }
+    - { id: nr,   type: SERIAL, source: AUTO_SERIAL }
+    - { id: sect, type: TEXT,   source: FROM_STATION }   # Belgian stations only: own UBA section (not written to Cabrillo)
+  received:
+    - { id: rst,     type: RST,    required: true }
+    - { id: nr,      type: SERIAL, required: true }
+    - { id: section, type: TEXT,   required: true, appliesWhen: { workedClass: be },
+        validation: { regex: "^[A-Z]{3}$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      # I am in Belgium
+      - { when: { ownEntityIn: [209], workedClass: be }, value: { fixed: 1 } }
+      - { when: { ownEntityIn: [209], workedClass: eu }, value: { fixed: 2 } }
+      - { when: { ownEntityIn: [209] },                  value: { fixed: 3 } }
+      # I am outside Belgium
+      - { when: { workedClass: be }, value: { fixed: 10 } }
+      - { when: { workedClass: eu }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # all entrants: UBA sections per band (XXX does not count)
+  - { id: sections, set: uba_sections, from: section, scope: PER_BAND, appliesWhen: { workedClass: be } }
+  # in Belgium: all DXCC countries per band
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND, when: { ownEntityIn: [209] } }
+  # outside Belgium: Belgian prefixes and EU DXCC countries per band
+  - { id: prefixes, set: wpx_prefixes, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: be },
+      when: { not: { ownEntityIn: [209] } } }
+  - { id: eucountries, set: dxcc_entities, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: eu },
+      when: { not: { ownEntityIn: [209] } } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: UBA-DX-CW, sentOrder: [rst, nr], receivedOrder: [rst, nr, section] }
+ui:
+  entryOrder: [call, nr, section]
+  logColumns: [time, call, band, mode, rst, nr, section, points, mult]
+operating:
+  rules:
+  # Category D (multi-op): run station 10 minutes on a band.
+  - when:
+      OPERATOR: "MULTI-OP"
+    bandChange:
+      minimumMinutes: 10

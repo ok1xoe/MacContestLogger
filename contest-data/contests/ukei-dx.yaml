@@ -1,0 +1,73 @@
+schemaVersion: 1
+id: ukei-dx
+metadata:
+  name: "UK/EI DX Contest"
+  organizer: "UKEICC (with RSGB, IRTS, GMDX Group)"
+  description: "1200 UTC Saturday - 1200 UTC Sunday (CW in April, SSB in autumn; one mode per weekend, choose the mode in the contest setup); 80-10 m. Exchange RS(T) + serial; UK/EI stations add their 2-letter district code (155 codes). Everyone works everyone. Points (80/40 m, 20/15/10 m): UK/EI entrant: UK/EI or Europe 4/2, outside Europe 8/4, doubled 0100-0459 UTC; European entrant: UK/EI 4/2, Europe 2/1, outside Europe 4/2; entrant outside Europe: UK/EI 8/4, Europe 4/2, outside Europe 2/1. Multipliers per band: DXCC countries except EI, G, GD, GI, GJ, GM, GU, GW + UK/EI district codes. Note: DX entrants send '--' as district in the Cabrillo file; leave the own-district field empty (written as '-') or enter '--'."
+  officialUrl: "https://ukeicc.com/dx-contest-rules.php"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  # EI, G, GD, GI, GJ, GM, GU, GW
+  - { id: ukei, when: { entityIn: [245, 223, 114, 265, 122, 279, 106, 294] } }
+  - { id: eu,   when: { continentIs: EU } }
+  - { id: dx,   when: { not: { continentIs: EU } } }
+
+exchange:
+  sent:
+    - { id: rst,    type: RST,    source: AUTO_RST }
+    - { id: nr,     type: SERIAL, source: AUTO_SERIAL }
+    - { id: mydist, type: TEXT,   source: FROM_STATION }   # UK/EI: own district code; DX: --
+  received:
+    - { id: rst,      type: RST,      required: true }
+    - { id: nr,       type: SERIAL,   required: true }
+    - { id: district, type: DISTRICT, required: true, appliesWhen: { workedClass: ukei },
+        validation: { regex: "^[A-Z]{2}$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      # I am a UK/EI station
+      - { when: { ownEntityIn: [245, 223, 114, 265, 122, 279, 106, 294], workedClass: dx, bandIn: [80m, 40m] }, value: { fixed: 8 } }
+      - { when: { ownEntityIn: [245, 223, 114, 265, 122, 279, 106, 294], workedClass: dx },                     value: { fixed: 4 } }
+      - { when: { ownEntityIn: [245, 223, 114, 265, 122, 279, 106, 294], bandIn: [80m, 40m] },                  value: { fixed: 4 } }
+      - { when: { ownEntityIn: [245, 223, 114, 265, 122, 279, 106, 294] },                                      value: { fixed: 2 } }
+      # I am in Europe (outside UK/EI)
+      - { when: { ownContinentIs: EU, workedClass: eu, bandIn: [80m, 40m] }, value: { fixed: 2 } }
+      - { when: { ownContinentIs: EU, workedClass: eu },                     value: { fixed: 1 } }
+      - { when: { ownContinentIs: EU, bandIn: [80m, 40m] },                  value: { fixed: 4 } }
+      - { when: { ownContinentIs: EU },                                      value: { fixed: 2 } }
+      # I am outside Europe
+      - { when: { workedClass: ukei, bandIn: [80m, 40m] }, value: { fixed: 8 } }
+      - { when: { workedClass: ukei },                     value: { fixed: 4 } }
+      - { when: { workedClass: eu, bandIn: [80m, 40m] },   value: { fixed: 4 } }
+      - { when: { workedClass: eu },                       value: { fixed: 2 } }
+      - { when: { bandIn: [80m, 40m] },                    value: { fixed: 2 } }
+    factors:
+      # UK/EI entrants: double points 0100-0459 UTC
+      - { when: { ownEntityIn: [245, 223, 114, 265, 122, 279, 106, 294], timeBetween: "0100-0459" }, factor: 2 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: districts, set: ukei_districts, from: district, scope: PER_BAND, appliesWhen: { workedClass: ukei } }
+  # QSOs with UK/EI count only for district multipliers
+  - { id: countries, set: dxcc_entities,  from: callsign, scope: PER_BAND, when: { not: { workedClass: ukei } } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: UKEI-DX, sentOrder: [rst, nr, mydist], receivedOrder: [rst, nr, district] }
+ui:
+  entryOrder: [call, nr, district]
+  logColumns: [time, call, band, mode, rst, nr, district, points, mult]
+operating:
+  rules:
+  # 12-hour category: off periods at least 60 minutes (12 h off in total).
+  - when:
+      TIME: "12-HOURS"
+    offTime:
+      minimumMinutes: 60
+      requiredMinutes: 720

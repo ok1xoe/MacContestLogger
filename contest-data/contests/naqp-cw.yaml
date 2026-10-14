@@ -1,0 +1,56 @@
+schemaVersion: 1
+id: naqp-cw
+metadata:
+  name: "North American QSO Party — CW"
+  organizer: "NCJ"
+  description: "12 hours, low power only. NA stations (ARRL DXCC list plus Hawaii) send name + state/province/DXCC prefix, non-NA send name only. 1 point per valid QSO (a QSO needs at least one NA station). Multipliers per band: 50 states + DC, 13 Canadian provinces/territories and other NA DXCC entities (taken from the call sign). Non-NA, maritime and aeronautical mobile give QSO credit only."
+  officialUrl: "https://ncjweb.com/naqp/"
+period: { durationHours: 12, startWeekday: SAT, startTime: "1800" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+stationClasses:
+  # North America = DXCC continent NA plus Hawaii (110)
+  - { id: na,    when: { anyOf: [ { continentIs: NA }, { entityIn: [110] } ] } }
+  - { id: nonna, when: { not: { anyOf: [ { continentIs: NA }, { entityIn: [110] } ] } } }
+
+exchange:
+  sent:
+    - { id: name, type: TEXT,  source: FROM_STATION }
+    - { id: loc,  type: STATE, source: FROM_STATION }    # NA: state/province/prefix; non-NA: empty
+  received:
+    - { id: name, type: TEXT,  required: true }
+    - { id: loc,  type: STATE, required: true, appliesWhen: { workedClass: na } }
+
+# a valid contact is between a North American station and any other station
+workable:
+  anyOf:
+    - { ownContinentIs: NA }
+    - { ownEntityIn: [110] }
+    - { workedClass: na }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # USA incl. AK/HI and Canada: state/province from the exchange
+  - { id: areas,    set: na_areas,      from: loc,      scope: PER_BAND, when: { entityIn: [291, 1, 6, 110] } }
+  # other North American DXCC entities (the logged prefix is not used, the entity comes from the call)
+  - { id: entities, set: dxcc_entities, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: na },
+      when: { not: { entityIn: [291, 1, 6, 110] } } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: NAQP-CW, sentOrder: [name, loc], receivedOrder: [name, loc] }
+ui:
+  entryOrder: [call, name, loc]
+  logColumns: [time, call, band, mode, name, loc, points, mult]
+operating:
+  rules:
+  # Rule 5: single operators may operate 10 of the 12 hours, off times at least 30 minutes
+  - when:
+      OPERATOR: "SINGLE-OP"
+    offTime:
+      minimumMinutes: 30
+      requiredMinutes: 120

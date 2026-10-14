@@ -1,0 +1,53 @@
+schemaVersion: 1
+id: russian-160
+metadata:
+  name: "Russian 160m DX Contest - RU3AX Memorial"
+  organizer: "Radio magazine, TopBand DX Club, Russian Contest Club"
+  description: "Everyone sends RS(T) + 4-char locator. Points = 10 + 1 per full 500 km, SSB x2. Two 2-hour tours: the same station may be worked once per mode in each tour. Multipliers per mode, once in the contest: DXCC entities + Russian oblasts. Simplified: distance is from my 6-char locator; WAE-only countries and R1FJ/R1AN are not separate; the oblast is an optional field (it is not part of the exchange)."
+  officialUrl: "https://topband.ru/rules"
+# December (2025: Friday 19 Dec), 1700-2059 UTC, tours 1700-1859 and 1900-2059
+period:
+  durationHours: 4
+  startWeekday: FRI
+  startTime: "1700"
+  sessions: { start: "1700", minutes: 120 }
+bands: [160m]
+modes: [CW, SSB]
+
+stationClasses:
+  # European Russia, Asiatic Russia, Kaliningrad
+  - { id: ru, when: { entityIn: [54, 15, 126] } }
+  - { id: dx, when: { not: { entityIn: [54, 15, 126] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,     source: AUTO_RST }
+    - { id: grid, type: LOCATOR, source: FROM_STATION }   # first 4 characters of my locator
+  received:
+    - { id: rst,  type: RST,     required: true }
+    - { id: grid, type: LOCATOR, required: true, estimate: grid, validation: { regex: "^[A-Ra-r]{2}[0-9]{2}$" } }
+    # Russian oblast for the multiplier - not sent over the air, fill it in if known
+    - { id: obl,  type: TEXT,    required: false, appliesWhen: { workedClass: ru } }
+
+scoring:
+  qsoPoints:
+    mode: SUM
+    default: 10
+    rules:
+      - { when: {}, value: { fixed: 10 } }
+      - { when: {}, value: { perKm: { field: grid, factor: 0.002, round: FLOOR, min: 0 } } }
+    factors:
+      - { when: { mode: SSB }, factor: 2 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_MODE }
+  - { id: oblasts,   set: rda_oblasts,   from: obl,      scope: PER_MODE, appliesWhen: { workedClass: ru } }
+
+# with sessions the dupe check runs per tour
+dupe: { scope: PER_MODE }
+
+cabrillo: { contestName: RUSSIAN-160M-DX, sentOrder: [rst, grid], receivedOrder: [rst, grid] }
+ui:
+  entryOrder: [call, grid, obl]
+  logColumns: [time, call, mode, rst, grid, obl, points, mult]

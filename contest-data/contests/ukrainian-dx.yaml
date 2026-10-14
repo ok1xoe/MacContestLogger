@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: ukrainian-dx
+metadata:
+  name: "Ukrainian DX Contest"
+  organizer: "Ukrainian Contest Club (UCC)"
+  description: "UR stations send RS(T) + oblast, others RS(T) + serial. Points: 1 own country, 2 same continent, 3 other continent, 10 for a QSO with Ukraine (non-UR stations only). Multipliers per band: DXCC countries + Ukrainian oblasts (oblasts not for UR stations). Same station once per band per mode. Last published rules: 2021 (the contest is suspended because of the war). Simplified: WAE-only countries count as their DXCC entity."
+  officialUrl: "http://www.urdxc.org/rules.php?english"
+# first full weekend of November, 1200 UTC Saturday to 1200 UTC Sunday
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: ur, when: { entityIn: [288] } }
+  - { id: dx, when: { not: { entityIn: [288] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }   # UR stations: oblast (change the source)
+  received:
+    - { id: rst,    type: RST,      required: true }
+    - { id: oblast, type: DISTRICT, required: true, appliesWhen: { workedClass: ur } }
+    - { id: nr,     type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { allOf: [ { workedClass: ur }, { not: { ownEntityIn: [288] } } ] }, value: { fixed: 10 } }
+      - { when: { ownDxcc: true },        value: { fixed: 1 } }
+      - { when: { sameContinent: true },  value: { fixed: 2 } }
+      - { when: { otherContinent: true }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+  - { id: oblasts,   set: ur_oblasts,    from: oblast,   scope: PER_BAND, appliesWhen: { workedClass: ur },
+      when: { not: { ownEntityIn: [288] } } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: UKRAINIAN-DX, sentOrder: [rst, nr], receivedOrder: [rst, oblast, nr] }
+ui:
+  entryOrder: [call, oblast, nr]
+  logColumns: [time, call, band, mode, rst, oblast, nr, points, mult]

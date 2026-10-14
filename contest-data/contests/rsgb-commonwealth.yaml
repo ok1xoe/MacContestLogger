@@ -1,0 +1,61 @@
+schemaVersion: 1
+id: rsgb-commonwealth
+metadata:
+  name: "Commonwealth Contest (BERU)"
+  organizer: "RSGB (for RAC, WIA, ARSI, NZART, RSGB)"
+  description: "CW only, 24 h from 1000 UTC Saturday (2nd weekend of March, 14-15 March 2026); 80-10 m. Only stations in Commonwealth Call Areas take part and only QSOs between them count; not with your own call area, and not between the UK areas (G, GD, GI, GJ, GM, GU, GW). Exchange RST + serial (HQ stations add HQ). Points: same continent 5, other continent 10, plus a 20-point bonus for each of the first three QSOs with each Commonwealth Call Area on each band; no multipliers. Simplifications: call areas = DXCC entities, except Canada, Australia and New Zealand where the WPX prefix stands for the call area (VA3/VE3 count apart); only the bonus for the FIRST QSO per area and band is counted (the 2nd and 3rd are not); within Canada/Australia/New Zealand QSOs with your own call area are not excluded; HQ stations as extra areas are not recognised; Antarctica (VP8) is the whole DXCC entity."
+  officialUrl: "https://www.rsgbcc.org/hf/rules/2026/rcwc.shtml"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1000" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+# Only Commonwealth Call Areas (rules list on rsgbcc.org/hf/information/codes.shtml) count.
+workable: { entityIn: [4, 165, 207, 176, 460, 489, 468, 315, 215, 283, 470, 450, 483, 190, 286, 430, 82, 432, 440, 62, 159, 129, 424, 257, 482, 458, 247, 299, 46, 381, 454, 90, 402, 160, 372, 157, 422, 60, 181, 211, 252, 191, 234, 188, 223, 114, 265, 122, 279, 106, 294, 507, 185, 77, 97, 95, 98, 163, 305, 379, 282, 301, 31, 48, 490, 406, 420, 94, 66, 249, 464, 345, 1, 111, 153, 150, 38, 147, 171, 189, 303, 35, 12, 96, 65, 89, 172, 513, 13, 141, 235, 240, 241, 238, 64, 33, 324, 11, 142, 158, 233, 250, 205, 274, 69, 270, 170, 34, 133] }
+
+stationClasses:
+  # Canada, Australia, New Zealand: several call areas inside one DXCC entity
+  - { id: split, when: { entityIn: [1, 150, 170] } }
+  - { id: area,  when: { not: { entityIn: [1, 150, 170] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # QSOs between the UK call areas, and with your own call area, do not count
+      - { when: { allOf: [ { ownEntityIn: [223, 114, 265, 122, 279, 106, 294] }, { entityIn: [223, 114, 265, 122, 279, 106, 294] } ] }, value: { fixed: 0 } }
+      - { when: { ownDxcc: true, workedClass: area }, value: { fixed: 0 } }
+      - { when: { sameContinent: true },  value: { fixed: 5 } }
+      - { when: { otherContinent: true }, value: { fixed: 10 } }
+  # bonus 20 points per call area and band (first QSO only, see description)
+  total: "qsoPoints + 20 * multTotal"
+
+multipliers:
+  - { id: areas, set: dxcc_entities, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: area },
+      label: "Call areas (bonus)",
+      when: { allOf: [ { not: { ownDxcc: true } }, { not: { allOf: [ { ownEntityIn: [223, 114, 265, 122, 279, 106, 294] }, { entityIn: [223, 114, 265, 122, 279, 106, 294] } ] } } ] } }
+  - { id: splitareas, set: wpx_prefixes, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: split },
+      label: "VE/VK/ZL call areas (bonus)" }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: RSGB-COMMONWEALTH, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points, mult]
+operating:
+  rules:
+  # 12-hour sections: off periods at least 60 minutes.
+  - when:
+      TIME: "12-HOURS"
+    offTime:
+      minimumMinutes: 60
+      requiredMinutes: 720

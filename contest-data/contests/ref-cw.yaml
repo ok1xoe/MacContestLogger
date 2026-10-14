@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: ref-cw
+metadata:
+  name: "REF Contest (Coupe du REF) — CW"
+  organizer: "REF"
+  description: "0600 UTC Saturday - 1800 UTC Sunday, last full weekend of January; 80-10 m. French metropolitan stations send RS(T) + department (F6REF: 00), DOM/TOM stations RS(T) + prefix (e.g. FM), others RS(T) + serial. Foreign stations count only QSOs with French stations: same continent 1, other continent 3. French stations: French same continent 6, French other continent 15, foreign same continent 1, foreign other continent 2. Multipliers per band: departments + 00 + DOM/TOM prefixes; French stations also DXCC entities (except F, TK and DOM/TOM). Simplifications: /MM (3 points) not recognised; the French single-op 28-hour / multi-op 10-minute rules are not enforced; the Cabrillo sent exchange is written for a foreign entrant (RST + serial)."
+  officialUrl: "https://concours.r-e-f.org/contest/a-propos/"
+period: { durationHours: 36, startWeekday: SAT, startTime: "0600" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+stationClasses:
+  # metropolitan France, Corsica and the French overseas departments/territories (DOM/TOM)
+  - { id: f,  when: { entityIn: [227, 214, 79, 84, 63, 453, 169, 516, 213, 162, 512, 175, 508, 509, 36, 277, 298, 10, 41, 99, 124, 131, 276] } }
+  - { id: dx, when: { not: { entityIn: [227, 214, 79, 84, 63, 453, 169, 516, 213, 162, 512, 175, 508, 509, 36, 277, 298, 10, 41, 99, 124, 131, 276] } } }
+
+exchange:
+  sent:
+    - { id: rst,    type: RST,    source: AUTO_RST }
+    - { id: nr,     type: SERIAL, source: AUTO_SERIAL }
+    - { id: mydept, type: TEXT,   source: FROM_STATION }   # French stations only: own department / prefix (not written to Cabrillo)
+  received:
+    - { id: rst,  type: RST,      required: true }
+    - { id: dept, type: DISTRICT, required: true, appliesWhen: { workedClass: f },
+        validation: { regex: "^([0-9]{2}|2[AB]|F[A-Z])$" } }
+    - { id: nr,   type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # I am a French station
+      - { when: { ownEntityIn: [227, 214, 79, 84, 63, 453, 169, 516, 213, 162, 512, 175, 508, 509, 36, 277, 298, 10, 41, 99, 124, 131, 276], workedClass: f, sameContinent: true },  value: { fixed: 6 } }
+      - { when: { ownEntityIn: [227, 214, 79, 84, 63, 453, 169, 516, 213, 162, 512, 175, 508, 509, 36, 277, 298, 10, 41, 99, 124, 131, 276], workedClass: f },                       value: { fixed: 15 } }
+      - { when: { ownEntityIn: [227, 214, 79, 84, 63, 453, 169, 516, 213, 162, 512, 175, 508, 509, 36, 277, 298, 10, 41, 99, 124, 131, 276], sameContinent: true },                  value: { fixed: 1 } }
+      - { when: { ownEntityIn: [227, 214, 79, 84, 63, 453, 169, 516, 213, 162, 512, 175, 508, 509, 36, 277, 298, 10, 41, 99, 124, 131, 276] },                                       value: { fixed: 2 } }
+      # I am a foreign station: only QSOs with French stations count
+      - { when: { workedClass: f, sameContinent: true }, value: { fixed: 1 } }
+      - { when: { workedClass: f },                      value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: depts,     set: ref_departments, from: dept,     scope: PER_BAND, appliesWhen: { workedClass: f } }
+  # French stations only: DXCC entities other than France, Corsica and DOM/TOM
+  - { id: countries, set: dxcc_entities,   from: callsign, scope: PER_BAND, appliesWhen: { workedClass: dx },
+      when: { ownEntityIn: [227, 214, 79, 84, 63, 453, 169, 516, 213, 162, 512, 175, 508, 509, 36, 277, 298, 10, 41, 99, 124, 131, 276] } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: REF-CW, sentOrder: [rst, nr], receivedOrder: [rst, dept, nr] }
+ui:
+  entryOrder: [call, dept, nr]
+  logColumns: [time, call, band, mode, rst, dept, nr, points, mult]

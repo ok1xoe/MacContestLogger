@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: it_provinces
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "Italian provinces (ARI DX)"
+  description: "The 107 two-letter province codes listed in the official ARI International DX Contest rules (2022 edition, the latest rules PDF on ari.it). A newer code sent by an Italian station is still accepted (flagged as unknown)."
+valuesFile: it_provinces.csv

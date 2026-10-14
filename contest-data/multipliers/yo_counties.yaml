@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: yo_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Romanian counties (YO DX HF)", description: "The 41 county abbreviations + BU (Bucharest) from the official YO DX HF Contest rules." }
+valuesFile: yo_counties.csv

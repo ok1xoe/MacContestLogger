@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: darc-xmas
+metadata:
+  name: "DARC Christmas Contest (XMAS)"
+  organizer: "DARC"
+  description: "26 December, 0830-1059 UTC; 80 and 40 m, CW and SSB. Each station once per band (MIXED class: once per band in each mode). German stations send RS(T) + DOK (NM = non-member), others RS(T) + serial. 1 point per QSO. Multipliers per band (MIXED: per band and mode): DOKs + WPX prefixes. Sprint rule: the CQ-calling station must QSY after the QSO - not enforced. Simplifications: the period is 2.5 h but the definition can only say 3 h (stop at 1059 UTC); max 20 band/mode changes not checked; the Cabrillo sent exchange is written for a non-German entrant (RST + serial)."
+  officialUrl: "https://www.darc.de/der-club/referate/conteste/weihnachtswettbewerb/rules/"
+period: { durationHours: 3, startTime: "0830" }
+bands: [80m, 40m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: dl, when: { entityIn: [230] } }
+  - { id: dx, when: { not: { entityIn: [230] } } }
+
+exchange:
+  sent:
+    - { id: rst,   type: RST,    source: AUTO_RST }
+    - { id: nr,    type: SERIAL, source: AUTO_SERIAL }
+    - { id: mydok, type: TEXT,   source: FROM_STATION }   # German stations only: own DOK or NM (not written to Cabrillo)
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: dok, type: TEXT,   required: true, appliesWhen: { workedClass: dl },
+        validation: { regex: "^[A-Z0-9]{2,8}$" } }
+    - { id: nr,  type: SERIAL, required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # PER_BAND_MODE = per band for single-mode entries, per band and mode for MIXED
+  - { id: doks,     set: dok,          from: dok,      scope: PER_BAND_MODE, appliesWhen: { workedClass: dl } }
+  - { id: prefixes, set: wpx_prefixes, from: callsign, scope: PER_BAND_MODE }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: XMAS, sentOrder: [rst, nr], receivedOrder: [rst, dok, nr] }
+ui:
+  entryOrder: [call, dok, nr]
+  logColumns: [time, call, band, mode, rst, dok, nr, points, mult]
