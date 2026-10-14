@@ -61,8 +61,14 @@ struct FrequencyStripView: View {
             Spacer().frame(width: 12)
             ModeLabel(app: app, entry: entry)
                 .fixedSize()
-            StripHintsView(app: app, panel: panel, focus: focus)
+            if entry.isShown(.hints) {
+                StripHintsView(app: app, panel: panel, focus: focus)
+            }
             Spacer(minLength: 0)
+            if entry.showsUtcClock {
+                UtcClockView()
+                    .padding(.trailing, 10)
+            }
             Text(verbatim: "VFO A")
                 .windowFont(13, design: .monospaced)
                 .fixedSize()
@@ -151,6 +157,12 @@ private struct StripHintsView: View {
                     }
                 }
                 WorkedBeforeStripView(app: app, panel: panel)
+                if panel.entry.isShown(.bearing), let bearing = panel.entry.bearingLine {
+                    Text(verbatim: bearing)
+                        .windowFont(11, weight: .medium, design: .monospaced)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("entry.bearing")
+                }
                 CallbookLineView(app: app, panel: panel)
                 CallHistoryLineView(panel: panel)
                 UserTextLineView(app: app, panel: panel)
@@ -228,5 +240,22 @@ struct ChipRowsLayout: Layout {
             widest = Swift.max(widest, x - spacing)
         }
         return (width > 0 ? Swift.min(widest, width) : widest, origins)
+    }
+}
+
+/// N1MM „Show GMT Time": the UTC clock of the Entry window.
+struct UtcClockView: View {
+    private static let format: Date.FormatStyle = {
+        var style = Date.FormatStyle(date: .omitted, time: .standard, locale: Locale(identifier: "en_GB"))
+        style.timeZone = TimeZone(identifier: "UTC") ?? .gmt
+        return style
+    }()
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            Text(verbatim: context.date.formatted(Self.format) + " UTC")
+                .windowFont(13, weight: .medium, design: .monospaced)
+                .fixedSize()
+        }
     }
 }

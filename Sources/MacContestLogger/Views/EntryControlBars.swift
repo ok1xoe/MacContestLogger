@@ -45,7 +45,7 @@ struct InfoStripView: View {
             }
             .toggleStyle(.checkbox)
             .padding(.leading, 8)
-            if panel.entry.form.mode == .cw {
+            if panel.entry.form.mode == .cw, panel.entry.isShown(.cwSpeed) {
                 CwSpeedSpinner(keyer: app.keyer)
                     .padding(.leading, 8)
             }

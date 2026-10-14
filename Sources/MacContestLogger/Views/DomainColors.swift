@@ -26,6 +26,21 @@ enum DomainColors {
     static let dupe: NSColor = dynamic("mcl.dupe", light: rgb(0xC62828), dark: rgb(0xFF6B6B))
     /// N1MM QuickEdit: the entry fields' light blue background.
     static let quickEdit: NSColor = dynamic("mcl.quickEdit", light: rgb(0xD6EBFF), dark: rgb(0x1E3A5F))
+    /// N1MM's call colours (the band buttons, the call field): green = a double multiplier, red = a multiplier,
+    /// blue = a new QSO, grey = a dupe.
+    static let callDoubleMult: NSColor = dynamic("mcl.callDoubleMult", light: rgb(0x2E7D32), dark: rgb(0x66BB6A))
+    static let callMult: NSColor = dynamic("mcl.callMult", light: rgb(0xD32F2F), dark: rgb(0xEF5350))
+    static let callNew: NSColor = dynamic("mcl.callNew", light: rgb(0x1565C0), dark: rgb(0x64B5F6))
+
+    static func call(_ status: CallBandStatus) -> NSColor {
+        switch status {
+        case .doubleMultiplier: return callDoubleMult
+        case .multiplier: return callMult
+        case .newQso: return callNew
+        case .dupe: return .secondaryLabelColor
+        }
+    }
+
     /// Multiplier: amber (Kotlin `colorScheme.tertiary`).
     static let multiplier: NSColor = dynamic("mcl.multiplier", light: rgb(0x9A6200), dark: rgb(0xFFC046))
     /// The accent the AppKit colours below resolve against (set by `AppearanceApplier`; SwiftUI reads the

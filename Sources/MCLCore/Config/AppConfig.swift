@@ -197,6 +197,14 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var preferredCallbook = CallbookService.hamQth.rawValue
     /// The Dupesheet windows sort each column by suffix (N1MM), otherwise by the whole call (v1.1.1). Swift-only key.
     public var dupesheetSortBySuffix = true
+    /// The bands (ADIF names) whose buttons the Entry window does not show. Swift-only key.
+    public var entryHiddenBands: [String] = []
+    /// N1MM „Band Button Left Click Enabled": a click on a band button changes the band. Swift-only key.
+    public var entryBandButtonsClick: Bool = true
+    /// N1MM „Show GMT Time": the UTC clock in the Entry window. Swift-only key.
+    public var entryShowUtcClock: Bool = false
+    /// The Entry window parts hidden by its right-click menu (`EntrySection` raw values). Swift-only key.
+    public var entryHiddenSections: [String] = []
     /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
     public var resetRxAfterRunQso: Bool = false
 
@@ -251,6 +259,10 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
+        case entryHiddenBands
+        case entryBandButtonsClick
+        case entryShowUtcClock
+        case entryHiddenSections
         case resetRxAfterRunQso
         case checkHiddenPanes, checkPaneWeights, checkYankOrder, checkYankAllowDupes, checkFavorEndDifferences
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
@@ -368,6 +380,10 @@ public struct AppConfig: Codable, Equatable, Sendable {
         checkReverseFromStart = c.value(.checkReverseFromStart, default: d.checkReverseFromStart)
         showUnmatchedCallMark = c.value(.showUnmatchedCallMark, default: d.showUnmatchedCallMark)
         dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
+        entryHiddenBands = c.value(.entryHiddenBands, default: d.entryHiddenBands)
+        entryBandButtonsClick = c.value(.entryBandButtonsClick, default: d.entryBandButtonsClick)
+        entryShowUtcClock = c.value(.entryShowUtcClock, default: d.entryShowUtcClock)
+        entryHiddenSections = c.value(.entryHiddenSections, default: d.entryHiddenSections)
         resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
         callHistoryLookupEnabled = c.value(.callHistoryLookupEnabled, default: d.callHistoryLookupEnabled)
