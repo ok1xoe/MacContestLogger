@@ -222,6 +222,14 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// The Multipliers window kinds that show every possible multiplier (N1MM „Show only worked & expected" off).
     /// Swift-only key.
     public var multGridShowAll: [String] = []
+    /// N1MM Move Multipliers Display Options › Type over the spots (`MULT`, `POINTS`, `COUNTS`). Swift-only key.
+    public var moveMultsDisplay: String = "MULT"
+    /// N1MM Move Multipliers Display Count Range (`0-6`). Swift-only key.
+    public var moveMultsRange: String = "0-6"
+    /// The band columns of Move Multipliers over the spots (`160m,80m`; empty = the contest's bands). Swift-only key.
+    public var moveMultsBands: String = ""
+    /// The spot modes Move Multipliers lists (`CONTEST`, `ALL`, `CW`, `PHONE`, `DIGI`). Swift-only key.
+    public var moveMultsModes: String = "CONTEST"
     /// The Entry window parts hidden by its right-click menu (`EntrySection` raw values). Swift-only key.
     public var entryHiddenSections: [String] = []
     /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
@@ -295,6 +303,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case entryShowUtcClock
         case logShowModeColumn
         case multGridBands, multExpected, multGridShowAll
+        case moveMultsDisplay, moveMultsRange, moveMultsBands, moveMultsModes
         case entryHiddenSections
         case resetRxAfterRunQso
         case macroQsyStepKHz, functionKeysPerOperator
@@ -425,6 +434,10 @@ public struct AppConfig: Codable, Equatable, Sendable {
         multGridBands = c.value(.multGridBands, default: d.multGridBands)
         multExpected = c.value(.multExpected, default: d.multExpected)
         multGridShowAll = c.value(.multGridShowAll, default: d.multGridShowAll)
+        moveMultsDisplay = c.value(.moveMultsDisplay, default: d.moveMultsDisplay)
+        moveMultsRange = c.value(.moveMultsRange, default: d.moveMultsRange)
+        moveMultsBands = c.value(.moveMultsBands, default: d.moveMultsBands)
+        moveMultsModes = c.value(.moveMultsModes, default: d.moveMultsModes)
         entryHiddenSections = c.value(.entryHiddenSections, default: d.entryHiddenSections)
         resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
         let qsyStep: Int = c.value(.macroQsyStepKHz, default: d.macroQsyStepKHz)

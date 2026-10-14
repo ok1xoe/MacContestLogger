@@ -69,3 +69,24 @@ DXLog **QSY wizard**. Open via **Okno → Přesun násobičů** (Window → Move
 - **→** tunes the rig to that frequency.
 - It is evaluated as a preview according to the contest rules (dupe, multiplier scope), nothing is
   logged.
+
+### Spotted stations
+
+The **Spotované stanice** (Spotted stations) view of the same window is N1MM's Move Multipliers over the spot
+table: one row per spotted call and mode (not your own call or your own spots), a column per band. The
+spotted bands are shaded. **Zobrazit** (Show) chooses what the band cells say:
+
+- **Násobiče** (Multipliers, default) — `M1` one new multiplier if worked on that band, `M2` two or more,
+  blank none (a dupe never counts). Only stations with a new multiplier somewhere are listed.
+- **Body QSO** (QSO points) — the points the QSO would earn (0 for a dupe), the same in every column.
+- **Počty QSO** (QSO counts) — how many times the call was already worked in that mode on each band (`-` where
+  not).
+
+With points or counts, **Rozsah** (Range) hides the stations outside a range such as `0-6` (the default),
+`3-5` or `5`. **Módy** (Modes: contest modes, all, CW, phone, digital) and **Pásma** (Bands; the contest's
+bands by default) choose what is listed. The choices are remembered.
+
+Like N1MM the list does not follow every spot: it is built when the view opens, when an option changes and
+on **Aktualizovat** (Refresh). Clicking a shaded cell tunes to that spot (frequency and mode); clicking the
+call goes to its first spotted band and each further click to the next one. **Shift+click** puts the spot's
+frequency in VFO B instead. **Skrýt řádek** (Hide row, right click) hides a station until the next refresh.

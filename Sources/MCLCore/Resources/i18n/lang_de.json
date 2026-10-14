@@ -1887,5 +1887,18 @@
  "Natočit anténu": "Antenne drehen",
  "Nastavit rover QTH": "Rover-QTH setzen",
  "Jeden násobič na řádek, velkými písmeny, jak je okno ukazuje.": "Ein Multiplikator pro Zeile, in Großbuchstaben, wie das Fenster ihn zeigt.",
- "Exportovat pracované násobiče…": "Gearbeitete Multiplikatoren exportieren…"
+ "Exportovat pracované násobiče…": "Gearbeitete Multiplikatoren exportieren…",
+ "Poslední QSO": "Letzte QSOs",
+ "Spotované stanice": "Gespottete Stationen",
+ "Zobrazení přesunu násobičů": "Ansicht Multiplikatoren verschieben",
+ "Žádné spotované stanice.": "Keine gespotteten Stationen.",
+ "Body QSO": "QSO-Punkte",
+ "Počty QSO": "QSO-Anzahl",
+ "Zobrazit": "Anzeigen",
+ "Rozsah": "Bereich",
+ "Rozsah počtu, např. 0-6 nebo 3": "Zählbereich, z. B. 0-6 oder 3",
+ "Módy závodu": "Contest-Betriebsarten",
+ "Vše": "Alle",
+ "Skrýt řádek": "Zeile ausblenden",
+ "Aktualizovat": "Aktualisieren"
 }

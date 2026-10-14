@@ -31,9 +31,22 @@ public final class MoveMultsModel {
         let status: StatusModel
         let language: LanguageModel
         let now: @Sendable () -> Date
+        var config: ConfigModel?
+        var analysis: SpotAnalysisModel?
+        var feed: SpotFeed?
     }
 
-    @ObservationIgnored private let deps: Dependencies
+    @ObservationIgnored let deps: Dependencies
+    /// N1MM's spotted-stations view instead of the latest QSOs.
+    public var showSpots = false
+    /// The spotted stations as of the last refresh (N1MM rebuilds on Refresh, on opening and on an option change).
+    public internal(set) var spotRows: [SpotMoveMults.Row] = []
+    /// Rows hidden until the next refresh (N1MM's middle click).
+    public internal(set) var hidden: Set<String> = []
+    /// Bumped when an option changes.
+    public internal(set) var optionsRevision: Int = 0
+    /// The next spotted band a click on a call goes to, by row.
+    @ObservationIgnored var nextSpot: [String: Int] = [:]
 
     init(_ dependencies: Dependencies) {
         deps = dependencies
