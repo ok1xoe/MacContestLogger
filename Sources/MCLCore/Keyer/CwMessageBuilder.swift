@@ -110,6 +110,8 @@ public enum CwMessageBuilder {
         /// `{LRMHZ}` / `{RRMHZ}`: the whole MHz of the left (VFO A / radio 1) and right (VFO B / radio 2) rig.
         public var leftMHz: String = ""
         public var rightMHz: String = ""
+        /// `{OTHERFREQ}`…: the frequency of the other (inactive) VFO / radio (Hz, 0 = unknown).
+        public var otherFreqHz: Int64 = 0
         /// The local time zone of `{TIME1}`, `{DATE}`, `{DATE1}`, `{DAYTIME}` and the locale of the short dates.
         public var timeZone: TimeZone = .current
         public var locale: Locale = .current
@@ -155,6 +157,16 @@ public enum CwMessageBuilder {
         "{FORCELOG}": .forceLog, "{FORCELOGNOTE}": .forceLogNote, "{SPACE}": .space,
         "{PGUP}": .pageUp, "{PGDN}": .pageDown, "{FREQUP}": .freqUp, "{FREQDN}": .freqDown,
         "{TURNROTOR}": .turnRotor, "{LONGPATH}": .longPath, "{STOPROTOR}": .stopRotor,
+    ].merging(radioActions) { first, _ in first }
+
+    /// The two-radio, audio and needed-QSO actions (N1MM), shared with the voice messages.
+    public static let radioActions: [String: CwMessage.Action] = [
+        "{JUMPRX}": .jumpRx, "{JUMPRXTX}": .jumpRxTx, "{CONDJUMP}": .condJump, "{STOPTX}": .stopTx,
+        "{STEREOON}": .stereoOn, "{STEREOOFF}": .stereoOff,
+        "{ACTIVEAUDIOTOGGLE}": .activeAudioToggle, "{ACTIVEAUDIOON}": .activeAudioOn,
+        "{ACTIVEAUDIOOFF}": .activeAudioOff, "{INACTIVEAUDIOTOGGLE}": .inactiveAudioToggle,
+        "{INACTIVEAUDIOON}": .inactiveAudioOn, "{INACTIVEAUDIOOFF}": .inactiveAudioOff,
+        "{POPPREVNEEDEDQ}": .popPrevNeeded, "{POPNEXTNEEDEDQ}": .popNextNeeded,
     ]
 
     /// Builds the message (`nil` template = empty message, like Java `null`).
@@ -388,6 +400,11 @@ public enum CwMessageBuilder {
         case "{CLUSTER}": ctx.clusterCall
         case "{FREQ}": MacroFrequency.text(ctx.freqHz, round: false, r: ctx.frequencyR)
         case "{FREQROUND}": MacroFrequency.text(ctx.freqHz, round: true, r: ctx.frequencyR)
+        case "{OTHERFREQ}": MacroFrequency.text(ctx.otherFreqHz, round: false, r: ctx.frequencyR)
+        case "{OTHERFREQROUND}": MacroFrequency.text(ctx.otherFreqHz, round: true, r: ctx.frequencyR)
+        case "{OTHERBAND}": MacroFrequency.band(ctx.otherFreqHz)
+        case "{OTHERMHZ}": MacroFrequency.mhz(ctx.otherFreqHz, r: ctx.frequencyR)
+        case "{OTHERFREQCUT}": MacroFrequency.cut(ctx.otherFreqHz, style: ctx.cutStyle)
         case "{LRMHZ}": ctx.leftMHz
         case "{RRMHZ}": ctx.rightMHz
         case "{GRIDSQUARE}": JavaText.toUpperCase(JavaText.trim(ctx.hisGrid))

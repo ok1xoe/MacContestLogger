@@ -1780,5 +1780,14 @@
  "Moje volačka": "Mein Rufzeichen",
  "Jeho volačka": "Sein Rufzeichen",
  "QSO B4": "QSO B4",
- "Znovu?": "Nochmal?"
+ "Znovu?": "Nochmal?",
+ "Stereo jen v SO2R": "Stereo nur in SO2R",
+ "OTRSP: zařízení není připojené (Nastavení → SO2R)": "OTRSP: Gerät nicht verbunden (Einstellungen → SO2R)",
+ "Neaktivní rig je jen v SO2R": "Ein inaktiver TRX nur in SO2R",
+ "TRX %s: zvuk ztlumen": "TRX %s: Ton stumm",
+ "TRX %s: zvuk zapnut": "TRX %s: Ton ein",
+ "Není jiný naposledy otevřený závod": "Kein anderer zuletzt geöffneter Contest",
+ "Potřebná stanice %s (%s z %s)": "Benötigte Station %s (%s von %s)",
+ "Potřebné stanice: neznámé pásmo": "Benötigte Stationen: unbekanntes Band",
+ "Žádná potřebná stanice na pásmu %s": "Keine benötigte Station auf %s"
 }

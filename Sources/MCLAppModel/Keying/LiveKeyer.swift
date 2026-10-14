@@ -46,6 +46,10 @@ struct LiveKeyer: KeyerPort {
         return nil
     }
 
+    func releasePtt() {
+        model?.setTune(false)
+    }
+
     func manualPtt() -> EntryStatus? {
         model?.setTune(true, viaPtt: true)
         return nil

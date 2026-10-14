@@ -767,6 +767,158 @@ extension EntryModel {
             if let message = ports.keyer.manualPtt() {
                 show(message)
             }
+        case .jumpRx, .jumpRxTx:
+            jumpToOtherWindow()
+        case .condJump:
+            if rig?.activeState?.split != true {
+                jumpToOtherWindow()
+            }
+        case .stopTx:
+            ports.keyer.releasePtt()
+        case .stereoOn, .stereoOff:
+            rig?.setSo2rStereo(action == .stereoOn)
+        case .activeAudioToggle, .activeAudioOn, .activeAudioOff:
+            rig?.setAudio(inactive: false, on: action == .activeAudioToggle ? nil : action == .activeAudioOn)
+        case .inactiveAudioToggle, .inactiveAudioOn, .inactiveAudioOff:
+            rig?.setAudio(inactive: true, on: action == .inactiveAudioToggle ? nil : action == .inactiveAudioOn)
+        case .popPrevNeeded, .popNextNeeded:
+            popNeeded(forward: action == .popNextNeeded)
+        }
+    }
+
+    // MARK: - two radios
+
+    /// `{JUMPRX}` / `{JUMPRXTX}`: the other entry window becomes the active one with the focus (SO2R / SO2V).
+    func jumpToOtherWindow() {
+        guard let rig, let other = rig.otherEntry(than: self) else {
+            status.show("Druhé okno není otevřené (SO2V / SO2R)")
+            return
+        }
+        rig.requestFocusVfo(other.vfo)
+    }
+
+    /// `{CTRLFn}` (N1MM): the key's message of the other entry window, sent on its radio. The focus goes there when
+    /// this window's call field is empty; otherwise it comes back here once the message has been sent.
+    func sendOnOtherRadio(_ index: Int) {
+        guard let rig, let other = rig.otherEntry(than: self) else {
+            status.show("Druhé okno není otevřené (SO2V / SO2R)")
+            return
+        }
+        let stay: Bool = !KotlinStrings.isBlank(form.call)
+        if stay {
+            rig.activateVfo(other.vfo)
+        } else {
+            rig.requestFocusVfo(other.vfo)
+        }
+        other.handle(.functionKey(index, shift: false, ctrlShift: false))
+        guard stay else { return }
+        returnGeneration &+= 1
+        let generation: Int = returnGeneration
+        if ports.keyer.isSending {
+            watchReturn(generation)
+        } else {
+            rig.activateVfo(vfo)
+        }
+    }
+
+    private func watchReturn(_ generation: Int) {
+        withObservationTracking {
+            _ = ports.keyer.isSending
+        } onChange: { [weak self] in
+            MainHop.post {
+                guard let self, generation == self.returnGeneration else { return }
+                if self.ports.keyer.isSending {
+                    self.watchReturn(generation)
+                } else {
+                    self.rig?.activateVfo(self.vfo)
+                }
+            }
+        }
+    }
+
+    // MARK: - needed QSOs (VHF)
+
+    /// `{POPPREVNEEDEDQ}` / `{POPNEXTNEEDEDQ}` (N1MM): the stations of the log not yet worked on this window's band,
+    /// in log order; the previous / next one (from the call in the field) comes into the window with its exchange
+    /// (the serial and the reports excepted).
+    func popNeeded(forward: Bool) {
+        guard let band else {
+            status.show("Potřebné stanice: neznámé pásmo")
+            return
+        }
+        var order: [String] = []
+        var latest: [String: Qso] = [:]
+        var worked: Set<String> = []
+        for qso in logbook.rows {
+            let key: String = KotlinStrings.uppercase(KotlinStrings.trim(qso.call))
+            guard !key.isEmpty else { continue }
+            if latest[key] == nil {
+                order.append(key)
+            }
+            latest[key] = qso
+            if qso.band == band {
+                worked.insert(key)
+            }
+        }
+        let needed: [String] = order.filter { !worked.contains($0) }
+        guard !needed.isEmpty else {
+            status.show("Žádná potřebná stanice na pásmu %s", .string(band.adif))
+            return
+        }
+        let current: String = KotlinStrings.uppercase(KotlinStrings.trim(form.call))
+        let next: Int
+        if let at = needed.firstIndex(of: current) {
+            next = (at + (forward ? 1 : needed.count - 1)) % needed.count
+        } else {
+            next = forward ? 0 : needed.count - 1
+        }
+        guard let qso = latest[needed[next]] else { return }
+        wipe(focus: false)
+        callChanged(qso.call)
+        if contest.isActive {
+            let received = try? contest.runtime.freshSession()?.receivedFromFlat(
+                call: qso.call, exchangeRcvdFlat: qso.exchangeRcvd, serialRcvd: qso.serialRcvd)
+            for field in contest.exchangeFields(call: qso.call) {
+                guard let id = field.id, ![.RST, .RS, .SERIAL].contains(field.type),
+                      let value = received?.entries.first(where: { $0.0 == id })?.1 ?? nil,
+                      !value.isEmpty else { continue }
+                editContestField(id, value)
+            }
+        }
+        status.show("Potřebná stanice %s (%s z %s)", .string(qso.call), .int(next + 1), .int(needed.count))
+    }
+
+    // MARK: - contests
+
+    /// `{SWAPCONTESTS}` / `{SWAPCONTESTSn}` (N1MM): the oldest of the last `count` contests opened (so repeating it
+    /// cycles through them); `{SWAPCONTESTS name}`: the recent contest whose title holds the name. The QSO in
+    /// progress (call and exchange) moves to the opened contest.
+    func swapContests(count: Int?, name: String? = nil) {
+        let recent: [ContestModel.RecentContest] = contest.recent.filter { $0.contestId != contest.activeId }
+        let target: ContestModel.RecentContest?
+        if let name {
+            target = recent.first { $0.title.localizedCaseInsensitiveContains(name) }
+        } else if let count {
+            target = recent.isEmpty ? nil : recent[min(count - 1, recent.count) - 1]
+        } else {
+            target = nil
+        }
+        guard let target else {
+            status.show("Není jiný naposledy otevřený závod")
+            return
+        }
+        let call: String = form.call
+        let exchange = form.contestExchange
+        let opening: Task<Void, Never> = contest.openRecent(contestId: target.contestId)
+        Task { [weak self] in
+            await opening.value
+            guard let self, !KotlinStrings.isBlank(call) else { return }
+            self.callChanged(call)
+            for (id, value) in exchange.entries {
+                if let id, let value, !value.isEmpty {
+                    self.editContestField(id, value)
+                }
+            }
         }
     }
 
@@ -801,6 +953,14 @@ extension EntryModel {
                 rig?.selectAntenna(code: code)
             case .antennaRx(let port):
                 rig?.toggleRxAntenna(port: port, transmitting: ports.keyer.isSending)
+            case .otherRadioKey(let index):
+                sendOnOtherRadio(index)
+            case .otrsp(let text, let other):
+                rig?.sendOtrsp(text, other: other)
+            case .swapContests(let count):
+                swapContests(count: count)
+            case .swapContest(let name):
+                swapContests(count: nil, name: name)
             }
         }
     }
@@ -1134,7 +1294,21 @@ extension EntryModel {
         base.clusterCall = login.isEmpty ? app.station.call : login
         base.leftMHz = rigMHz(vfo: 0)
         base.rightMHz = rigMHz(vfo: 1)
+        base.otherFreqHz = otherRadioHz
         base.varyCounts = operating.varyCounts
+    }
+
+    /// `{OTHERFREQ}`…: the other entry window's frequency (SO2R / SO2V), otherwise the rig's other VFO (its split
+    /// TX frequency); 0 = unknown.
+    var otherRadioHz: Int64 {
+        guard let rig else { return 0 }
+        if let other = rig.otherEntry(than: self), other.form.freqHz > 0 {
+            return other.form.freqHz
+        }
+        if let state = rig.snapshot(vfo: 1 - rig.vfo.activeVfo).state, rig.vfo.twoEntryWindows, state.freqHz > 0 {
+            return state.freqHz
+        }
+        return rig.activeState.map { $0.txFreqHz != $0.freqHz ? $0.txFreqHz : 0 } ?? 0
     }
 
     /// `{LRMHZ}` / `{RRMHZ}`: the whole MHz of rig / VFO `vfo`; `""` without a rig state.

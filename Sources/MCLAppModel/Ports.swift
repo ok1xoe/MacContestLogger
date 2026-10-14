@@ -41,6 +41,8 @@ public protocol KeyerPort: Sendable {
     @MainActor func changeCwSpeed(by deltaWpm: Int) -> EntryStatus?
     /// N1MM `{TX}` in CW / SSB: the active rig's PTT on until Esc; the result is a status to show (`nil` = none).
     @MainActor func manualPtt() -> EntryStatus?
+    /// N1MM `{STOPTX}`: the PTT released (the manual PTT, a tune carrier).
+    @MainActor func releasePtt()
 }
 
 extension KeyerPort {
@@ -59,6 +61,8 @@ extension KeyerPort {
     public func manualPtt() -> EntryStatus? {
         .tr(EntryTexts.unavailable)
     }
+
+    public func releasePtt() {}
 }
 
 /// The rig half of the entry window's actions: the local part (field, mode, status) is done by the
