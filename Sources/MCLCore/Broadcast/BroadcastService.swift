@@ -110,6 +110,8 @@ public final class BroadcastService: @unchecked Sendable {
     private let config: BroadcastConfig
     private let broadcaster: any Broadcaster
     private let radioProvider: RadioProvider
+    /// The second radio's packet (SO2R, `RadioNr` 2); `nil` provider or result = one radio.
+    private let radio2Provider: RadioProvider?
     private let scoreProvider: ScoreProvider
     private let appInfoProvider: AppInfoProvider
     private let clock: any BroadcastClock
@@ -122,13 +124,16 @@ public final class BroadcastService: @unchecked Sendable {
     private let lock = NSLock()
     private var jobs: [BroadcastCancellation] = []
     private var lastRadioKey: String?
+    private var lastRadio2Key: String?
 
     public init(config: BroadcastConfig, broadcaster: any Broadcaster,
                 radioProvider: @escaping RadioProvider, scoreProvider: @escaping ScoreProvider,
-                appInfoProvider: @escaping AppInfoProvider, clock: any BroadcastClock = SystemBroadcastClock()) {
+                appInfoProvider: @escaping AppInfoProvider, clock: any BroadcastClock = SystemBroadcastClock(),
+                radio2Provider: RadioProvider? = nil) {
         self.config = config
         self.broadcaster = broadcaster
         self.radioProvider = radioProvider
+        self.radio2Provider = radio2Provider
         self.scoreProvider = scoreProvider
         self.appInfoProvider = appInfoProvider
         self.clock = clock
@@ -200,14 +205,31 @@ public final class BroadcastService: @unchecked Sendable {
         }
     }
 
-    /// One pass of the radio loop (Kotlin `radioLoop` without `delay`).
+    /// One pass of the radio loop (Kotlin `radioLoop` without `delay`); with a second radio its packet follows.
     func radioStep(ticks: Int32) {
-        guard let r = radioProvider() else { return }
-        let key: String = String(r.freqHz) + "/" + (r.mode ?? "null") + (r.auxAntennaCode.map { "/" + String($0) } ?? "")
+        if let r = radioProvider() {
+            radioStep(r, ticks: ticks, second: false)
+        }
+        if let provider = radio2Provider, let r = provider() {
+            radioStep(r, ticks: ticks, second: true)
+        }
+    }
+
+    private func radioStep(_ r: BroadcastXml.RadioData, ticks: Int32, second: Bool) {
+        var key: String = String(r.freqHz) + "/" + (r.mode ?? "null") + (r.auxAntennaCode.map { "/" + String($0) } ?? "")
+        if let x = r.extras {
+            key += "/\(x.txFreqHz)/\(x.isSplit)/\(x.isTransmitting)/\(x.focusRadioNr)/\(x.activeRadioNr)/\(x.isStereo)"
+            key += "/\(x.antenna)/\(r.isRunning)"
+        }
         lock.lock()
-        let send: Bool = key != lastRadioKey || ticks % 10 == 0
+        let last: String? = second ? lastRadio2Key : lastRadioKey
+        let send: Bool = key != last || ticks % 10 == 0
         if send {
-            lastRadioKey = key
+            if second {
+                lastRadio2Key = key
+            } else {
+                lastRadioKey = key
+            }
         }
         lock.unlock()
         if send {

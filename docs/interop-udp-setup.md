@@ -214,3 +214,21 @@ colored by the active contest (like the bandmap):
 
 The decode frequency = the VFO frequency from WSJT-X + the audio offset; the band is
 determined from it.
+
+---
+
+## N1MM broadcast packets (Settings → Broadcast Data)
+
+Every packet type is off by default and is sent only to the `host:port` targets you enter. A subnet
+broadcast address such as `192.168.1.255:12060` works (the socket has `SO_BROADCAST`).
+
+| Packet | Sent | Contents |
+|---|---|---|
+| `contactinfo` / `contactreplace` / `contactdelete` | a QSO logged, edited, deleted | N1MM's full tag list: band, frequencies, operator, call, country and WPX prefix, sent/received RST and serial, the received exchange (`exchange1`) and its parts by meaning (`gridsquare`, `zone`, `section`, `qth`, `name`, `power`, `prec`, `ck`), points, multiplier flag, `radionr` / `run1run2`, `IsRunQSO`, `IsOriginal`, station name, ID and `SentExchange` |
+| `RadioInfo` | every 10 s and on every change | radio number, RX and TX frequency (split), mode, own call, operator, Run/S&P, selected antenna, focus/active radio, stereo, split, transmitting, rig name, aux antenna; in SO2R one packet per radio (`RadioNr` 1 and 2) |
+| `dynamicresults` | every 10 s in a contest | contest, call, operators, the category class, club, QTH (country, zones, section, state, grid), a breakdown of QSOs and points per band and mode with QSO/point/multiplier totals, score |
+| `AppInfo` | when the broadcast starts | database, contest, station |
+
+The exchange parts come from the contest definition's received fields: a `LOCATOR` field goes to
+`gridsquare`, a CQ/ITU zone to `zone`, a state, province, district, HQ or IOTA reference to `qth`, and
+fields whose id is `sec`/`section`, `name`, `power`/`pwr`, `prec` or `ck`/`check` to those tags.

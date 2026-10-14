@@ -96,6 +96,11 @@ public final class IntegrationsModel {
     @ObservationIgnored var isSimulated: @MainActor (Qso) -> Bool = { _ in false }
     /// The pileup simulator refuses keying the rig (WSJT-X Reply makes WSJT-X transmit); `nil` = allowed.
     @ObservationIgnored var keyingRefusal: @MainActor () -> EntryStatus? = { nil }
+    /// A message (CW, voice, digital) is being sent now — `IsTransmitting` of the radio packet. Wired by the app.
+    @ObservationIgnored var isTransmitting: @MainActor () -> Bool = { false }
+    /// The score the breakdown in the snapshot was computed for (recomputed only when the score changes).
+    @ObservationIgnored private var breakdownScore: ScoreState?
+    @ObservationIgnored private var breakdownRows: [BroadcastXml.BreakdownRow] = []
     /// Test seam: runs after an ingested QSO was logged.
     @ObservationIgnored var afterIngest: (@MainActor () -> Void)?
 
@@ -143,7 +148,7 @@ public final class IntegrationsModel {
                 let service = BroadcastService(
                     config: b, broadcaster: try ports.makeBroadcaster(),
                     radioProvider: { box.radioData() }, scoreProvider: { box.scoreData(now: now()) },
-                    appInfoProvider: { box.appInfoData() })
+                    appInfoProvider: { box.appInfoData() }, radio2Provider: { box.radio2Data() })
                 service.start()
                 return .started(service)
             } catch {
@@ -205,6 +210,39 @@ public final class IntegrationsModel {
         s.activeName = deps.contest.activeName
         s.activeId = deps.contest.activeId
         s.contestNr = contestNr
+        let vfo: VfoState = deps.rig.vfo
+        s.so2r = vfo.so2r
+        s.activeRadioNr = vfo.so2r ? vfo.activeCatIndex + 1 : 1
+        s.stereo = vfo.stereo
+        if vfo.so2r {
+            // Radio 1 is always the first rig in SO2R, whichever entry window is active.
+            s.catConnected = deps.rig.cat1.connected
+            s.rig = deps.rig.cat1.state
+            s.rig2Connected = deps.rig.cat2.connected
+            s.rig2 = deps.rig.cat2.state
+        }
+        s.transmitting = isTransmitting()
+        s.antennaCode = deps.rig.antenna.current?.code
+        s.radioNames = [BroadcastMapping.radioName(modelLabel: config.rig.modelLabel),
+                        BroadcastMapping.radioName(modelLabel: config.rig2.modelLabel)]
+        if config.broadcast.scoreEnabled, let score = s.score {
+            if breakdownScore != score {
+                breakdownScore = score
+                breakdownRows = BroadcastMapping.scoreBreakdown(deps.logbook.rows, score: score)
+            }
+            var x = BroadcastXml.ScoreExtras()
+            let station: StationConfig = config.station
+            x.category = deps.contest.activeSetup?.category ?? [:]
+            x.club = station.club
+            x.dxccCountry = station.country
+            x.cqZone = station.cqZone
+            x.iaruZone = station.ituZone
+            x.arrlSection = station.arrlSection
+            x.stateProvince = station.state
+            x.grid = station.gridSquare
+            x.breakdown = breakdownRows
+            s.scoreExtras = x
+        }
         snapshotBox.store(s)
     }
 
@@ -217,16 +255,27 @@ public final class IntegrationsModel {
         }
     }
 
-    /// `contactData(qso)` of the active contest.
-    private func contactData(_ qso: Qso) -> BroadcastXml.ContactData {
-        BroadcastMapping.contactData(qso, contestName: deps.contest.activeName, contestNr: contestNr,
-                                     stationCall: config.station.call)
+    /// `contactData(qso)` of the active contest with N1MM's full field set; `radioNr` is the radio the QSO was
+    /// logged on (a live QSO: the active one in SO2R; otherwise 1).
+    func contactData(_ qso: Qso, radioNr: Int = 1) -> BroadcastXml.ContactData {
+        var data: BroadcastXml.ContactData = BroadcastMapping.contactData(
+            qso, contestName: deps.contest.activeName, contestNr: contestNr, stationCall: config.station.call)
+        let fields: [ContestDefinition.ExchangeField] = deps.contest.isActive ? deps.contest.exchangeFields(call: qso.call) : []
+        let prefix: String = deps.contest.runtime.dxccLookup?.resolve(qso.call)?.primaryPrefix ?? ""
+        data.extras = BroadcastMapping.contactExtras(qso, receivedFields: fields, countryPrefix: prefix,
+                                                     radioNr: radioNr)
+        return data
+    }
+
+    /// The radio a QSO logged now was logged on.
+    var liveRadioNr: Int {
+        deps.rig.vfo.so2r ? deps.rig.vfo.activeCatIndex + 1 : 1
     }
 
     /// A QSO logged here: the contact to the N1MM targets and the QSO to WSJT-X (never an import).
     func qsoLogged(_ qso: Qso) {
         if let service = broadcast {
-            let data: BroadcastXml.ContactData = contactData(qso)
+            let data: BroadcastXml.ContactData = contactData(qso, radioNr: liveRadioNr)
             lane.submit { service.sendContactInfo(data) }
         }
         if let sender = wsjtxSender {
@@ -241,7 +290,8 @@ public final class IntegrationsModel {
         guard let service = broadcast else { return }
         let replace: BroadcastMapping.Replace = BroadcastMapping.replace(
             old: old, new: new, contestName: deps.contest.activeName, contestNr: contestNr, stationCall: config.station.call)
-        lane.submit { service.sendContactReplace(replace.data, oldCall: replace.oldCall, oldTs: replace.oldTimestamp) }
+        let data: BroadcastXml.ContactData = contactData(new)
+        lane.submit { service.sendContactReplace(data, oldCall: replace.oldCall, oldTs: replace.oldTimestamp) }
     }
 
     /// A deleted QSO: `sendContactDelete`, every QSO on its own.

@@ -108,6 +108,9 @@ extension AppModel {
         for panel in [model.panel(vfo: 0), model.vfoB] {
             panel.entry.integrations = integrations
         }
+        integrations.isTransmitting = { [weak keyer = model.keyer] in
+            keyer?.isSending ?? false
+        }
         integrations.syncInfo = { [weak logbook = model.logbook] in
             (logbook?.syncStationId, logbook?.reservedServerSerial)
         }
