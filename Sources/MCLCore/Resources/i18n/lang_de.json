@@ -1695,5 +1695,11 @@
  "QuickEdit: o QSO vpřed": "QuickEdit: ein QSO vor",
  "QuickEdit %s/%s": "QuickEdit %s/%s",
  "QuickEdit (o QSO zpět)": "QuickEdit (ein QSO zurück)",
- "QuickEdit (o QSO vpřed)": "QuickEdit (ein QSO vor)"
+ "QuickEdit (o QSO vpřed)": "QuickEdit (ein QSO vor)",
+ "Split: poslech na RX %s": "Split: Empfang auf RX %s",
+ "Split: poslech na TX %s": "Split: Empfang auf TX %s",
+ "Split není zapnutý": "Split ist nicht eingeschaltet",
+ "Split: RX na TX %s": "Split: RX auf TX %s",
+ "Ve splitu po zapsání Run QSO vrátit RX na TX frekvenci (Alt+S)": "Im Split nach einem geloggten Run-QSO RX auf die TX-Frequenz zurücksetzen (Alt+S)",
+ "Split: RX na TX frekvenci": "Split: RX auf TX-Frequenz"
 }

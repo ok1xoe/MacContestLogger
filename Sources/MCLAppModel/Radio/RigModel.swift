@@ -56,6 +56,8 @@ public final class RigModel {
     @ObservationIgnored let connectRelease = ConnectReleaseHook()
     /// Kotlin `autoSplitActive`: the split was turned on by a spot (only such a split is turned off by the next).
     @ObservationIgnored var autoSplitActive = false
+    /// N1MM Ctrl+S with split on: the receive frequency to come back to while listening on the transmit one.
+    @ObservationIgnored var splitListenReturnHz: Int64?
     /// The rig that got the footswitch PTT on (the release goes to the same rig even after a VFO switch).
     @ObservationIgnored var footswitchPttRig: Int?
     /// The rig a plugin's `tx.ptt` keyed (`nil` = none).

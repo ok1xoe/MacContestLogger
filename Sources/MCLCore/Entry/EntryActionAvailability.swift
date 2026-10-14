@@ -77,7 +77,7 @@ public enum EntryActionAvailability {
         case .functionKeysSetup, .help:
             return .windows
         case .jumpCq, .tune, .splitOn, .splitToggle, .splitPrompt, .previousFrequency, .swapVfo, .copyToVfoB, .ritUp,
-             .ritDown, .ritClear, .switchRadio, .so2rStereo, .rotorTurn, .rotorLong, .rotorStop, .nextAntenna, .bandUp,
+             .ritDown, .ritClear, .resetRx, .switchRadio, .so2rStereo, .rotorTurn, .rotorLong, .rotorStop, .nextAntenna, .bandUp,
              .bandDown:
             return .radio
         case .cwKeyboard:

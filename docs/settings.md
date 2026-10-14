@@ -17,7 +17,7 @@ All Settings tabs are functional (the earlier mock-ups of the N1MM layout have b
 | Function Keys | CW, voice and digital messages F1–F12, ESM, [call stacking](call-stacking.md) |
 | Klávesy (Keys) | remapping of shortcuts |
 | Digital Modes | how to log the rig's data mode (PKTUSB → FT8 / RTTY / DIGITAL...) |
-| Other | CW speed step, tuning and RIT step (CW / phone), RIT clearing after a QSO, dupe beep |
+| Other | CW speed step, tuning and RIT step (CW / phone), RIT clearing after a QSO, resetting RX to the TX frequency after a Run QSO in split, dupe beep |
 | CW klíč (CW keyer) | Winkeyer / CAT keying |
 | Mode Control | mode in the log taken from the rig / band plan / always fixed; RTTY sent to the rig as FSK or AFSK |
 | Antennas | antenna table, rotator (rotctld, UDP) |

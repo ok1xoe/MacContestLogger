@@ -78,6 +78,8 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case quickEditBack
     /// N1MM Ctrl+A: QuickEdit one QSO forward.
     case quickEditForward
+    /// N1MM Alt+S: in split, the receive frequency back to the transmit one.
+    case resetRx
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -152,12 +154,13 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .editLast: Spec(name: "EDIT_LAST", id: "edit_last", label: "Upravit poslední spojení", defaultKeys: "Ctrl+Y")
         case .quickEditBack: Spec(name: "QUICK_EDIT_BACK", id: "quick_edit_back", label: "QuickEdit: o QSO zpět", defaultKeys: "Ctrl+Q")
         case .quickEditForward: Spec(name: "QUICK_EDIT_FORWARD", id: "quick_edit_forward", label: "QuickEdit: o QSO vpřed", defaultKeys: "Ctrl+A")
+        case .resetRx: Spec(name: "RESET_RX", id: "reset_rx", label: "Split: RX na TX frekvenci", defaultKeys: "Alt+S")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

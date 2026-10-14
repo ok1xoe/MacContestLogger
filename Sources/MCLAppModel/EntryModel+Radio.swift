@@ -125,7 +125,8 @@ extension EntryModel {
             if jumpToCqFrequency() {
                 wipe()
             }
-        case .splitOn: rig.setSplit(0)
+        case .splitOn: rig.splitListenToggle()
+        case .resetRx: rig.resetRxToTx()
         case .splitToggle: rig.toggleSplit()
         case .splitPrompt: rig.promptSplit(currentFreqHz: form.freqHz)
         case .previousFrequency: rig.returnToPrevious()
