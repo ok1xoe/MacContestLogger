@@ -72,6 +72,7 @@ extension EntryModel {
     /// The call field holds a command (`parseCommand() != null`).
     public var hasCommand: Bool {
         EntryCommandPlan.isCommand(form.call, currentFreqHz: form.freqHz, otherVfoHz: otherVfoHz)
+            || CallFieldClusterCommand.command(form.call) != nil
     }
 
     /// What the key router needs at the moment of the event, for the field with the focus.
@@ -301,6 +302,8 @@ extension EntryModel {
             quickEditStep(1)
         case .incrementNr:
             incrementNumber()
+        case .wipeOther:
+            wipeOtherWindow()
         case .stackCall:
             // Digital Call Stacking: Ctrl+Alt+G moves the Grab window's call onto the stack (N1MM).
             if form.mode.isDigital, config.config.digital.digitalCallStacking, let grabList,
@@ -503,6 +506,29 @@ extension EntryModel {
         updatePreview()
         reportTuned(cq)
         return true
+    }
+
+    /// N1MM Ctrl+Alt+Q: the last CQ frequency on any band into the field, Run, the QSY to the rig port (the band map
+    /// follows the rig).
+    @discardableResult
+    func jumpToLastCqFrequency() -> Bool {
+        guard let cq = operating.jumpToLastCqFrequency() else { return false }
+        form.freqKHz = FrequencyText.formatHz(cq)
+        ports.rig.qsy(hz: cq)
+        fieldFrequencyChanged()
+        updatePreview()
+        reportTuned(cq)
+        return true
+    }
+
+    /// N1MM Ctrl+Shift+W: wipe the other entry window (SO2V / SO2R); the focus stays here.
+    func wipeOtherWindow() {
+        guard let other = rig?.otherEntry(than: self) else {
+            status.show("Druhé okno není otevřené (SO2V / SO2R)")
+            return
+        }
+        other.wipeMemory.clear()
+        other.wipe(focus: false)
     }
 
     // MARK: - ESM and F-keys

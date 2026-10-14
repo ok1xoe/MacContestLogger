@@ -367,6 +367,12 @@ public final class RigModel {
         entry.rig = self
     }
 
+    /// The other entry window shown next to `entry` (SO2V / SO2R), `nil` without two entry windows.
+    func otherEntry(than entry: EntryModel) -> EntryModel? {
+        guard vfo.twoEntryWindows else { return nil }
+        return entries.compactMap(\.entry).first { $0 !== entry && $0.vfo != entry.vfo && $0.isWindowShown }
+    }
+
     func notifyEntries(_ body: (EntryModel) -> Void) {
         for holder in entries {
             if let entry = holder.entry {

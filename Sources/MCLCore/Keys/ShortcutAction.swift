@@ -84,6 +84,10 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case toggleFilter
     /// N1MM Ctrl+Alt+R: CW reverse on / off (the rig's CW ↔ CWR).
     case cwReverse
+    /// N1MM Ctrl+Shift+W: wipe the other entry window (SO2V / SO2R).
+    case wipeOther
+    /// N1MM Ctrl+Alt+Q: the last CQ frequency on any band.
+    case jumpLastCq
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -161,12 +165,14 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .resetRx: Spec(name: "RESET_RX", id: "reset_rx", label: "Split: RX na TX frekvenci", defaultKeys: "Alt+S")
         case .toggleFilter: Spec(name: "TOGGLE_FILTER", id: "filter_width", label: "Filtr rádia: široký / úzký", defaultKeys: "Alt+QUOTE")
         case .cwReverse: Spec(name: "CW_REVERSE", id: "cw_reverse", label: "CW reverse zap / vyp", defaultKeys: "Ctrl+Alt+R")
+        case .wipeOther: Spec(name: "WIPE_OTHER", id: "wipe_other", label: "Vymazat pole druhého okna", defaultKeys: "Ctrl+Shift+W")
+        case .jumpLastCq: Spec(name: "JUMP_LAST_CQ", id: "jump_last_cq", label: "Na poslední CQ frekvenci (libovolné pásmo)", defaultKeys: "Ctrl+Alt+Q")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

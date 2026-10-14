@@ -41,15 +41,18 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **'** (apostrophe) | sends TU (F3) and logs |
 | **Ctrl+W** | clears the fields (irreversibly) |
 | **Alt+W** | clears the fields; another Alt+W with empty fields **restores** them |
+| **Ctrl+Shift+W** | SO2V / SO2R: clears the fields of the **other** entry window (the focus stays here) |
 | **Ctrl+D** | deletes the last QSO (with confirmation) |
 | **Ctrl+N** | note: with a callsign filled in, for the QSO in progress, otherwise for the last logged one |
 | **Ctrl+F** | finds the callsign from the field in the log (opens the QSO overview with the search `call:`); again with the same callsign selects its next QSO (Find Again) |
 | **Ctrl+Y** | edits the last logged QSO in a dialog (also the **Edit** button), see [Entry window](entry-window.md#editing-a-qso) |
 | **Ctrl+Q** / **Ctrl+A** | QuickEdit: the logged QSOs one back / forward in the entry fields; Enter saves, Esc cancels, see [Entry window](entry-window.md#quickedit) |
-| **Ctrl+U** | serial number in the exchange +1 |
+| **Ctrl+U** | serial number in the exchange +1; a Sweepstakes serial with its precedence keeps it (`23B` → `24B`, also inside `23B 72 CT`) |
 | **Alt+Y** | next call of the Check window's panes into the callsign field (again = the next one; in an exchange field the first value of the exchange pane), see [Check window](call-check.md#alt-y) |
 | **↑ / ↓** | with SCP suggestions, moves within the suggestions, otherwise tunes the rig |
 | **Ctrl+O** | operator login |
+
+`SH/DX` (also `SH/DX/30`) typed into the callsign field and Enter goes to the connected DX cluster, as in N1MM; it is never logged.
 
 ## Messages and keying
 
@@ -83,6 +86,7 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Ctrl+PgUp / PgDn** | one band up / down. Returns to the last frequency on the band, otherwise to the start of the mode segment. In a contest only its bands, WARC is skipped |
 | **Alt+F8** | back to the previous frequency (after a jump to a spot, Alt+Q...) |
 | **Alt+U / Alt+Q / Alt+F11** | Run/S&P, back to the CQ frequency, Run/S&P automation — [run-sp.md](run-sp.md) |
+| **Ctrl+Alt+Q** | to the last CQ frequency on any band (Run); the band map follows the rig |
 | **Ctrl+S** | turns on split (transmit on VFO B); with split on, listens on the transmit frequency, again back on the receive one |
 | **Alt+S** | in split, puts the receiver back on the transmit frequency (optionally after every Run QSO: Settings → Other) |
 | **Ctrl+Alt+S** | toggles split on / off |

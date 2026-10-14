@@ -820,6 +820,11 @@ public final class AppModel {
             let entry: EntryModel = panel.entry
             entry.spotNavigation = model.spotNavigation
             entry.bandmapControls = model.bandmap
+            entry.clusterCommand = { [weak cluster = model.dxCluster] command in
+                guard let cluster, cluster.connected else { return false }
+                cluster.send(command)
+                return true
+            }
             entry.helpOpener = { [weak callbook = model.callbook] in
                 callbook?.openHelp()
             }

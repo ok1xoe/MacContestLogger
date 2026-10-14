@@ -44,6 +44,11 @@ public final class RunModeTracker {
         current == .run ? .searchAndPounce : onCq(freqHz)
     }
 
+    /// The last CQ frequency on any band (N1MM Ctrl+Alt+Q).
+    public var lastCqFrequency: Int? {
+        lastCq
+    }
+
     /// CQ frequency on a band (Alt+Q, marker in the bandmap); `nil` band → `nil`.
     public func cqFrequency(_ band: Band?) -> Int? {
         guard let band else { return nil }

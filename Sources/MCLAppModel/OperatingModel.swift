@@ -128,6 +128,17 @@ public final class OperatingModel {
         return cq
     }
 
+    /// N1MM Ctrl+Alt+Q: the last CQ frequency on any band and Run; `nil` with a status when there was no CQ yet.
+    public func jumpToLastCqFrequency() -> Int64? {
+        _ = cqFreqRevision
+        guard let cq = tracker.lastCqFrequency else {
+            status.show("Zatím nebylo žádné CQ")
+            return nil
+        }
+        runMode = .run
+        return Int64(cq)
+    }
+
     /// AUTORSP / NOAUTRSP without a status (the command plan shows it).
     public func applyAutoRunSwitch(_ enabled: Bool) {
         autoRunSwitch = enabled
