@@ -215,6 +215,13 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var entryShowUtcClock: Bool = false
     /// N1MM „Show Mode Column" of the Log window. Swift-only key.
     public var logShowModeColumn: Bool = true
+    /// N1MM „Set bands to be displayed" of the Multipliers windows: kind → bands (`160m,40m`). Swift-only key.
+    public var multGridBands: [String: String] = [:]
+    /// N1MM „Expected Multiplier List" of the Multipliers windows: kind → one multiplier per line. Swift-only key.
+    public var multExpected: [String: String] = [:]
+    /// The Multipliers window kinds that show every possible multiplier (N1MM „Show only worked & expected" off).
+    /// Swift-only key.
+    public var multGridShowAll: [String] = []
     /// The Entry window parts hidden by its right-click menu (`EntrySection` raw values). Swift-only key.
     public var entryHiddenSections: [String] = []
     /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
@@ -287,6 +294,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case entryBandButtonsClick
         case entryShowUtcClock
         case logShowModeColumn
+        case multGridBands, multExpected, multGridShowAll
         case entryHiddenSections
         case resetRxAfterRunQso
         case macroQsyStepKHz, functionKeysPerOperator
@@ -414,6 +422,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
         entryBandButtonsClick = c.value(.entryBandButtonsClick, default: d.entryBandButtonsClick)
         entryShowUtcClock = c.value(.entryShowUtcClock, default: d.entryShowUtcClock)
         logShowModeColumn = c.value(.logShowModeColumn, default: d.logShowModeColumn)
+        multGridBands = c.value(.multGridBands, default: d.multGridBands)
+        multExpected = c.value(.multExpected, default: d.multExpected)
+        multGridShowAll = c.value(.multGridShowAll, default: d.multGridShowAll)
         entryHiddenSections = c.value(.entryHiddenSections, default: d.entryHiddenSections)
         resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
         let qsyStep: Int = c.value(.macroQsyStepKHz, default: d.macroQsyStepKHz)

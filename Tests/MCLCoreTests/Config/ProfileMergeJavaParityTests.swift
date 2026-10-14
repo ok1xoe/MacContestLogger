@@ -308,7 +308,8 @@ import Testing
             "dxCluster.spotFilterHiddenModes", "dxCluster.spotFilterPreferredSpotters", "dxCluster.spotFilterSpotterCallAreas",
             "dxCluster.spotFilterSpotterContinents", "dxCluster.spotFilterSpotterPrefixes", "dxCluster.spotterBlacklist",
             "entryHiddenBands", "entryHiddenSections", "esm.keyMap", "goals",
-            "hamQth.callModes", "hamQth.fetchFields", "keyBindings", "openWindows", "qrz.callModes",
+            "hamQth.callModes", "hamQth.fetchFields", "keyBindings", "multExpected", "multGridBands", "multGridShowAll",
+            "openWindows", "qrz.callModes",
             "qrz.fetchFields", "transverters", "voiceKeyer.runMessages", "voiceKeyer.spMessages",
             "windowGeometry",
         ])

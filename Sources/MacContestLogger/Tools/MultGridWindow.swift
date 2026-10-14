@@ -1,3 +1,4 @@
+import AppKit
 import MCLAppModel
 import MCLCore
 import SwiftUI
@@ -24,7 +25,7 @@ struct MultGridWindowView: View {
             Headline(model: app.multGrid(kind: kind))
         },
                         content: { app, windowSize in
-            MultGridContent(model: app.multGrid(kind: kind), windowSize: windowSize)
+            MultGridContent(model: app.multGrid(kind: kind), language: app.language, windowSize: windowSize)
         })
     }
 }
@@ -45,7 +46,10 @@ private struct Headline: View {
 
 private struct MultGridContent: View {
     let model: MultGridModel
+    let language: LanguageModel
     let windowSize: Int
+
+    @State private var editingExpected = false
 
     var body: some View {
         if !model.contestActive {
@@ -60,6 +64,12 @@ private struct MultGridContent: View {
             Spacer(minLength: 0)
         } else {
             available
+                .sheet(isPresented: $editingExpected) {
+                    ExpectedMultsSheet(model: model, language: language) { editingExpected = false }
+                }
+                .sheet(item: Binding(get: { model.details }, set: { model.details = $0 })) { details in
+                    MultDetailsSheet(details: details, language: language) { model.details = nil }
+                }
         }
     }
 
@@ -91,9 +101,38 @@ private struct MultGridContent: View {
                 continentChecks
             }
             Spacer(minLength: 0)
+            optionsMenu
         }
         .padding(.vertical, 2)
         .accessibilityIdentifier("mult.legend")
+    }
+
+    /// N1MM's right-click list and display items: the bands displayed, „show all possible", the expected list.
+    private var optionsMenu: some View {
+        Menu {
+            Menu(language.tr("Zobrazená pásma")) {
+                ForEach(MultGridExtras.bandChoices, id: \.self) { band in
+                    Toggle(isOn: Binding(get: { model.bands.contains(band) },
+                                         set: { model.setBand(band, shown: $0) })) {
+                        Text(verbatim: band.adif)
+                    }
+                }
+            }
+            Toggle(isOn: Binding(get: { model.showAll }, set: { model.setShowAll($0) })) {
+                Text(verbatim: language.tr("Zobrazit všechny možné násobiče"))
+            }
+            Button(language.tr("Očekávané násobiče…")) {
+                editingExpected = true
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .accessibilityLabel(Text(verbatim: language.tr("Volby okna násobičů")))
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(language.tr("Volby okna násobičů"))
+        .accessibilityIdentifier("mult.options")
     }
 
     private var continentChecks: some View {
@@ -136,7 +175,7 @@ private struct GridColumnView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Spacer().frame(width: CGFloat(metrics.prefixW))
-                ForEach(Array(MultGridLayout.bandHeaders.enumerated()), id: \.offset) { _, header in
+                ForEach(Array(model.bandHeaders.enumerated()), id: \.offset) { _, header in
                     Text(verbatim: header)
                         .font(.system(size: CGFloat(metrics.bandFontSp), weight: .bold, design: .monospaced))
                         .lineLimit(1)
@@ -160,15 +199,20 @@ private struct GridRowView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text(verbatim: MultGridLayout.label(row))
-                .font(.system(size: CGFloat(metrics.fontSp), design: .monospaced))
+                .font(.system(size: CGFloat(metrics.fontSp), weight: model.isExpected(row) ? .bold : .regular,
+                              design: .monospaced))
                 .lineLimit(1)
                 .padding(.trailing, CGFloat(metrics.prefixGap))
                 .frame(width: CGFloat(metrics.prefixW), alignment: .trailing)
-            ForEach(Array(SpotAnalyzer.multGridBands.enumerated()), id: \.offset) { _, band in
+                .help(model.prefixInfo(row) ?? "")
+            ForEach(Array(model.bands.enumerated()), id: \.offset) { _, band in
                 cell(band)
             }
         }
         .frame(height: CGFloat(metrics.rowH))
+        .contextMenu {
+            MultRowMenu(model: model, row: row)
+        }
     }
 
     @ViewBuilder private func cell(_ band: Band) -> some View {
@@ -193,5 +237,149 @@ private struct GridRowView: View {
             }
         }
         .frame(width: CGFloat(metrics.cell), height: CGFloat(metrics.rowH), alignment: .leading)
+    }
+}
+
+/// N1MM's right-click menu of a multiplier.
+private struct MultRowMenu: View {
+    let model: MultGridModel
+    let row: MultGridRow
+
+    var body: some View {
+        let language: LanguageModel = model.languageModel
+        Button(language.tr("Pracované stanice a spoty")) {
+            model.showCallsWorked(row)
+        }
+        if model.isZoneKind {
+            Button(language.tr("Země v zóně")) {
+                model.showCountries(row)
+            }
+        }
+        if model.canTurnAntenna(row) {
+            Button(language.tr("Natočit anténu")) {
+                model.turnAntenna(row)
+            }
+        }
+        if model.canSetRover {
+            Button(language.tr("Nastavit rover QTH")) {
+                model.setRover(row)
+            }
+        }
+    }
+}
+
+/// The list of „calls worked and spots" or „countries in zone".
+private struct MultDetailsSheet: View {
+    let details: MultGridDetails
+    let language: LanguageModel
+    let close: () -> Void
+
+    @StateObject private var form = DialogFormState()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            WindowTopBar(size: $form.fontSize, language: language) {
+                Text(verbatim: details.title)
+                    .windowFont(15, weight: .semibold)
+            }
+            ScrollView {
+                Text(verbatim: details.lines.joined(separator: "\n"))
+                    .windowFont(13, design: .monospaced)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .accessibilityLabel(Text(verbatim: details.title))
+            DialogButtonRow {
+                Button(language.tr("Zavřít")) {
+                    close()
+                }
+                .keyboardShortcut(.cancelAction)
+            }
+        }
+        .padding(16)
+        .frame(minWidth: 420, minHeight: 300)
+        .environment(\.windowFontSize, form.fontSize)
+    }
+}
+
+/// N1MM „Edit Expected Multiplier List": one multiplier per line, import and export of plain text files, the export
+/// of the multipliers and bands worked in this contest.
+private struct ExpectedMultsSheet: View {
+    let model: MultGridModel
+    let language: LanguageModel
+    let close: () -> Void
+
+    @StateObject private var form = DialogFormState()
+    @State private var loaded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            WindowTopBar(size: $form.fontSize, language: language) {
+                Text(verbatim: language.tr("Očekávané násobiče"))
+                    .windowFont(15, weight: .semibold)
+            }
+            Text(verbatim: language.tr("Jeden násobič na řádek, velkými písmeny, jak je okno ukazuje."))
+                .windowFont(12)
+                .foregroundStyle(.secondary)
+            TextEditor(text: $form.text)
+                .windowFont(13, design: .monospaced)
+                .frame(minHeight: 200)
+                .accessibilityLabel(Text(verbatim: language.tr("Očekávané násobiče")))
+            HStack(spacing: 8) {
+                Button(language.tr("Importovat…")) {
+                    if let text = ExpectedMultsFiles.open() {
+                        form.text = text
+                    }
+                }
+                Button(language.tr("Exportovat…")) {
+                    ExpectedMultsFiles.save(form.text, name: "expected-\(model.kind).txt")
+                }
+                Button(language.tr("Exportovat pracované násobiče…")) {
+                    ExpectedMultsFiles.save(model.workedExport, name: "worked-\(model.kind).txt")
+                }
+                Spacer(minLength: 0)
+            }
+            .windowFont(12)
+            DialogButtonRow {
+                Button(language.tr("Zrušit")) {
+                    close()
+                }
+                .keyboardShortcut(.cancelAction)
+                Button(language.tr("Uložit")) {
+                    model.setExpectedText(form.text)
+                    close()
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(16)
+        .frame(minWidth: 460, minHeight: 380)
+        .environment(\.windowFontSize, form.fontSize)
+        .onAppear {
+            if !loaded {
+                form.text = model.expectedText
+                loaded = true
+            }
+        }
+    }
+}
+
+/// Plain text files of the expected list.
+@MainActor
+private enum ExpectedMultsFiles {
+
+    static func open() -> String? {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return nil }
+        return try? String(contentsOf: url, encoding: .utf8)
+    }
+
+    static func save(_ text: String, name: String) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = name
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        try? text.write(to: url, atomically: true, encoding: .utf8)
     }
 }

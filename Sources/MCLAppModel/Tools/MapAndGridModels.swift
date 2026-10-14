@@ -337,22 +337,32 @@ public final class MultGridModel {
     public private(set) var selected: Set<String> = Set(MultGridLayout.continents)
     public private(set) var spots: [DxSpot] = []
 
-    @ObservationIgnored private let contest: ContestModel
-    @ObservationIgnored private let analysis: SpotAnalysisModel
+    @ObservationIgnored let contest: ContestModel
+    @ObservationIgnored let analysis: SpotAnalysisModel
     @ObservationIgnored private let feed: SpotFeed
-    @ObservationIgnored private let rig: RigModel
-    @ObservationIgnored private let language: LanguageModel
+    @ObservationIgnored let rig: RigModel
+    @ObservationIgnored let language: LanguageModel
     @ObservationIgnored private var observer: SpotFeed.ObserverID?
     @ObservationIgnored private var cache: (key: String, grid: MultGridView)?
+    @ObservationIgnored let config: ConfigModel?
+    @ObservationIgnored let logbook: LogbookModel?
+    /// Sets the rover QTH like the entry window's ROVERQTH command (with its status line).
+    @ObservationIgnored var setRoverQth: ((String) -> Void)?
+    /// Bumped when the bands, the expected list or „show all" change (they live in the settings).
+    public internal(set) var settingsRevision: Int = 0
+    /// The open „calls worked and spots" / „countries in zone" list.
+    public var details: MultGridDetails?
 
     init(kind: String, contest: ContestModel, analysis: SpotAnalysisModel, feed: SpotFeed, rig: RigModel,
-         language: LanguageModel) {
+         language: LanguageModel, config: ConfigModel? = nil, logbook: LogbookModel? = nil) {
         self.kind = kind
         self.contest = contest
         self.analysis = analysis
         self.feed = feed
         self.rig = rig
         self.language = language
+        self.config = config
+        self.logbook = logbook
     }
 
     public func open() {
@@ -398,13 +408,14 @@ public final class MultGridModel {
 
     /// The grid for the current spots (`contest.multiplierGrid(kind, spots)`), cached per analysis revision and spots.
     public var grid: MultGridView {
+        let bands: [Band] = self.bands
         let key: String = [String(analysis.revision), String(feed.revision), String(spots.count),
-                           String(contest.isActive)].joined(separator: ":")
+                           String(contest.isActive), bands.map(\.adif).joined(separator: ",")].joined(separator: ":")
         if let cache, cache.key == key {
             return cache.grid
         }
         let computed: MultGridView = contest.isActive
-            ? analysis.current().multiplierGrid(kind: kind, spots: spots) : .unavailable
+            ? analysis.current().multiplierGrid(kind: kind, spots: spots, bands: bands) : .unavailable
         cache = (key, computed)
         return computed
     }
@@ -418,7 +429,8 @@ public final class MultGridModel {
 
     /// The rows after the continent filter.
     public var visibleRows: [MultGridRow] {
-        MultGridLayout.filter(rows: grid.rows, continents: selected)
+        MultGridExtras.visibleRows(grid.rows, bands: bands, continents: selected, expected: expected,
+                                   showAll: showAll)
     }
 
     /// Whether the grid has continents to filter by.
@@ -445,7 +457,8 @@ public final class MultGridModel {
     @discardableResult
     public func tune(key: String, band: Band) -> DxSpot? {
         guard let spot = grid.spotAt[MultGridView.CellKey(key: key, band: band.adif)] else { return nil }
-        rig.tuneToSpot(spot)
+        // N1MM: the click moves the radio to the multiplier's band and mode.
+        rig.tuneToSpot(spot, withMode: true)
         return spot
     }
 }

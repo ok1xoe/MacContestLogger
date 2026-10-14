@@ -1872,5 +1872,20 @@
  "Tisk…": "Drucken…",
  "Hodina UTC": "UTC-Stunde",
  "Den": "Tag",
- "Kontinent": "Kontinent"
+ "Kontinent": "Kontinent",
+ "Země v zóně %s": "Länder in Zone %s",
+ "Žádné země": "Keine Länder",
+ "Zatím nepracováno": "Noch nicht gearbeitet",
+ "Spoty:": "Spots:",
+ "Násobič %s": "Multiplikator %s",
+ "Zobrazit všechny možné násobiče": "Alle möglichen Multiplikatoren anzeigen",
+ "Očekávané násobiče…": "Erwartete Multiplikatoren…",
+ "Očekávané násobiče": "Erwartete Multiplikatoren",
+ "Volby okna násobičů": "Optionen des Multiplikatorfensters",
+ "Pracované stanice a spoty": "Gearbeitete Stationen und Spots",
+ "Země v zóně": "Länder in der Zone",
+ "Natočit anténu": "Antenne drehen",
+ "Nastavit rover QTH": "Rover-QTH setzen",
+ "Jeden násobič na řádek, velkými písmeny, jak je okno ukazuje.": "Ein Multiplikator pro Zeile, in Großbuchstaben, wie das Fenster ihn zeigt.",
+ "Exportovat pracované násobiče…": "Gearbeitete Multiplikatoren exportieren…"
 }

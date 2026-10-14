@@ -1652,6 +1652,11 @@ extension EntryModel {
         }
     }
 
+    /// Sets the rover QTH like the ROVERQTH command (the Multipliers window's „Set Rover QTH").
+    func setRoverQth(_ text: String) {
+        roverQthEntered(text)
+    }
+
     private func roverQthEntered(_ text: String) {
         let qth: String = CountyLineSetting.roverQth(text)
         let known: Bool? = qth.isEmpty ? nil : contest.isKnownLocation(qth)

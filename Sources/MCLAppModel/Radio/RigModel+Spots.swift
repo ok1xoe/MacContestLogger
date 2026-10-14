@@ -29,11 +29,12 @@ extension RigModel {
     /// `fillCall: false` (a single click in the band map with the N1MM call-frame on) tunes without touching the
     /// entry fields: the call shows in the call-frame. With „Always use packet spot mode" the spot's mode is set on
     /// the rig and in the active entry window too. With „Randomize incoming spot frequencies" the radio lands a small
-    /// random offset off a cluster spot (`SpotFrequencyJitter`; own spots are exact).
-    public func tuneToSpot(_ spot: DxSpot, fillCall: Bool = true) {
+    /// random offset off a cluster spot (`SpotFrequencyJitter`; own spots are exact). `withMode: true` sets the
+    /// spot's mode whatever that option says (N1MM's Multipliers window QSYs to the multiplier's band and mode).
+    public func tuneToSpot(_ spot: DxSpot, fillCall: Bool = true, withMode: Bool = false) {
         let prefill: SpotPrefill? = fillCall
             ? SpotPrefill(call: spot.dxCall, exchange: spotSources.predictExchange(spot)) : nil
-        let mode: Mode? = config.config.dxCluster.spotModeOnTune ? spotSources.spotMode(spot) : nil
+        let mode: Mode? = withMode || config.config.dxCluster.spotModeOnTune ? spotSources.spotMode(spot) : nil
         qsy(Int64(spot.freqHz) + Int64(jitterHz(spot)), mode: mode, prefill: prefill)
         if let mode {
             notifyEntries { entry in

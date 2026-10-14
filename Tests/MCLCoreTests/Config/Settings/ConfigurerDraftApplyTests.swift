@@ -302,6 +302,7 @@ import Testing
                                "entryBandButtonsClick",
                                "entryShowUtcClock",
                                "logShowModeColumn",
+                               "multGridBands", "multExpected", "multGridShowAll",
                                "entryHiddenSections",
                                "resetRxAfterRunQso", "macroQsyStepKHz", "functionKeysPerOperator",
                                "ctyEnabled",

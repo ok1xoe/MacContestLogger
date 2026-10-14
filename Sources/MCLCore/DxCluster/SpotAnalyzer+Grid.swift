@@ -14,10 +14,10 @@ extension SpotAnalyzer {
     /// multiplier), `spotted`, or `empty`. Spots of a determined non-contest mode are ignored. `spotAt` keeps the
     /// first spot of a cell. A non-enumerable set gets extra rows for spotted keys not yet worked, sorted by
     /// UTF-16 (Kotlin `sorted()`), with the key as label and empty prefix/continent.
-    public func multiplierGrid(kind: String, spots: [DxSpot]) -> MultGridView {
+    /// `bands`: the band columns (N1MM „Set bands and modes to be displayed"; 160–10 m by default).
+    public func multiplierGrid(kind: String, spots: [DxSpot], bands: [Band] = multGridBands) -> MultGridView {
         guard let session else { return .unavailable }
         guard let selector = selector(kind: kind, definition: session.definition) else { return .unavailable }
-        let bands: [Band] = Self.multGridBands
         guard let grid = try? session.multiplierGrid(bands: bands, matching: selector.matches),
               grid.available else {
             return .unavailable
@@ -75,6 +75,20 @@ extension SpotAnalyzer {
         }
         return MultGridView(available: true, worked: Int(grid.worked), possible: Int(grid.possible), rows: rows,
                             spotAt: spotAt)
+    }
+
+    /// The id of the contest's multiplier binding a grid kind shows (the first that matches, like the grid); `nil` without
+    /// one.
+    public func gridBindingId(kind: String) -> String? {
+        guard let session, let selector = selector(kind: kind, definition: session.definition) else { return nil }
+        guard let binding = session.firstBinding(matching: selector.matches) else { return nil }
+        return binding.id ?? binding.set
+    }
+
+    /// N1MM „Spots available": the contest-relevant spots of the multiplier `key` of a grid kind, newest first.
+    public func gridSpots(kind: String, key: String, spots: [DxSpot]) -> [DxSpot] {
+        guard let session, let selector = selector(kind: kind, definition: session.definition) else { return [] }
+        return spots.filter { isColorRelevant($0) && selector.spotKey($0) == key }.reversed()
     }
 
     /// The binding predicate and the spot key of a grid kind (Kotlin `when (kind)`, `:624-655`).
