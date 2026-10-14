@@ -45,6 +45,8 @@ public enum MenuActions {
         case saveAdifRange(suggestedName: String, range: AdifDateRange)
         /// The loaded call history → `exportCallHistory(to:format:)`.
         case saveCallHistory(format: DataToolsModel.CallHistoryFormat, suggestedName: String)
+        /// N1MM Export Function Keys to file: the message set the entry window's keys send now, as an `.mc` file.
+        case saveFunctionKeys(kind: FunctionKeyKind, suggestedName: String)
         /// N1MM Import Call History: one or more files (multiple selection) → `importCallHistoryFiles`.
         case openCallHistoryImport
     }
@@ -54,7 +56,7 @@ public enum MenuActions {
     private static let fileIds: Set<String> = [
         "settings.export", "settings.exportCabrillo", "settings.exportEdi", "settings.exportOther", "settings.import",
         "settings.merge", "database.refillDxcc", "callhistory.exportN1mm", "callhistory.exportCsv",
-        "callhistory.import",
+        "callhistory.import", "fkeys.export",
     ]
 
     /// The Help items and the documentation page each opens (`nil` = the docs index, `.issues` = the bug tracker).
@@ -144,6 +146,9 @@ public enum MenuActions {
             }
             let format: DataToolsModel.CallHistoryFormat = id == "callhistory.exportCsv" ? .csv : .n1mm
             return .saveCallHistory(format: format, suggestedName: app.dataTools.callHistoryFileName(format))
+        case "fkeys.export":
+            let kind: FunctionKeyKind = app.entry.currentKeyKind
+            return .saveFunctionKeys(kind: kind, suggestedName: kind.rawValue + " Messages.mc")
         default:
             return nil
         }

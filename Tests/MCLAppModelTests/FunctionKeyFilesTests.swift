@@ -116,3 +116,18 @@ import Testing
         #expect(app.model.menu.pendingSettingsTab == "function-keys")
     }
 }
+
+/// N1MM File → Export Function Keys to file.
+@MainActor @Suite struct FunctionKeyExportMenuTests {
+
+    @Test func exportsTheSetTheKeysSendNow() async throws {
+        let app = try await TestApp.make()
+        app.model.entry.setMode(.cw)
+        #expect(MenuActions.perform("fkeys.export", app: app.model)
+            == .saveFunctionKeys(kind: .cw, suggestedName: "CW Messages.mc"))
+        app.model.entry.setMode(.ssb)
+        #expect(MenuActions.perform("fkeys.export", app: app.model)
+            == .saveFunctionKeys(kind: .ssb, suggestedName: "SSB Messages.mc"))
+        #expect(app.model.menu.isImplemented("fkeys.export"))
+    }
+}

@@ -59,7 +59,7 @@ import Testing
         #expect(try children("file.export") == ["settings.export", "settings.exportAdifRange",
                                                 "settings.exportCabrillo", "settings.exportEdi",
                                                 "settings.exportOther", "callhistory.exportN1mm",
-                                                "callhistory.exportCsv"])
+                                                "callhistory.exportCsv", "fkeys.export"])
         #expect(try children("tools") == ["contest.rescore", "contest.rescoreHours", "database.refillDxcc",
                                           "tools.addCallToCountry", "settings.downloadScp",
                                           "contest.updateDefinitions", "database.updateClubLogDxcc",

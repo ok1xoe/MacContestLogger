@@ -1800,5 +1800,7 @@
  "Čísla se hlásí slovy (0–19, desítky, HUNDRED, THOUSAND): soubory jsou úplné.": "Numbers are voiced as words (0–19, tens, HUNDRED, THOUSAND): the files are complete.",
  "Hlášení čísel slovy vyžaduje 0.wav…19.wav, 20.wav…90.wav, HUNDRED.wav a THOUSAND.wav; chybí %s, čísla se hlásí po číslicích.": "Voicing numbers as words needs 0.wav…19.wav, 20.wav…90.wav, HUNDRED.wav and THOUSAND.wav; %s missing, numbers are voiced digit by digit.",
  "Test přehraje tón jen do zvukové karty, vysílač se neklíčuje (PTT zůstane vypnuté).": "The test plays the tone to the sound card only; the transmitter is not keyed (PTT stays off).",
- "Měří uložený vstup přijímače (po Použít); špičky kolem −10 až −3 dBFS jsou v pořádku, 0 dBFS = přebuzení.": "Measures the saved receiver input (after Apply); peaks around −10 to −3 dBFS are fine, 0 dBFS = overload."
+ "Měří uložený vstup přijímače (po Použít); špičky kolem −10 až −3 dBFS jsou v pořádku, 0 dBFS = přebuzení.": "Measures the saved receiver input (after Apply); peaks around −10 to −3 dBFS are fine, 0 dBFS = overload.",
+ "Function Keys (.mc)…": "Function Keys (.mc)…",
+ "Export F-kláves (%s) do souboru .mc": "Export the function keys (%s) to an .mc file"
 }
