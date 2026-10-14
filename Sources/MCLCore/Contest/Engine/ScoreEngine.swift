@@ -24,7 +24,7 @@ public protocol MultiplierCounts {
 public enum ScoreEngine {
 
     public static func compute(_ definition: ContestDefinition, qsoPoints: Int64, bonusPoints: Int64,
-                               qtcPoints: Int64, qsoCount: Int32,
+                               qtcPoints: Int64, qsoCount: Int32, powerCategory: String? = nil,
                                tracker: some MultiplierCounts) throws(ExpressionError) -> ScoreState {
         var byGroup = JavaLinkedMap<Int32>()
         var weighted = false
@@ -60,7 +60,11 @@ public enum ScoreEngine {
             variables.put("mult." + (entry.key ?? "null"), .number(Double(entry.value ?? 0)))
         }
 
-        let total = JavaMath.d2l(try Expression.eval(definition.scoring?.total, variables))
+        var total = JavaMath.d2l(try Expression.eval(definition.scoring?.total, variables))
+        if let scoring = definition.scoring, scoring.powerFactor != nil {
+            // N1MM PowerMult: the score times the factor of the chosen power category.
+            total = total.multipliedReportingOverflow(by: Int64(scoring.powerFactorFor(powerCategory))).partialValue
+        }
         return ScoreState(qsoCount: qsoCount, qsoPoints: qsoPoints, multTotal: multTotal, multByGroup: byGroup,
                           bonusPoints: bonusPoints, qtcPoints: qtcPoints, total: total)
     }

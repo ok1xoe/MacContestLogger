@@ -12,6 +12,18 @@ public enum PointsCalculator {
 
     public static func points(_ definition: ContestDefinition,
                               _ context: QsoContext) throws(ExpressionError) -> Int32 {
+        let base: Int32 = try basePoints(definition, context)
+        guard let factors = definition.scoring?.qsoPoints?.factors, !factors.isEmpty else { return base }
+        var points = Double(base)
+        for case let entry? in factors where try ConditionEvaluator.eval(entry.when, context) {
+            points *= entry.factor ?? 1
+        }
+        return JavaMath.d2i(points.rounded())
+    }
+
+    /// The points before `qsoPoints.factors` (the Java calculation).
+    private static func basePoints(_ definition: ContestDefinition,
+                                   _ context: QsoContext) throws(ExpressionError) -> Int32 {
         guard let qsoPoints = definition.scoring?.qsoPoints else {
             return 0
         }

@@ -1802,5 +1802,6 @@
  "Test přehraje tón jen do zvukové karty, vysílač se neklíčuje (PTT zůstane vypnuté).": "The test plays the tone to the sound card only; the transmitter is not keyed (PTT stays off).",
  "Měří uložený vstup přijímače (po Použít); špičky kolem −10 až −3 dBFS jsou v pořádku, 0 dBFS = přebuzení.": "Measures the saved receiver input (after Apply); peaks around −10 to −3 dBFS are fine, 0 dBFS = overload.",
  "Function Keys (.mc)…": "Function Keys (.mc)…",
- "Export F-kláves (%s) do souboru .mc": "Export the function keys (%s) to an .mc file"
+ "Export F-kláves (%s) do souboru .mc": "Export the function keys (%s) to an .mc file",
+ "Pozor: %s podle pravidel závodu nelze pracovat — zapsáno bez bodů": "Warning: %s may not be worked under the contest rules — logged without points"
 }

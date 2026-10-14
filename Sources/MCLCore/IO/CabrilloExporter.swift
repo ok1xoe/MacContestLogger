@@ -431,7 +431,10 @@ public enum CabrilloExporter {
             if !stored.containsKey(id) && layout.sources[id] == .AUTO_RST && !JavaText.isBlank(q.rstSent) {
                 value = q.rstSent
             }
-            out.append(token(value))
+            let isIota: Bool = input.definition.exchange?.sent?.contains {
+                $0?.type == .IOTA && JavaText.equals(id ?? "", $0?.id)
+            } ?? false
+            out.append(isIota ? iotaReference(token(value)) : token(value))
         }
         return out
     }
@@ -459,10 +462,23 @@ public enum CabrilloExporter {
         }
         var out: [String] = []
         // A field that does not apply to this counterpart (OK/OM district vs. DX number) is not written.
+        var iota = Set<[UInt16]>()
+        for field in active where field.type == .IOTA {
+            iota.insert(Array((field.id ?? "").utf16))
+        }
         for id in input.definition.cabrillo?.receivedOrder ?? [] where activeIds.containsKey(id) {
-            out.append(token(getOrDefault(values, id, "")))
+            let value: String = token(getOrDefault(values, id, ""))
+            out.append(iota.contains(Array((id ?? "").utf16)) ? iotaReference(value) : value)
         }
         return out
+    }
+
+    /// IOTA references in Cabrillo carry the dash: `EU123` → `EU-123` (N1MM); anything else stays as it is.
+    static func iotaReference(_ value: String) -> String {
+        let units = Array(value.utf8)
+        guard units.count == 5, units[0...1].allSatisfy({ (0x41...0x5A).contains($0) }),
+              units[2...4].allSatisfy({ (0x30...0x39).contains($0) }) else { return value }
+        return String(decoding: units[0...1], as: UTF8.self) + "-" + String(decoding: units[2...4], as: UTF8.self)
     }
 
     /// One value as one token: no whitespace (`\s`), uppercase, empty → `-`.

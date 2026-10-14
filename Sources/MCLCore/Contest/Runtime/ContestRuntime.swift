@@ -115,6 +115,8 @@ public final class ContestRuntime {
     public private(set) var bonusStations: [String] = []
     /// QTC count (WAE) — applies to the live session and to every recount.
     public private(set) var qtcCount: Int32 = 0
+    /// The Cabrillo power category of the contest setup (`scoring.powerFactor`).
+    public private(set) var powerCategory: String?
     /// Changes whenever the live session is replaced or dropped (activation, `adopt`, deactivation). A
     /// `SpotAnalyzer` built earlier holds the previous session — `SpotAnalyzer.isCurrent(for:)` compares it.
     public private(set) var sessionGeneration: UInt64 = 0
@@ -273,6 +275,13 @@ public final class ContestRuntime {
         refreshScore()
     }
 
+    /// The power category of the setup (N1MM `PowerMult`): the live session and every recount; refreshes the score.
+    public func setPowerCategory(_ category: String?) {
+        powerCategory = category
+        session?.setPowerCategory(category)
+        refreshScore()
+    }
+
     /// QTC settings of the active contest (`nil` = the contest has no QTC).
     public var qtcConfig: ContestDefinition.Qtc? {
         session?.definition.scoring?.qtc
@@ -282,6 +291,7 @@ public final class ContestRuntime {
         session.setTour(tour)
         session.setBonusStations(bonusStations)
         session.setQtcCount(qtcCount)
+        session.setPowerCategory(powerCategory)
     }
 
     /// A session over the definition with the stored extras; `nil` without the engine (unreachable for an active

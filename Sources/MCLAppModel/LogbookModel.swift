@@ -153,7 +153,31 @@ public final class LogbookModel {
     /// Next serial number to send (Kotlin `logbook.nextSerial()` = count of the active contest + 1); submissions
     /// reserved but not stored yet count too.
     public var nextSerial: Int {
-        serverSerial ?? localNextSerial
+        nextSerial(band: nil)
+    }
+
+    /// Swift-only numbering of the active contest: the first serial (N1MM „start the serial from other than 1") and
+    /// a sequence of its own on each band (N1MM `QsoNumbersByBand`). Set by the contest model.
+    public struct Numbering: Equatable, Sendable {
+        public var first: Int = 1
+        public var perBand: Bool = false
+
+        public init(first: Int = 1, perBand: Bool = false) {
+            self.first = max(1, first)
+            self.perBand = perBand
+        }
+    }
+
+    public var numbering = Numbering()
+
+    /// The next serial on `band`: with per-band numbering the QSOs of that band (and submissions in flight) + 1, the
+    /// serial server is not used; otherwise `nextSerial`. Both start at `numbering.first`.
+    public func nextSerial(band: Band?) -> Int {
+        if numbering.perBand, let band {
+            let onBand: Int = rows.reduce(0) { $1.band == band && !$1.deleted ? $0 + 1 : $0 }
+            return numbering.first - 1 + onBand + reservedSerials + 1
+        }
+        return serverSerial ?? localNextSerial
     }
 
     /// Kotlin `nextSerial()` = `reservedSerial ?: logbook.nextSerial()` (`AS:2736`): the number reserved at the serial
@@ -167,7 +191,7 @@ public final class LogbookModel {
     }
 
     private var localNextSerial: Int {
-        max(qsoCount + reservedSerials + 1, issuedHighWater + 1)
+        max(numbering.first - 1 + qsoCount + reservedSerials + 1, issuedHighWater + 1)
     }
 
     /// The station id a QSO logged now carries (`config.cluster.stationId` while the cluster session exists, Kotlin
@@ -184,9 +208,14 @@ public final class LogbookModel {
     /// Reserves the serial of a submission synchronously (Kotlin computes it on the UI thread right before the
     /// synchronous insert): returns `nextSerial` and counts `units` QSO copies as pending until `perform` stores
     /// or fails them (or `releaseReservation`).
-    public func reserveSerial(units: Int = 1) -> Int {
+    public func reserveSerial(units: Int = 1, band: Band? = nil) -> Int {
         if cluster?.reservedSerial == nil {
             serverSerialInUse = nil
+        }
+        if numbering.perBand, band != nil {
+            let serial: Int = nextSerial(band: band)
+            reservedSerials += units
+            return serial
         }
         let serial: Int = nextSerial
         reservedSerials += units

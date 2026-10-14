@@ -608,7 +608,7 @@ extension EntryModel {
         let set: [FunctionKeyMessage] = currentKeySet(opposite: opposite)
         let exchange: String = cwExchange()
         if indices.contains(where: { $0 < set.count && EntryAssist.sendsSerial(set[$0].text, sentExchange: exchange) }) {
-            serialSentInQso = logbook.nextSerial
+            serialSentInQso = logbook.nextSerial(band: band)
         }
     }
 
@@ -1250,7 +1250,8 @@ extension EntryModel {
                                                 ituZone: station.ituZone, state: station.state,
                                                 operator: operating.operatorCall)
         let base = CwMessageBuilder.Context(
-            myCall: station.call, hisCall: "", lastLogged: logbook.rows.last?.call ?? "", serial: logbook.nextSerial,
+            myCall: station.call, hisCall: "", lastLogged: logbook.rows.last?.call ?? "",
+            serial: logbook.nextSerial(band: band),
             rst: "", exchange: cwExchange(), cutNumbers: app.cwKeyer.cutNumbers, leadingZeros: app.cwKeyer.leadingZeros,
             roverQth: station.roverQth, countyLine: countyLine, cutStyle: app.cwKeyer.cutStyle, station: data,
             functionKeys: [], now: now(), leftDigitalFrequency: digitalFrequencyText(vfo: 0),
@@ -1263,7 +1264,7 @@ extension EntryModel {
             cw: FunctionKeySet(run: app.cwKeyer.runMessages, sp: app.cwKeyer.spMessages),
             digital: FunctionKeySet(run: app.digital.runMessages, sp: app.digital.spMessages),
             cwBase: base, exchangeValid: exchangeValid, stackNext: operating.isRun ? callStack?.next : nil,
-            serialAfterLog: logbook.nextSerial + 1, grabNext: grabList?.highlighted)
+            serialAfterLog: logbook.nextSerial(band: band) + 1, grabNext: grabList?.highlighted)
         context.esmKeys = app.esm.keys
         context.callExchangeSeparator = app.esm.callExchangeSeparator
         context.partialCall = partialCallSend
@@ -1384,6 +1385,13 @@ extension EntryModel {
             }
             if field.source == .AUTO_SERIAL {
                 parts.append("#")
+                continue
+            }
+            if let part = field.derivesFromLastCall {
+                let value: String = LastCall.value(part, logbook.rows.last?.call)
+                if !value.isEmpty {
+                    parts.append(value)
+                }
                 continue
             }
             guard let id = field.id, let value = station[id] else { continue }

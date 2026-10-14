@@ -21,23 +21,49 @@ public struct ContestDupeChecker: Sendable {
 
     private let scope: ContestDefinition.Scope
     private var worked: Set<Key> = []
+    /// `dupe.none`: nothing is a dupe.
+    private let none: Bool
+    /// `dupe.reworkMinutes`: the last time of each key (epoch seconds) and the minutes after which it is no dupe.
+    private let reworkSeconds: Int64?
+    private var lastWorked: [Key: Int64] = [:]
+    /// `dupe.byField`: a received field that is part of the key.
+    private let byField: String?
 
     /// TOUR session (`nil` = the whole contest is one session). Java `setTour`; it does not delete keys already written.
     public var tour: Tour?
 
     /// Java constructor: a missing `dupe` and a missing `dupe.scope` both give `PER_BAND`.
     public init(definition: ContestDefinition) {
-        self.init(scope: definition.dupe?.scope)
+        self.init(scope: definition.dupe?.scope, none: definition.dupe?.none ?? false,
+                  reworkMinutes: definition.dupe?.reworkMinutes, byField: definition.dupe?.byField)
     }
 
-    public init(scope: ContestDefinition.Scope?) {
+    public init(scope: ContestDefinition.Scope?, none: Bool = false, reworkMinutes: Int? = nil,
+                byField: String? = nil) {
         self.scope = scope ?? .PER_BAND
+        self.none = none
+        self.reworkSeconds = reworkMinutes.flatMap { $0 > 0 ? Int64($0) * 60 : nil }
+        self.byField = byField.flatMap { JavaText.isBlank($0) ? nil : $0 }
     }
 
     /// Java `isDupe(ctx, at)`; `atEpochSecond == nil` = `Instant` `null` (the session is not counted
     /// and the key has an empty session part even when TOUR is on).
     public func isDupe(_ context: QsoContext, atEpochSecond: Int64?) -> Bool {
-        worked.contains(key(context, atEpochSecond))
+        if none { return false }
+        let key = key(context, atEpochSecond)
+        if let reworkSeconds {
+            guard let last = lastWorked[key] else { return false }
+            guard let at = atEpochSecond else { return true }
+            return at - last < reworkSeconds
+        }
+        return worked.contains(key)
+    }
+
+    /// `dupe.reworkMinutes`: minutes until the station may be worked again at `atEpochSecond` (`nil` = it may).
+    public func minutesUntilRework(_ context: QsoContext, atEpochSecond: Int64) -> Int64? {
+        guard !none, let reworkSeconds, let last = lastWorked[key(context, atEpochSecond)] else { return nil }
+        let left: Int64 = reworkSeconds - (atEpochSecond - last)
+        return left > 0 ? (left + 59) / 60 : nil
     }
 
     /// The instant as `Date` (floor of seconds, see `Tour.session(at:)`).
@@ -51,7 +77,12 @@ public struct ContestDupeChecker: Sendable {
     }
 
     public mutating func add(_ context: QsoContext, atEpochSecond: Int64?) {
-        worked.insert(key(context, atEpochSecond))
+        let key = key(context, atEpochSecond)
+        // dupe.reworkMinutes counts from the last QSO that counted (a dupe logged anyway does not restart it).
+        if reworkSeconds != nil, let atEpochSecond, !isDupe(context, atEpochSecond: atEpochSecond) {
+            lastWorked[key] = atEpochSecond
+        }
+        worked.insert(key)
     }
 
     public mutating func add(_ context: QsoContext, at date: Date) {
@@ -64,6 +95,7 @@ public struct ContestDupeChecker: Sendable {
 
     public mutating func reset() {
         worked.removeAll()
+        lastWorked.removeAll()
     }
 
     private static func epochSecond(_ date: Date) -> Int64 {
@@ -86,6 +118,11 @@ public struct ContestDupeChecker: Sendable {
         units.append(contentsOf: qth.utf16)
         units.append(0x7C)
         units.append(contentsOf: session.utf16)
+        if let byField {
+            // dupe.byField: a station in another county / grid is a new one.
+            units.append(0x7C)
+            units.append(contentsOf: (context.fieldCanonical(byField) ?? "").utf16)
+        }
         return Key(units: units)
     }
 }

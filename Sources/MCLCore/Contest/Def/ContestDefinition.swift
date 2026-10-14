@@ -160,10 +160,17 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
     public struct Period: YamlDecodable, Equatable, Sendable {
         public var durationHours: Int?
         public var sessions: Sessions?
+        /// N1MM `StartOfContest`: the weekday (`MON`…`SUN`) and the UTC time (`hhmm`) the contest usually starts on —
+        /// the New contest dialog proposes the next such date. Swift-only keys.
+        public var startWeekday: String?
+        public var startTime: String?
 
-        public init(durationHours: Int?, sessions: Sessions? = nil) {
+        public init(durationHours: Int?, sessions: Sessions? = nil, startWeekday: String? = nil,
+                    startTime: String? = nil) {
             self.durationHours = durationHours
             self.sessions = sessions
+            self.startWeekday = startWeekday
+            self.startTime = startTime
         }
 
         public init?(yamlNode node: YamlNode) {
@@ -171,7 +178,8 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             case .mapping:
                 guard let object = node.object() else { return nil }
                 self = Period(durationHours: object.int("durationHours").map(Int.init),
-                              sessions: object.decode("sessions", as: Sessions.self))
+                              sessions: object.decode("sessions", as: Sessions.self),
+                              startWeekday: object.string("startWeekday"), startTime: object.string("startTime"))
             case .int(let value, _):
                 guard let exact = Int32(exactly: value) else {
                     node.typeMismatch("číslo \(value) je mimo rozsah int (délka závodu v hodinách)")
@@ -200,15 +208,19 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
     public struct Sessions: YamlRecord, Equatable, Sendable {
         public var start: String?
         public var minutes: Int?
+        /// N1MM `ResetMultsEverySession`: the multipliers count anew in every session (Swift-only key).
+        public var resetMultipliers: Bool?
 
-        public init(start: String?, minutes: Int?) {
+        public init(start: String?, minutes: Int?, resetMultipliers: Bool? = nil) {
             self.start = start
             self.minutes = minutes
+            self.resetMultipliers = resetMultipliers
         }
 
         public init(yaml object: YamlObject) {
             start = object.string("start")
             minutes = object.int("minutes").map(Int.init)
+            resetMultipliers = object.bool("resetMultipliers")
         }
     }
 
@@ -269,9 +281,14 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         public var validation: FieldValidation?
         /// Value estimate from the callsign; `nil` = none.
         public var estimate: String?
+        /// A `DERIVED` sent field's value (Swift-only key): `lastCall2L` = the last two letters, `lastCallSuffix` =
+        /// the suffix of the previous QSO's call (N1MM `Last2L` / `LastCallSuff`).
+        public var derive: String?
 
         public init(id: String?, type: FieldType?, required: Bool, source: FieldSource?,
-                    appliesWhen: AppliesWhen?, validation: FieldValidation?, estimate: String? = nil) {
+                    appliesWhen: AppliesWhen?, validation: FieldValidation?, estimate: String? = nil,
+                    derive: String? = nil) {
+            self.derive = derive
             self.id = id
             self.type = type
             self.required = required
@@ -289,6 +306,17 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             appliesWhen = object.decode("appliesWhen", as: AppliesWhen.self)
             validation = object.decode("validation", as: FieldValidation.self)
             estimate = object.string("estimate")
+            derive = object.string("derive")
+        }
+
+        /// `derive: lastCall2L` / `lastCallSuffix` (case-insensitive) of a `DERIVED` field.
+        public var derivesFromLastCall: LastCall.Part? {
+            guard source == .DERIVED, let derive else { return nil }
+            switch KotlinText.trim(derive).lowercased() {
+            case "lastcall2l": return .lastTwoLetters
+            case "lastcallsuffix": return .suffix
+            default: return nil
+            }
         }
     }
 
@@ -351,6 +379,9 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         public var fieldPresent: String?
         public var expr: String?
         public var bonusStation: Bool?
+        /// The QSO time is in the UTC window `"HHMM-HHMM"` (both minutes included; `"2200-0559"` wraps midnight).
+        /// N1MM `PointsMultAtTimeGMT`. Swift-only key.
+        public var timeBetween: String?
 
         public var not: Condition? {
             get { notBox?.value }
@@ -362,7 +393,8 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
                     otherContinent: Bool? = nil, continentIs: String? = nil, ownContinentIs: String? = nil,
                     workedClass: String? = nil, dxccIn: [String?]? = nil, bandIn: [String?]? = nil,
                     mode: String? = nil, fieldEquals: FieldEquals? = nil, fieldPresent: String? = nil,
-                    expr: String? = nil, bonusStation: Bool? = nil) {
+                    expr: String? = nil, bonusStation: Bool? = nil, timeBetween: String? = nil) {
+            self.timeBetween = timeBetween
             self.allOf = allOf
             self.anyOf = anyOf
             self.notBox = not.map(ConditionBox.init)
@@ -400,6 +432,7 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             fieldPresent = object.string("fieldPresent")
             expr = object.string("expr")
             bonusStation = object.bool("bonusStation")
+            timeBetween = object.string("timeBetween")
         }
     }
 
@@ -439,12 +472,17 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         public var total: String?
         /// QTC traffic (WAE): `nil` = the contest has no QTC.
         public var qtc: Qtc?
+        /// N1MM `PowerMult`: the final score multiplied by the factor of the Cabrillo power category chosen in the
+        /// contest setup (`HIGH: 1, LOW: 2, QRP: 4`); a category that is not listed = ×1. Swift-only key.
+        public var powerFactor: YamlOrderedMap<Int>?
 
-        public init(qsoPoints: QsoPoints?, bonuses: [Bonus?]?, total: String?, qtc: Qtc? = nil) {
+        public init(qsoPoints: QsoPoints?, bonuses: [Bonus?]?, total: String?, qtc: Qtc? = nil,
+                    powerFactor: YamlOrderedMap<Int>? = nil) {
             self.qsoPoints = qsoPoints
             self.bonuses = bonuses
             self.total = total
             self.qtc = qtc
+            self.powerFactor = powerFactor
         }
 
         public init(yaml object: YamlObject) {
@@ -452,6 +490,31 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             bonuses = object.list("bonuses", of: Bonus.self)
             total = object.string("total")
             qtc = object.decode("qtc", as: Qtc.self)
+            powerFactor = Self.intMap(object.map("powerFactor", of: Int32.self))
+        }
+
+        static func intMap(_ map: YamlOrderedMap<Int32>?) -> YamlOrderedMap<Int>? {
+            map.map { values in
+                var out = YamlOrderedMap<Int>()
+                for pair in values.pairs {
+                    out.set(pair.key, pair.value.map(Int.init))
+                }
+                return out
+            }
+        }
+
+        /// The factor of a power category (`HIGH`, `LOW`, `QRP`; N1MM `HP`/`LP` are accepted as keys too).
+        public func powerFactorFor(_ category: String?) -> Int {
+            guard let powerFactor, let category else { return 1 }
+            let wanted: String = KotlinText.trim(category).uppercased()
+            let aliases: [String: String] = ["HP": "HIGH", "LP": "LOW"]
+            for pair in powerFactor.pairs {
+                let key: String = KotlinText.trim(pair.key ?? "").uppercased()
+                if key == wanted || aliases[key] == wanted, let value = pair.value {
+                    return value
+                }
+            }
+            return 1
         }
     }
 
@@ -485,17 +548,38 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         /// `defaultValue` is ignored as unknown. Java `int` → default `0`.
         public var defaultValue: Int
         public var rules: [PointRule?]?
+        /// N1MM `PointsMultAtTime…`, `PointsMultByBand/Mode/Continent/Country`: the points of a QSO multiplied by the
+        /// factor of every entry whose condition holds. Swift-only key.
+        public var factors: [PointFactor?]?
 
-        public init(mode: PointsMode?, defaultValue: Int, rules: [PointRule?]?) {
+        public init(mode: PointsMode?, defaultValue: Int, rules: [PointRule?]?, factors: [PointFactor?]? = nil) {
             self.mode = mode
             self.defaultValue = defaultValue
             self.rules = rules
+            self.factors = factors
         }
 
         public init(yaml object: YamlObject) {
             mode = object.decode("mode", as: PointsMode.self)
             defaultValue = object.int("default").map(Int.init) ?? 0
             rules = object.list("rules", of: PointRule.self)
+            factors = object.list("factors", of: PointFactor.self)
+        }
+    }
+
+    /// One `qsoPoints.factors` entry: `{ when: …, factor: 2 }`.
+    public struct PointFactor: YamlRecord, Equatable, Sendable {
+        public var when: Condition?
+        public var factor: Double?
+
+        public init(when: Condition?, factor: Double?) {
+            self.when = when
+            self.factor = factor
+        }
+
+        public init(yaml object: YamlObject) {
+            when = object.decode("when", as: Condition.self)
+            factor = object.double("factor")
         }
     }
 
@@ -592,9 +676,13 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         /// only for scope `PER_BAND`/`PER_BAND_MODE`, `nil` = weight 1.
         /// Java `Map<String, Integer>` (`LinkedHashMap`), values may be `nil`.
         public var bandWeights: YamlOrderedMap<Int>?
+        /// The multiplier counts only for QSOs meeting this condition (N1MM `CountMultOnlyFor`,
+        /// `DoNotCountMultOnlyFor`, `DoNotCountMeAsMult`: `when: { not: { ownDxcc: true } }`). Swift-only key.
+        public var when: Condition?
 
         public init(id: String?, set: String?, from: String?, scope: Scope?, label: String?,
-                    appliesWhen: AppliesWhen?, bandWeights: YamlOrderedMap<Int>? = nil) {
+                    appliesWhen: AppliesWhen?, bandWeights: YamlOrderedMap<Int>? = nil, when: Condition? = nil) {
+            self.when = when
             self.id = id
             self.set = set
             self.from = from
@@ -611,6 +699,7 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             scope = object.decode("scope", as: Scope.self)
             label = object.string("label")
             appliesWhen = object.decode("appliesWhen", as: AppliesWhen.self)
+            when = object.decode("when", as: Condition.self)
             bandWeights = object.map("bandWeights", of: Int32.self).map { weights in
                 var out = YamlOrderedMap<Int>()
                 for pair in weights.pairs {
@@ -624,15 +713,29 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
     public struct Dupe: YamlRecord, Equatable, Sendable {
         public var scope: Scope?
         public var dupeWorthZero: Bool?
+        /// N1MM `DupeType 4`: no dupe check, a station may be worked any number of times. Swift-only key.
+        public var none: Bool?
+        /// N1MM `DupeQSOMinutesAgo`: the same station may be worked again after this many minutes. Swift-only key.
+        public var reworkMinutes: Int?
+        /// N1MM `DupeSqlString`: a received field that is part of the dupe key (a rover or mobile in another
+        /// county / grid may be worked again). Swift-only key.
+        public var byField: String?
 
-        public init(scope: Scope?, dupeWorthZero: Bool?) {
+        public init(scope: Scope?, dupeWorthZero: Bool?, none: Bool? = nil, reworkMinutes: Int? = nil,
+                    byField: String? = nil) {
             self.scope = scope
             self.dupeWorthZero = dupeWorthZero
+            self.none = none
+            self.reworkMinutes = reworkMinutes
+            self.byField = byField
         }
 
         public init(yaml object: YamlObject) {
             scope = object.decode("scope", as: Scope.self)
             dupeWorthZero = object.bool("dupeWorthZero")
+            none = object.bool("none")
+            reworkMinutes = object.int("reworkMinutes").map(Int.init)
+            byField = object.string("byField")
         }
     }
 
@@ -688,6 +791,37 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
     public var cabrillo: Cabrillo?
     public var ui: Ui?
     public var operating: Operating?
+    /// N1MM `QsoNumbersByBand`: serial numbering (Swift-only key).
+    public var numbering: Numbering?
+    /// N1MM `IsWorkable`: who may be worked (`continentIs: EU`, `not: { ownDxcc: true }`…); a QSO outside it is
+    /// logged with a warning and scores nothing. Swift-only key.
+    public var workable: Condition?
+
+    /// `numbering`: `perBand` = a sequence of its own on every band; `multiOpOnly` = only in a multi-transmitter
+    /// category (N1MM `QsoNumbersByBand 2`).
+    public struct Numbering: YamlRecord, Equatable, Sendable {
+        public var perBand: Bool?
+        public var multiOpOnly: Bool?
+
+        public init(perBand: Bool?, multiOpOnly: Bool? = nil) {
+            self.perBand = perBand
+            self.multiOpOnly = multiOpOnly
+        }
+
+        public init(yaml object: YamlObject) {
+            perBand = object.bool("perBand")
+            multiOpOnly = object.bool("multiOpOnly")
+        }
+
+        /// Numbering per band for the setup's categories (`TRANSMITTER` other than `ONE` counts as multi).
+        public func perBand(category: [String: String]) -> Bool {
+            guard perBand == true else { return false }
+            guard multiOpOnly == true else { return true }
+            let transmitter: String = (category["TRANSMITTER"] ?? "").uppercased()
+            let op: String = (category["OPERATOR"] ?? "").uppercased()
+            return op == "MULTI-OP" && (transmitter == "UNLIMITED" || transmitter == "DISTRIBUTED")
+        }
+    }
 
     public init(schemaVersion: Int = 0, id: String?, metadata: Metadata? = nil, period: Period? = nil,
                 bands: [String?]? = nil, modes: [String?]? = nil, categories: [Category?]? = nil,
@@ -727,5 +861,7 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         cabrillo = object.decode("cabrillo", as: Cabrillo.self)
         ui = object.decode("ui", as: Ui.self)
         operating = object.decode("operating", as: Operating.self)
+        numbering = object.decode("numbering", as: Numbering.self)
+        workable = object.decode("workable", as: Condition.self)
     }
 }

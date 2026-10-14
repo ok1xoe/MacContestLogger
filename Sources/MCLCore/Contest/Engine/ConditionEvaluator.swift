@@ -1,3 +1,5 @@
+import Foundation
+
 /// Evaluates a `Condition` over a `QsoContext`. Port of Java `engine/ConditionEvaluator.java`.
 ///
 /// Several filled-in predicates in one condition = their AND in Java order (`allOf`,
@@ -98,7 +100,35 @@ public enum ConditionEvaluator {
         if let expr = c.expr, try Expression.eval(expr, ctx.expressionVariables) == 0 {
             return false
         }
+        if let window = c.timeBetween, !inWindow(window, ctx.date ?? Date()) {
+            return false
+        }
         return true
+    }
+
+    /// `timeBetween: "HHMM-HHMM"` (UTC, both ends included; a window ending before it starts wraps midnight). An
+    /// unreadable window never matches.
+    static func inWindow(_ window: String, _ date: Date) -> Bool {
+        guard let (from, to) = parseWindow(window) else { return false }
+        let seconds = Int64(date.timeIntervalSince1970.rounded(.down))
+        let day: Int64 = 86_400
+        let minute = Int(((seconds % day) + day) % day / 60)
+        return from <= to ? (from...to).contains(minute) : (minute >= from || minute <= to)
+    }
+
+    /// `"HHMM-HHMM"` → minutes of the day; `nil` when the text is not that.
+    public static func parseWindow(_ window: String) -> (Int, Int)? {
+        let parts = window.split(separator: "-").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count == 2, let from = minuteOfDay(parts[0]), let to = minuteOfDay(parts[1]) else { return nil }
+        return (from, to)
+    }
+
+    private static func minuteOfDay(_ text: String) -> Int? {
+        guard text.count == 4, text.allSatisfy({ $0.isASCII && $0.isNumber }), let value = Int(text) else { return nil }
+        let hours = value / 100
+        let minutes = value % 100
+        guard hours < 24, minutes < 60 else { return nil }
+        return hours * 60 + minutes
     }
 
     /// Java `List.contains(o)`: `nil` looks for a `nil` element, otherwise `o.equals(element)` by UTF-16.

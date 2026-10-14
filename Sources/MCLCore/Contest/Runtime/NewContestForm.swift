@@ -60,6 +60,12 @@ public struct NewContestForm: Equatable, Sendable {
         form.callHistoryFile = saved?.callHistoryFile ?? ""
         form.functionKeyFiles = saved?.functionKeyFiles ?? [:]
         let midnight: Int64 = todayMidnightUtc(now)
+        if let start = expectedStart(definition, now: now), !savedStartIsCurrent(saved, definition, now: now) {
+            // N1MM: the start defaults to the next weekday the contest usually starts on (`period.startWeekday`).
+            form.startedAt = format(epochSecond: start)
+            form.endedAt = definition.period?.durationHours.map { format(epochSecond: start + Int64($0) * 3_600) } ?? ""
+            return form
+        }
         form.startedAt = nonBlank(saved?.startedAt) ?? format(epochSecond: midnight)
         if let ended = nonBlank(saved?.endedAt) {
             form.endedAt = ended
@@ -69,6 +75,54 @@ public struct NewContestForm: Equatable, Sendable {
             form.endedAt = ""
         }
         return form
+    }
+
+    /// `period.startWeekday` / `startTime`: the next start (epoch seconds) at or after today's UTC midnight — today
+    /// when today is the weekday; `nil` without a readable weekday.
+    public static func expectedStart(_ definition: ContestDefinition, now: Date) -> Int64? {
+        let days: [String] = ["THU", "FRI", "SAT", "SUN", "MON", "TUE", "WED"]  // 1970-01-01 was a Thursday
+        guard let weekday = definition.period?.startWeekday,
+              let wanted = days.firstIndex(of: String(KotlinText.trim(weekday).uppercased().prefix(3))) else {
+            return nil
+        }
+        let midnight: Int64 = todayMidnightUtc(now)
+        let today = Int(((midnight / 86_400) % 7 + 7) % 7)
+        let ahead = (wanted - today + 7) % 7
+        var minutes: Int64 = 0
+        if let time = definition.period?.startTime, let value = Int(KotlinText.trim(time)), value >= 0,
+           value / 100 < 24, value % 100 < 60 {
+            minutes = Int64(value / 100 * 60 + value % 100)
+        }
+        return midnight + Int64(ahead) * 86_400 + minutes * 60
+    }
+
+    /// A saved start that has not ended yet (the contest is being set up again during it) wins over the weekday.
+    private static func savedStartIsCurrent(_ saved: ContestSetup?, _ definition: ContestDefinition, now: Date) -> Bool {
+        guard let text = nonBlank(saved?.startedAt), let start = epochSecond(text) else {
+            return false
+        }
+        let hours = Int64(definition.period?.durationHours ?? 0)
+        return start + hours * 3_600 >= Int64(now.timeIntervalSince1970)
+    }
+
+    /// `"yyyy-MM-dd HH:mm"` (UTC) → epoch seconds; `nil` when unreadable.
+    static func epochSecond(_ text: String) -> Int64? {
+        let units = Array(KotlinText.trim(text).utf8)
+        guard units.count >= 16 else { return nil }
+        func number(_ range: Range<Int>) -> Int? {
+            Int(String(decoding: units[range], as: UTF8.self))
+        }
+        guard let year = number(0..<4), let month = number(5..<7), let day = number(8..<10),
+              let hour = number(11..<13), let minute = number(14..<16), (1...12).contains(month) else { return nil }
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        components.minute = minute
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        return calendar.date(from: components).map { Int64($0.timeIntervalSince1970) }
     }
 
     /// The setup saved on OK (and passed to `ContestActivation.createContest`).
