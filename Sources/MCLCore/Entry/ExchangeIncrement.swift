@@ -20,9 +20,28 @@ public enum ExchangeIncrement {
         return out
     }
 
-    /// `((text.trim().toIntOrNull() ?: 0) + 1).toString()`.
+    /// `((text.trim().toIntOrNull() ?: 0) + 1).toString()`; a Sweepstakes serial with its precedence (`23B`, also as a
+    /// word of a whole exchange such as `23B 72 CT`) keeps the precedence and the other words (N1MM Ctrl+U).
     static func incremented(_ text: String) -> String {
+        if let precedence = incrementedWithPrecedence(text) {
+            return precedence
+        }
         let value: Int32 = JavaInteger.parseInt(KotlinStrings.trim(text)) ?? 0
         return String(value &+ 1)
+    }
+
+    /// The first space-separated word made of digits and one or two letters, its number plus one; `nil` when no word
+    /// is like that.
+    static func incrementedWithPrecedence(_ text: String) -> String? {
+        var words: [Substring] = text.split(separator: " ", omittingEmptySubsequences: false)
+        for (index, word) in words.enumerated() {
+            let digits: Substring = word.prefix { $0.isASCII && $0.isNumber }
+            let letters: Substring = word.dropFirst(digits.count)
+            guard !digits.isEmpty, (1...2).contains(letters.count),
+                  letters.allSatisfy({ $0.isASCII && $0.isLetter }), let value = Int32(digits) else { continue }
+            words[index] = Substring(String(value &+ 1) + letters)
+            return words.joined(separator: " ")
+        }
+        return nil
     }
 }

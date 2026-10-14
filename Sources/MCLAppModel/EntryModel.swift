@@ -138,6 +138,8 @@ public final class EntryModel {
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
     /// The band map's rig controls (Wide/Narrow filter, CW reverse) for Alt+' and Ctrl+Alt+R; set by the app.
     @ObservationIgnored weak var bandmapControls: BandmapModel?
+    /// N1MM: SH/DX typed in the call field goes to the DX cluster; `false` = not connected. Set by the app.
+    @ObservationIgnored var clusterCommand: (@MainActor (String) -> Bool)?
     /// Keys bound to plugin actions: called with every key of the entry fields (combination, `true` on the press);
     /// `nil` = not bound, else whether the key keeps its own function too.
     @ObservationIgnored public var pluginKeyHook: ((KeyCombo, Bool) -> Bool?)?
@@ -521,6 +523,16 @@ public final class EntryModel {
         defer { Perf.end(interval) }
         if KotlinStrings.isBlank(form.call) {
             focusRequest += 1
+            return nil
+        }
+        if let command = CallFieldClusterCommand.command(form.call) {
+            // N1MM: SH/DX typed in the call field is passed to the DX cluster, never logged.
+            if clusterCommand?(command) == true {
+                status.show("%s → DX Cluster", .string(command))
+                callChanged("")
+            } else {
+                status.show("DX Cluster není připojen")
+            }
             return nil
         }
         if let command = EntryCommandPlan.parseForEnter(form.call, currentFreqHz: form.freqHz,

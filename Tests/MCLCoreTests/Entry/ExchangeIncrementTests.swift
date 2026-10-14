@@ -20,6 +20,21 @@ import Testing
         }
     }
 
+    /// Sweepstakes (N1MM Ctrl+U): the serial keeps its precedence, a whole exchange keeps its other words.
+    @Test func sweepstakesPrecedenceIsKept() {
+        let table: [(String, String)] = [
+            ("23B", "24B"), ("9a", "10a"), ("23B 72 CT", "24B 72 CT"), ("K1ABC 23B 72 CT", "K1ABC 24B 72 CT"),
+            ("599", "600"), ("23ABC", "1"), ("B23", "1"),
+        ]
+        for (input, output) in table {
+            #expect(ExchangeIncrement.incremented(input) == output, "\(input)")
+        }
+        var form = EntryForm()
+        form.exch = "23B 72 CT"
+        let out = ExchangeIncrement.apply(form: form, fields: [], contestActive: false)
+        #expect(out.exch == "24B 72 CT")
+    }
+
     @Test func serialFieldFirst() {
         var form = EntryForm()
         form.contestExchange = JavaLinkedMap([("rst", "599"), ("nr", "12"), ("loc", "JO70")])

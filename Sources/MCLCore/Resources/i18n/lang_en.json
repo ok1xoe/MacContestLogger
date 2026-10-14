@@ -1728,5 +1728,10 @@
  "CW reverse vypnut": "CW reverse off",
  "Druhý krok rychlosti CW (Shift+PgUp/PgDn, WPM)": "Secondary CW speed step (Shift+PgUp/PgDn, WPM)",
  "Alt+J na volačku, Alt+L dlouhou cestou, Ctrl+Alt+J stop": "Alt+J to the callsign, Alt+L the long path, Ctrl+Alt+J stop",
- "Spusť rotctld, např. rotctld -m 603 -r /dev/cu.usbserial-… -t 4533. Prázdný host = bez rotátoru. Alt+J natočí na volačku, Alt+L dlouhou cestou, Ctrl+Alt+J zastaví; okno Okno → Rotátor.": "Start rotctld, e.g. rotctld -m 603 -r /dev/cu.usbserial-… -t 4533. An empty host = no rotator. Alt+J turns to the callsign, Alt+L the long path, Ctrl+Alt+J stops; window Window → Rotator."
+ "Spusť rotctld, např. rotctld -m 603 -r /dev/cu.usbserial-… -t 4533. Prázdný host = bez rotátoru. Alt+J natočí na volačku, Alt+L dlouhou cestou, Ctrl+Alt+J zastaví; okno Okno → Rotátor.": "Start rotctld, e.g. rotctld -m 603 -r /dev/cu.usbserial-… -t 4533. An empty host = no rotator. Alt+J turns to the callsign, Alt+L the long path, Ctrl+Alt+J stops; window Window → Rotator.",
+ "Vymazat pole druhého okna": "Wipe the other entry window",
+ "Na poslední CQ frekvenci (libovolné pásmo)": "To the last CQ frequency (any band)",
+ "Zatím nebylo žádné CQ": "No CQ yet",
+ "Druhé okno není otevřené (SO2V / SO2R)": "The other entry window is not open (SO2V / SO2R)",
+ "%s → DX Cluster": "%s → DX Cluster"
 }
