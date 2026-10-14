@@ -134,6 +134,8 @@ import Testing
         expected.callHistoryShowUserInfo = true
         expected.preferredCallbook = "hamqth"
         expected.dupesheetSortBySuffix = true
+        expected.showSentCw = false
+        expected.clearPrefilledExchange = false
         expected.resetRxAfterRunQso = false
         expected.clubLog.ctyEnabled = true
         expected.esm.nextCallKey = -1
@@ -336,6 +338,8 @@ import Testing
         w.same(\.nPlusOneEnabled, \.nPlusOneEnabled, false)
         w.same(\.preferredCallbook, \.preferredCallbook, "qrz")
         w.same(\.dupesheetSortBySuffix, \.dupesheetSortBySuffix, false)
+        w.same(\.showSentCw, \.showSentCw, true)
+        w.same(\.clearPrefilledExchange, \.clearPrefilledExchange, true)
         w.same(\.resetRxAfterRunQso, \.resetRxAfterRunQso, true)
         w.same(\.callHistoryFile, \.callHistoryFile, "/data/history.txt")
         w.same(\.callHistoryExtraFiles, \.callHistoryExtraFiles, ["/data/extra-a.txt", "/data/extra-b.txt"])

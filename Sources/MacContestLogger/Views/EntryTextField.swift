@@ -1,5 +1,6 @@
 import AppKit
 import MCLAppModel
+import MCLCore
 import SwiftUI
 
 /// Registry of the entry window's fields for programmatic focus (Kotlin `FocusRequester`s): the view registers
@@ -40,6 +41,12 @@ final class EntryFocusController {
                 return
             }
             window.makeFirstResponder(field)
+            // N1MM: a `?` in the callsign is selected for replacement when the cursor comes back (AppKit selects the
+            // whole text of any other field, so a serial number is overwritten by typing).
+            if key == .call, let range = EntryAssist.questionMarkSelection(field.stringValue),
+               let editor = field.currentEditor() {
+                editor.selectedRange = range
+            }
         }
     }
 

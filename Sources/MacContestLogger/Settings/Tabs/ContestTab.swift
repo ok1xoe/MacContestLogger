@@ -119,6 +119,8 @@ struct ContestTab: View {
                              isOn: $draft.callHistoryLookupEnabled)
             SettingsCheckbox(label: language.tr("Zobrazovat informace uživatele (UserText)"),
                              isOn: $draft.callHistoryShowUserInfo)
+            SettingsCheckbox(label: language.tr("Při změně volačky smazat výměnu doplněnou z call history nebo spotu"),
+                             isOn: $draft.clearPrefilledExchange)
             SettingsCaption(language.tr(
                 "Další soubory se sloučí za hlavní do jedné tabulky (pozdější soubor doplní prázdná pole, UserText se připojí). Řádky # s názvem závodu zapnou dohledávání jen v tom závodě."))
         }

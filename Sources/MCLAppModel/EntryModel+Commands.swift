@@ -103,6 +103,7 @@ extension EntryModel {
             }
             let outcome = FunctionKeyRouter.press(index: index, shift: shift, ctrlShift: ctrlShift,
                                                   context: functionKeyContext())
+            noteSerialSent([index], opposite: shift, outcome: outcome)
             apply(outcome, opposite: shift)
         case .cwSpeed(let steps):
             // Kotlin `changeCwSpeed(±config.cwSpeedStep)` on the press (`EP:966-967`).
@@ -197,6 +198,11 @@ extension EntryModel {
     /// the contest fields of `prefilled` replace the form's without touch marks, and the preview follows (`cexch` is
     /// a key of the preview effect).
     public func applyCallHistoryPrefill(_ prefilled: EntryForm) {
+        for (id, value) in prefilled.contestExchange.entries {
+            if let value, !KotlinStrings.isBlank(value), form.contestExchange[id] != value {
+                autoFilled[id] = value
+            }
+        }
         form.contestExchange = prefilled.contestExchange
         updatePreview()
     }
@@ -526,7 +532,20 @@ extension EntryModel {
         guard voiceStackMacros(indices, opposite: opposite) else { return }
         let outcome = FunctionKeyRouter.send(indices, opposite: opposite, refocus: refocus,
                                              context: functionKeyContext())
+        noteSerialSent(indices, opposite: opposite, outcome: outcome)
         apply(outcome, opposite: opposite)
+    }
+
+    /// N1MM's serial sequence warning: the first transmitted message of the QSO that carries the serial number
+    /// remembers it (compared when the QSO is logged).
+    private func noteSerialSent(_ indices: [Int], opposite: Bool, outcome: FunctionKeyOutcome) {
+        guard outcome.transmission != nil, serialSentInQso == nil, contest.isActive,
+              !KotlinStrings.isBlank(form.call) else { return }
+        let set: [FunctionKeyMessage] = currentKeySet(opposite: opposite)
+        let exchange: String = cwExchange()
+        if indices.contains(where: { $0 < set.count && EntryAssist.sendsSerial(set[$0].text, sentExchange: exchange) }) {
+            serialSentInQso = logbook.nextSerial
+        }
     }
 
     /// The outcome of an F-key press in Kotlin order: status, ESM progress and last keys, the transmission, the macro
@@ -544,6 +563,10 @@ extension EntryModel {
         }
         var keyerStatus: EntryStatus?
         if let transmission = outcome.transmission {
+            if config.config.showSentCw, case .cw(let message, _) = transmission {
+                // N1MM „Display Sent CW": what goes out, in the status line.
+                show(.verbatim("CW: " + EntryAssist.sentText(message)))
+            }
             keyerStatus = ports.keyer.send(transmission, settings: keyerSettings(opposite: opposite))
             afcWithCq(transmission)
         }

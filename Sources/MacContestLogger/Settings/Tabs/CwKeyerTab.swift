@@ -64,6 +64,7 @@ struct CwKeyerTab: View {
             }
             .frame(maxWidth: 320, alignment: .leading)
             SettingsCheckbox(label: language.tr("Pořadová čísla s úvodními nulami (007)"), isOn: $draft.cwLeadingZeros)
+            SettingsCheckbox(label: language.tr("Zobrazovat odesílané CW ve stavovém řádku"), isOn: $draft.showSentCw)
         }
     }
 }

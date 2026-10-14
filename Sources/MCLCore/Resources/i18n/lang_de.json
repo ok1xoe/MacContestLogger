@@ -1715,5 +1715,9 @@
  "Informace uživatele (call history)": "Benutzerinformationen (Call History)",
  "dvojitý násobič": "doppelter Multiplikator",
  "nové QSO": "neues QSO",
- "dupe": "Dupe"
+ "dupe": "Dupe",
+ "Pozor: odesláno číslo %s, zapsáno %s": "Achtung: Nummer %s gesendet, %s geloggt",
+ "%s nezapsán — odladěno, uložen do bandmapy": "%s nicht geloggt — weggedreht, in der Bandmap gespeichert",
+ "Při změně volačky smazat výměnu doplněnou z call history nebo spotu": "Bei Rufzeichenänderung den aus Call History oder Spot ausgefüllten Austausch löschen",
+ "Zobrazovat odesílané CW ve stavovém řádku": "Gesendetes CW in der Statuszeile anzeigen"
 }

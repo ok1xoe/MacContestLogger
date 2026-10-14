@@ -53,6 +53,7 @@ extension EntryModel {
         for (id, value) in values.entries {
             if let value, !KotlinStrings.isBlank(value) {
                 form.contestExchange.put(id, value)
+                autoFilled[id] = value
             }
         }
         updatePreview()
@@ -93,6 +94,8 @@ extension EntryModel {
         case .selfSpot(let call, let atHz):
             spots.store(call: call, freqHz: atHz)
             setCallText("")
+            // N1MM warns when the operator tunes away before logging.
+            status.show(ContestMessage("%s nezapsán — odladěno, uložen do bandmapy", .string(call)))
         case .prefill(let call):
             setCallText(call)
         case nil:

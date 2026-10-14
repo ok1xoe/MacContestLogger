@@ -128,6 +128,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var preferredCallbook: String = CallbookService.hamQth.rawValue
     /// The Dupesheet windows sort each column by suffix.
     public var dupesheetSortBySuffix: Bool = true
+    public var showSentCw: Bool = false
+    public var clearPrefilledExchange: Bool = false
     public var resetRxAfterRunQso: Bool = false
     public var clEnabled: Bool = false
     public var clEmail: String = ""
@@ -454,6 +456,8 @@ extension ConfigurerDraft {
         nPlusOneEnabled = config.nPlusOneEnabled
         preferredCallbook = config.preferredCallbook
         dupesheetSortBySuffix = config.dupesheetSortBySuffix
+        showSentCw = config.showSentCw
+        clearPrefilledExchange = config.clearPrefilledExchange
         resetRxAfterRunQso = config.resetRxAfterRunQso
         clEnabled = config.clubLog.enabled
         clEmail = config.clubLog.email

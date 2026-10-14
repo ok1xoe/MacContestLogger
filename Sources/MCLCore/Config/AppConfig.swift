@@ -197,6 +197,10 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var preferredCallbook = CallbookService.hamQth.rawValue
     /// The Dupesheet windows sort each column by suffix (N1MM), otherwise by the whole call (v1.1.1). Swift-only key.
     public var dupesheetSortBySuffix = true
+    /// N1MM „Display Sent CW": the CW being sent is shown in the status line. Swift-only key.
+    public var showSentCw: Bool = false
+    /// N1MM „Clear auto-populated exchange on callsign change": a call change clears the exchange values the call history or a spot filled in. Swift-only key.
+    public var clearPrefilledExchange: Bool = false
     /// The bands (ADIF names) whose buttons the Entry window does not show. Swift-only key.
     public var entryHiddenBands: [String] = []
     /// N1MM „Band Button Left Click Enabled": a click on a band button changes the band. Swift-only key.
@@ -259,6 +263,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
+        case showSentCw
+        case clearPrefilledExchange
         case entryHiddenBands
         case entryBandButtonsClick
         case entryShowUtcClock
@@ -380,6 +386,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         checkReverseFromStart = c.value(.checkReverseFromStart, default: d.checkReverseFromStart)
         showUnmatchedCallMark = c.value(.showUnmatchedCallMark, default: d.showUnmatchedCallMark)
         dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
+        showSentCw = c.value(.showSentCw, default: d.showSentCw)
+        clearPrefilledExchange = c.value(.clearPrefilledExchange, default: d.clearPrefilledExchange)
         entryHiddenBands = c.value(.entryHiddenBands, default: d.entryHiddenBands)
         entryBandButtonsClick = c.value(.entryBandButtonsClick, default: d.entryBandButtonsClick)
         entryShowUtcClock = c.value(.entryShowUtcClock, default: d.entryShowUtcClock)
