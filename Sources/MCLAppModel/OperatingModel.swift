@@ -29,6 +29,8 @@ public final class OperatingModel {
     public var operatorCall: String
     /// Kotlin `lastSentKeys` (`=` in ESM resends them).
     public var lastSentKeys: [Int] = []
+    /// N1MM `{VARYMSG1}` / `{VARYMSG2}`: how many times each was sent (shared by every mode and entry window).
+    public private(set) var varyCounts: [Int] = [0, 0]
     /// Kotlin `tunedFreqHz`: the frequency the entry window is on.
     public private(set) var tunedFreqHz: Int64 = 0
 
@@ -63,6 +65,13 @@ public final class OperatingModel {
 
     public var isRun: Bool {
         runMode == .run
+    }
+
+    /// A sent message used these `{VARYMSGn}` macros (1, 2): their counters move on.
+    public func noteVaryUsed(_ numbers: [Int]) {
+        for number in numbers where number >= 1 && number <= varyCounts.count {
+            varyCounts[number - 1] &+= 1
+        }
     }
 
     // MARK: - Run / S&P

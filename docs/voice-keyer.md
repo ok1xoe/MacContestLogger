@@ -75,6 +75,9 @@ performed, never played as files (the same set and meaning as in
 | `{NOSPLIT}` | turns split off |
 | `{SPOTME}` | spots your own station to the DX cluster on the entry window's frequency, with the [spot comment](dx-cluster.md#spot-comment-spotting-sp-qsos-and-special-calls) (`CQ` when blank); check that the contest rules allow self-spots |
 | `{F1}`...`{F12}` | inserts the message of another F-key of the same set (chaining, at most 3 levels) |
+| `{CQ}`, `{QSYCQ}`, `{EXCHSENT}`, `{CTRLHOME}`, `{FORCELOG}`, `{FORCELOGNOTE}`, `{SPACE}` | as in [cw-keyer.md](cw-keyer.md#more-macros-n1mm) |
+| `{COMMENT text}` | adds the text to the QSO's note; performed when the message starts |
+| `{VARYMSG1&a.wav&b.wav&N&}` | alternating message, as in CW (`{VARYMSG2 &TU.wav&TUMYCALL.wav&2&}` plays the longer thank-you after every second QSO) |
 | `{END}` | ends the message; everything after it is ignored |
 | `{LOGTHENPOP}`, `{LOGTHENNEXT}`, `{SOCALLSTACK}`, `{STACKANOTHER}`, `{CLRSTACK}` | the [call stack](call-stacking.md); performed **before** the message plays, so `!` and `{F5}` already mean the next call |
 

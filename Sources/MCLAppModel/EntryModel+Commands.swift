@@ -630,6 +630,13 @@ extension EntryModel {
         if let key = outcome.recordKey, let message = ports.keyer.toggleRecording(key) {
             show(message)
         }
+        if outcome.transmission != nil {
+            operating.noteVaryUsed(outcome.varyUsed)
+        }
+        // The parameterized macros first: a `{COMMENT}` belongs to the QSO a `{LOG}` of the same message logs.
+        for command in outcome.commands {
+            performMacroCommand(command)
+        }
         for action in outcome.actions {
             if action == .logThenPop {
                 logThenPop(next: outcome.stackNextCall, progress: outcome.stackProgress,
@@ -721,6 +728,50 @@ extension EntryModel {
             digitalKeyer?.setNet(false)
         case .spotMe:
             spotMeMacro()
+        case .cq:
+            if canTransmit {
+                operating.onCqSent(form.freqHz)
+                grabList?.cqSent()
+            }
+        case .exchangeSent:
+            esmProgress = esmProgress.withExchangeSent()
+        case .ctrlHome:
+            focusRequest += 1
+        case .forceLog:
+            if !KotlinStrings.isBlank(form.call) {
+                // A `{COMMENT}` (or Ctrl+N) note stays the QSO's note; otherwise the forced-QSO note.
+                submit(force: true, comment: pendingNote == nil ? EntryTexts.forcedNote("") : nil)
+            }
+        case .forceLogNote:
+            forceLog()
+        case .space:
+            jumpToExchange()
+        }
+    }
+
+    /// A parameterized macro of a sent message (N1MM `{COMMENT text}`…).
+    func performMacroCommand(_ command: MacroCommand) {
+        switch command {
+        case .comment(let text):
+            addComment(text)
+        }
+    }
+
+    /// `{COMMENT text}`: the text joins the note of the QSO in progress, or of the last logged QSO when the call
+    /// field is empty.
+    private func addComment(_ text: String) {
+        if !KotlinStrings.isBlank(form.call) {
+            let current: String = pendingNote ?? ""
+            pendingNote = KotlinStrings.isBlank(current) ? text : current + " " + text
+            return
+        }
+        guard let last = logbook.lastRow else { return }
+        var edited: Qso = last
+        edited.comment = KotlinStrings.isBlank(last.comment) ? text : last.comment + " " + text
+        let logbook: LogbookModel = self.logbook
+        let edit = LogbookMutations.Edit(old: last, new: edited)
+        track {
+            await logbook.update(edit)
         }
     }
 
@@ -949,9 +1000,38 @@ extension EntryModel {
             serialAfterLog: logbook.nextSerial + 1, grabNext: grabList?.highlighted)
         context.cwBase.hisName = callHistoryName
         context.cwBase.digitalButtons = app.digital.diMessages.map(\.text)
+        fillMacroData(&context.cwBase, app: app)
         let messagesDir: URL = dataDir.appendingPathComponent("FunctionKeyMessages")
         context.cwBase.fileText = { name in Self.readMessageFile(messagesDir, name) }
         return context
+    }
+
+    /// The data of the Swift-only N1MM text macros: the Name and locator fields, the last logged QSO, the cluster
+    /// login, the rigs' MHz and the `{VARYMSGn}` counters.
+    private func fillMacroData(_ base: inout CwMessageBuilder.Context, app: AppConfig) {
+        base.entryName = fields.first { ($0.id ?? "").lowercased() == "name" }
+            .flatMap { $0.id }.flatMap { form.contestExchange[$0] }
+        base.hisGrid = fields.first { $0.type == .LOCATOR }.flatMap { $0.id }
+            .flatMap { form.contestExchange[$0] } ?? ""
+        if let last = logbook.rows.last {
+            base.lastSerial = last.serialSent.map { String($0) } ?? ""
+            base.lastExchange = last.exchangeRcvd
+            base.lastTime = last.timestampUtc
+        }
+        let cluster: DxClusterConfig = app.dxCluster
+        let favorite: DxClusterFavorite? = cluster.favorites.first { $0.name == cluster.lastFavorite }
+            ?? cluster.favorites.first
+        let login: String = KotlinStrings.trim(favorite?.login ?? "")
+        base.clusterCall = login.isEmpty ? app.station.call : login
+        base.leftMHz = rigMHz(vfo: 0)
+        base.rightMHz = rigMHz(vfo: 1)
+        base.varyCounts = operating.varyCounts
+    }
+
+    /// `{LRMHZ}` / `{RRMHZ}`: the whole MHz of rig / VFO `vfo`; `""` without a rig state.
+    private func rigMHz(vfo: Int) -> String {
+        guard let rig, let state = rig.snapshot(vfo: vfo).state, state.freqHz > 0 else { return "" }
+        return String(state.freqHz / 1_000_000)
     }
 
     /// `{LDIGFQ}` / `{RDIGFQ}`: the transmitted frequency of rig / VFO `vfo` (dial ± fldigi's audio in a sideband

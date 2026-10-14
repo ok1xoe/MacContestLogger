@@ -33,6 +33,30 @@ import Testing
                             .action(.cqFrequency), .action(.splitOff)])
     }
 
+    /// The Swift-only N1MM actions are actions in SSB too; `{COMMENT text}` is a command performed at the start.
+    @Test func n1mmActionsAndCommandsInVoice() throws {
+        let p = try Self.plan("{CQ},cq.wav,{EXCHSENT},{QSYCQ},{SPACE},{CTRLHOME},{FORCELOG},{COMMENT ssb run}")
+        #expect(p.unknownMacros.isEmpty)
+        #expect(p.steps == [.action(.cq), .play([Self.file("cq.wav")]), .action(.exchangeSent),
+                            .action(.cqFrequency), .action(.space), .action(.ctrlHome), .action(.forceLog)])
+        #expect(p.commands == [.comment("ssb run")])
+    }
+
+    /// `{VARYMSG2 &tu.wav&cq.wav&2&}`: every second send plays the alternate file.
+    @Test func varyMessageInVoice() throws {
+        var ctx = VoiceMessagePlannerTests.ctx
+        var played: [[JavaPath]] = []
+        for count in 0..<4 {
+            ctx.varyCounts = [0, count]
+            let p = try VoiceMessagePlanner.plan(
+                "{VARYMSG2 &tu.wav&cq.wav&2&}", ctx: ctx, wavDir: Self.wav, lettersDir: VoiceMessagePlannerTests.letters,
+                exists: VoiceMessagePlannerTests.existing("cq.wav", "tu.wav"))
+            #expect(p.varyUsed == [2])
+            played.append(p.files)
+        }
+        #expect(played == [[Self.file("tu.wav")], [Self.file("cq.wav")], [Self.file("tu.wav")], [Self.file("cq.wav")]])
+    }
+
     @Test func macrosAreCaseInsensitiveAndTrimmed() throws {
         let p = try Self.plan(" {log} , {s&p}")
         #expect(p.steps == [.action(.log), .action(.searchAndPounce)])
