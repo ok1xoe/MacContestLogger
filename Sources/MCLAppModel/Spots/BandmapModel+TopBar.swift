@@ -89,6 +89,21 @@ extension BandmapModel {
         sendCat(command)
     }
 
+    /// Ctrl+Alt+R (N1MM „Toggle CW Reverse"): the rig's CW ↔ CWR, its passband kept.
+    public func toggleCwReverse() {
+        guard let state = rig.activeState else {
+            statusLine?.show(ContestMessage("CW reverse: připoj TRX (CAT)"))
+            return
+        }
+        guard let command = CwReverseToggle.command(rawMode: state.rawMode, passbandHz: state.passband) else {
+            statusLine?.show(ContestMessage("CW reverse: rádio není v CW"))
+            return
+        }
+        sendCat(command)
+        let reverse: Bool = command.hasPrefix("M CWR")
+        statusLine?.show(ContestMessage(reverse ? "CW reverse zapnut" : "CW reverse vypnut"))
+    }
+
     // MARK: - programmable buttons
 
     /// The configured buttons (at most 36).

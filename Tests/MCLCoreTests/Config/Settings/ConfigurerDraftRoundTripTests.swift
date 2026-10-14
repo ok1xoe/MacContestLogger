@@ -135,6 +135,7 @@ import Testing
         expected.preferredCallbook = "hamqth"
         expected.dupesheetSortBySuffix = true
         expected.showSentCw = false
+        expected.cwSpeedStepSecondary = 1
         expected.clearPrefilledExchange = false
         expected.resetRxAfterRunQso = false
         expected.clubLog.ctyEnabled = true
@@ -390,6 +391,7 @@ import Testing
         w.same(\.dataMode, \.dataMode, "FT8")
         w.same(\.rttyAfsk, \.rttyAfsk, true)
         w.number(\.cwSpeedStep, \.cwSpeedStep, 6)
+        w.number(\.cwSpeedStepSecondary, \.cwSpeedStepSecondary, 9)
         w.number(\.tuneStepCw, \.tuneStepCwHz, 30)
         w.number(\.tuneStepSsb, \.tuneStepSsbHz, 200)
         w.same(\.beepOnDupe, \.beepOnDupe, true)

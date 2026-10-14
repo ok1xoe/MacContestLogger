@@ -44,7 +44,7 @@ struct AntennasTab: View {
     private var rotatorGroup: some View {
         SettingsGroup(title: language.tr("Rotátor (hamlib rotctld)")) {
             SettingsCaption(language.tr(
-                "Spusť rotctld, např. rotctld -m 603 -r /dev/cu.usbserial-… -t 4533. Prázdný host = bez rotátoru. Alt+J natočí na volačku, Ctrl+Alt+J dlouhou cestou, Alt+L zastaví; okno Okno → Rotátor."))
+                "Spusť rotctld, např. rotctld -m 603 -r /dev/cu.usbserial-… -t 4533. Prázdný host = bez rotátoru. Alt+J natočí na volačku, Alt+L dlouhou cestou, Ctrl+Alt+J zastaví; okno Okno → Rotátor."))
             HStack(spacing: 8) {
                 SettingsTextField(text: $draft.rotatorHost)
                     .frame(maxWidth: .infinity)

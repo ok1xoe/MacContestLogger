@@ -122,10 +122,10 @@ import Testing
             "operator Ctrl+O", "run Alt+U", "jump_cq Alt+Q", "repeat Alt+R", "repeat_time Ctrl+R",
             "tune Ctrl+T", "split_on Ctrl+S", "split_toggle Ctrl+Alt+S", "split_prompt Alt+F7",
             "prev_freq Alt+F8", "swap_vfo Alt+F10", "auto_runsp Alt+F11", "copy_vfo Alt+F12",
-            "rit_up Ctrl+Alt+RIGHT", "rit_down Ctrl+Alt+LEFT", "rit_clear Ctrl+Alt+R",
+            "rit_up Ctrl+Alt+RIGHT", "rit_down Ctrl+Alt+LEFT", "rit_clear Ctrl+Alt+Shift+R",
             "switch_radio BACK_SLASH", "so2r_stereo BACK_QUOTE", "cw_keyboard Ctrl+K",
-            "pass_call Ctrl+Alt+P", "pop_stack Ctrl+Alt+K", "rotor_turn Alt+J", "rotor_long Ctrl+Alt+J",
-            "rotor_stop Alt+L", "next_antenna Ctrl+Alt+A", "band_up Ctrl+PAGE_UP", "band_down Ctrl+PAGE_DOWN",
+            "pass_call Ctrl+Alt+P", "pop_stack Ctrl+Alt+K", "rotor_turn Alt+J", "rotor_long Alt+L",
+            "rotor_stop Ctrl+Alt+J", "next_antenna Ctrl+Alt+A", "band_up Ctrl+PAGE_UP", "band_down Ctrl+PAGE_DOWN",
             "spot_up Cmd+DOWN", "spot_down Cmd+UP", "mult_up Ctrl+Alt+DOWN", "mult_down Ctrl+Alt+UP",
             "self_up Alt+Shift+DOWN", "self_down Alt+Shift+UP", "spot Alt+P", "spot_comment Ctrl+P",
             "store Alt+O", "mark Alt+M", "remove_spot Alt+D", "remove_blacklist Alt+Shift+D",
@@ -133,6 +133,7 @@ import Testing
             // Swift-only (call stacking).
             "stack_call Ctrl+Alt+G", "grab_stack Alt+G", "insert_grab HELP", "toggle_tx Alt+T", "digital_left Alt+Cmd+LEFT", "digital_right Alt+Cmd+RIGHT",
             "edit_last Ctrl+Y", "quick_edit_back Ctrl+Q", "quick_edit_forward Ctrl+A", "reset_rx Alt+S",
+            "filter_width Alt+QUOTE", "cw_reverse Ctrl+Alt+R",
         ]
         let actual: [String] = ShortcutAction.allCases.map { "\($0.id) \($0.defaultCombo().format())" }
         #expect(actual == expected)

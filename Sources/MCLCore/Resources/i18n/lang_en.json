@@ -1719,5 +1719,14 @@
  "Pozor: odesláno číslo %s, zapsáno %s": "Warning: sent number %s, logged %s",
  "%s nezapsán — odladěno, uložen do bandmapy": "%s not logged — tuned away, stored in the band map",
  "Při změně volačky smazat výměnu doplněnou z call history nebo spotu": "Clear the exchange filled in from call history or a spot when the callsign changes",
- "Zobrazovat odesílané CW ve stavovém řádku": "Show the CW being sent in the status line"
+ "Zobrazovat odesílané CW ve stavovém řádku": "Show the CW being sent in the status line",
+ "Filtr rádia: široký / úzký": "Rig filter: wide / narrow",
+ "CW reverse zap / vyp": "CW reverse on / off",
+ "CW reverse: připoj TRX (CAT)": "CW reverse: connect the rig (CAT)",
+ "CW reverse: rádio není v CW": "CW reverse: the rig is not in CW",
+ "CW reverse zapnut": "CW reverse on",
+ "CW reverse vypnut": "CW reverse off",
+ "Druhý krok rychlosti CW (Shift+PgUp/PgDn, WPM)": "Secondary CW speed step (Shift+PgUp/PgDn, WPM)",
+ "Alt+J na volačku, Alt+L dlouhou cestou, Ctrl+Alt+J stop": "Alt+J to the callsign, Alt+L the long path, Ctrl+Alt+J stop",
+ "Spusť rotctld, např. rotctld -m 603 -r /dev/cu.usbserial-… -t 4533. Prázdný host = bez rotátoru. Alt+J natočí na volačku, Alt+L dlouhou cestou, Ctrl+Alt+J zastaví; okno Okno → Rotátor.": "Start rotctld, e.g. rotctld -m 603 -r /dev/cu.usbserial-… -t 4533. An empty host = no rotator. Alt+J turns to the callsign, Alt+L the long path, Ctrl+Alt+J stops; window Window → Rotator."
 }

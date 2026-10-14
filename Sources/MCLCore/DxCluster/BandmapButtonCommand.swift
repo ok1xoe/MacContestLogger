@@ -106,3 +106,18 @@ public enum FilterWidthToggle {
         return "M " + mode + " " + String(target)
     }
 }
+
+/// N1MM Ctrl+Alt+R „Toggle CW Reverse/No Reverse": the rig's CW mode to CWR and back, the passband kept.
+public enum CwReverseToggle {
+
+    /// The `rigctld` command (`M CWR <Hz>` / `M CW <Hz>`), `nil` when the rig is not in CW or CWR.
+    public static func command(rawMode: String, passbandHz: Int64) -> String? {
+        let mode: String = JavaText.trim(rawMode).uppercased()
+        let passband: Int64 = min(max(passbandHz, 0), 20_000)
+        switch mode {
+        case "CW": return "M CWR " + String(passband)
+        case "CWR": return "M CW " + String(passband)
+        default: return nil
+        }
+    }
+}

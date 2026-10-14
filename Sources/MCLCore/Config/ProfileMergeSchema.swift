@@ -45,6 +45,7 @@ enum ProfileMergeSchema {
             Property("showUnmatchedCallMark", .boolean, .fieldDefault),
             Property("dupesheetSortBySuffix", .boolean, .fieldDefault),
             Property("showSentCw", .boolean, .fieldDefault),
+            Property("cwSpeedStepSecondary", .int, .fieldDefault),
             Property("clearPrefilledExchange", .boolean, .fieldDefault),
             Property("entryHiddenBands", .list(.string), .fieldDefault),
             Property("entryBandButtonsClick", .boolean, .fieldDefault),

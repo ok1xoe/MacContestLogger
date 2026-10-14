@@ -37,9 +37,9 @@ Equivalent of the N1MM **Rotor** program, through hamlib **rotctld**:
 | Control | Action |
 |---|---|
 | **Alt+J** / button **"Na volačku"** (To callsign) | turn to the callsign from the field (otherwise the last QSO) |
-| **Ctrl+Alt+J** / **"Dlouhá cesta"** (Long path) | the opposite direction |
+| **Alt+L** / **"Dlouhá cesta"** (Long path) | the opposite direction |
 | azimuth + **"Natočit"** (Turn) | to the entered azimuth |
-| **Alt+L** / **"Stop"** | stop |
+| **Ctrl+Alt+J** / **"Stop"** | stop |
 
 The azimuth to the callsign is calculated from the station locator ("Nastavení →
 Stanice", Settings → Station) and the country position according to DXCC.
@@ -75,8 +75,8 @@ The input is read every 20 ms with debouncing.
 
 For rotator programs with the **N1MM Rotor** protocol (PstRotator, ARSVCOM, N1MM
 Rotor) — **"Nastavení → Antennas → Rotátor přes UDP"** (Settings → Antennas →
-Rotator over UDP): host, port (default 12040) and rotator name. Alt+J / Ctrl+Alt+J /
-Alt+L and the buttons of the Rotator window then send
+Rotator over UDP): host, port (default 12040) and rotator name. Alt+J / Alt+L /
+Ctrl+Alt+J and the buttons of the Rotator window then send
 
 ```
 <N1MMRotor><rotor>Yagi 20</rotor><goazi>330.0</goazi><offset>0</offset><bidirectional>0</bidirectional><freqband>14</freqband></N1MMRotor>

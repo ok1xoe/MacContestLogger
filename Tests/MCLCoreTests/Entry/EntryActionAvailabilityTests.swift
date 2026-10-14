@@ -16,6 +16,7 @@ import Testing
         "MARK", "REMOVE_SPOT", "REMOVE_SPOT_BLACKLIST", "DX_CLUSTER_WINDOW",
         // Swift-only (call stacking).
         "STACK_CALL", "GRAB_STACK", "INSERT_GRAB", "TOGGLE_TX", "DIGITAL_LEFT", "DIGITAL_RIGHT", "EDIT_LAST", "QUICK_EDIT_BACK", "QUICK_EDIT_FORWARD", "RESET_RX",
+        "TOGGLE_FILTER", "CW_REVERSE",
     ]
 
     private static let expected: [String: EntryArea] = [
@@ -32,12 +33,13 @@ import Testing
         "NEXT_SELF_UP": .spots, "NEXT_SELF_DOWN": .spots, "SPOT_IT": .spots, "SPOT_WITH_COMMENT": .spots,
         "STORE": .spots, "MARK": .spots, "REMOVE_SPOT": .spots, "REMOVE_SPOT_BLACKLIST": .spots,
         "DX_CLUSTER_WINDOW": .spots, "STACK_CALL": .local, "GRAB_STACK": .local, "INSERT_GRAB": .local, "TOGGLE_TX": .local, "DIGITAL_LEFT": .local, "DIGITAL_RIGHT": .local, "EDIT_LAST": .local, "QUICK_EDIT_BACK": .local, "QUICK_EDIT_FORWARD": .local, "RESET_RX": .radio,
+        "TOGGLE_FILTER": .radio, "CW_REVERSE": .radio,
     ]
 
     @Test func everyShortcutActionHasAnArea() {
-        #expect(ShortcutAction.allCases.count == 65)
+        #expect(ShortcutAction.allCases.count == 67)
         #expect(Set(ShortcutAction.allCases.map(\.name)) == Set(Self.runShortcutOrder))
-        #expect(Self.runShortcutOrder.count == 65)
+        #expect(Self.runShortcutOrder.count == 67)
         for action in ShortcutAction.allCases {
             #expect(EntryActionAvailability.area(of: action) == Self.expected[action.name], "\(action.name)")
         }

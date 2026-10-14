@@ -819,6 +819,7 @@ public final class AppModel {
         for panel in [model.panel(vfo: 0), model.vfoB] {
             let entry: EntryModel = panel.entry
             entry.spotNavigation = model.spotNavigation
+            entry.bandmapControls = model.bandmap
             entry.helpOpener = { [weak callbook = model.callbook] in
                 callbook?.openHelp()
             }

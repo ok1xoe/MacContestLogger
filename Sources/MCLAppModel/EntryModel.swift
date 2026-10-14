@@ -136,6 +136,8 @@ public final class EntryModel {
     @ObservationIgnored var selfSpotEffectPending = false
     /// The spot actions (Spot It, Store, Mark, the navigation, the self-spot store); wired by the app.
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
+    /// The band map's rig controls (Wide/Narrow filter, CW reverse) for Alt+' and Ctrl+Alt+R; set by the app.
+    @ObservationIgnored weak var bandmapControls: BandmapModel?
     /// Keys bound to plugin actions: called with every key of the entry fields (combination, `true` on the press);
     /// `nil` = not bound, else whether the key keeps its own function too.
     @ObservationIgnored public var pluginKeyHook: ((KeyCombo, Bool) -> Bool?)?

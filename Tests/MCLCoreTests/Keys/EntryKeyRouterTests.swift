@@ -77,6 +77,9 @@ import Testing
         #expect(Self.route(Self.down(AwtKeyCodes.vkPageDown), cw) == .cwSpeed(-1))
         #expect(Self.route(Self.up(AwtKeyCodes.vkPageUp), cw) == .passThrough)
         #expect(Self.route(Self.down(AwtKeyCodes.vkPageUp)) == .passThrough)
+        // Shift+PgUp/PgDn: the secondary step (N1MM).
+        #expect(Self.route(Self.down(AwtKeyCodes.vkPageUp, Self.shift), cw) == .cwSpeedSecondary(1))
+        #expect(Self.route(Self.down(AwtKeyCodes.vkPageDown, Self.shift), cw) == .cwSpeedSecondary(-1))
         // Ctrl+PgUp is a binding (BAND_UP).
         #expect(Self.route(Self.down(AwtKeyCodes.vkPageUp, Self.ctrl), cw) == .action(.bandUp))
     }

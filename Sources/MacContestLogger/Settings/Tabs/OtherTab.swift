@@ -39,6 +39,10 @@ struct OtherTab: View {
                     SettingsTextField(text: $draft.cwSpeedStep, filter: .digits(limit: 2))
                 }
                 .frame(maxWidth: .infinity)
+                SettingsField(caption: language.tr("Druhý krok rychlosti CW (Shift+PgUp/PgDn, WPM)")) {
+                    SettingsTextField(text: $draft.cwSpeedStepSecondary, filter: .digits(limit: 2))
+                }
+                .frame(maxWidth: .infinity)
                 SettingsField(caption: language.tr("Ladění ↑↓ a RIT — CW / digi (Hz)")) {
                     SettingsTextField(text: $draft.tuneStepCw, filter: .digits(limit: 4))
                 }

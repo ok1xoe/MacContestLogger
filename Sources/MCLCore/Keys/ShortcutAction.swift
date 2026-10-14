@@ -80,6 +80,10 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case quickEditForward
     /// N1MM Alt+S: in split, the receive frequency back to the transmit one.
     case resetRx
+    /// N1MM Alt+': the rig's filter to the other width (wide / narrow) of its mode.
+    case toggleFilter
+    /// N1MM Ctrl+Alt+R: CW reverse on / off (the rig's CW ↔ CWR).
+    case cwReverse
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -121,15 +125,15 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .copyToVfoB: Spec(name: "COPY_TO_VFO_B", id: "copy_vfo", label: "Frekvence A → B", defaultKeys: "Alt+F12")
         case .ritUp: Spec(name: "RIT_UP", id: "rit_up", label: "RIT nahoru", defaultKeys: "Ctrl+Alt+RIGHT")
         case .ritDown: Spec(name: "RIT_DOWN", id: "rit_down", label: "RIT dolů", defaultKeys: "Ctrl+Alt+LEFT")
-        case .ritClear: Spec(name: "RIT_CLEAR", id: "rit_clear", label: "RIT vypnout", defaultKeys: "Ctrl+Alt+R")
+        case .ritClear: Spec(name: "RIT_CLEAR", id: "rit_clear", label: "RIT vypnout", defaultKeys: "Ctrl+Alt+Shift+R")
         case .switchRadio: Spec(name: "SWITCH_RADIO", id: "switch_radio", label: "SO2V/SO2R: přepnout na druhé okno (rig / VFO)", defaultKeys: "BACK_SLASH")
         case .so2rStereo: Spec(name: "SO2R_STEREO", id: "so2r_stereo", label: "SO2R: stereo poslech zap / vyp", defaultKeys: "BACK_QUOTE")
         case .cwKeyboard: Spec(name: "CW_KEYBOARD", id: "cw_keyboard", label: "Psaní CW z klávesnice", defaultKeys: "Ctrl+K")
         case .passCall: Spec(name: "PASS_CALL", id: "pass_call", label: "Předat volačku jiné stanici (síť)", defaultKeys: "Ctrl+Alt+P")
         case .popStack: Spec(name: "POP_STACK", id: "pop_stack", label: "Volačka ze zásobníku partnera", defaultKeys: "Ctrl+Alt+K")
         case .rotorTurn: Spec(name: "ROTOR_TURN", id: "rotor_turn", label: "Rotátor na volačku (krátká cesta)", defaultKeys: "Alt+J")
-        case .rotorLong: Spec(name: "ROTOR_LONG", id: "rotor_long", label: "Rotátor na volačku (dlouhá cesta)", defaultKeys: "Ctrl+Alt+J")
-        case .rotorStop: Spec(name: "ROTOR_STOP", id: "rotor_stop", label: "Rotátor zastavit", defaultKeys: "Alt+L")
+        case .rotorLong: Spec(name: "ROTOR_LONG", id: "rotor_long", label: "Rotátor na volačku (dlouhá cesta)", defaultKeys: "Alt+L")
+        case .rotorStop: Spec(name: "ROTOR_STOP", id: "rotor_stop", label: "Rotátor zastavit", defaultKeys: "Ctrl+Alt+J")
         case .nextAntenna: Spec(name: "NEXT_ANTENNA", id: "next_antenna", label: "Další anténa pro pásmo", defaultKeys: "Ctrl+Alt+A")
         case .bandUp: Spec(name: "BAND_UP", id: "band_up", label: "Pásmo výš", defaultKeys: "Ctrl+PAGE_UP")
         case .bandDown: Spec(name: "BAND_DOWN", id: "band_down", label: "Pásmo níž", defaultKeys: "Ctrl+PAGE_DOWN")
@@ -155,12 +159,14 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .quickEditBack: Spec(name: "QUICK_EDIT_BACK", id: "quick_edit_back", label: "QuickEdit: o QSO zpět", defaultKeys: "Ctrl+Q")
         case .quickEditForward: Spec(name: "QUICK_EDIT_FORWARD", id: "quick_edit_forward", label: "QuickEdit: o QSO vpřed", defaultKeys: "Ctrl+A")
         case .resetRx: Spec(name: "RESET_RX", id: "reset_rx", label: "Split: RX na TX frekvenci", defaultKeys: "Alt+S")
+        case .toggleFilter: Spec(name: "TOGGLE_FILTER", id: "filter_width", label: "Filtr rádia: široký / úzký", defaultKeys: "Alt+QUOTE")
+        case .cwReverse: Spec(name: "CW_REVERSE", id: "cw_reverse", label: "CW reverse zap / vyp", defaultKeys: "Ctrl+Alt+R")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

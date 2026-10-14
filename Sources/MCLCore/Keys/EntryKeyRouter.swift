@@ -90,6 +90,8 @@ public indirect enum EntryKeyDecision: Equatable, Sendable {
     case functionKey(Int, shift: Bool, ctrlShift: Bool)
     /// `PgUp`/`PgDn` in CW: `+1`/`-1` steps of `cwSpeedStep`.
     case cwSpeed(Int)
+    /// `Shift+PgUp`/`Shift+PgDn` in CW (N1MM): `+1`/`-1` steps of the secondary `cwSpeedStepSecondary`.
+    case cwSpeedSecondary(Int)
     /// Enter released.
     case enter(ctrl: Bool, step: EntryEnterStep)
     /// Esc released.
@@ -196,11 +198,12 @@ public enum EntryKeyRouter {
         }
         let released: Bool = !pressed
         // 4. PgUp/PgDn: CW speed.
+        let secondary: Bool = stroke.isShiftDown && !stroke.isControlDown && !stroke.isAltDown
         if context.isCw && pressed && stroke.isKey(AwtKeyCodes.vkPageUp) {
-            return .cwSpeed(1)
+            return secondary ? .cwSpeedSecondary(1) : .cwSpeed(1)
         }
         if context.isCw && pressed && stroke.isKey(AwtKeyCodes.vkPageDown) {
-            return .cwSpeed(-1)
+            return secondary ? .cwSpeedSecondary(-1) : .cwSpeed(-1)
         }
         // 5. Esc first stops sending.
         let isEscape: Bool = stroke.isKey(AwtKeyCodes.vkEscape)
