@@ -89,7 +89,7 @@ Example exchange for CQ WPX (serial number): `{SENTRSTCUT} #`, for CQ WW
 
 | Key | Action |
 |---|---|
-| **F1–F12** or click on the button | sends the message. A running message is interrupted |
+| **F1–F12** or click on the button | sends the message. A running message is interrupted, or with [F-key stacking](esm.md#options-settings--function-keys--esm) the new one is queued after it |
 | **Esc** | stops transmission. Only the next Esc clears the fields |
 | **PgUp / PgDn** | speed ±2 WPM |
 

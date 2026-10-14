@@ -22,7 +22,11 @@ When Enter also logs the QSO, the **Log It** button has a frame too.
 ## What Enter sends
 
 The usual message layout is assumed (the default sets have it): F1 CQ, F2 exchange,
-F3 TU, F4 my callsign, F5 his callsign, F6 QSO B4, F8 again?
+F3 TU, F4 my callsign, F5 his callsign, F6 QSO B4, F8 again? Another layout is set in
+**Přiřazení F-kláves pro ESM** (N1MM "Function Key Assignments for ESM", Settings → Function
+Keys → ESM): a key for each of CQ, Exchange, End of QSO, My call, His call, QSO B4 and
+Again. The table below then means the assigned keys; the CQ key is the special one, and the
+CQ repeat (Alt+R) and the send shortcuts use the assignments too.
 
 | Callsign | Exchange | Run | S&P |
 |---|---|---|---|
@@ -47,6 +51,14 @@ F3 TU, F4 my callsign, F5 his callsign, F6 QSO B4, F8 again?
   jumps to the exchange, the next Enter without an exchange sends F8.
 - **Run: treat a dupe as a new QSO** (Work dupes, on by default): a dupe is worked
   as a new QSO instead of F6.
+- **Send partial calls**: the corrected callsign is sent again only in the part that
+  changed — the suffix when the prefix (up to its digit) is the same (`OK1XOF` → `OK1XOE`
+  sends `XOE`), the prefix when the suffix is the same; otherwise, or with a `/`, the whole call.
+- **Between his call and the exchange (CW)** (N1MM "String between his call and exchange"):
+  the text that joins F5 and F2 sent together; a space by default.
+- **F-key stacking**: a key pressed while a message is sent (CW, SSB) is queued and sent in
+  full after it, as in N1MM; its button lights when its turn comes. Esc stops everything,
+  queue included. Off = the new key interrupts the message (the earlier behaviour).
 
 ## Call stacking
 
@@ -69,7 +81,8 @@ F-key grid frames the Next Call key. With an empty stack Enter sends TU and logs
 **space bar** instead of Enter. The program takes the exchange as sent, so after the received
 exchange is entered, Enter sends TU (F3) straight away and logs the QSO.
 
-## Still missing
+## CQ repeat limit
 
-- automatic CQ repeat,
-- a custom ESM key assignment table (N1MM "ESM key mappings").
+Settings → Function Keys → Run / S&P → **Nejdelší opakování CQ (min)** (N1MM "Max Repeat /
+Dueling CQ duration"): the CQ repeat (Alt+R) switches itself off after this many minutes of
+repeating; 0 = no limit (the default).

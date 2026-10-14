@@ -224,7 +224,60 @@ private struct EsmGroup: View {
                 isOn: $draft.esmSpCallOnce)
             SettingsCheckbox(label: language.tr("Run: dupe dělat jako nové QSO (Work dupes)"),
                              isOn: $draft.esmWorkDupes)
+            SettingsCheckbox(label: language.tr("Opravenou volačku poslat jen v části, která se změnila (Send partial calls)"),
+                             isOn: $draft.esmSendPartialCalls)
+            HStack(alignment: .center, spacing: 8) {
+                SettingsField(caption: language.tr("Mezi jeho volačkou a výměnou (CW)")) {
+                    SettingsTextField(text: $draft.esmCallExchangeSeparator)
+                }
+                .frame(width: 220)
+                SettingsCaption(language.tr("Text mezi F5 a F2 poslanými spolu, např. mezera nebo „ 5NN“; výchozí je mezera."))
+            }
+            SettingsCheckbox(
+                label: language.tr("F-klávesa stisknutá během vysílání se zařadí za běžící zprávu (CW, SSB; jinak ji přeruší)"),
+                isOn: $draft.cwStackMessages)
+            EsmKeyAssignments(language: language, keys: $draft.esmKeyMap)
         }
+    }
+}
+
+/// N1MM „Function Key Assignments for ESM": the F-key of each ESM role.
+private struct EsmKeyAssignments: View {
+    let language: LanguageModel
+    @Binding var keys: [Int]
+
+    private static let roles: [String] = ["CQ", "Výměna", "Konec QSO (TU)", "Moje volačka", "Jeho volačka", "QSO B4",
+                                          "Znovu?"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            SettingsCaption(language.tr("Přiřazení F-kláves pro ESM (výchozí F1, F2, F3, F4, F5, F6, F8):"))
+            HStack(alignment: .top, spacing: 8) {
+                ForEach(0..<Self.roles.count, id: \.self) { role in
+                    SettingsField(caption: language.tr(Self.roles[role])) {
+                        Picker(selection: binding(role)) {
+                            ForEach(0..<VoiceKeyerConfig.keyCount, id: \.self) { index in
+                                Text(verbatim: "F" + String(index + 1)).tag(index)
+                            }
+                        } label: {
+                            EmptyView()
+                        }
+                        .labelsHidden()
+                        .accessibilityLabel(Text(verbatim: language.tr(Self.roles[role])))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+        }
+    }
+
+    private func binding(_ role: Int) -> Binding<Int> {
+        Binding(get: { role < keys.count ? keys[role] : EsmKeyMap.n1mm.keys[role] },
+                set: { value in
+                    var next: [Int] = EsmKeyMap(keys: keys).keys
+                    next[role] = value
+                    keys = next
+                })
     }
 }
 
@@ -303,6 +356,13 @@ private struct RunSpGroup: View {
                 .frame(width: 150)
                 SettingsCaption(language.tr(
                     "Opakování CQ: Alt+R nebo příkaz RPT zapne, Esc vypne, psaní volačky pozastaví, Ctrl+R změní pauzu."))
+            }
+            HStack(alignment: .center, spacing: 12) {
+                SettingsField(caption: language.tr("Nejdelší opakování CQ (min)")) {
+                    SettingsTextField(text: $draft.repeatMaxMinutes, filter: .digits(limit: 3))
+                }
+                .frame(width: 180)
+                SettingsCaption(language.tr("Po této době se opakování CQ samo vypne; 0 = bez omezení."))
             }
         }
     }

@@ -106,6 +106,12 @@ enum ProfileMergeSchema {
             Property("specialCalls", .list(.string), .fieldDefault),
             Property("specialCallsIncludeBonus", .boolean, .fieldDefault),
         ],
+        "cz.ok1xoe.maccontestlogger.config.RunModeConfig": [
+            Property("repeatMaxMinutes", .int, .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.CwKeyerConfig": [
+            Property("stackMessages", .boolean, .fieldDefault),
+        ],
         "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
             Property("ctyEnabled", .boolean, .fieldDefault),
         ],
@@ -113,6 +119,9 @@ enum ProfileMergeSchema {
             Property("nextCallKey", .int, .fieldDefault),
             Property("callStackOrder", .string, .fieldDefault),
             Property("callStackClearOnBandChange", .boolean, .fieldDefault),
+            Property("keyMap", .list(.int), .fieldDefault),
+            Property("sendPartialCalls", .boolean, .fieldDefault),
+            Property("callExchangeSeparator", .string, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.DigitalConfig": [
             Property("digitalCallStacking", .boolean, .fieldDefault),

@@ -226,6 +226,12 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var esmWorkDupes: Bool = false
     /// `esm.nextCallKey` (-1 = none).
     public var esmNextCallKey: Int = -1
+    /// The ESM key assignments (`EsmKeyMap.keys` order).
+    public var esmKeyMap: [Int] = EsmKeyMap.n1mm.keys
+    public var esmSendPartialCalls: Bool = false
+    public var esmCallExchangeSeparator: String = " "
+    public var repeatMaxMinutes: String = ""
+    public var cwStackMessages: Bool = false
     public var callStackOrder: String = CallStack.Order.multsFirst.rawValue
     public var callStackClearOnBandChange: Bool = true
     public var digitalCallStacking: Bool = false
@@ -561,6 +567,11 @@ extension ConfigurerDraft {
         esmSpCallOnce = config.esm.spCallOnce
         esmWorkDupes = config.esm.workDupes
         esmNextCallKey = config.esm.nextCallKey
+        esmKeyMap = config.esm.keyMap
+        esmSendPartialCalls = config.esm.sendPartialCalls
+        esmCallExchangeSeparator = config.esm.callExchangeSeparator
+        repeatMaxMinutes = String(config.runMode.repeatMaxMinutes)
+        cwStackMessages = config.cwKeyer.stackMessages
         callStackOrder = config.esm.callStackOrder
         callStackClearOnBandChange = config.esm.callStackClearOnBandChange
         digitalCallStacking = config.digital.digitalCallStacking

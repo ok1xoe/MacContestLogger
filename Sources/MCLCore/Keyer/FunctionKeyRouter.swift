@@ -45,6 +45,12 @@ public struct FunctionKeyContext: Sendable {
     public var grabNext: String?
     /// The serial number of the QSO after the one being logged (`#` after `{LOGTHENPOP}`); `nil` = `serial + 1`.
     public var serialAfterLog: Int?
+    /// The ESM key assignments (the CQ key is special, the progress follows the exchange / my call / his call keys).
+    public var esmKeys: EsmKeyMap = .n1mm
+    /// N1MM „String between his call and exchange (CW)": joins the his-call and the exchange key sent together.
+    public var callExchangeSeparator: String = " "
+    /// N1MM „Send partial calls": ESM resends only the corrected part of the call (`PartialCall`); `nil` = the whole.
+    public var partialCall: String?
 
     public init(mode: Mode, digitalReady: Bool, postContest: Bool, run: Bool, call: String, rstSent: String,
                 freqHz: Int64, progress: EsmProgress, stationCall: String, voice: FunctionKeySet, cw: FunctionKeySet,
@@ -154,7 +160,7 @@ public enum FunctionKeyRouter {
             return out
         }
         if context.canTransmit {
-            out.progress = context.progress.afterSent(indices, context.call)
+            out.progress = context.progress.afterSent(indices, context.call, map: context.esmKeys)
             out.lastSentKeys = indices
         }
         if context.phone {
@@ -168,7 +174,7 @@ public enum FunctionKeyRouter {
         } else {
             out.status = .tr("F%s: v módu %s zatím nic nevysílá", .int(first + 1), .string(context.mode.rawValue))
         }
-        if context.canTransmit && first == EsmEngine.f1 {
+        if context.canTransmit && first == context.esmKeys.cq {
             out.cqSentFreqHz = context.freqHz
         }
         out.refocus = refocus
@@ -181,9 +187,14 @@ public enum FunctionKeyRouter {
                               template: String? = nil, into out: inout FunctionKeyOutcome) {
         let set: [FunctionKeyMessage] = (digital ? context.digital : context.cw).messages(run: context.run,
                                                                                          opposite: opposite)
-        let texts: [String] = template.map { [$0] } ?? indices.compactMap { i in
+        let keyed: [(key: Int, text: String)] = template.map { [(-1, $0)] } ?? indices.compactMap { i in
             guard i >= 0, i < set.count, !KotlinStrings.isBlank(set[i].text) else { return nil }
-            return set[i].text
+            var text: String = set[i].text
+            if i == context.esmKeys.hisCall, let partial = context.partialCall {
+                // N1MM „Send partial calls": the corrected part only.
+                text = JavaText.replace(JavaText.replace(text, "{CALL}", partial), "!", partial)
+            }
+            return (i, text)
         }
         var ctx: CwMessageBuilder.Context = context.cwBase
         ctx.hisCall = KotlinStrings.trim(context.call)
@@ -195,7 +206,15 @@ public enum FunctionKeyRouter {
             ctx.cutNumbers = false
             ctx.leadingZeros = false
         }
-        let joined: String = texts.joined(separator: " ")
+        var joined: String = ""
+        for (n, item) in keyed.enumerated() {
+            if n > 0 {
+                let afterCall: Bool = !digital && keyed[n - 1].key == context.esmKeys.hisCall
+                    && item.key == context.esmKeys.exchange
+                joined += afterCall ? context.callExchangeSeparator : " "
+            }
+            joined += item.text
+        }
         let message: CwMessage
         if let split = CallStackMacro.split(joined) {
             guard let built = logThenPop(split, set: set, indices: indices, context: context, ctx: ctx, into: &out)
@@ -269,11 +288,13 @@ public enum FunctionKeyRouter {
             next.hisCall = call
             second = CwMessageBuilder.build(split.suffix, next)
             out.stackNextCall = call
-            out.stackProgress = EsmProgress.empty.afterSent(CallStackMacro.functionKeys(in: split.suffix), call)
+            out.stackProgress = EsmProgress.empty.afterSent(CallStackMacro.functionKeys(in: split.suffix), call,
+                                                            map: context.esmKeys)
         } else {
             // Nothing on the stack: log and thank (`!` is the call just logged).
             next.hisCall = ""
-            let tu: String = EsmEngine.f3 < set.count ? set[EsmEngine.f3].text : ""
+            let end: Int = context.esmKeys.end
+            let tu: String = end < set.count ? set[end].text : ""
             second = CwMessageBuilder.build(tu, next)
         }
         var parts: [CwMessage.Part] = first.parts

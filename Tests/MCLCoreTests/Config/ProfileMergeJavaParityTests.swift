@@ -307,7 +307,7 @@ import Testing
             "dxCluster.commands", "dxCluster.favorites", "dxCluster.specialCalls", "dxCluster.spotFilterHiddenBands",
             "dxCluster.spotFilterHiddenModes", "dxCluster.spotFilterPreferredSpotters", "dxCluster.spotFilterSpotterCallAreas",
             "dxCluster.spotFilterSpotterContinents", "dxCluster.spotFilterSpotterPrefixes", "dxCluster.spotterBlacklist",
-            "entryHiddenBands", "entryHiddenSections", "goals",
+            "entryHiddenBands", "entryHiddenSections", "esm.keyMap", "goals",
             "hamQth.callModes", "hamQth.fetchFields", "keyBindings", "openWindows", "qrz.callModes",
             "qrz.fetchFields", "transverters", "voiceKeyer.runMessages", "voiceKeyer.spMessages",
             "windowGeometry",

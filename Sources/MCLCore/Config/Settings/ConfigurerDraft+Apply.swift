@@ -51,6 +51,11 @@ extension ConfigurerDraft {
         config.esm.workDupes = esmWorkDupes
         config.esm.nextCallKey = (0..<VoiceKeyerConfig.keyCount).contains(esmNextCallKey) ? esmNextCallKey : -1
         config.esm.callStackOrder = CallStack.Order.from(callStackOrder).rawValue
+        config.esm.keyMap = EsmKeyMap(keys: esmKeyMap).keys
+        config.esm.sendPartialCalls = esmSendPartialCalls
+        config.esm.callExchangeSeparator = esmCallExchangeSeparator
+        config.runMode.repeatMaxMinutes = Self.clamped(repeatMaxMinutes, 0, 600) ?? 0
+        config.cwKeyer.stackMessages = cwStackMessages
         config.esm.callStackClearOnBandChange = callStackClearOnBandChange
         config.digital.digitalCallStacking = digitalCallStacking
         config.digital.rttyInterface = RttyInterface.from(rttyInterface).rawValue

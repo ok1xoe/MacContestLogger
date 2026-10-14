@@ -1767,5 +1767,18 @@
  "Soubor F-kláves %s nejde uložit": "Die Funktionstasten-Datei %s kann nicht gespeichert werden",
  "F-klávesy závodu načteny: %s": "Funktionstasten des Contests geladen: %s",
  "F-klávesy operátora %s": "Funktionstasten von Operator %s",
- "Kopírovat do schránky": "In die Zwischenablage kopieren"
+ "Kopírovat do schránky": "In die Zwischenablage kopieren",
+ "Opakování CQ vypnuto po %s min (nejdelší doba)": "CQ-Wiederholung nach %s min aus (Höchstdauer)",
+ "Opravenou volačku poslat jen v části, která se změnila (Send partial calls)": "Korrigiertes Rufzeichen nur im geänderten Teil senden (Send partial calls)",
+ "Mezi jeho volačkou a výměnou (CW)": "Zwischen seinem Rufzeichen und dem Austausch (CW)",
+ "Text mezi F5 a F2 poslanými spolu, např. mezera nebo „ 5NN“; výchozí je mezera.": "Text zwischen zusammen gesendeten F5 und F2, z. B. ein Leerzeichen oder „ 5NN“; standardmäßig ein Leerzeichen.",
+ "F-klávesa stisknutá během vysílání se zařadí za běžící zprávu (CW, SSB; jinak ji přeruší)": "Eine während des Sendens gedrückte F-Taste wird hinter die laufende Nachricht gereiht (CW, SSB; sonst unterbricht sie sie)",
+ "Přiřazení F-kláves pro ESM (výchozí F1, F2, F3, F4, F5, F6, F8):": "Funktionstasten-Zuordnung für ESM (Standard F1, F2, F3, F4, F5, F6, F8):",
+ "Nejdelší opakování CQ (min)": "Längste CQ-Wiederholung (min)",
+ "Po této době se opakování CQ samo vypne; 0 = bez omezení.": "Nach dieser Zeit schaltet sich die CQ-Wiederholung selbst aus; 0 = unbegrenzt.",
+ "Konec QSO (TU)": "QSO-Ende (TU)",
+ "Moje volačka": "Mein Rufzeichen",
+ "Jeho volačka": "Sein Rufzeichen",
+ "QSO B4": "QSO B4",
+ "Znovu?": "Nochmal?"
 }

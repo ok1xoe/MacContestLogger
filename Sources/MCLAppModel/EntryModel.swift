@@ -42,6 +42,8 @@ public final class EntryModel {
     /// N1MM `{END}`: the macros waiting for the transmission to finish, and the generation that cancels them.
     @ObservationIgnored var pendingDeferred: (actions: [CwMessage.Action], commands: [MacroCommand])?
     @ObservationIgnored var deferredGeneration: Int = 0
+    /// N1MM „Send partial calls": the part of a corrected call the ESM send in progress carries (`nil` = the whole).
+    @ObservationIgnored var partialCallSend: String?
     /// The typed call's status on each band of the band buttons (`updateBandStatuses`).
     public internal(set) var bandStatuses: [Band: CallBandStatus] = [:]
     /// The exchange values the call history or a spot filled in (field id → value), for N1MM „Clear auto-populated
