@@ -1,0 +1,38 @@
+schemaVersion: 1
+id: iota-contest
+metadata:
+  name: "RSGB IOTA Contest"
+  organizer: "RSGB"
+  description: "Last full weekend of July, 1200 UTC Saturday to 1200 UTC Sunday. CW and SSB, 80-10 m. Exchange: RS(T) + serial number, island stations also their IOTA reference (enter it without the dash, e.g. EU115; Cabrillo writes EU-115). QSO points for a World (non-island) entrant: island station 15, World station 2. Multipliers: different IOTA references per band per mode. Simplified: written for a World entrant - an Island entrant scores 5 points for World stations and for islands with the same reference, 15 for other islands, which the program cannot tell because it does not know my own IOTA reference. Each station once per band per mode."
+  officialUrl: "https://www.rsgbcc.org/hf/rules/2026/riota.shtml"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,    source: AUTO_RST }
+    - { id: nr,   type: SERIAL, source: AUTO_SERIAL }
+    - { id: iota, type: IOTA,   source: FROM_STATION }   # island stations only
+  received:
+    - { id: rst,  type: RST,    required: true }
+    - { id: nr,   type: SERIAL, required: true }
+    - { id: iota, type: IOTA,   required: false, validation: { regex: "^(AF|AN|AS|EU|NA|OC|SA)[0-9]{3}$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2                                    # World - World
+    rules:
+      - { when: { fieldPresent: iota }, value: { fixed: 15 } }   # World - Island
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: refs, set: iota_refs, from: iota, scope: PER_BAND_MODE }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: RSGB-IOTA, sentOrder: [rst, nr, iota], receivedOrder: [rst, nr, iota] }
+ui:
+  entryOrder: [call, nr, iota]
+  logColumns: [time, call, band, mode, rst, nr, iota, points, mult]

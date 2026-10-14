@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: arci-holiday-spirits
+metadata:
+  name: "QRP ARCI Holiday Spirits Homebrew Sprint"
+  organizer: "QRP ARCI"
+  description: "Second Sunday of December, 2000-2300 UTC, CW. Members send RST + SPC + ARCI number, non-members RST + SPC + power. Points: member 5, non-member 4 other continent / 2 same continent; multipliers SPC per band; score x power multiplier. Simplified: a member is recognised by an all-digit number, so log a non-member's power with W (5W); the QRP category is taken as 1-5 W (x7) - the sub-watt multipliers (x10/x15/x20) and homebrew / portable bonus points must be added by hand."
+  officialUrl: "https://qrparci.org/holiday-homebrew-sprint/"
+period: { durationHours: 3, startWeekday: SUN, startTime: "2000" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: spc, type: TEXT, source: FROM_STATION }   # state / province / country
+    - { id: nr,  type: TEXT, source: FROM_STATION }   # ARCI number or power (5W)
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: spc, type: TEXT, required: true }
+    - { id: nr,  type: TEXT, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2
+    rules:
+      - { when: { expr: "matches(nr, '^[0-9]+$')" }, value: { fixed: 5 } }
+      - { when: { otherContinent: true }, value: { fixed: 4 } }
+  # power multiplier: >5 W x1, 1-5 W x7 (QRP category)
+  powerFactor: { HIGH: 1, LOW: 1, QRP: 7 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: spc, set: arci_spc, from: spc, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: ARCI-HOLIDAY-SPIRITS, sentOrder: [rst, spc, nr], receivedOrder: [rst, spc, nr] }
+ui:
+  entryOrder: [call, spc, nr]
+  logColumns: [time, call, band, mode, rst, spc, nr, points, mult]

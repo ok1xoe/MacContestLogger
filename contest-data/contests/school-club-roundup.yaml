@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: school-club-roundup
+metadata:
+  name: "School Club Roundup"
+  organizer: "ARRL / LIMARC"
+  description: "February and October, Monday 1300 UTC to Friday 2359 UTC (max 6 h in any 24 h, max 24 h total). Exchange: RS(T), class (I individual, C club, S school) and state/province/DXCC entity. Phone 1 point, CW and digital 2 points; each station once per band and mode. Multipliers: US states (AK, HI included) + Canadian provinces/territories + DXCC entities (US possessions count as DX). Not representable: the extra multiplier of 2 per club (C) and 5 per school (S) station worked, and the operating-time limits. FT8/FT4 cannot carry the exchange and are left out. Cabrillo CONTEST name is uncertain."
+  officialUrl: "https://www.arrl.org/school-club-roundup"
+period: { durationHours: 107, startWeekday: MON, startTime: "1300" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m, 6m, 2m, 70cm]
+modes: [CW, SSB, FM, AM, RTTY, PSK, DIGITAL]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: cls, type: TEXT, source: FROM_STATION }    # I, C or S
+    - { id: loc, type: TEXT, source: FROM_STATION }    # state/province/country
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: cls, type: TEXT, required: true, validation: { regex: "^[ICS]$" } }
+    - { id: loc, type: TEXT, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2                                    # CW and digital
+    rules:
+      - { when: { anyOf: [ { mode: SSB }, { mode: FM }, { mode: AM } ] }, value: { fixed: 1 } }
+  total: "qsoPoints * multTotal"   # + 2 x clubs + 5 x schools in the multiplier (not representable)
+
+multipliers:
+  - { id: areas,     set: na_areas,      from: loc,      scope: ONCE, when: { entityIn: [291, 1, 6, 110] } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE, when: { not: { entityIn: [291, 1, 6, 110] } } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: SCR, sentOrder: [rst, cls, loc], receivedOrder: [rst, cls, loc] }
+ui:
+  entryOrder: [call, cls, loc]
+  logColumns: [time, call, band, mode, rst, cls, loc, points, mult]

@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: ur_oblasts
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "Ukrainian oblasts (Ukrainian DX Contest)"
+  description: "The 27 two-letter oblast abbreviations of the Ukrainian DX Contest (urdxc.org, 2021 rules)."
+valuesFile: ur_oblasts.csv

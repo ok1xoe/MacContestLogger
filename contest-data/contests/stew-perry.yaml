@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: stew-perry
+metadata:
+  name: "Stew Perry Topband Challenge"
+  organizer: "Boring Amateur Radio Club (BARC)"
+  description: "160 m CW, 1500 UTC for 24 hours (several dates a year), max 14 hours on, off times at least 30 minutes. Exchange: 4-character grid square. QSO points: 1 + 1 per full 500 km between grid centres. Own power multiplier: over 100 W x1, low power x1.5, QRP x3 - integer factors are scaled (HIGH 2, LOW 3, QRP 6 with the total halved), so the result may differ by a point from rounding. Not representable: QSO points x2 for working a low-power and x4 for working a QRP station (the other station's power is not in the exchange; applied by the log checkers)."
+  officialUrl: "https://www.kkn.net/stew/stew_rules.html"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1500" }
+bands: [160m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: grid, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: grid, type: LOCATOR, required: true, validation: { regex: "^[A-R]{2}[0-9]{2}$" }, estimate: grid }
+
+scoring:
+  qsoPoints:
+    mode: SUM
+    default: 1
+    rules:
+      - { when: {}, value: { fixed: 1 } }                                                 # minimum one point
+      - { when: {}, value: { perKm: { field: grid, factor: 0.002, round: FLOOR, min: 0 } } } # +1 per 500 km
+  # own power: HIGH x1, LOW x1.5, QRP x3 = (factor / 2)
+  powerFactor: { HIGH: 2, LOW: 3, QRP: 6 }
+  total: "qsoPoints / 2"
+
+dupe: { scope: ONCE }
+
+cabrillo: { contestName: STEW-PERRY, sentOrder: [grid], receivedOrder: [grid] }
+ui:
+  entryOrder: [call, grid]
+  logColumns: [time, call, grid, points]
+operating:
+  # max 14 of 24 hours on, off times at least 30 minutes
+  offTime:
+    minimumMinutes: 30
+    requiredMinutes: 600

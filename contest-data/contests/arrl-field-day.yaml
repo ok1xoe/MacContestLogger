@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: arrl-field-day
+metadata:
+  name: "ARRL Field Day"
+  organizer: "ARRL"
+  description: "Fourth full weekend of June, 1800 UTC Saturday to 2059 UTC Sunday (27 h; 24 h if set-up started before the start). Exchange: class (e.g. 3A) + ARRL/RAC section (DX send DX). Phone 1 point, CW and digital 2 points; each station once per band and mode. Score = QSO points x power multiplier (power category: HIGH = over 100 W x1, LOW x2, QRP x5 - QRP on mains/generator power is x2 by the rules, choose LOW then). Bonus points are claimed on the summary sheet and are not computed. Simplified: digital sub-modes (RTTY, FT8, PSK...) are separate dupe modes in the program, while the rules treat all digital as one mode."
+  officialUrl: "https://www.arrl.org/field-day"
+period: { durationHours: 27, startWeekday: SAT, startTime: "1800" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m, 6m, 2m, 70cm]
+modes: [CW, SSB, FM, AM, RTTY, PSK, FT8, FT4, DIGITAL]
+
+exchange:
+  sent:
+    - { id: cls, type: TEXT, source: FROM_STATION }    # e.g. 2A
+    - { id: sec, type: TEXT, source: FROM_STATION }    # ARRL/RAC section or DX
+  received:
+    - { id: cls, type: TEXT, required: true, validation: { regex: "^[0-9]{1,2}[A-F]$" } }
+    - { id: sec, type: TEXT, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2                                    # CW and digital
+    rules:
+      - { when: { anyOf: [ { mode: SSB }, { mode: FM }, { mode: AM } ] }, value: { fixed: 1 } }   # phone
+  powerFactor: { HIGH: 1, LOW: 2, QRP: 5 }
+  total: "qsoPoints"
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: ARRL-FD, sentOrder: [cls, sec], receivedOrder: [cls, sec] }
+ui:
+  entryOrder: [call, cls, sec]
+  logColumns: [time, call, band, mode, cls, sec, points]

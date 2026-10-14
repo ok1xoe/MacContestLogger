@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: sp_poviats
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "Polish poviats (SP DX RTTY)"
+  description: "Open set: poviat (district) code sent by Polish stations in the SP DX RTTY Contest (rules: two letters, e.g. DY, RU, KA, WA; up to 380 poviats). The official list is not published in machine-readable form, so only the format (2-3 letters) is checked."
+validation: { keyPattern: "^[A-Z]{2,3}$" }

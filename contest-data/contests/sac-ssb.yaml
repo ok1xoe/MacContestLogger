@@ -1,0 +1,56 @@
+schemaVersion: 1
+id: sac-ssb
+metadata:
+  name: "Scandinavian Activity Contest — SSB"
+  organizer: "NRAU (SAC committee)"
+  description: "Scandinavian stations work non-Scandinavians and vice versa; RS(T) + serial. Scandinavians: 2 points Europe, 3 outside Europe, multipliers DXCC per band. Others: 1 point per Scandinavian QSO (non-Europeans 3 points on 80/40 m), multipliers = prefix-number areas of each Scandinavian entity per band. Simplified: the area is approximated by the WPX prefix, so SM3/SK3/SL3 count separately. second full weekend of October."
+  officialUrl: "https://www.sactest.net/blog/rules/"
+# second full weekend of October, 1200 UTC Saturday to 1159 UTC Sunday
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+stationClasses:
+  # JW, JX, LA, OH, OH0, OJ0, OX, OY, OZ, SM, TF
+  - { id: scand, when: { entityIn: [259, 118, 266, 224, 5, 167, 237, 222, 221, 284, 242] } }
+  - { id: other, when: { not: { entityIn: [259, 118, 266, 224, 5, 167, 237, 222, 221, 284, 242] } } }
+
+# Scandinavia works the rest of the world and vice versa
+workable:
+  anyOf:
+    - { allOf: [ { ownEntityIn: [259, 118, 266, 224, 5, 167, 237, 222, 221, 284, 242] }, { workedClass: other } ] }
+    - { allOf: [ { not: { ownEntityIn: [259, 118, 266, 224, 5, 167, 237, 222, 221, 284, 242] } }, { workedClass: scand } ] }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # Scandinavian station
+      - { when: { allOf: [ { ownEntityIn: [259, 118, 266, 224, 5, 167, 237, 222, 221, 284, 242] }, { continentIs: EU } ] }, value: { fixed: 2 } }
+      - { when: { ownEntityIn: [259, 118, 266, 224, 5, 167, 237, 222, 221, 284, 242] }, value: { fixed: 3 } }
+      # non-Scandinavian station working Scandinavia
+      - { when: { allOf: [ { workedClass: scand }, { ownContinentIs: EU } ] }, value: { fixed: 1 } }
+      - { when: { allOf: [ { workedClass: scand }, { bandIn: [80m, 40m] } ] }, value: { fixed: 3 } }
+      - { when: { workedClass: scand }, value: { fixed: 1 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND, when: { ownEntityIn: [259, 118, 266, 224, 5, 167, 237, 222, 221, 284, 242] } }
+  - { id: areas, set: wpx_prefixes, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: scand },
+      when: { not: { ownEntityIn: [259, 118, 266, 224, 5, 167, 237, 222, 221, 284, 242] } } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: SAC-SSB, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points, mult]

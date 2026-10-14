@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: nrau_regions
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "NRAU-Baltic regions"
+  description: "Two-letter Fylke/Lan/province/region codes of the NRAU-Baltic Contest (OZ, ES, OH, TF, YL, LY, LA, SM)."
+valuesFile: nrau_regions.csv

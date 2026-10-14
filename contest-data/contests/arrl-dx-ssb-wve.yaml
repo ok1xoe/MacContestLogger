@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: arrl-dx-ssb-wve
+metadata:
+  name: "ARRL International DX Contest — SSB (W/VE and DX)"
+  organizer: "ARRL"
+  description: "For both sides. W/VE (48 US states + DC and Canada; KL7/KH6 count as DX) work DX only and send RST + state/province; DX stations work W/VE only and send RST + power. 3 points per QSO. W/VE count DXCC entities per band, DX count states/DC/provinces per band. My side is detected from my own DXCC entity. Maritime mobile stations (contact credit only) are not distinguished."
+  officialUrl: "https://www.arrl.org/arrl-dx"
+period: { durationHours: 48, startWeekday: SAT, startTime: "0000" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+stationClasses:
+  # W/VE = USA (291, incl. DC) and Canada (1); Alaska and Hawaii are DX here
+  - { id: wve, when: { entityIn: [291, 1] } }
+  - { id: dx,  when: { not: { entityIn: [291, 1] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: exch, type: TEXT, source: FROM_STATION }    # W/VE: state/province; DX: power (100, KW)
+  received:
+    - { id: rst,   type: RST,   required: true }
+    - { id: state, type: STATE, required: true, appliesWhen: { workedClass: wve } }   # from W/VE
+    - { id: power, type: TEXT,  required: true, appliesWhen: { workedClass: dx } }    # from DX
+
+# W/VE work DX only, DX work W/VE only
+workable:
+  anyOf:
+    - { ownEntityIn: [291, 1], workedClass: dx }
+    - { not: { ownEntityIn: [291, 1] }, workedClass: wve }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownEntityIn: [291, 1], workedClass: dx },            value: { fixed: 3 } }
+      - { when: { not: { ownEntityIn: [291, 1] }, workedClass: wve },  value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # W/VE side: DXCC entities per band
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: dx },
+      when: { ownEntityIn: [291, 1] } }
+  # DX side: 48 states + DC + provinces per band
+  - { id: areas, set: na_areas, from: state, scope: PER_BAND, appliesWhen: { workedClass: wve },
+      when: { not: { ownEntityIn: [291, 1] } } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: ARRL-DX-SSB, sentOrder: [rst, exch], receivedOrder: [rst, state, power] }
+ui:
+  entryOrder: [call, state, power]
+  logColumns: [time, call, band, mode, rst, state, power, points, mult]

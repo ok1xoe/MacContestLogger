@@ -1,0 +1,11 @@
+schemaVersion: 1
+id: dx_flag
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "Generic DX multiplier"
+  description: "A single multiplier 'DX' for contests that count all stations outside a region as one multiplier (ARRL Rookie Roundup)."
+validation: { keyPattern: "^DX$" }
+values:
+  - { key: DX, label: "DX (any other entity)" }

@@ -1,0 +1,52 @@
+schemaVersion: 1
+id: arrl-160m
+metadata:
+  name: "ARRL 160-Meter Contest"
+  organizer: "ARRL"
+  description: "160 m CW. W/VE (incl. KL7, KH6, KP1-KP5, KH0-KH9 as ARRL sections) work everybody; DX work W/VE only. W/VE send RST + ARRL/RAC section, DX send RST. 2 points W/VE-W/VE, 5 points with a DX station. W/VE count sections + DXCC entities, DX count sections, once per contest. Uncertain: the rules do not state the points of a DX entrant explicitly; 5 points per W/VE contact is used. Maritime mobile (ITU region) is not recognized."
+  officialUrl: "https://www.arrl.org/160-meter"
+period: { durationHours: 42, startWeekday: FRI, startTime: "2200" }
+bands: [160m]
+modes: [CW]
+
+stationClasses:
+  # W/VE incl. US territories: USA, Canada, Alaska, Hawaii, Puerto Rico, US VI, Desecheo, Navassa,
+  # American Samoa, Baker/Howland, Guam, Johnston, Kure, Mariana Is., Midway, Palmyra/Jarvis, Wake
+  - { id: wve, when: { entityIn: [291, 1, 6, 110, 202, 285, 43, 182, 9, 20, 103, 123, 138, 166, 174, 197, 297] } }
+  - { id: dx,  when: { not: { entityIn: [291, 1, 6, 110, 202, 285, 43, 182, 9, 20, 103, 123, 138, 166, 174, 197, 297] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: sec, type: TEXT, source: FROM_STATION }     # W/VE: ARRL/RAC section; DX: leave empty
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: sec, type: TEXT, required: true, appliesWhen: { workedClass: wve } }
+
+# DX stations may only contact W/VE stations
+workable:
+  anyOf:
+    - { ownEntityIn: [291, 1, 6, 110, 202, 285, 43, 182, 9, 20, 103, 123, 138, 166, 174, 197, 297] }
+    - { workedClass: wve }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 5
+    rules:
+      - { when: { ownEntityIn: [291, 1, 6, 110, 202, 285, 43, 182, 9, 20, 103, 123, 138, 166, 174, 197, 297],
+                  workedClass: wve }, value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: sections,  set: arrl_sections, from: sec,      scope: ONCE }
+  # DXCC entities count only for W/VE entrants
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE, appliesWhen: { workedClass: dx },
+      when: { ownEntityIn: [291, 1, 6, 110, 202, 285, 43, 182, 9, 20, 103, 123, 138, 166, 174, 197, 297] } }
+
+dupe: { scope: ONCE }
+
+cabrillo: { contestName: ARRL-160, sentOrder: [rst, sec], receivedOrder: [rst, sec] }
+ui:
+  entryOrder: [call, sec]
+  logColumns: [time, call, rst, sec, points, mult]

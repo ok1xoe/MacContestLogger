@@ -1,0 +1,38 @@
+schemaVersion: 1
+id: iaru-r1-field-day-ssb
+metadata:
+  name: "IARU Region 1 Field Day — SSB"
+  organizer: "IARU Region 1 (DARC as contest manager)"
+  description: "24 hours, first full weekend of September, 1300 UTC Saturday. Exchange RST + serial number from 001. Points (DARC common rules): fixed station in Europe 2, fixed outside Europe 3, portable (/P, /M, /MM, /AM) in Europe 4, portable outside Europe 6; fixed to fixed 0. Multipliers: each WAE country / DXCC entity per band. Simplified: written for a portable entrant (the program does not know whether I am portable, so fixed-to-fixed 0 points is not applied); WAE-only countries are counted as their DXCC entities; host-society national variations are not covered. Cabrillo CONTEST name is uncertain."
+  officialUrl: "https://www.darc.de/der-club/referate/conteste/iaru-region-1-fieldday/rules"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1300" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 3                                    # fixed station outside Europe
+    rules:
+      - { when: { continentIs: EU, expr: "matches(call, '.*/(P|M|MM|AM)')" }, value: { fixed: 4 } }   # portable EU
+      - { when: { expr: "matches(call, '.*/(P|M|MM|AM)')" },                  value: { fixed: 6 } }   # portable non-EU
+      - { when: { continentIs: EU },                                          value: { fixed: 2 } }   # fixed EU
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: IARU-FIELD-DAY, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points, mult]

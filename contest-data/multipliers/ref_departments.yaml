@@ -1,0 +1,10 @@
+schemaVersion: 1
+id: ref_departments
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "French departments + DOM/TOM (REF)"
+  description: "REF contest multipliers: 96 metropolitan departments (01-95, 2A, 2B), 00 = F6REF, and the DOM/TOM prefixes sent by overseas stations (FG, FH, FJ, FK, FM, FO, FP, FR, FT, FW, FY) as listed in the official REF rules. Department numbers need two digits (01, not 1)."
+validation: { keyPattern: "^([0-9]{2}|2[AB]|F[A-Z])$" }
+valuesFile: ref_departments.csv

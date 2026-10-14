@@ -379,7 +379,7 @@ public final class ContestSession: Sendable {
     /// is kept. Java `trim().toUpperCase()`, `split("/")` (trailing empty parts dropped)
     /// and the longest part that `matches(".*\\d.*")` (an ASCII digit, `.` does not cross a line end),
     /// the first on equal length; none → the whole callsign.
-    static func baseCall(_ call: String?) -> String {
+    public static func baseCall(_ call: String?) -> String {
         guard let call else { return "" }
         let c = JavaText.trim(call).uppercased()
         var parts: [[UInt16]] = [[]]

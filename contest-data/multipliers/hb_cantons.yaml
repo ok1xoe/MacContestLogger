@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: hb_cantons
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Swiss cantons (Helvetia)", description: "The 26 two-letter canton abbreviations from the official USKA Helvetia Contest rules." }
+valuesFile: hb_cantons.csv

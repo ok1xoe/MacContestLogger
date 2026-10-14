@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: bartg-hf-rtty
+metadata:
+  name: "BARTG HF RTTY Contest"
+  organizer: "BARTG"
+  description: "RST + serial + UTC time, 1 point per QSO; multipliers DXCC entities and JA/W/VE/VK call areas per band, continents once (max 6), score = points x mults x continents. Simplified: call areas are approximated by the WPX prefix (K5/W5/N5 count separately), the sent time is a manual field."
+  officialUrl: "https://bartg.org.uk/wp-content/uploads/2025/05/bartg-hf-rtty-rules-2025-v3.pdf"
+# third full weekend of March, 0200 UTC Saturday to 0159 UTC Monday
+period: { durationHours: 48, startWeekday: SAT, startTime: "0200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+    - { id: tm,  type: TEXT,   source: MANUAL }     # four-figure UTC time of the QSO
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+    - { id: tm,  type: TEXT,   required: true, validation: { regex: "^([01][0-9]|2[0-3])[0-5][0-9]$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  bonuses:
+    # continents count once in the contest; bonusPoints = number of continents worked
+    - { id: cont-eu, when: { continentIs: EU }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-as, when: { continentIs: AS }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-af, when: { continentIs: AF }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-na, when: { continentIs: NA }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-sa, when: { continentIs: SA }, value: { fixed: 1 }, scope: ONCE }
+    - { id: cont-oc, when: { continentIs: OC }, value: { fixed: 1 }, scope: ONCE }
+  total: "qsoPoints * multTotal * max(1, bonusPoints)"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+  # JA/W/VE/VK call areas (approximation: WPX prefix of USA, Canada, Japan, Australia)
+  - { id: areas, set: wpx_prefixes, from: callsign, scope: PER_BAND, when: { entityIn: [291, 1, 339, 150] } }
+
+dupe: { scope: PER_BAND }
+
+operating:
+  # single operators: max 30 of 48 hours, rest periods at least 3 hours
+  rules:
+    - when: { OPERATOR: "SINGLE-OP" }
+      offTime: { minimumMinutes: 180, requiredMinutes: 1080 }
+
+cabrillo: { contestName: BARTG-RTTY, sentOrder: [rst, nr, tm], receivedOrder: [rst, nr, tm] }
+ui:
+  entryOrder: [call, nr, tm]
+  logColumns: [time, call, band, mode, rst, nr, tm, points, mult]

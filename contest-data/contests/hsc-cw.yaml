@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: hsc-cw
+metadata:
+  name: "HSC CW Contest"
+  organizer: "High Speed Club"
+  description: "RST + HSC membership number (non-members send NM). 5 points per QSO with an HSC member, 2 with a non-member; multipliers DXCC per band. Last Sunday of February and first Sunday of November, 1400-1700 UTC."
+  officialUrl: "https://hsc.lima-city.de/en/contests.html"
+period: { durationHours: 3, startWeekday: SUN, startTime: "1400" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: hsc, type: TEXT, source: FROM_STATION }   # my HSC number or NM
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: hsc, type: TEXT, required: true, validation: { regex: "^([0-9]{1,5}|[Nn][Mm])$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2
+    rules:
+      - { when: { expr: "matches(hsc, '^[0-9]+$')" }, value: { fixed: 5 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: HSC, sentOrder: [rst, hsc], receivedOrder: [rst, hsc] }
+ui:
+  entryOrder: [call, hsc]
+  logColumns: [time, call, band, mode, rst, hsc, points, mult]

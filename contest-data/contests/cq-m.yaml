@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: cq-m
+metadata:
+  name: "CQ-M International DX Contest"
+  organizer: "SRR / CQ-M Contest Committee"
+  description: "1200 UTC Saturday - 1159 UTC Sunday, 2nd full weekend of May; 160-10 m CW and SSB. Exchange RS(T) + serial. Points: own continent 2 (Europe and Asia count as one continent, Eurasia), other continent 3. Multipliers: countries of the R-150-S award list per band. A station may be worked again on another band or in the other mode on the same band. Simplifications: R-150-S countries approximated by DXCC entities; /MM stations (no multiplier) not recognised. Written from the 2026 rules as reproduced by cq.sk, the official site cqm.srr.ru was unreachable."
+  officialUrl: "https://cqm.srr.ru/rules-en/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 3                    # other continent
+    rules:
+      # Europe and Asia are one continent (Eurasia)
+      - { when: { allOf: [ { anyOf: [ { ownContinentIs: EU }, { ownContinentIs: AS } ] },
+                           { anyOf: [ { continentIs: EU }, { continentIs: AS } ] } ] }, value: { fixed: 2 } }
+      - { when: { sameContinent: true }, value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: CQ-M, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points, mult]

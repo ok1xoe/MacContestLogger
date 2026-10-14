@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: agcw-qrp
+metadata:
+  name: "AGCW QRP Contest"
+  organizer: "AGCW-DL"
+  description: "Second Saturday of March, 1400-2000 UTC, CW. RST + serial + class (VLP <=1 W, QRP <=5 W, MP <=25 W, QRO) + AGCW number or NM. Multipliers: QSOs with AGCW members, per band. Simplified: points assume my own class is QRP or VLP (3 points with QRP/VLP, 2 with MP/QRO); an MP entrant scores 2 for every QSO and a QRO entrant 0 with QRO and 2 with others - adjust the rules for those classes."
+  officialUrl: "https://www.agcw.de/contest/qrp/qrp-c-engl/"
+period: { durationHours: 6, startWeekday: SAT, startTime: "1400" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+    - { id: cls, type: TEXT,   source: FROM_STATION }   # VLP / QRP / MP / QRO
+    - { id: mbr, type: TEXT,   source: FROM_STATION }   # AGCW number or NM
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+    - { id: cls, type: TEXT,   required: true, validation: { regex: "^(VLP|QRP|MP|QRO|vlp|qrp|mp|qro)$" } }
+    - { id: mbr, type: TEXT,   required: true, validation: { regex: "^([0-9]{1,5}|[Nn][Mm])$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2
+    rules:
+      - { when: { anyOf: [ { fieldEquals: { field: cls, value: QRP } }, { fieldEquals: { field: cls, value: VLP } } ] }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: members, set: agcw_members, from: mbr, scope: PER_BAND, when: { expr: "matches(mbr, '^[0-9]+$')" } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: AGCW-QRP, sentOrder: [rst, nr, cls, mbr], receivedOrder: [rst, nr, cls, mbr] }
+ui:
+  entryOrder: [call, nr, cls, mbr]
+  logColumns: [time, call, band, mode, rst, nr, cls, mbr, points, mult]

@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: worked_calls
+kind: ALGORITHM
+keyType: TEXT
+enumerable: false
+metadata: { name: "Worked stations", description: "Every worked station (its base call, OK1ABC/P = OK1ABC) is a multiplier, e.g. the OK/OL stations in OK DX RTTY." }
+algorithm: { type: callsign }

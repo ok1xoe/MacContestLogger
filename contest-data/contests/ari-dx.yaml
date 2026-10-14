@@ -1,0 +1,60 @@
+schemaVersion: 1
+id: ari-dx
+metadata:
+  name: "ARI International DX Contest"
+  organizer: "ARI"
+  description: "1200 UTC Saturday - 1159 UTC Sunday, 1st full weekend of May; CW, SSB, RTTY on 80-10 m. Everybody works everybody, but no QSOs between Italian stations. Italian stations (I, IS0, IT9) send RST + province, others RST + serial. Points: own country 0 (still a multiplier), Italian station 10, own continent 1, other continent 3. Multipliers per band: Italian provinces + DXCC countries (except I, IS, IT9). A station may be worked once per band per mode, multiplier credit only once per band. Simplifications: WAE-list countries (e.g. GM/Shetland, 4U1V) count as their DXCC entity; the Cabrillo sent exchange is written for a non-Italian entrant (RST + serial)."
+  officialUrl: "https://www.ari.it/contest-hf/ari-international/dx.html"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB, RTTY]
+
+# No QSOs between Italian stations (Italy incl. IT9, Sardinia).
+workable: { not: { allOf: [ { entityIn: [248, 225] }, { ownEntityIn: [248, 225] } ] } }
+
+stationClasses:
+  - { id: it, when: { entityIn: [248, 225] } }
+  - { id: dx, when: { not: { entityIn: [248, 225] } } }
+
+exchange:
+  sent:
+    - { id: rst,    type: RST,    source: AUTO_RST }
+    - { id: nr,     type: SERIAL, source: AUTO_SERIAL }
+    - { id: myprov, type: TEXT,   source: FROM_STATION }   # Italian stations only: own province (not written to Cabrillo)
+  received:
+    - { id: rst,      type: RST,      required: true }
+    - { id: province, type: PROVINCE, required: true, appliesWhen: { workedClass: it },
+        validation: { regex: "^[A-Z]{2}$" } }
+    - { id: nr,       type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },        value: { fixed: 0 } }    # own country: 0 points, multiplier counts
+      - { when: { workedClass: it },      value: { fixed: 10 } }
+      - { when: { sameContinent: true },  value: { fixed: 1 } }
+      - { when: { otherContinent: true }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: provinces, set: it_provinces,  from: province, scope: PER_BAND, appliesWhen: { workedClass: it } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: dx } }
+
+dupe: { scope: PER_BAND_MODE }
+
+numbering: { perBand: true, multiOpOnly: true }   # multi-op multi-TX: separate serials per band
+
+cabrillo: { contestName: ARI-DX, sentOrder: [rst, nr], receivedOrder: [rst, province, nr] }
+ui:
+  entryOrder: [call, province, nr]
+  logColumns: [time, call, band, mode, rst, province, nr, points, mult]
+operating:
+  rules:
+  # Multi-op single TX: 10-minute rule.
+  - when:
+      OPERATOR: "MULTI-OP"
+      TRANSMITTER: "ONE"
+    bandChange:
+      minimumMinutes: 10

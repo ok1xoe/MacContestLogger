@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: na-sprint-cw
+metadata:
+  name: "North American Sprint — CW"
+  organizer: "NCJ"
+  description: "4 hours, 80/40/20 m, CW only. Exchange: both calls, serial number, name, state/province/country (DX may send DX). Each station once per band, 1 point per valid QSO (a QSO needs at least one NA station; KH6 counts as NA). Multipliers once per contest: US states incl. AK/HI + DC, 13 Canadian provinces/territories and other North American countries. The special QSY rule (move after a solicited QSO) cannot be checked by the program."
+  officialUrl: "https://ncjweb.com/na-sprint/"
+period: { durationHours: 4, startWeekday: SUN, startTime: "0000" }
+bands: [80m, 40m, 20m]
+modes: [CW]
+
+stationClasses:
+  - { id: na,    when: { anyOf: [ { continentIs: NA }, { entityIn: [110] } ] } }
+  - { id: nonna, when: { not: { anyOf: [ { continentIs: NA }, { entityIn: [110] } ] } } }
+
+exchange:
+  sent:
+    - { id: nr,   type: SERIAL, source: AUTO_SERIAL }
+    - { id: name, type: TEXT,   source: FROM_STATION }
+    - { id: loc,  type: STATE,  source: FROM_STATION }
+  received:
+    - { id: nr,   type: SERIAL, required: true }
+    - { id: name, type: TEXT,   required: true }
+    - { id: loc,  type: STATE,  required: true }
+
+workable:
+  anyOf:
+    - { ownContinentIs: NA }
+    - { ownEntityIn: [110] }
+    - { workedClass: na }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: areas,     set: na_areas,      from: loc,      scope: ONCE, when: { entityIn: [291, 1, 6, 110] } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE, appliesWhen: { workedClass: na },
+      when: { not: { entityIn: [291, 1, 6, 110] } } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: NA-SPRINT-CW, sentOrder: [nr, name, loc], receivedOrder: [nr, name, loc] }
+ui:
+  entryOrder: [call, nr, name, loc]
+  logColumns: [time, call, band, nr, name, loc, points, mult]

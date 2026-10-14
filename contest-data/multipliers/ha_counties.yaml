@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: ha_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Hungarian counties (HA-DX)", description: "The 20 two-letter county codes (19 counties + BP Budapest) listed in the official HA-DX Contest rules." }
+valuesFile: ha_counties.csv

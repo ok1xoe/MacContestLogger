@@ -1,0 +1,63 @@
+schemaVersion: 1
+id: jidx-ssb
+metadata:
+  name: "Japan International DX Contest — Phone"
+  organizer: "JIDX Contest Committee"
+  description: "Sat 0700 - Sun 1300 UTC, 2nd full weekend of November. Only JA <-> DX QSOs count (DX-DX and JA-JA = 0). JA sends prefecture number 01-50, DX sends CQ zone. Points: 160 m 4, 80 m 2, 40/20/15 m 1, 10 m 2. DX multipliers: JA prefectures + JD1 islands (ja_prefectures, max 50) per band; JA multipliers: DXCC entities (except JD1) + CQ zones per band. Simplification: /MM stations are not recognised (they count as their callsign's entity)."
+  officialUrl: "https://jidx.org/jidxrule-e.html"
+period: { durationHours: 30, startWeekday: SAT, startTime: "0700" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+stationClasses:
+  # Japan, Ogasawara, Minami-Torishima (JD1 counts as JA for this contest)
+  - { id: ja, when: { entityIn: [339, 192, 177] } }
+  - { id: dx, when: { not: { entityIn: [339, 192, 177] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: exch, type: TEXT, source: FROM_STATION }     # JA: prefecture number (e.g. 10); DX: CQ zone
+  received:
+    - { id: rst,  type: RST,  required: true }
+    - { id: pref, type: TEXT, required: true, appliesWhen: { workedClass: ja },
+        validation: { regex: "^(0?[1-9]|[1-4][0-9]|50)$" } }                     # prefecture 01-50
+    - { id: zone, type: CQ_ZONE, required: true, appliesWhen: { workedClass: dx },
+        validation: { min: 1, max: 40 }, estimate: cqZone }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1                                              # 40/20/15 m
+    rules:
+      # JA-JA and DX-DX contacts: no points, no multipliers
+      - { when: { allOf: [ { workedClass: ja }, { ownEntityIn: [339, 192, 177] } ] }, value: { fixed: 0 } }
+      - { when: { allOf: [ { workedClass: dx }, { not: { ownEntityIn: [339, 192, 177] } } ] }, value: { fixed: 0 } }
+      - { when: { bandIn: [160m] },      value: { fixed: 4 } }
+      - { when: { bandIn: [80m, 10m] },  value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # DX station: JA prefectures + JD1 islands per band
+  - { id: prefs, set: ja_prefectures, from: pref, scope: PER_BAND, appliesWhen: { workedClass: ja },
+      when: { not: { ownEntityIn: [339, 192, 177] } } }
+  # JA station: DXCC entities (not JD1) and CQ zones per band
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND, appliesWhen: { workedClass: dx },
+      when: { ownEntityIn: [339, 192, 177] } }
+  - { id: zones, set: cq_zones, from: zone, scope: PER_BAND, appliesWhen: { workedClass: dx },
+      when: { ownEntityIn: [339, 192, 177] } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: JIDX-SSB, sentOrder: [rst, exch], receivedOrder: [rst, pref, zone] }
+ui:
+  entryOrder: [call, pref, zone]
+  logColumns: [time, call, band, mode, rst, pref, zone, points, mult]
+operating:
+  # M1: the run station must stay 10 minutes on a band.
+  rules:
+  - when:
+      OPERATOR: "MULTI-OP"
+      TRANSMITTER: "ONE"
+    bandChange:
+      minimumMinutes: 10

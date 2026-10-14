@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: scc-rtty
+metadata:
+  name: "SCC RTTY Championship"
+  organizer: "Slovenia Contest Club"
+  description: "RST + year of first licence; 1 point own country, 2 same continent, 3 other continent; multipliers = licence years per band. Simplified: the 2-point rule for QSOs between different W/VE/VK/ZL/ZS/JA/PY call areas, LU provinces and UA9/UA0 oblasts is not modelled; WAE countries count as their DXCC entity."
+  officialUrl: "https://s5cc.eu/arhiv/scc_rtty/rttyrules.htm"
+# last full weekend of August, 1200 UTC Saturday to 1159 UTC Sunday
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,     source: AUTO_RST }
+    - { id: year, type: INTEGER, source: FROM_STATION }   # year of my first licence
+  received:
+    - { id: rst,  type: RST,     required: true }
+    - { id: year, type: INTEGER, required: true, validation: { min: 1900, max: 2100 } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },        value: { fixed: 1 } }
+      - { when: { sameContinent: true },  value: { fixed: 2 } }
+      - { when: { otherContinent: true }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: years, set: licence_years, from: year, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: SCC-RTTY, sentOrder: [rst, year], receivedOrder: [rst, year] }
+ui:
+  entryOrder: [call, year]
+  logColumns: [time, call, band, mode, rst, year, points, mult]

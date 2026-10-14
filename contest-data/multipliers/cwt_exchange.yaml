@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: cwt_exchange
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "CWops CWT exchange values (open)"
+  description: "Open set over the CWT exchange: a CWops member number, or a state / province / DX prefix (or CWA) for non-members. Used as a stand-in for the 'unique call signs' multiplier."
+validation: { keyPattern: "^[A-Z0-9/]{1,8}$" }

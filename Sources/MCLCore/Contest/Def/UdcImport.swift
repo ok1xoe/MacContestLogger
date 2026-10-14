@@ -447,6 +447,12 @@ public enum UdcImport {
                 return openSet(id, "\(self.id.replacingOccurrences(of: "-", with: "_"))_\(slug(window).replacingOccurrences(of: "-", with: "_"))",
                                from: field("exch"), name: "Sections (\(value("MultWindowType")))")
             }
+            if lower == "callsign" {
+                return Binding(id: id, set: "worked_calls", from: "callsign")
+            }
+            if lower == "lastletter" {
+                return Binding(id: id, set: "last_letters", from: "callsign")
+            }
             if lower == "misc" || lower == "misctext" {
                 return openSet(id, "\(self.id.replacingOccurrences(of: "-", with: "_"))_misc", from: field("misc"),
                                name: "Misc values")

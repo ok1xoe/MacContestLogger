@@ -130,6 +130,9 @@ of the received exchange are filled from call history:
    `State`/`Sect`, locator ← `Loc1`, district ← `District`/`Loc2`, text ← `Name`,
 3. otherwise `Exch1` (when the contest has a single "free" field).
 
+A locator field takes the locator of an earlier QSO with the same station in the open log first (N1MM; the same
+base call counts, so `OK1ABC/P` gets the grid logged for `OK1ABC`), then the call history's.
+
 The report and serial number are not filled in. Values you overwrote by hand are
 not changed; when you change the callsign, the prefilled values of the previous
 callsign disappear.

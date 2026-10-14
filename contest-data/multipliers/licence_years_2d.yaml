@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: licence_years_2d
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "Year of first licence (2 digits)"
+  description: "Open set: last two digits of the operator's first licence year (European HF Championship exchange), 00-99."
+validation: { keyPattern: "^[0-9]{2}$" }

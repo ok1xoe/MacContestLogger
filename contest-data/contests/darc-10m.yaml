@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: darc-10m
+metadata:
+  name: "DARC 10m Contest"
+  organizer: "DARC"
+  description: "2nd Sunday of January, 0900-1059 UTC; 10 m CW (28.000-28.190) and SSB (28.300-28.700). Everybody works everybody, each station only once (not again in the other mode). German stations send RS(T) + serial + DOK (NM = non-member), others RS(T) + serial. 1 point per QSO. Multipliers (once per contest): DXCC/WAE countries + different DOKs (NM is none). Simplifications: WAE-only areas count as their DXCC entity; the Cabrillo sent exchange is written for a non-German entrant (RST + serial)."
+  officialUrl: "https://www.darc.de/der-club/referate/conteste/darc-10m-contest/rules/"
+period: { durationHours: 2, startWeekday: SUN, startTime: "0900" }
+bands: [10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: dl, when: { entityIn: [230] } }
+  - { id: dx, when: { not: { entityIn: [230] } } }
+
+exchange:
+  sent:
+    - { id: rst,   type: RST,    source: AUTO_RST }
+    - { id: nr,    type: SERIAL, source: AUTO_SERIAL }
+    - { id: mydok, type: TEXT,   source: FROM_STATION }   # German stations only: own DOK or NM (not written to Cabrillo)
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+    - { id: dok, type: TEXT,   required: true, appliesWhen: { workedClass: dl },
+        validation: { regex: "^[A-Z0-9]{2,8}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE }
+  - { id: doks,      set: dok,           from: dok,      scope: ONCE, appliesWhen: { workedClass: dl } }
+
+dupe: { scope: ONCE }
+
+cabrillo: { contestName: DARC-10, sentOrder: [rst, nr], receivedOrder: [rst, nr, dok] }
+ui:
+  entryOrder: [call, nr, dok]
+  logColumns: [time, call, band, mode, rst, nr, dok, points, mult]

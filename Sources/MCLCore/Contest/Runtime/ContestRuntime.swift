@@ -169,6 +169,23 @@ public final class ContestRuntime {
         activeId != nil
     }
 
+    /// The locator a logged QSO with `call` received (its own call or the same base call, `W1AW/P` = `W1AW`), the
+    /// latest first; `nil` without one. N1MM fills the grid from an earlier QSO in the log.
+    public func loggedLocator(call: String, rows: [Qso]) -> String? {
+        guard let session else { return nil }
+        let base: String = ContestSession.baseCall(call)
+        guard !base.isEmpty else { return nil }
+        for row in rows.reversed() where !row.deleted && ContestSession.baseCall(row.call) == base {
+            guard let fields = try? session.activeReceivedFields(call: row.call),
+                  let locator = fields.first(where: { $0.type == .LOCATOR })?.id,
+                  let received = try? session.receivedFromFlat(call: row.call, exchangeRcvdFlat: row.exchangeRcvd,
+                                                               serialRcvd: row.serialRcvd),
+                  let value = received[locator], !JavaText.isBlank(value) else { continue }
+            return JavaText.trim(value).uppercased()
+        }
+        return nil
+    }
+
     /// Callsign of my station (points are relative to its DXCC/continent).
     public var stationCall: String {
         myCall()

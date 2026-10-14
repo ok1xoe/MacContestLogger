@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: last_letters
+kind: ALGORITHM
+keyType: TEXT
+enumerable: false
+metadata: { name: "Last character of the call", description: "The last character (A-Z, 0-9) of the worked base call, e.g. the OK1WC memorial." }
+algorithm: { type: lastLetter }

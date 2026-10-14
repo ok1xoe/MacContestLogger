@@ -169,6 +169,7 @@ public final class SuggestionsModel {
         let lookupEnabled: Bool
         let activeId: String?
         let callbook: HamQthRecord?
+        let logRevision: Int64
     }
 
     private struct ReverseKey: Equatable {
@@ -338,7 +339,7 @@ public final class SuggestionsModel {
     private func refreshFill(call: String) {
         let key = FillKey(call: call, callHistoryRevision: callData.callHistoryRevision,
                           lookupEnabled: callData.callHistoryLookupEnabled, activeId: contest.activeId,
-                          callbook: callbookRecord)
+                          callbook: callbookRecord, logRevision: logbook.revision)
         guard key != fillKey else { return }
         fillKey = key
         fillTimer?.cancel()
@@ -365,6 +366,12 @@ public final class SuggestionsModel {
         }
         for (id, value) in history.entries {
             fill.put(id, value)
+        }
+        // N1MM: the locator of an earlier QSO with the station in this log wins over the call history's.
+        if active, KotlinStrings.trim(call).utf16.count >= 3,
+           let locator = fields.first(where: { $0.type == .LOCATOR })?.id,
+           let logged = contest.runtime.loggedLocator(call: call, rows: logbook.rows) {
+            fill.put(locator, logged)
         }
         if fill.isEmpty && chFilled.isEmpty {
             return

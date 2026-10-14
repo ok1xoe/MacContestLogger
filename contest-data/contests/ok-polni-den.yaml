@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: ok-polni-den
+metadata:
+  name: "Polní den na VKV (III. subregionální závod)"
+  organizer: "ČRK"
+  description: "Czech VHF Field Day, first full weekend of July, 1400-1400 UTC (Region 1 III. subregional). RS(T) + serial (from 001 on each band) + 6-char locator; 1 point per km, 1 point in the same locator; each station once per band. Simplified: every band is a separate category in the rules, here the points of all bands are summed; bands above 10 GHz are not available."
+  officialUrl: "https://ceskyradioklub.cz/zavody/vkv-zavody/podminky-vkv-zavodu/vseobecne-podminky-zavodu-na-vkv"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1400" }
+bands: [2m, 70cm, 23cm, 13cm, 9cm, 6cm, 3cm]
+modes: [CW, SSB, FM]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: nr,  type: SERIAL,  source: AUTO_SERIAL }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: nr,  type: SERIAL,  required: true }
+    - { id: loc, type: LOCATOR, required: true, validation: { regex: "^[A-Ra-r]{2}[0-9]{2}[A-Xa-x]{2}$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: {}, value: { perKm: { field: loc, factor: 1, round: CEIL, min: 1 } } }
+  total: "qsoPoints"
+
+numbering: { perBand: true }
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: POLNI-DEN, sentOrder: [rst, nr, loc], receivedOrder: [rst, nr, loc] }
+ui:
+  entryOrder: [call, nr, loc]
+  logColumns: [time, call, band, mode, rst, nr, loc, points]

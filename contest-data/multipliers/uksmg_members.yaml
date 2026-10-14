@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: uksmg_members
+kind: FIXED
+keyType: INTEGER
+enumerable: false
+metadata:
+  name: "UKSMG member numbers"
+  description: "Open set: UK Six Metre Group membership numbers (digits only)."
+validation: { keyPattern: "^[0-9]{1,6}$" }

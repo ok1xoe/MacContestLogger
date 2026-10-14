@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: eu-hf-championship
+metadata:
+  name: "European HF Championship"
+  organizer: "Slovenia Contest Club (EUHFC Committee)"
+  description: "1st Saturday of August, 1200-2359 UTC; 160-10 m (no WARC), CW and SSB, single operator only. Only QSOs between European stations (CQ WW list) count. Exchange RS(T) + two-digit year of the operator's first licence. 1 point per QSO; the same station once per band and mode. Multipliers: different licence years, once per band regardless of mode. At most 10 band/mode changes per clock hour (not for SINGLE-OP-UNLIMITED); only band changes are checked here."
+  officialUrl: "https://euhf.s5cc.eu/rules/euhfc_rules_latest.pdf"
+period: { durationHours: 12, startWeekday: SAT, startTime: "1200" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+# Only continental-Europe contacts count.
+workable: { allOf: [ { ownContinentIs: EU }, { continentIs: EU } ] }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: year, type: TEXT, source: FROM_STATION }     # two digits of the first licence year
+  received:
+    - { id: rst,  type: RST,  required: true }
+    - { id: year, type: TEXT, required: true, validation: { regex: "^[0-9]{2}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: years, set: licence_years_2d, from: year, scope: PER_BAND }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: EUHFC, sentOrder: [rst, year], receivedOrder: [rst, year] }
+ui:
+  entryOrder: [call, year]
+  logColumns: [time, call, band, mode, rst, year, points, mult]
+operating:
+  # Rule 9: max 10 band (and mode) changes per clock hour.
+  bandChange:
+    perHour: 10

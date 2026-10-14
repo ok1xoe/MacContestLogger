@@ -1,0 +1,26 @@
+schemaVersion: 1
+id: dx-serial
+metadata:
+  name: "DXSERIAL — generic serial number contest"
+  description: "N1MM DXSERIAL: a generic contest with RST + serial number, 1 point per QSO and no multipliers, for small contests without their own definition."
+bands: [160m, 80m, 60m, 40m, 30m, 20m, 17m, 15m, 12m, 10m, 6m, 2m, 70cm]
+modes: [CW, SSB, RTTY, DIGITAL]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints"
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: DXSERIAL, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points]

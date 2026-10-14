@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: nrau-baltic-ssb
+metadata:
+  name: "NRAU-Baltic Contest — SSB"
+  organizer: "NRAU and the Baltic societies (ERAU, LRSF, LRAL)"
+  description: "Nordic and Baltic stations (OZ OX OY, ES, OH OH0 OJ0, TF, YL, LY, LA JW JX, SM) work each other: RS(T) + serial + 2-letter region. 2 points per QSO; multipliers = regions per band. Second full weekend of January (Sunday), SSB 0600-0800 UTC. Simplified: the 1-point value of a QSO with a wrong exchange is left to log checking."
+  officialUrl: "https://nraubaltic.eu/rules"
+period: { durationHours: 2, startWeekday: SUN, startTime: "0600" }
+bands: [80m, 40m]
+modes: [SSB]
+
+stationClasses:
+  # Estonia, Svalbard, Jan Mayen, Norway, Lithuania, Finland, Aland, Market Reef, Greenland, Faroe, Denmark, Sweden, Iceland, Latvia
+  - { id: nrau, when: { entityIn: [52, 259, 118, 266, 146, 224, 5, 167, 237, 222, 221, 284, 242, 145] } }
+  - { id: other, when: { not: { entityIn: [52, 259, 118, 266, 146, 224, 5, 167, 237, 222, 221, 284, 242, 145] } } }
+
+# only QSOs with the listed Nordic and Baltic prefixes count
+workable: { workedClass: nrau }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,      source: AUTO_RST }
+    - { id: nr,  type: SERIAL,   source: AUTO_SERIAL }
+    - { id: reg, type: DISTRICT, source: FROM_STATION }   # my region (VN, KH, UU...)
+  received:
+    - { id: rst, type: RST,      required: true }
+    - { id: nr,  type: SERIAL,   required: true }
+    - { id: reg, type: DISTRICT, required: true, validation: { regex: "^[A-Za-z]{2}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 2 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: regions, set: nrau_regions, from: reg, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: NRAU-BALTIC-SSB, sentOrder: [rst, nr, reg], receivedOrder: [rst, nr, reg] }
+ui:
+  entryOrder: [call, nr, reg]
+  logColumns: [time, call, band, mode, rst, nr, reg, points, mult]

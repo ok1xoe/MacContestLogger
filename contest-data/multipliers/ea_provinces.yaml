@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: ea_provinces
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "Spanish provinces (URE)"
+  description: "The 52 Spanish provinces (incl. Ceuta and Melilla) with URE abbreviations (PM and IB both for the Balearic Islands), plus HQ = EA4URE and SMR = EF0F."
+valuesFile: ea_provinces.csv

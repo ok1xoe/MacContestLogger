@@ -1,0 +1,10 @@
+schemaVersion: 1
+id: dok_districts
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "DARC districts (first letter of the DOK)"
+  description: "Open set for the WAG contest: the multiplier is the DARC district = first letter of the received DOK (special DOKs count by their first letter too). NM (non-member) is not a multiplier. Special DOKs starting with a digit are rejected."
+validation: { keyPattern: "^(?!NM$)[A-Z][A-Z0-9]{1,7}$" }
+keyLength: 1

@@ -1,0 +1,55 @@
+schemaVersion: 1
+id: uksmg-summer
+metadata:
+  name: "UKSMG Summer Es Contest"
+  organizer: "UK Six Metre Group"
+  description: "24 hours on 6 m from 1300 UTC Saturday (June). RS(T) + serial + 6-char locator (4 chars from distant stations) + UKSMG number (members). Score = km + 500 per DXCC entity + 500 per large square + 500 per member number + 1000 per committee station. Simplified: the committee list is that of the 2027 rules (edit the bonuses yearly); dupe assumed once per contest."
+  officialUrl: "https://uksmg.org/page/uksmg-summer-es-contest-rules"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1300" }
+bands: [6m]
+modes: [CW, SSB, FM, AM, RTTY]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: nr,  type: SERIAL,  source: AUTO_SERIAL }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+    - { id: mbr, type: INTEGER, source: FROM_STATION }   # my UKSMG number (members only)
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: nr,  type: SERIAL,  required: true }
+    - { id: loc, type: LOCATOR, required: true, validation: { regex: "^[A-Ra-r]{2}[0-9]{2}([A-Xa-x]{2})?$" } }
+    - { id: mbr, type: INTEGER, required: false }        # UKSMG number of a member
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: {}, value: { perKm: { field: loc, factor: 1, round: ROUND, min: 1 } } }
+  bonuses:
+    # committee stations, 1000 points each (2027 list)
+    - { id: g5kw,   when: { expr: "matches(call, '^G5KW(/.*)?$')" },   value: { fixed: 1000 }, scope: ONCE }
+    - { id: g4ifx,  when: { expr: "matches(call, '^G4IFX(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+    - { id: ea5nw,  when: { expr: "matches(call, '^EA5NW(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+    - { id: g3oil,  when: { expr: "matches(call, '^G3OIL(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+    - { id: sa4bkd, when: { expr: "matches(call, '^SA4BKD(/.*)?$')" }, value: { fixed: 1000 }, scope: ONCE }
+    - { id: m1abk,  when: { expr: "matches(call, '^M1ABK(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+    - { id: g0gcq,  when: { expr: "matches(call, '^G0GCQ(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+    - { id: g4fvp,  when: { expr: "matches(call, '^G4FVP(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+    - { id: g8fxm,  when: { expr: "matches(call, '^G8FXM(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+    - { id: g0vuh,  when: { expr: "matches(call, '^G0VUH(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+    - { id: g3xdv,  when: { expr: "matches(call, '^G3XDV(/.*)?$')" },  value: { fixed: 1000 }, scope: ONCE }
+  total: "qsoPoints + 500 * multTotal + bonusPoints"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE }
+  - { id: squares,   set: grid_squares,  from: loc,      scope: ONCE }
+  - { id: members,   set: uksmg_members, from: mbr,      scope: ONCE, when: { fieldPresent: mbr } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: UKSMG-SUMMER-ES, sentOrder: [rst, nr, loc, mbr], receivedOrder: [rst, nr, loc, mbr] }
+ui:
+  entryOrder: [call, nr, loc, mbr]
+  logColumns: [time, call, mode, rst, nr, loc, mbr, points, mult]

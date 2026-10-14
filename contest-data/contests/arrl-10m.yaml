@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: arrl-10m
+metadata:
+  name: "ARRL 10-Meter Contest"
+  organizer: "ARRL"
+  description: "Everybody works everybody on 10 m, once per mode. W/VE (incl. KL7/KH6) send RST + state/province, XE send RST + state, DX send RST + serial. CW 4 points, phone 2 points. Multipliers (states + DC, provinces, Mexican states, DXCC entities) count once on phone and once on CW. Simplified: maritime mobile stations (ITU region multiplier) are not recognized; Mexican states are an open set; the sent exchange is the fixed station value (DX entrants send their serial number by hand)."
+  officialUrl: "https://www.arrl.org/10-meter"
+period: { durationHours: 48, startWeekday: SAT, startTime: "0000" }
+bands: [10m]
+modes: [CW, SSB]
+
+stationClasses:
+  # USA incl. Alaska/Hawaii (291, 6, 110) and Canada (1) send state/province
+  - { id: wve, when: { entityIn: [291, 1, 6, 110] } }
+  - { id: xe,  when: { entityIn: [50] } }
+  - { id: dx,  when: { not: { entityIn: [291, 1, 6, 110, 50] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: exch, type: TEXT, source: FROM_STATION }    # state/province (W/VE, XE)
+  received:
+    - { id: rst,   type: RST,    required: true }
+    - { id: state, type: STATE,  required: true, appliesWhen: { workedClass: wve } }
+    - { id: xest,  type: STATE,  required: true, appliesWhen: { workedClass: xe } }    # Mexican state
+    - { id: nr,    type: SERIAL, required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2                                    # phone
+    rules:
+      - { when: { mode: CW }, value: { fixed: 4 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: areas,     set: na_areas,      from: state,    scope: PER_MODE }   # 50 states + DC + VE
+  - { id: xestates,  set: xe_states,     from: xest,     scope: PER_MODE }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_MODE, appliesWhen: { workedClass: dx } }
+
+dupe: { scope: PER_MODE }
+
+cabrillo: { contestName: ARRL-10, sentOrder: [rst, exch], receivedOrder: [rst, state, xest, nr] }
+ui:
+  entryOrder: [call, state, xest, nr]
+  logColumns: [time, call, mode, rst, state, xest, nr, points, mult]
+operating:
+  # Rule 1.1/1.2: 36 of the 48 hours, off times at least 30 minutes
+  offTime:
+    minimumMinutes: 30
+    requiredMinutes: 720

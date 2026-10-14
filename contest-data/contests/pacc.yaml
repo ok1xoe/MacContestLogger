@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: pacc
+metadata:
+  name: "PACC Contest"
+  organizer: "VERON"
+  description: "24 h from Saturday 1200 UTC (2nd full weekend of February). Dutch (PA) stations send RS(T) + province (12 codes), others RS(T) + serial. 1 point per QSO; non-PA stations count only QSOs with PA. A station may be worked once per band per mode. Cabrillo sent exchange is written for a non-PA entrant (RST + serial). Multipliers per band per mode: non-PA = Dutch provinces; PA = DXCC entities. Simplification: for PA entrants the rules count each call area of UA8/9/0, CE, JA, LU, PY, VE, W, VK, ZS and ZL as a separate multiplier; here those countries count as one DXCC multiplier."
+  officialUrl: "https://veron.nl/vereniging/commissies-en-werkgroepen/traffic-bureau/hf-contesten/pacc-rules/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: pa, when: { entityIn: [263] } }
+  - { id: dx, when: { not: { entityIn: [263] } } }
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: nr,   type: SERIAL, source: AUTO_SERIAL }
+    - { id: prov, type: TEXT,   source: FROM_STATION }  # PA stations only: own province (not written to Cabrillo)
+  received:
+    - { id: rst,      type: RST,      required: true }
+    - { id: province, type: PROVINCE, required: true, appliesWhen: { workedClass: pa },
+        validation: { regex: "^[A-Z]{2}$" } }
+    - { id: nr,       type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      # outside PA only QSOs with PA stations count
+      - { when: { allOf: [ { workedClass: dx }, { not: { ownEntityIn: [263] } } ] }, value: { fixed: 0 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: provinces, set: pa_provinces, from: province, scope: PER_BAND_MODE, appliesWhen: { workedClass: pa },
+      when: { not: { ownEntityIn: [263] } } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND_MODE, when: { ownEntityIn: [263] } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: PACC, sentOrder: [rst, nr], receivedOrder: [rst, province, nr] }
+ui:
+  entryOrder: [call, province, nr]
+  logColumns: [time, call, band, mode, rst, province, nr, points, mult]
+operating:
+  rules:
+  # PA multi-one (D): band change at most once every 10 minutes.
+  - when:
+      OPERATOR: "MULTI-OP"
+      TRANSMITTER: "ONE"
+    bandChange:
+      minimumMinutes: 10

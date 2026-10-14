@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: agcw-happy-new-year
+metadata:
+  name: "AGCW Happy New Year Contest"
+  organizer: "AGCW-DL"
+  description: "1 January, 0900-1200 UTC; CW only on 80, 40 and 20 m. Exchange RST + serial; AGCW members add their membership number (599 067/2583). 1 point per QSO, each station once per band. Multipliers: each AGCW member worked counts once per band (enter the member number in the mbr field, leave it empty for non-members). Uncertain: the Cabrillo CONTEST name is not given in the rules; the member number is written as its own column after the serial."
+  officialUrl: "https://www.agcw.de/contest/hnyc/hnyc-engl/"
+period: { durationHours: 3, startTime: "0900" }
+bands: [80m, 40m, 20m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst,   type: RST,    source: AUTO_RST }
+    - { id: nr,    type: SERIAL, source: AUTO_SERIAL }
+    - { id: mymbr, type: TEXT,   source: FROM_STATION }   # own AGCW membership number (members only)
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+    - { id: mbr, type: INTEGER, required: false }          # membership number of an AGCW member
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: members, set: agcw_members, from: mbr, scope: PER_BAND, when: { fieldPresent: mbr } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: AGCW-HNY, sentOrder: [rst, nr, mymbr], receivedOrder: [rst, nr, mbr] }
+ui:
+  entryOrder: [call, nr, mbr]
+  logColumns: [time, call, band, mode, rst, nr, mbr, points, mult]

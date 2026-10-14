@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: yu_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Serbian counties (YUDX)", description: "The 30 three-letter county abbreviations from the official YUDX HF Contest rules." }
+valuesFile: yu_counties.csv

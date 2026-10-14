@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: lz_districts
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Bulgarian districts (LZ DX Contest)", description: "The 28 two-letter district abbreviations from the official LZ DX Contest rules." }
+valuesFile: lz_districts.csv

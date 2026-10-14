@@ -270,4 +270,14 @@ import Testing
             """))
         #expect(try Self.log(other, "W1AW", Self.t0).points == 1)
     }
+
+    @Test func callsignAlgorithmSets() {
+        let calls = CallsignMultiplierSet(id: "worked_calls", kind: .callsign)
+        #expect(calls.deriveFromCallsign("ok1abc/p").key == "OK1ABC")
+        #expect(calls.deriveFromCallsign("DL/OK1ABC").key == "OK1ABC")
+        #expect(!calls.deriveFromCallsign(" ").isValid)
+        let last = CallsignMultiplierSet(id: "last_letters", kind: .lastLetter)
+        #expect(last.deriveFromCallsign("OK1WC/P").key == "C")
+        #expect(last.deriveFromCallsign("OK2BX9").key == "9")
+    }
 }

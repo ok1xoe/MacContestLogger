@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: hr_counties
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "Croatian licence-plate areas (9A DX)"
+  description: "Open set: two-letter licence-plate area abbreviation sent by 9A stations in the 9A DX Contest (ZG, ST, RI…; diacritics written without them, e.g. KZ, SI, ZU). The official list is published only as an image, so it is not enumerated here."
+validation: { keyPattern: "^[A-Z]{2}$" }

@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: vhf-serial
+metadata:
+  name: "VHFSERIAL — generic VHF/UHF serial contest"
+  description: "N1MM VHFSERIAL: a generic VHF and up contest with RST + serial + locator and 1 point per kilometre, no multipliers, for local and club contests without their own definition."
+period: { durationHours: 24 }
+bands: [6m, 2m, 70cm, 23cm, 13cm, 9cm, 6cm, 3cm]
+modes: [CW, SSB, FM]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: nr,  type: SERIAL,  source: AUTO_SERIAL }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: nr,  type: SERIAL,  required: true }
+    - { id: loc, type: LOCATOR, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: {}, value: { perKm: { field: loc, factor: 1, round: CEIL, min: 1 } } }
+  total: "qsoPoints"
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: VHFSERIAL, sentOrder: [rst, nr, loc], receivedOrder: [rst, nr, loc] }
+ui:
+  entryOrder: [call, nr, loc]
+  logColumns: [time, call, band, mode, rst, nr, loc, points]

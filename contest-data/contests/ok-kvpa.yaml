@@ -1,0 +1,34 @@
+schemaVersion: 1
+id: ok-kvpa
+metadata:
+  name: "KV Provozní aktiv (KVPA)"
+  organizer: "ČRK / OK2CQR"
+  description: "Czech HF activity contest: first Sunday of the month, CW on 80 m (3535-3575 kHz), two 30-minute stages 07:00-07:29 and 07:30-07:59 Czech local time; each station once per stage. RST + serial (continues into the second stage), 1 point per QSO, no multipliers. Simplified: times are set for winter (0600 UTC); in summer time the contest starts at 0500 UTC (use TOUR 0500/30)."
+  officialUrl: "http://www.kvpa.cz/podminky/"
+period:
+  durationHours: 1
+  startWeekday: SUN
+  startTime: "0600"
+  sessions: { start: "0600", minutes: 30 }
+bands: [80m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints"
+
+# with sessions the dupe check runs per stage
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: KVPA, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, rst, nr, points]

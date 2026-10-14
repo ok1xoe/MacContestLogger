@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: cwops-cwt
+metadata:
+  name: "CWops CWT (mini-CWT)"
+  organizer: "CWops"
+  description: "Weekly 1-hour CW sessions (Wed 1300 and 1900 UTC, Thu 0300 and 0700 UTC; set the start in New contest). Members send name + member number, non-members name + state/province/DX prefix (CWA for CW Academy students). 1 point per QSO, each station once per band. The official multiplier is the number of unique call signs; the program cannot count call signs, so it counts distinct exchange values instead (exact for members, non-members from the same state/country count only once)."
+  officialUrl: "https://cwops.org/cwops-tests/"
+period: { durationHours: 1, startWeekday: WED, startTime: "1300" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: name, type: TEXT, source: FROM_STATION }
+    - { id: exch, type: TEXT, source: FROM_STATION }    # member number or state/province/prefix
+  received:
+    - { id: name, type: TEXT, required: true }
+    - { id: exch, type: TEXT, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # stand-in for "unique call signs worked"
+  - { id: calls, set: cwt_exchange, from: exch, scope: ONCE, label: "Unique stations (by exchange)" }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: CWOPS-CWT, sentOrder: [name, exch], receivedOrder: [name, exch] }
+ui:
+  entryOrder: [call, name, exch]
+  logColumns: [time, call, band, name, exch, points, mult]
