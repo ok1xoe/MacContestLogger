@@ -311,6 +311,8 @@ public final class ImportExportModel {
         let name: String = logName
         let call: String = config.config.station.call
         let replay: ContestSession? = contest.isActive ? contest.runtime.freshSession() : nil
+        let setupLines: [String] = contest.isActive
+            ? ScoreSummaryText.setupLines(setup: contest.activeSetup, station: config.config.station) : []
         let qsos: [Qso]
         do {
             qsos = try await readLog()
@@ -324,7 +326,8 @@ public final class ImportExportModel {
                 let score: ScoreState? = try replay.map { session in
                     try ContestReplay.replay(session, qsos).session.score()
                 }
-                let files: [ExportFile] = try ExportJobs.other(contestName: name, call: call, score: score, qsos: qsos)
+                let files: [ExportFile] = try ExportJobs.other(contestName: name, call: call, score: score, qsos: qsos,
+                                                                setupLines: setupLines)
                 return ExportJobs.write(files, to: directory)
             }
         } catch {

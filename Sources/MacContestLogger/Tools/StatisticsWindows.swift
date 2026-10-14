@@ -151,10 +151,10 @@ private struct StatisticsContent: View {
 enum StatisticsOutput {
 
     /// „Uložit…": the table as a tab-separated text file.
-    static func save(_ text: String?) {
+    static func save(_ text: String?, name: String = "statistics.txt") {
         guard let text else { return }
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "statistics.txt"
+        panel.nameFieldStringValue = name
         guard panel.runModal() == .OK, let url = panel.url else { return }
         try? text.write(to: url, atomically: true, encoding: .utf8)
     }
@@ -319,7 +319,7 @@ struct ScoreWindowView: View {
     let host: AppHost
 
     var body: some View {
-        ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("Skóre") },
+        ToolWindowShell(host: host, id: Self.id, title: { $0.scoreWindow.windowTitle },
                         size: CGSize(width: 620, height: 420), minSize: CGSize(width: 420, height: 240),
                         appeared: { $0.scoreWindow.open() }, disappeared: { $0.scoreWindow.close() },
                         content: { app, windowSize in
@@ -337,12 +337,21 @@ private struct ScoreContent: View {
         let language: LanguageModel = app.language
         if let table = model.table {
             VStack(alignment: .leading, spacing: 6) {
-                ToolChips(choices: [
-                    ToolChips.Choice(label: language.tr("Pásmo × mód"), selected: model.byMode,
-                                     identifier: "score.byMode", action: { model.byMode = true }),
-                    ToolChips.Choice(label: language.tr("Jen pásma"), selected: !model.byMode,
-                                     identifier: "score.bandsOnly", action: { model.byMode = false }),
-                ])
+                if let name = model.contestName {
+                    Text(verbatim: name)
+                        .windowFont(14, weight: .bold)
+                        .accessibilityIdentifier("score.contestName")
+                }
+                HStack(spacing: 8) {
+                    ToolChips(choices: [
+                        ToolChips.Choice(label: language.tr("Pásmo × mód"), selected: model.byMode,
+                                         identifier: "score.byMode", action: { model.byMode = true }),
+                        ToolChips.Choice(label: language.tr("Jen pásma"), selected: !model.byMode,
+                                         identifier: "score.bandsOnly", action: { model.byMode = false }),
+                    ])
+                    Spacer(minLength: 0)
+                    outputButtons(model, language: language)
+                }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         scoreRow(table.headers, lead: table.lead, header: true)
@@ -362,6 +371,19 @@ private struct ScoreContent: View {
                         }
                     }
                 }
+                .contextMenu {
+                    Button(language.tr("Kopírovat vše")) {
+                        if let text = model.summaryText {
+                            app.clipboard(text)
+                        }
+                    }
+                    Button(language.tr("Uložit…")) {
+                        StatisticsOutput.save(model.summaryText, name: "score-summary.txt")
+                    }
+                    Button(language.tr("Tisk…")) {
+                        StatisticsOutput.print(model.summaryText, title: model.windowTitle)
+                    }
+                }
                 Divider()
                 Text(verbatim: table.footer)
                     .windowFont(12, weight: .bold, design: .monospaced)
@@ -379,6 +401,27 @@ private struct ScoreContent: View {
                 .accessibilityIdentifier("score.status")
             Spacer(minLength: 0)
         }
+    }
+
+    /// N1MM „Copy all" and „Print to file" (and printing) of the score summary; the same items in the right-click menu.
+    private func outputButtons(_ model: ScoreWindowModel, language: LanguageModel) -> some View {
+        HStack(spacing: 8) {
+            Button(language.tr("Kopírovat vše")) {
+                if let text = model.summaryText {
+                    app.clipboard(text)
+                }
+            }
+            .accessibilityIdentifier("score.copyAll")
+            Button(language.tr("Uložit…")) {
+                StatisticsOutput.save(model.summaryText, name: "score-summary.txt")
+            }
+            .accessibilityIdentifier("score.save")
+            Button(language.tr("Tisk…")) {
+                StatisticsOutput.print(model.summaryText, title: model.windowTitle)
+            }
+            .accessibilityIdentifier("score.print")
+        }
+        .windowFont(12)
     }
 
     private func scoreRow(_ cells: [String], lead: Int, header: Bool) -> some View {

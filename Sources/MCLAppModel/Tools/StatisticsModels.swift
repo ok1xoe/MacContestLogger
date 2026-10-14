@@ -183,14 +183,41 @@ public final class ScoreWindowModel {
     @ObservationIgnored private let logbook: LogbookModel
     @ObservationIgnored private let contest: ContestModel
     @ObservationIgnored private let language: LanguageModel
+    @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let clock: any RescoreClock
     @ObservationIgnored private var derived: LogDerived<ScoreBreakdown?>?
 
-    init(logbook: LogbookModel, contest: ContestModel, language: LanguageModel, clock: any RescoreClock) {
+    init(logbook: LogbookModel, contest: ContestModel, language: LanguageModel, config: ConfigModel,
+         clock: any RescoreClock) {
         self.logbook = logbook
         self.contest = contest
         self.language = language
+        self.config = config
         self.clock = clock
+    }
+
+    /// N1MM Score Summary: the station call in the window title (`Skóre — OK1XOE`).
+    public var windowTitle: String {
+        let call: String = KotlinStrings.trim(config.config.station.call)
+        let base: String = language.tr("Skóre")
+        return call.isEmpty ? base : base + " — " + call
+    }
+
+    /// N1MM „Display Contest Name": the contest's name above the table (`nil` outside a contest).
+    public var contestName: String? {
+        guard contest.isActive else { return nil }
+        return contest.definition?.metadata?.name
+    }
+
+    /// N1MM „Copy all" / „Print to file": `<contest> — <call>`, the contest setup and station lines, then the table;
+    /// `nil` without a table.
+    public var summaryText: String? {
+        guard let table else { return nil }
+        let name: String = contest.definition?.metadata?.name ?? language.tr(IoTexts.defaultLogName)
+        let title: String = PrintLayout.title(definitionName: name, call: config.config.station.call)
+        let lines: [String] = ScoreSummaryText.setupLines(setup: contest.activeSetup, station: config.config.station,
+                                                          translate: language.translator)
+        return ScoreSummaryText.text(title: title, setupLines: lines, table: table)
     }
 
     public func open() {

@@ -105,13 +105,14 @@ public enum ExportJobs {
     ///   - contestName: `metadata.name` of the active definition, otherwise `tr("Deník")` (`IoTexts.defaultLogName`)
     ///   - score: `contest.freshScore(qsos)` in an active contest, otherwise `nil` — computed by the caller before
     ///     any file is written
+    ///   - setupLines: the contest setup and station lines of the summary (`ScoreSummaryText.setupLines`)
     /// - Throws: the summary's `LogExportsError` (unreachable from the app); Kotlin builds all three texts before
     ///   writing, so nothing is written then.
     public static func other(contestName: String, call: String, score: ScoreState?,
-                             qsos: [Qso]) throws(LogExportsError) -> [ExportFile] {
+                             qsos: [Qso], setupLines: [String] = []) throws(LogExportsError) -> [ExportFile] {
         let base: String = ExportNames.otherBase(call: call)
         let title: String = PrintLayout.title(definitionName: contestName, call: call)
-        let summary: String = try LogExports.summary(contestName, call, score, qsos)
+        let summary: String = try LogExports.summary(contestName, call, score, qsos, setupLines: setupLines)
         return [
             ExportFile(name: base + ".csv", bytes: Data(LogExports.csv(qsos).utf8)),
             ExportFile(name: base + ".txt", bytes: Data(LogExports.text(title, qsos).utf8)),

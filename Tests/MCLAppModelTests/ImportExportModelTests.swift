@@ -444,8 +444,11 @@ import Testing
         let qsos: [Qso] = try await model.database.handle.run { try $0.service.findAll() }
         let session: ContestSession = try #require(model.contest.runtime.freshSession())
         let score: ScoreState = try ContestReplay.replay(session, qsos).session.score()
+        let setupLines: [String] = ScoreSummaryText.setupLines(setup: model.contest.activeSetup,
+                                                               station: model.config.config.station)
+        #expect(setupLines.contains("Výměna:        zone 15"), "\(setupLines)")
         let expected: [ExportFile] = try ExportJobs.other(contestName: "CQ WW DX Contest — CW", call: "OK1XOE/P",
-                                                          score: score, qsos: qsos)
+                                                          score: score, qsos: qsos, setupLines: setupLines)
         for exported in expected {
             #expect(try Data(contentsOf: out.appendingPathComponent(exported.name)) == exported.bytes)
         }

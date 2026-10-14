@@ -120,14 +120,18 @@ public enum LogExports {
         return out
     }
 
-    /// Contest summary: station, score and breakdown by bands × modes.
+    /// Contest summary: station, score and breakdown by bands × modes. `setupLines` (the contest setup and the station,
+    /// `ScoreSummaryText.setupLines`) follow the station line; without them the text is v1.1.1's.
     ///
     /// - Throws: `LogExportsError.nullPointer("temporal")` when the first QSO has a time and the last
     ///   does not (like Java).
     public static func summary(_ contestName: String, _ call: String, _ score: ScoreState?,
-                               _ qsos: [Qso]) throws(LogExportsError) -> String {
+                               _ qsos: [Qso], setupLines: [String] = []) throws(LogExportsError) -> String {
         var out = "Souhrn závodu: " + contestName + "\n"
         out += "Stanice:       " + call + "\n"
+        for line in setupLines {
+            out += line + "\n"
+        }
         let s = sorted(qsos)
         if let first = s.first?.timestampUtc {
             guard let last = s[s.count - 1].timestampUtc else {

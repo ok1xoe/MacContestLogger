@@ -126,7 +126,7 @@ extension AppModel {
             language: model.language, info: info))
         let statistics = StatisticsModel(logbook: model.logbook, language: model.language, contest: model.contest)
         let score = ScoreWindowModel(logbook: model.logbook, contest: model.contest, language: model.language,
-                                     clock: clock)
+                                     config: model.config, clock: clock)
         let dupesheet = DupesheetModel(logbook: model.logbook, contest: model.contest, language: model.language)
         let sortBySuffix: @MainActor () -> Bool = { [weak config = model.config] in
             config?.config.dupesheetSortBySuffix ?? true

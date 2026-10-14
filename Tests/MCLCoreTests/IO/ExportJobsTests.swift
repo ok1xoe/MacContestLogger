@@ -133,6 +133,10 @@ import Testing
         #expect(files[0].bytes == Data(LogExports.csv(log).utf8))
         #expect(files[1].bytes == Data(LogExports.text("CQ WW — OK1XOE/P", log).utf8))
         #expect(files[2].bytes == Data(try LogExports.summary("CQ WW", "OK1XOE/P", nil, log).utf8))
+        let withSetup = try ExportJobs.other(contestName: "CQ WW", call: "OK1XOE/P", score: nil, qsos: log,
+                                             setupLines: ["Lokátor:       JN79"])
+        let summary = String(decoding: withSetup[2].bytes, as: UTF8.self)
+        #expect(summary.hasPrefix("Souhrn závodu: CQ WW\nStanice:       OK1XOE/P\nLokátor:       JN79\n"))
     }
 
     @Test func writeSkipsFilesThatFail() throws {
