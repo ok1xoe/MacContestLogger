@@ -80,9 +80,20 @@ Points taken from an exchange value (`Exchange, *`) are `value: { expr: "nr" }`;
 (`IsMisc`) are a rule with `when: { fieldPresent: misc }`.
 
 Full examples are in the built-in definitions (`contest-data/contests/` — CQ WW,
-WPX, IARU, OK-OM DX...); it is best to **duplicate** one and edit it. Converters
-for foreign N1MM (UDC) and DXLog definitions exist only in the earlier Java
-version 1.1.1, not in this application.
+WPX, IARU, OK-OM DX...); it is best to **duplicate** one and edit it.
+
+## Importing an N1MM UDC file
+
+**"Importovat UDC…"** (Import UDC...) converts an N1MM+ user defined contest (`.udc`) into a definition and opens
+it as a new, unsaved file. The names, mode, bands, dupe rule (`DupeType`, `DupeQSOMinutesAgo`, `DupeSqlString`),
+the exchange from `CabrilloString` (also `Last2L` / `LastCallSuff`), up to three multipliers with their scope and
+country restrictions, `PointsPerContact` (fixed, band, mode, continent, country, own country, filled fields,
+`Exchange, *`), the point multipliers by time, band, mode, continent and country, `PowerMult`, bonus calls, sessions,
+per-band numbering, `IsWorkable`, the usual start and the minimum off time are mapped. Everything that has no
+equivalent is listed in `# UDC:` comments at the top — review them, adjust the definition and save it. A
+multiplier over a section list the app does not know gets an open set (`<id>_<list>`) in `multipliers/`; replace
+it with the real list (Import counties) when you have one. The DXLog converter of the Java version 1.1.1 was not
+carried over.
 
 ## Updating definitions from the internet
 

@@ -161,6 +161,14 @@ private struct DefinitionListColumn: View {
                 editor.newQsoParty(id: id)
             }
         }
+        Button(language.tr("Importovat UDC…")) {
+            ExportPanels.openFile(message: language.tr("Soubor závodu N1MM (.udc)")) { file in
+                Task {
+                    await editor.importUdc(file: file)
+                }
+            }
+        }
+        .help(language.tr("Převede uživatelský závod N1MM (.udc) na definici; poznámky převodu jsou v komentářích"))
         Button("Importovat okresy…") {
             ExportPanels.openFile(message: language.tr("Seznam okresů (KÓD,Název na řádek)")) { file in
                 prompts.ask(language.tr("Id sady okresů (např. ohqp_counties)")) { id in
