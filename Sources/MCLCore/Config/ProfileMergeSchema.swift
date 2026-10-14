@@ -59,6 +59,8 @@ enum ProfileMergeSchema {
             Property("moveMultsRange", .string, .fieldDefault),
             Property("moveMultsBands", .string, .fieldDefault),
             Property("moveMultsModes", .string, .fieldDefault),
+            Property("graylineLayers", .list(.string), .fieldDefault),
+            Property("graylineSpots", .int, .fieldDefault),
             Property("entryHiddenSections", .list(.string), .fieldDefault),
             Property("resetRxAfterRunQso", .boolean, .fieldDefault),
             Property("macroQsyStepKHz", .int, .fieldDefault),
@@ -72,6 +74,7 @@ enum ProfileMergeSchema {
             Property("functionKeyFiles", .map(.string), .fieldDefault),
             Property("firstSerial", .int, .fieldDefault),
             Property("scpFile", .string, .fieldDefault),
+            Property("goalFile", .string, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.DxClusterConfig": [
             Property("spotFilterHiddenBands", .list(.string), .fieldDefault),

@@ -349,6 +349,12 @@ public final class InfoModel {
         return out.filter { !KotlinStrings.isBlank($0) }
     }
 
+    /// N1MM's MULT/RUN indicator: this station's multi-op type (Ctrl+Alt+M, Settings → Cluster); `nil` = none set.
+    public var stationTypeText: String? {
+        let type: OperatingGuard.StationType = config.config.cluster.stationType
+        return type == .none ? nil : type.rawValue
+    }
+
     /// The window options of the config (`config.infoWindow`): which parts the window shows.
     public var settings: InfoWindowConfig {
         config.config.infoWindow
@@ -525,6 +531,24 @@ public final class InfoModel {
                 }
                 await self.applyGoalImport(lines, band: band)
             }
+        }
+        ioTasks.append(task)
+    }
+
+    /// N1MM Associated Files: the contest opened with a goal file of its own — its goals (all bands summed) replace
+    /// the current ones. An unreadable file is reported and the goals stay.
+    public func contestActivated() {
+        if isShuttingDown() { return }
+        guard let raw = contest.activeSetup?.goalFile, !KotlinStrings.isBlank(raw) else { return }
+        let path: String = KotlinStrings.trim(raw)
+        let task = Task { [weak self] in
+            guard let self else { return }
+            let read: [String]? = await self.ioLane.run { try? GoalFileIO.readLines(path) }
+            guard let read else {
+                self.status.show("Soubor cílů závodu %s nejde načíst", .string(path))
+                return
+            }
+            await self.applyGoalImport(read, band: nil)
         }
         ioTasks.append(task)
     }

@@ -1900,5 +1900,17 @@
  "Módy závodu": "Contest-Betriebsarten",
  "Vše": "Alle",
  "Skrýt řádek": "Zeile ausblenden",
- "Aktualizovat": "Aktualisieren"
+ "Aktualizovat": "Aktualisieren",
+ "Zobrazit Slunce": "Sonne anzeigen",
+ "Zobrazit rovník": "Äquator anzeigen",
+ "Zobrazit nultý poledník": "Nullmeridian anzeigen",
+ "Zobrazit domácí polohu": "Heimatstandort anzeigen",
+ "Počet zobrazených spotů": "Anzahl angezeigter Spots",
+ "Smazat všechny spoty z mapy": "Alle Spots von der Karte löschen",
+ "Volby mapy": "Kartenoptionen",
+ "Typ stanice multi-op (Ctrl+Alt+M)": "Multi-OP-Stationstyp (Ctrl+Alt+M)",
+ "Soubor cílů závodu": "Zieldatei des Contests",
+ "prázdné = cíle zůstanou, jak jsou": "leer = die Ziele bleiben unverändert",
+ "Vyber soubor cílů pro tento závod": "Zieldatei für diesen Contest wählen",
+ "Soubor cílů závodu %s nejde načíst": "Die Zieldatei des Contests %s kann nicht gelesen werden"
 }

@@ -106,7 +106,8 @@ logged number.
 
 - **Typ stanice** (Station type; DXLog Station type): *RUN* or *MULT*. A MULT station may only
   log a QSO that brings a new multiplier. The others see the type in Network Status.
-  **Ctrl+Alt+M** switches between RUN and MULT from the keyboard (N1MM Run/Mult).
+  **Ctrl+Alt+M** switches between RUN and MULT from the keyboard (N1MM Run/Mult). The Info window shows the type
+  below its timers (N1MM's MULT/RUN indicator).
 - **Pravidla provozu při zápisu** (Operating rules on write): *Nehlídat* (Do not check) /
   *Upozornit* (Warn, the default) / *Nezapsat* (Do not log). The tool checks the N-minutes-on-a-band
   rule (for example CQ WW M/S 10 min) and the limit of band changes per hour (for example

@@ -19,6 +19,7 @@ import Testing
         stored.bonusStations = ["W1AW"]
         stored.firstSerial = 50
         stored.scpFile = "/tmp/x.scp"
+        stored.goalFile = "/tmp/goals.txt"
         var form = NewContestForm.editing(definition: try Self.definition(), setup: stored)
         #expect(form.category["POWER"] == "HIGH")
         #expect(form.sentExchange["zone"] == "")
@@ -31,6 +32,7 @@ import Testing
         #expect(out.bonusStations == ["W1AW"])
         #expect(out.firstSerial == 1)
         #expect(out.scpFile == "/tmp/x.scp")
+        #expect(out.goalFile == "/tmp/goals.txt")
     }
 
     @Test func populateFromTheLastLog() {

@@ -585,8 +585,9 @@ public final class AppModel {
             logbook?.refreshWarnings()
         }
         contest.onActivated = { [weak entry, weak second = vfoB.entry, weak analysis = spots.analysis,
-                                 weak files = model.functionKeyFiles] in
+                                 weak files = model.functionKeyFiles, weak info = model.info] in
             files?.contestActivated()
+            info?.contestActivated()
             analysis?.activated()
             entry?.contestActivated()
             second?.contestActivated()
