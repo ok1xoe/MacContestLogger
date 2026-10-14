@@ -34,6 +34,9 @@ public final class RigModel {
     @ObservationIgnored var macroMuted: [Int: Bool] = [:]
     /// Kotlin `focusVfoRequest`: the entry window `vfo` takes the focus (the view clears it).
     public var focusVfoRequest: Int?
+    /// With `focusVfoRequest`: the caret goes after the call's text instead of selecting it (typing that came from
+    /// another window continues there).
+    @ObservationIgnored public var focusCaretAtEnd: Bool = false
 
     /// The shared live mode mapping of both rigs.
     @ObservationIgnored public let modeStore = HamlibModeStore()

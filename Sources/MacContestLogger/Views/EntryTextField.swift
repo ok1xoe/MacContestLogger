@@ -27,7 +27,7 @@ final class EntryFocusController {
 
     /// Kotlin `requester.requestFocus()`; a field that is not shown is ignored (Kotlin `runCatching`), a field
     /// not yet in a window gets the focus as soon as it is.
-    func focus(_ key: EntryFieldKey?) {
+    func focus(_ key: EntryFieldKey?, caretAtEnd: Bool = false) {
         guard let key else { return }
         guard let field = fields[key]?.field, field.window != nil else {
             pending = key
@@ -43,7 +43,9 @@ final class EntryFocusController {
             window.makeFirstResponder(field)
             // N1MM: a `?` in the callsign is selected for replacement when the cursor comes back (AppKit selects the
             // whole text of any other field, so a serial number is overwritten by typing).
-            if key == .call, let range = EntryAssist.questionMarkSelection(field.stringValue),
+            if caretAtEnd, let editor = field.currentEditor() {
+                editor.selectedRange = NSRange(location: field.stringValue.utf16.count, length: 0)
+            } else if key == .call, let range = EntryAssist.questionMarkSelection(field.stringValue),
                let editor = field.currentEditor() {
                 editor.selectedRange = range
             }

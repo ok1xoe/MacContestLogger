@@ -1858,5 +1858,19 @@
  "Rate k QSO %s (%s)": "Raten bei QSO %s (%s)",
  "Aktuální rate": "Aktuelle Raten",
  "%s: zatím žádné QSO": "%s: noch kein QSO",
- "Předchozí QSO s %s: %s": "Bisherige QSOs mit %s: %s"
+ "Předchozí QSO s %s: %s": "Bisherige QSOs mit %s: %s",
+ "Po %s minutách": "Je %s Minuten",
+ "Pásmo a mód": "Band und Betriebsart",
+ "Nový násobič": "Neuer Multiplikator",
+ "Násobič: %s": "Multiplikator: %s",
+ "Včetně dupů a X-QSO": "Dupes und X-QSOs einschließen",
+ "Tabulka": "Tabelle",
+ "Graf": "Grafik",
+ "Zobrazení statistik": "Statistikansicht",
+ "Kopírovat vše": "Alles kopieren",
+ "Uložit…": "Speichern…",
+ "Tisk…": "Drucken…",
+ "Hodina UTC": "UTC-Stunde",
+ "Den": "Tag",
+ "Kontinent": "Kontinent"
 }

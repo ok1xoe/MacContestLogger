@@ -124,7 +124,7 @@ extension AppModel {
         let goals = GoalsModel(GoalsModel.Dependencies(
             contest: model.contest, config: model.config, database: model.database, status: model.status,
             language: model.language, info: info))
-        let statistics = StatisticsModel(logbook: model.logbook, language: model.language)
+        let statistics = StatisticsModel(logbook: model.logbook, language: model.language, contest: model.contest)
         let score = ScoreWindowModel(logbook: model.logbook, contest: model.contest, language: model.language,
                                      clock: clock)
         let dupesheet = DupesheetModel(logbook: model.logbook, contest: model.contest, language: model.language)
