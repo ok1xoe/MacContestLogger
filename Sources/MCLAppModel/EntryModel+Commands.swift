@@ -1154,6 +1154,26 @@ extension EntryModel {
         return String(decoding: data, as: UTF8.self)
     }
 
+    /// The message set the F-keys send now (the voice set in phone, the digital set in a ready digital mode, else CW).
+    public var currentKeyKind: FunctionKeyKind {
+        if EsmFlow.isPhone(form.mode) {
+            return .ssb
+        }
+        return form.mode.isDigital && digitalReady ? .digital : .cw
+    }
+
+    /// The text of an F-key of the set shown now (the hover text of its button).
+    public func functionKeyText(_ index: Int) -> String {
+        let set: [FunctionKeyMessage] = currentKeySet(opposite: shiftHeld)
+        return index >= 0 && index < set.count ? set[index].text : ""
+    }
+
+    /// N1MM right click on an F-key button (like Alt+K): Settings → Function Keys on the set the keys send now.
+    public func openFunctionKeyEditor() {
+        menu.functionKeysFocus = FunctionKeysFocus(kind: currentKeyKind, run: operating.isRun != shiftHeld)
+        openSettingsTab("function-keys")
+    }
+
     /// The F-key button label (`*FunctionKeyLabel(i, shiftHeld)`).
     public func functionKeyLabel(_ index: Int) -> String {
         FunctionKeyRouter.label(index: index, shift: shiftHeld, context: functionKeyContext())

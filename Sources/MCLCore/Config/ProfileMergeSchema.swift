@@ -27,7 +27,8 @@ enum ProfileMergeSchema {
     /// and special calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
     /// switches and extra
-    /// files (`callHistory*`) and a contest's own call history file (`contestSetups.*.callHistoryFile`).
+    /// files (`callHistory*`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
+    /// `contestSetups.*.functionKeyFiles`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
             Property("scpSuggestionsEnabled", .boolean, .fieldDefault),
@@ -53,12 +54,14 @@ enum ProfileMergeSchema {
             Property("entryHiddenSections", .list(.string), .fieldDefault),
             Property("resetRxAfterRunQso", .boolean, .fieldDefault),
             Property("macroQsyStepKHz", .int, .fieldDefault),
+            Property("functionKeysPerOperator", .boolean, .fieldDefault),
             Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
             Property("callHistoryExtraFiles", .list(.string), .fieldDefault),
             Property("callHistoryShowUserInfo", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ContestSetup": [
             Property("callHistoryFile", .string, .fieldDefault),
+            Property("functionKeyFiles", .map(.string), .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.DxClusterConfig": [
             Property("spotFilterHiddenBands", .list(.string), .fieldDefault),

@@ -24,6 +24,8 @@ public struct NewContestForm: Equatable, Sendable {
     public var endedAt: String
     /// N1MM Associated Files: the contest's own call history file (Swift-only); empty = the global one.
     public var callHistoryFile: String
+    /// N1MM Associated Files: the contest's function key files (`ContestSetup.functionKeyFiles`, kept as saved).
+    public var functionKeyFiles: [String: String] = [:]
 
     public init(category: [String: String] = [:], sentExchange: [String: String] = [:], operators: String = "",
                 soapbox: String = "", startedAt: String = "", endedAt: String = "", callHistoryFile: String = "") {
@@ -56,6 +58,7 @@ public struct NewContestForm: Equatable, Sendable {
         form.operators = nonBlank(saved?.operators) ?? stationCall
         form.soapbox = saved?.soapbox ?? ""
         form.callHistoryFile = saved?.callHistoryFile ?? ""
+        form.functionKeyFiles = saved?.functionKeyFiles ?? [:]
         let midnight: Int64 = todayMidnightUtc(now)
         form.startedAt = nonBlank(saved?.startedAt) ?? format(epochSecond: midnight)
         if let ended = nonBlank(saved?.endedAt) {
@@ -78,6 +81,7 @@ public struct NewContestForm: Equatable, Sendable {
         setup.startedAt = startedAt
         setup.endedAt = endedAt
         setup.callHistoryFile = KotlinText.trim(callHistoryFile)
+        setup.functionKeyFiles = functionKeyFiles
         return setup
     }
 

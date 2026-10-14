@@ -144,13 +144,29 @@ struct FunctionKeyBar: View {
                         NkButton(label: FunctionKeyRouter.buttonText(index: index,
                                                                      label: entry.functionKeyLabel(index),
                                                                      recording: recording),
-                                 highlighted: lit, next: next.contains(index), enabled: enabled) {
+                                 highlighted: lit, next: next.contains(index), enabled: enabled,
+                                 help: hoverText(entry, index)) {
                             entry.handle(.functionKey(index, shift: false, ctrlShift: false))
+                        }
+                        .contextMenu {
+                            Button {
+                                entry.openFunctionKeyEditor()
+                            } label: {
+                                Text(verbatim: app.language.tr("Upravit F-klávesy… (Alt+K)"))
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+extension FunctionKeyBar {
+    /// N1MM hover text: the message the key sends (`(prázdná)` for an empty one).
+    fileprivate func hoverText(_ entry: EntryModel, _ index: Int) -> String {
+        let text: String = entry.functionKeyText(index)
+        return KotlinStrings.isBlank(text) ? app.language.tr("(prázdná zpráva)") : text
     }
 }
 

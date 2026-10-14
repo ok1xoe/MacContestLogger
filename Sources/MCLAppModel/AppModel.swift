@@ -195,6 +195,8 @@ public final class AppModel {
     public let catLog: CatLogModel
     /// The CW keyer, the voice keyer and fldigi.
     public let keyer: KeyerModel
+    /// N1MM function key files: the contest's associated `.mc` files and the operators' own files.
+    public let functionKeyFiles: FunctionKeyFilesModel
     /// The shared receiver audio.
     public let audio: AudioModel
     /// The contest recording and the QSO playback.
@@ -317,6 +319,8 @@ public final class AppModel {
         self.peripherals = radio.peripherals
         self.catLog = radio.catLog
         self.keyer = radio.keyer
+        self.functionKeyFiles = FunctionKeyFilesModel(config: config, contest: contest, operating: operating,
+                                                      status: status, dataDir: dataDir)
         self.audio = radio.audio
         self.recording = radio.recording
         self.dxCluster = spots.dxCluster
@@ -573,7 +577,9 @@ public final class AppModel {
             onLoaded?()
             logbook?.refreshWarnings()
         }
-        contest.onActivated = { [weak entry, weak second = vfoB.entry, weak analysis = spots.analysis] in
+        contest.onActivated = { [weak entry, weak second = vfoB.entry, weak analysis = spots.analysis,
+                                 weak files = model.functionKeyFiles] in
+            files?.contestActivated()
             analysis?.activated()
             entry?.contestActivated()
             second?.contestActivated()

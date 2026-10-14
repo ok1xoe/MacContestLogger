@@ -139,6 +139,7 @@ import Testing
         expected.clearPrefilledExchange = false
         expected.resetRxAfterRunQso = false
         expected.macroQsyStepKHz = 1
+        expected.functionKeysPerOperator = false
         expected.clubLog.ctyEnabled = true
         expected.esm.nextCallKey = -1
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
@@ -344,6 +345,7 @@ import Testing
         w.same(\.clearPrefilledExchange, \.clearPrefilledExchange, true)
         w.same(\.resetRxAfterRunQso, \.resetRxAfterRunQso, true)
         w.number(\.macroQsyStepKHz, \.macroQsyStepKHz, 47)
+        w.same(\.functionKeysPerOperator, \.functionKeysPerOperator, true)
         w.same(\.callHistoryFile, \.callHistoryFile, "/data/history.txt")
         w.same(\.callHistoryExtraFiles, \.callHistoryExtraFiles, ["/data/extra-a.txt", "/data/extra-b.txt"])
         w.same(\.callHistoryLookupEnabled, \.callHistoryLookupEnabled, false)

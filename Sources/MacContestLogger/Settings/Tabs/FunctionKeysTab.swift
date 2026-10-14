@@ -1,3 +1,4 @@
+import AppKit
 import MCLAppModel
 import MCLCore
 import SwiftUI
@@ -80,6 +81,7 @@ struct FunctionKeysTab: View {
         return SettingsGroup(title: title) {
             SettingsCaption(help)
             switcher
+            FunctionKeyFileRow(app: app, kind: fileKind, rows: fileRows)
             VStack(alignment: .leading, spacing: 6) {
                 ForEach($draft[dynamicMember: path]) { $message in
                     let index: Int = indexOf(message.id, in: draft[keyPath: path])
@@ -93,12 +95,52 @@ struct FunctionKeysTab: View {
                 VoiceMessageFooter(studio: studio, language: language, wavDir: draft.vkWavDir)
             }
         }
-        .onAppear { refreshFiles() }
+        .onAppear {
+            applyFocus()
+            refreshFiles()
+        }
+        .onChange(of: app.menu.functionKeysFocus) { applyFocus() }
         .onChange(of: requests) { studio.refresh(requests) }
         .onDisappear { studio.abandon() }
     }
 
     private var studio: VoiceMessageStudio { app.keyer.voice.studio }
+
+    /// The `.mc` file kind of the shown set.
+    private var fileKind: FunctionKeyKind {
+        switch kind {
+        case 1: return .cw
+        case 2: return .digital
+        default: return .ssb
+        }
+    }
+
+    /// The Run and S&P rows of the shown kind (a `.mc` file holds both).
+    private var fileRows: Binding<FunctionKeySetDraft> {
+        let paths: (WritableKeyPath<ConfigurerDraft, [FunctionKeyDraft]>, WritableKeyPath<ConfigurerDraft, [FunctionKeyDraft]>)
+        switch kind {
+        case 1: paths = (\.cwRun, \.cwSp)
+        case 2: paths = (\.digiRun, \.digiSp)
+        default: paths = (\.vkRun, \.vkSp)
+        }
+        return Binding(get: { FunctionKeySetDraft(run: draft[keyPath: paths.0], sp: draft[keyPath: paths.1]) },
+                       set: { value in
+                           draft[keyPath: paths.0] = value.run
+                           draft[keyPath: paths.1] = value.sp
+                       })
+    }
+
+    /// A right click on an F-key button opened the tab: its set is shown.
+    private func applyFocus() {
+        guard let focus = app.menu.functionKeysFocus else { return }
+        app.menu.functionKeysFocus = nil
+        switch focus.kind {
+        case .cw: kind = 1
+        case .digital: kind = 2
+        case .ssb: kind = 0
+        }
+        run = focus.run
+    }
 
     private func request(_ index: Int, _ message: FunctionKeyDraft) -> VoiceMessageStudio.Request {
         VoiceMessageStudio.Request(slot: VoiceMessageStudio.Slot(run: run, index: index), text: message.text,
@@ -263,5 +305,96 @@ private struct RunSpGroup: View {
                     "Opakování CQ: Alt+R nebo příkaz RPT zapne, Esc vypne, psaní volačky pozastaví, Ctrl+R změní pauzu."))
             }
         }
+    }
+}
+
+/// The Run and S&P rows of one message set.
+struct FunctionKeySetDraft {
+    var run: [FunctionKeyDraft]
+    var sp: [FunctionKeyDraft]
+
+    var keys: FunctionKeySet {
+        FunctionKeySet(run: run.map { $0.toMessage() }, sp: sp.map { $0.toMessage() })
+    }
+
+    /// The rows with the labels and texts of `keys` (by index).
+    mutating func take(_ keys: FunctionKeySet) {
+        for index in run.indices where index < keys.run.count {
+            run[index].label = keys.run[index].label
+            run[index].text = keys.run[index].text
+        }
+        for index in sp.indices where index < keys.sp.count {
+            sp[index].label = keys.sp[index].label
+            sp[index].text = keys.sp[index].text
+        }
+    }
+}
+
+/// N1MM Function Key Editor → File: load / save a `.mc` file, copy the messages to the clipboard, and the active
+/// contest's associated file of this set (loaded whenever the contest opens, written when the set changes).
+private struct FunctionKeyFileRow: View {
+    let app: AppModel
+    let kind: FunctionKeyKind
+    @Binding var rows: FunctionKeySetDraft
+
+    private var language: LanguageModel { app.language }
+    private var files: FunctionKeyFilesModel { app.functionKeyFiles }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                SettingsButton(language.tr("Načíst .mc…"), borderless: true) { load(associate: false) }
+                SettingsButton(language.tr("Uložit .mc…"), borderless: true) { save(associate: false) }
+                SettingsButton(language.tr("Kopírovat do schránky"), borderless: true) { copy() }
+                Spacer(minLength: 0)
+            }
+            if app.contest.activeId != nil {
+                HStack(spacing: 8) {
+                    SettingsCaption(files.associatedFile(kind).map { language.tr("Soubor závodu: %s", .string($0)) }
+                                    ?? language.tr("Závod nemá vlastní soubor zpráv (platí tyto zprávy)."))
+                    Spacer(minLength: 0)
+                    SettingsButton(language.tr("Přiřadit soubor k závodu…"), borderless: true) { load(associate: true) }
+                    SettingsButton(language.tr("Uložit jako soubor závodu…"), borderless: true) { save(associate: true) }
+                    if files.associatedFile(kind) != nil {
+                        SettingsButton(language.tr("Zrušit přiřazení"), borderless: true) {
+                            Task { await files.associate(kind, path: nil) }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func load(associate: Bool) {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.message = language.tr("Vyber soubor F-kláves (.mc, formát N1MM)")
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard let keys = FunctionKeyFilesModel.read(url) else {
+            app.status.show("Soubor F-kláves %s nejde načíst", .string(url.path))
+            return
+        }
+        rows.take(keys)
+        if associate {
+            Task { await files.associate(kind, path: url.path) }
+        }
+    }
+
+    private func save(associate: Bool) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = kind.rawValue + " Messages.mc"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard FunctionKeyFilesModel.write(rows.keys, kind: kind, to: url) else {
+            app.status.show("Soubor F-kláves %s nejde uložit", .string(url.path))
+            return
+        }
+        if associate {
+            Task { await files.associate(kind, path: url.path) }
+        }
+    }
+
+    private func copy() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(FunctionKeyFilesModel.clipboardText(rows.keys, kind: kind), forType: .string)
     }
 }
