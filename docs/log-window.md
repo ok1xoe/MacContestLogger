@@ -6,6 +6,36 @@ The window shows the QSOs of the active contest. In free logging (no contest
 open) it shows the QSOs logged without a contest — see
 [Getting started → Free logging](zaciname.md#free-logging-without-a-contest).
 
+## Row menu
+
+Right-click a QSO (as N1MM's [Log window right-click menu](https://n1mmwp.hamdocs.com/manual-windows/log-window/#Right-click_Menu)):
+
+| Item | Action |
+|---|---|
+| **Upravit QSO…** (Edit QSO...) | the edit dialog of the QSO (every field). **◀ / ▶** save the changes and move to the previous / next QSO of the table; the serial numbers have up/down arrows and the time a calendar (UTC) |
+| **Označit jako X-QSO** (Mark as X-QSO) | see [Notes and X-QSO](#notes-and-x-qso) |
+| **Přehrát nahrávku QSO** (Play QSO recording) | plays the recording of the QSO |
+| **Naladit na frekvenci QSO** (Jump to this frequency) | tunes the rig to the QSO's frequency and mode |
+| **Přepočítat od tohoto QSO** (Rescore from this QSO on) | rescores the QSOs from this one on (in a contest), like [Rescore last N hours](score-window.md#rescoring-the-last-n-hours) |
+| **Kopírovat jako ADIF** (Copy as ADIF) | copies the QSO — or the whole selection it is part of — to the clipboard as ADIF |
+| **Smazat QSO** (Delete QSO) | deletes the QSO; it can be restored, see [Deleted QSOs](#deleted-qsos) |
+
+## View options
+
+The **⋯** button right of the search field:
+
+- **Jen QSO s poznámkou** (Only QSOs with a note) — N1MM *View → Notes*: the table shows only the QSOs with a note,
+  the search still applies;
+- **Zobrazit sloupec Mód** (Show mode column) — N1MM *Show Mode Column*, remembered in the settings;
+- **Smazaná QSO…** (Deleted QSOs...) — see below.
+
+## Deleted QSOs
+
+Like N1MM's DELETEDQS log, every QSO deleted from the log (the row menu, the selection, Ctrl+D, WIPELOG) is kept in
+the database. **⋯ → Smazaná QSO…** lists the deleted QSOs of the contest, the most recently deleted first; select them
+and press **Obnovit** (Restore) to put them back. A restored QSO keeps its time and every field, is logged again as a
+new QSO (in a multi-op cluster it is sent to the other stations as a new QSO) and the score is recalculated.
+
 ## Bulk edits
 
 In selection mode (select rows by clicking, Shift+click for a range, Cmd+click for
@@ -17,8 +47,10 @@ individual rows) there is an edit menu in the bar above the table, as in N1MM+
 | **Operátor…** (Operator...) | sets the operator on the selected QSOs (empty = delete) |
 | **Mód…** (Mode...) | sets the mode (CW, SSB, RTTY, FT8...) |
 | **Frekvence…** (Frequency...) | sets the frequency in kHz, and the band from it |
+| **Stanice…** (Station...) | N1MM *Change Station Name*: sets the multi-op station the QSOs were logged on |
 | **Posun času…** (Time shift...) | shifts times: `+5` / `-5` minutes, `+1:30`, `-2h`, `-90m` |
 | **Interpolovat čas** (Interpolate time) | the first and last selected QSO keep their times, the others get evenly distributed times between them, rounded to minutes (a paper log entered after the fact). Requires at least 3 QSOs |
+| **Kopírovat jako ADIF** (Copy as ADIF) | the selected QSOs to the clipboard as ADIF (in the row menu) |
 | **Smazat** (Delete) | deletes the selected QSOs (with confirmation) |
 
 Each edit is saved, in a cluster it is sent to the other stations, and the score is

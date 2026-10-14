@@ -90,6 +90,16 @@ public final class LogbookService {
         try repository.delete(ids: ids)
     }
 
+    /// Keeps copies of QSOs deleted from the log, stamped with the current time (N1MM DELETEDQS).
+    public func archiveDeleted(_ qsos: [Qso]) throws {
+        try repository.archiveDeleted(qsos, at: now())
+    }
+
+    /// The deleted QSOs of the active contest, the most recently deleted first.
+    public func findDeleted() throws -> [LogbookRepository.DeletedQso] {
+        try repository.findDeleted(contestId: activeContestId)
+    }
+
     public func deleteAll() throws {
         try repository.deleteAll()
     }

@@ -75,6 +75,9 @@ struct LogWindowView: View {
         .sheet(isPresented: Binding(get: { table.confirmingDelete }, set: { _ in })) {
             DeleteSelectionSheet(app: app, table: table)
         }
+        .sheet(isPresented: Binding(get: { table.deleted != nil }, set: { if !$0 { table.closeDeleted() } })) {
+            DeletedQsosSheet(app: app, table: table)
+        }
     }
 }
 

@@ -231,6 +231,8 @@ public final class AppModel {
     @ObservationIgnored public internal(set) var pluginWindows: PluginWindowsModel!
     /// The Info window and the tool windows' models.
     @ObservationIgnored public internal(set) var infoTools: InfoTools!
+    /// The system pasteboard (`Environment.clipboard`); nothing in tests unless set.
+    @ObservationIgnored public internal(set) var clipboard: @MainActor (String) -> Void = { _ in }
     /// The pileup simulator and its safety gate.
     @ObservationIgnored public internal(set) var simulator: SimulatorModel!
     /// The Move Multipliers window.
@@ -499,6 +501,8 @@ public final class AppModel {
         Self.wireIntegrations(model, environment: environment)
         Self.wireNetwork(model)
         Self.wireInfoTools(model, environment: environment)
+        // N1MM „Show Mode Column" of the log window.
+        model.logbook.setHiddenColumns(model.config.config.logShowModeColumn ? [] : [.mode])
         if let scan = environment.settingsToolPorts.rigScan as? LiveRigScan {
             scan.link.attach(radio.rig)
         }

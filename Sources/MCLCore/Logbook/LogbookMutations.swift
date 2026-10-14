@@ -105,6 +105,8 @@ public struct LogbookMutations: Sendable {
             seen.insert(id)
             stored.append(current)
         }
+        // N1MM keeps every deleted QSO in its DELETEDQS log: a copy goes to the archive first.
+        try service.archiveDeleted(stored)
         var hard: [Int64] = []
         for current in stored {
             if tombstone && !current.uuid.isEmpty {

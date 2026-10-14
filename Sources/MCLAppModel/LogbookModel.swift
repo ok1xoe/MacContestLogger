@@ -66,6 +66,13 @@ public final class LogbookModel {
     public private(set) var warningsRevision: Int = 0
     /// Kotlin `onlyWarnings`: the view shows only QSOs with a warning.
     public private(set) var onlyWarnings: Bool = false
+    /// N1MM View → Notes: the view shows only QSOs with a note.
+    public private(set) var onlyNotes: Bool = false
+    /// The columns of the active contest before the operator's hidden ones are taken out.
+    private var contestColumns: [LogTableColumns.Column] =
+        LogTableColumns.visible(usesSerial: true, usesExchangeBeyondRst: true, contestActive: false)
+    /// Columns the operator hid (N1MM „Show Mode Column" off hides the mode).
+    public private(set) var hiddenColumns: Set<LogTableColumns.Column> = []
 
     /// Effects this model does not perform itself (cluster publish, plugins, broadcast…), in the order they came.
     public private(set) var deferredEffects: [LogEffect] = []
@@ -113,8 +120,8 @@ public final class LogbookModel {
     /// stored counts locally, above it).
     @ObservationIgnored private var serverSerialInUse: Int?
 
-    @ObservationIgnored private let database: DatabaseModel
-    @ObservationIgnored private let status: StatusModel
+    @ObservationIgnored let database: DatabaseModel
+    @ObservationIgnored let status: StatusModel
     @ObservationIgnored private var mutations = LogbookMutations(existing: [])
     /// Serials handed out for submissions not stored yet (one unit per QSO copy still to be inserted).
     public private(set) var reservedSerials: Int = 0
@@ -941,9 +948,25 @@ public final class LogbookModel {
         scheduleView()
     }
 
+    /// N1MM View → Notes: only the QSOs with a note, or all of them again.
+    public func setOnlyNotes(_ on: Bool) {
+        guard on != onlyNotes else { return }
+        onlyNotes = on
+        scheduleView()
+    }
+
+    /// Hides columns of the table (N1MM „Show Mode Column").
+    public func setHiddenColumns(_ hidden: Set<LogTableColumns.Column>) {
+        guard hidden != hiddenColumns else { return }
+        hiddenColumns = hidden
+        visibleColumns = contestColumns.filter { !hidden.contains($0) }
+        scheduleView()
+    }
+
     /// The contest changed: visible columns, the marks and the warnings follow it.
     public func setContestColumns(_ columns: [LogTableColumns.Column]) {
-        visibleColumns = columns
+        contestColumns = columns
+        visibleColumns = columns.filter { !hiddenColumns.contains($0) }
         scheduleView()
         scheduleMarks()
         dropWarningsSession()
@@ -979,7 +1002,7 @@ public final class LogbookModel {
     /// A new row goes to the end of the time-ascending, unfiltered view without a re-sort (`QsoSort` is stable and
     /// puts QSOs without a time last).
     private func canAppendDirectly(_ qso: Qso) -> Bool {
-        guard viewCurrent, query.isEmpty, !onlyWarnings, effectiveSort == .time, ascending,
+        guard viewCurrent, query.isEmpty, !onlyWarnings, !onlyNotes, effectiveSort == .time, ascending,
               let time = qso.timestampUtc else {
             return false
         }
@@ -1009,12 +1032,16 @@ public final class LogbookModel {
         // current one when its result is taken.
         let previous: [Qso]? = diff ? displayed : nil
         let warned: Set<Int64>? = onlyWarnings ? Set(warnings.ids) : nil
+        let notesOnly: Bool = onlyNotes
         viewTask = Task { [weak self] in
             let result: (rows: [Qso], change: ViewChange)? = try? await BlockingQueue.run {
                 Perf.measure("view", String(snapshot.count) + " qso") {
                     var filtered: [Qso] = QsoSearch.filter(snapshot, query)
                     if let warned {
                         filtered = filtered.filter { qso in qso.id.map { warned.contains($0) } ?? false }
+                    }
+                    if notesOnly {
+                        filtered = filtered.filter { !KotlinStrings.isBlank($0.comment) }
                     }
                     let sorted: [Qso] = QsoSort.sort(filtered, key: LogTableColumns.sortKey(for: column),
                                                      ascending: ascending)

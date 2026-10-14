@@ -213,6 +213,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var entryBandButtonsClick: Bool = true
     /// N1MM „Show GMT Time": the UTC clock in the Entry window. Swift-only key.
     public var entryShowUtcClock: Bool = false
+    /// N1MM „Show Mode Column" of the Log window. Swift-only key.
+    public var logShowModeColumn: Bool = true
     /// The Entry window parts hidden by its right-click menu (`EntrySection` raw values). Swift-only key.
     public var entryHiddenSections: [String] = []
     /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
@@ -284,6 +286,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case entryHiddenBands
         case entryBandButtonsClick
         case entryShowUtcClock
+        case logShowModeColumn
         case entryHiddenSections
         case resetRxAfterRunQso
         case macroQsyStepKHz, functionKeysPerOperator
@@ -410,6 +413,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         entryHiddenBands = c.value(.entryHiddenBands, default: d.entryHiddenBands)
         entryBandButtonsClick = c.value(.entryBandButtonsClick, default: d.entryBandButtonsClick)
         entryShowUtcClock = c.value(.entryShowUtcClock, default: d.entryShowUtcClock)
+        logShowModeColumn = c.value(.logShowModeColumn, default: d.logShowModeColumn)
         entryHiddenSections = c.value(.entryHiddenSections, default: d.entryHiddenSections)
         resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
         let qsyStep: Int = c.value(.macroQsyStepKHz, default: d.macroQsyStepKHz)

@@ -35,6 +35,20 @@ public struct QsoEditForm: Equatable, Sendable {
         xqso = qso.xqso
     }
 
+    /// The time field as a date for the calendar of the dialog (`nil` while the text is not a valid time); setting it
+    /// writes the text.
+    public var date: Date? {
+        get { N1mmContactParser.parseLocalDateTimeUtc(KotlinText.trim(time)) }
+        set { time = LogTableColumns.editTimeText(newValue) }
+    }
+
+    /// The arrows of a serial number field: the number `delta` up or down, never below 1 (an empty or invalid field
+    /// starts from 0).
+    public static func steppedSerial(_ text: String, by delta: Int) -> String {
+        let current: Int = Int(KotlinText.trim(text)) ?? 0
+        return String(max(1, current + delta))
+    }
+
     /// Why the form cannot be saved (a Czech translation key; `%s` = the offending text).
     public enum Problem: Error, Equatable, Sendable {
         case blankCall

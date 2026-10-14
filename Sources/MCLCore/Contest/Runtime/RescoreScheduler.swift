@@ -200,6 +200,18 @@ public final class RescoreScheduler {
         return parts
     }
 
+    /// `summary` of N1MM „Rescore from this point on": the QSOs from `since` (UTC) on.
+    nonisolated public static func fromSummary(since: Date, replayed: Int, skipped: Int, before: Int64?, after: Int64,
+                                               filled: Int) -> [ContestMessage] {
+        var parts: [ContestMessage] = summary(replayed: replayed, skipped: skipped, before: before, after: after,
+                                              filled: filled)
+        parts[0] = ContestMessage("Skóre přepočteno od %s: %s QSO, celkem %s (%s)",
+                                  parts: [.value(.string(LogTableColumns.editTimeText(since))),
+                                          .value(.int(replayed)), .value(.string(String(after))),
+                                          .message(changeMessage(before, after))])
+        return parts
+    }
+
     nonisolated private static func changeMessage(_ before: Int64?, _ after: Int64) -> ContestMessage {
         if let before, before != after {
             return ContestMessage("předtím %s", .string(String(before)))

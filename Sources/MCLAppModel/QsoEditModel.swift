@@ -67,6 +67,25 @@ public final class QsoEditModel {
         onClose?()
     }
 
+    /// Opens the QSO `delta` rows away in the log window's order; `false` = there is none.
+    @ObservationIgnored var stepTo: (@MainActor (Int) -> Bool)?
+
+    /// The previous / next buttons of a logged QSO (N1MM moves through the log with the arrows).
+    public var canStep: Bool {
+        stepTo != nil
+    }
+
+    /// Previous (-1) / next (+1): the changes are saved first (a refused form stays open with its problem), then the
+    /// neighbouring QSO of the log window is shown (at either end the dialog stays on this one).
+    public func step(_ delta: Int) {
+        if let refused = onSave(self) {
+            problem = refused
+            return
+        }
+        problem = nil
+        _ = stepTo?(delta)
+    }
+
     public func setExchangeField(_ index: Int, _ text: String) {
         guard exchangeFields.indices.contains(index) else { return }
         exchangeFields[index].text = KotlinStrings.uppercase(text)
@@ -88,22 +107,7 @@ extension EntryModel {
 
     /// The edit dialog for the stored QSO `id`.
     public func editLoggedContact(id: Int64) {
-        guard let qso = logbook.rows.first(where: { $0.id == id }) else { return }
-        let logbook: LogbookModel = self.logbook
-        let model = QsoEditModel(target: .logged(id), form: QsoEditForm(qso)) { model in
-            guard let old = logbook.rows.first(where: { $0.id == id }) else {
-                return ContestMessage("QSO už v deníku není")
-            }
-            switch model.form.apply(to: old) {
-            case .failure(let problem):
-                return problem.message
-            case .success(let new):
-                if new != old {
-                    logbook.startUpdate(LogbookMutations.Edit(old: old, new: new))
-                }
-                return nil
-            }
-        }
+        guard let model = QsoEditModel.logged(id: id, logbook: logbook, dialogs: dialogs) else { return }
         dialogs.openQsoEdit(model)
     }
 
@@ -158,5 +162,41 @@ extension EntryModel {
         pendingNote = note.isEmpty ? nil : note
         focusRequest += 1
         return nil
+    }
+}
+
+// MARK: - a logged QSO
+
+extension QsoEditModel {
+
+    /// The edit dialog of the stored QSO `id` (Ctrl+Y, the Entry window's Edit button, the log window's „Upravit
+    /// QSO…"); its previous / next buttons move through the log window's rows. `nil` = no such QSO.
+    public static func logged(id: Int64, logbook: LogbookModel, dialogs: DialogsModel) -> QsoEditModel? {
+        guard let qso = logbook.rows.first(where: { $0.id == id }) else { return nil }
+        let model = QsoEditModel(target: .logged(id), form: QsoEditForm(qso)) { [weak logbook] model in
+            guard let logbook, let old = logbook.rows.first(where: { $0.id == id }) else {
+                return ContestMessage("QSO už v deníku není")
+            }
+            switch model.form.apply(to: old) {
+            case .failure(let problem):
+                return problem.message
+            case .success(let new):
+                if new != old {
+                    logbook.startUpdate(LogbookMutations.Edit(old: old, new: new))
+                }
+                return nil
+            }
+        }
+        model.stepTo = { [weak logbook, weak dialogs] delta in
+            guard let logbook, let dialogs else { return false }
+            let ids: [Int64] = logbook.displayed.compactMap(\.id)
+            guard let index = ids.firstIndex(of: id), ids.indices.contains(index + delta),
+                  let next = logged(id: ids[index + delta], logbook: logbook, dialogs: dialogs) else {
+                return false
+            }
+            dialogs.openQsoEdit(next)
+            return true
+        }
+        return model
     }
 }

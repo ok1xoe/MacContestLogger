@@ -44,9 +44,114 @@ struct LogSearchBar: View {
                 }
                 .buttonStyle(.borderless)
             }
+            LogViewMenu(app: app, table: table)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
+    }
+}
+
+/// The log window's view options (N1MM's Log window menu and View → Notes): only the QSOs with a note, the mode
+/// column, and the deleted QSOs (N1MM DELETEDQS).
+struct LogViewMenu: View {
+    let app: AppModel
+    let table: LogTableModel
+
+    var body: some View {
+        let language: LanguageModel = app.language
+        let logbook: LogbookModel = app.logbook
+        Menu {
+            Toggle(isOn: Binding(get: { logbook.onlyNotes }, set: { _ in table.toggleNotes() })) {
+                Text(verbatim: language.tr("Jen QSO s poznámkou"))
+            }
+            Toggle(isOn: Binding(get: { table.showsModeColumn }, set: { table.setShowsModeColumn($0) })) {
+                Text(verbatim: language.tr("Zobrazit sloupec Mód"))
+            }
+            Divider()
+            Button(language.tr("Smazaná QSO…")) {
+                table.openDeleted()
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .accessibilityLabel(Text(verbatim: language.tr("Zobrazení deníku")))
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(language.tr("Zobrazení deníku"))
+    }
+}
+
+/// N1MM's DELETEDQS log: the deleted QSOs of the contest, the most recently deleted first; „Obnovit" puts the chosen
+/// ones back into the log.
+struct DeletedQsosSheet: View {
+    let app: AppModel
+    let table: LogTableModel
+
+    @StateObject private var form = DialogFormState()
+    @StateObject private var keys = DialogKeyMonitor(enterSubmits: false, escapeOnPress: true)
+
+    var body: some View {
+        let language: LanguageModel = app.language
+        let table: LogTableModel = self.table
+        let rows: [LogbookRepository.DeletedQso] = table.deleted ?? []
+        VStack(alignment: .leading, spacing: 8) {
+            WindowTopBar(size: $form.fontSize, language: language) {
+                Text(verbatim: language.tr("Smazaná QSO"))
+                    .windowFont(15, weight: .semibold)
+            }
+            if rows.isEmpty {
+                Text(verbatim: language.tr("Žádná smazaná QSO"))
+                    .windowFont(13)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                Table(rows, selection: Binding(get: { table.deletedSelection },
+                                               set: { table.deletedSelection = $0 })) {
+                    TableColumn(language.tr("Smazáno")) { row in
+                        Text(verbatim: LogTableColumns.timeText(row.deletedAt))
+                    }
+                    TableColumn(language.tr("Čas UTC")) { row in
+                        Text(verbatim: LogTableColumns.timeText(row.qso.timestampUtc))
+                    }
+                    TableColumn(language.tr("Volačka")) { row in
+                        Text(verbatim: row.qso.call)
+                    }
+                    TableColumn(language.tr("Pásmo")) { row in
+                        Text(verbatim: row.qso.band?.adif ?? "")
+                    }
+                    TableColumn(language.tr("Mód")) { row in
+                        Text(verbatim: row.qso.mode?.rawValue ?? "")
+                    }
+                    TableColumn("Exchange") { row in
+                        Text(verbatim: row.qso.exchangeRcvd)
+                    }
+                }
+                .windowFont(13, design: .monospaced)
+                .accessibilityLabel(Text(verbatim: language.tr("Smazaná QSO")))
+            }
+            DialogButtonRow {
+                Button(language.tr("Zavřít")) {
+                    table.closeDeleted()
+                }
+                Button(language.tr("Obnovit")) {
+                    table.restoreDeleted()
+                }
+                .disabled(table.deletedSelection.isEmpty)
+            }
+        }
+        .padding(16)
+        .frame(minWidth: 620, minHeight: 360)
+        .environment(\.windowFontSize, form.fontSize)
+        .background(WindowAccessor { window in
+            keys.attach(window)
+        })
+        .onAppear {
+            keys.onEscape = { table.closeDeleted() }
+        }
+        .onDisappear {
+            keys.detach()
+        }
     }
 }
 

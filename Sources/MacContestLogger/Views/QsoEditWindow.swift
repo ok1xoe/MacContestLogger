@@ -31,7 +31,15 @@ private struct QsoEditContent: View {
         VStack(alignment: .leading, spacing: 8) {
             Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 6) {
                 if model.editsLoggedQso {
-                    row(language.tr("Čas UTC"), $model.form.time)
+                    row(language.tr("Čas UTC"), $model.form.time) {
+                        DatePicker(selection: dateBinding, displayedComponents: [.date, .hourAndMinute]) {
+                            Text(verbatim: language.tr("Čas UTC"))
+                        }
+                        .labelsHidden()
+                        .datePickerStyle(.stepperField)
+                        .environment(\.timeZone, TimeZone(identifier: "UTC") ?? .current)
+                        .disabled(model.form.date == nil)
+                    }
                 }
                 row(language.tr("Volačka"), uppercased(\.call))
                 row(language.tr("Frekvence (kHz)"), $model.form.freqKHz)
@@ -45,8 +53,8 @@ private struct QsoEditContent: View {
                 } else {
                     row(language.tr("RST rx"), $model.form.rstRcvd)
                     if model.editsLoggedQso {
-                        row(language.tr("Nr tx"), $model.form.serialSent)
-                        row(language.tr("Nr rx"), $model.form.serialRcvd)
+                        serialRow(language.tr("Nr tx"), \.serialSent)
+                        serialRow(language.tr("Nr rx"), \.serialRcvd)
                     }
                     row("Exchange", uppercased(\.exchange))
                 }
@@ -69,6 +77,15 @@ private struct QsoEditContent: View {
             }
             Spacer(minLength: 0)
             DialogButtonRow {
+                if model.canStep {
+                    IconButton(symbol: "chevron.left", label: language.tr("Předchozí QSO")) {
+                        model.step(-1)
+                    }
+                    IconButton(symbol: "chevron.right", label: language.tr("Další QSO")) {
+                        model.step(1)
+                    }
+                    Spacer()
+                }
                 Button(language.tr("Zrušit")) {
                     model.cancel()
                 }
@@ -96,17 +113,47 @@ private struct QsoEditContent: View {
                        set: { model.form[keyPath: path] = KotlinStrings.uppercase($0) })
     }
 
+    /// The calendar of the time field (N1MM's time picker), in UTC.
+    private var dateBinding: Binding<Date> {
+        let model: QsoEditModel = self.model
+        return Binding(get: { model.form.date ?? Date(timeIntervalSince1970: 0) },
+                       set: { model.form.date = $0 })
+    }
+
+    /// A serial number with N1MM's up/down arrows.
+    private func serialRow(_ label: String, _ path: WritableKeyPath<QsoEditForm, String>) -> some View {
+        let model: QsoEditModel = self.model
+        return row(label, $model.form[dynamicMember: path]) {
+            Stepper {
+                Text(verbatim: label)
+            } onIncrement: {
+                model.form[keyPath: path] = QsoEditForm.steppedSerial(model.form[keyPath: path], by: 1)
+            } onDecrement: {
+                model.form[keyPath: path] = QsoEditForm.steppedSerial(model.form[keyPath: path], by: -1)
+            }
+            .labelsHidden()
+        }
+    }
+
     private func row(_ label: String, _ text: Binding<String>) -> some View {
+        row(label, text) { EmptyView() }
+    }
+
+    private func row<Accessory: View>(_ label: String, _ text: Binding<String>,
+                                      @ViewBuilder accessory: () -> Accessory) -> some View {
         GridRow {
             Text(verbatim: label)
                 .foregroundStyle(.secondary)
                 .gridColumnAlignment(.trailing)
-            TextField(text: text) {
-                Text(verbatim: label)
+            HStack(spacing: 4) {
+                TextField(text: text) {
+                    Text(verbatim: label)
+                }
+                .textFieldStyle(.roundedBorder)
+                .windowFont(13, design: .monospaced)
+                .accessibilityLabel(Text(verbatim: label))
+                accessory()
             }
-            .textFieldStyle(.roundedBorder)
-            .windowFont(13, design: .monospaced)
-            .accessibilityLabel(Text(verbatim: label))
         }
     }
 }

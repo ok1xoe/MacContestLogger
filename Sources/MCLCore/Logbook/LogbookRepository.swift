@@ -323,6 +323,77 @@ public final class LogbookRepository {
         try stmt.step()
     }
 
+    // MARK: - Deleted QSOs (N1MM DELETEDQS)
+
+    /// A QSO kept after it was deleted from the log.
+    public struct DeletedQso: Equatable, Sendable, Identifiable {
+        public var id: Int64 { archiveId }
+        /// The row of the archive (not the QSO's former id).
+        public let archiveId: Int64
+        /// When it was deleted.
+        public let deletedAt: Date
+        /// The QSO as it was stored when deleted (`id` = its former id).
+        public let qso: Qso
+
+        public init(archiveId: Int64, deletedAt: Date, qso: Qso) {
+            self.archiveId = archiveId
+            self.deletedAt = deletedAt
+            self.qso = qso
+        }
+    }
+
+    /// Keeps copies of QSOs deleted from the log (N1MM moves them to the DELETEDQS log).
+    public func archiveDeleted(_ qsos: [Qso], at date: Date) throws {
+        guard !qsos.isEmpty else { return }
+        let stmt = try connection.prepare("""
+            INSERT INTO deleted_qso (timestamp_utc, call, freq_hz, band, mode, rst_sent, rst_rcvd,
+                             exchange_sent, exchange_rcvd, serial_sent, serial_rcvd, points,
+                             multiplier, run_mode, operator, comment, dxcc_entity, dxcc_name, continent,
+                             uuid, station_id, version, updated_at_utc, deleted, contest_id, xqso,
+                             deleted_at_utc, original_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """)
+        defer { stmt.finalize() }
+        for qso in qsos {
+            var kept: Qso = qso
+            kept.deleted = false
+            let next: Int32 = try bind(stmt, kept)
+            try stmt.bindInt64(try Self.epochMillis(date), at: next)
+            try stmt.bindInt64(qso.id, at: next + 1)
+            try stmt.step()
+            try stmt.reset()
+        }
+    }
+
+    /// The deleted QSOs of a contest (`""` = free logging), the most recently deleted first.
+    public func findDeleted(contestId: String) throws -> [DeletedQso] {
+        let stmt = try connection.prepare(
+            "SELECT * FROM deleted_qso WHERE contest_id IS ? ORDER BY deleted_at_utc DESC, id DESC")
+        defer { stmt.finalize() }
+        try stmt.bindText(Self.sqlContestId(contestId), at: 1)
+        var result: [DeletedQso] = []
+        while try stmt.step() {
+            var qso: Qso = mapRow(stmt)
+            let archiveId: Int64 = qso.id ?? 0
+            qso.id = stmt.isNull(forName: "original_id") ? nil : stmt.columnInt64(forName: "original_id")
+            let deletedAt: Date = Self.date(fromEpochMillis: stmt.columnInt64(forName: "deleted_at_utc"))
+            result.append(DeletedQso(archiveId: archiveId, deletedAt: deletedAt, qso: qso))
+        }
+        return result
+    }
+
+    /// Removes rows of the archive (restored QSOs).
+    public func removeDeleted(archiveIds: [Int64]) throws {
+        guard !archiveIds.isEmpty else { return }
+        let stmt = try connection.prepare("DELETE FROM deleted_qso WHERE id=?")
+        defer { stmt.finalize() }
+        for id in archiveIds {
+            try stmt.bindInt64(id, at: 1)
+            try stmt.step()
+            try stmt.reset()
+        }
+    }
+
     // MARK: - `meta` (delegation to `LogbookDatabase`)
 
     /// Corresponds to `metaGet` — in Java a method directly on `LogbookRepository`; here

@@ -387,6 +387,7 @@ import Testing
             ("Operátor…", "Operátor", "Volačka operátora (prázdné = smazat)"),
             ("Mód…", "Mód", "CW, SSB, RTTY, FT8…"),
             ("Frekvence…", "Frekvence", "Frekvence v kHz (určí i pásmo), např. 14025.5"),
+            ("Stanice…", "Stanice", "Název stanice v síti (prázdné = smazat)"),
             ("Posun času…", "Posun času", "+5 / -5 minut, +1:30, -2h"),
             ("Interpolovat čas", "Interpolace času", ""),
             ("X-QSO", "X-QSO", ""),
@@ -407,7 +408,7 @@ import Testing
         #expect(BulkAction.mode.title.text(english) == "Mode", "evaluated when shown")
         #expect(BulkAction.mode.dialogTitle(count: 3).czech == "Mód (3 QSO)")
         #expect(BulkAction.mode.dialogTitle(count: 3).text(english) == "Mode (3 QSO)")
-        #expect(BulkAction.allCases.map(\.needsText) == [true, true, true, true, false, false])
+        #expect(BulkAction.allCases.map(\.needsText) == [true, true, true, true, true, false, false])
     }
 
     @Test func operatorModeFrequencyAndShift() {
@@ -480,5 +481,18 @@ import Testing
         #expect(BulkAction.interpolate.run(text: nil, on: Self.rows(2)).status?.czech == few)
         #expect(BulkAction.interpolate.run(text: nil, on: []).status?.czech == few)
         #expect(BulkAction.interpolate.run(text: nil, on: Self.rows(2)).edits.isEmpty)
+    }
+
+    @Test func stationRenamesTheChosenRows() {
+        var a = Qso()
+        a.id = 1
+        a.call = "W1AW"
+        a.stationId = "RUN"
+        var b = a
+        b.id = 2
+        b.stationId = ""
+        let outcome = BulkAction.station.run(text: " mult ", on: [a, b])
+        #expect(outcome.edits.map(\.new.stationId) == ["mult", "mult"])
+        #expect(outcome.status?.czech == "Stanice: upraveno 2 QSO")
     }
 }

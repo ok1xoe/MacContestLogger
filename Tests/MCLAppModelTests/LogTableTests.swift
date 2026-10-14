@@ -69,7 +69,7 @@ import Testing
         let row: Qso = try #require(try await stored(app).first { $0.id == id })
         #expect(row.mode == .ssb)
         #expect(row.xqso)
-        #expect(table.menuItems(forRow: id).first == .toggleXqso(isXqso: true))
+        #expect(table.menuItems(forRow: id).contains(.toggleXqso(isXqso: true)))
         #expect(LogTableModel.MenuItem.toggleXqso(isXqso: true).title == ContestMessage("Zrušit X-QSO (počítat)"))
     }
 
@@ -168,13 +168,17 @@ import Testing
         let (app, table) = try await threeQsos()
         let w1aw: Int64 = try id(app, "W1AW")
         let dl: Int64 = try id(app, "DL1ABC")
-        let single: [LogTableModel.MenuItem] = [.toggleXqso(isXqso: false), .playRecording, .deleteOne]
+        let single: [LogTableModel.MenuItem] = [.edit, .toggleXqso(isXqso: false), .playRecording, .jumpToFrequency,
+                                                .rescoreFromHere, .copyAdif, .deleteOne]
         #expect(table.menuItems(forRow: w1aw) == single)
-        #expect(single.map(\.title) == [ContestMessage("Označit jako X-QSO (nepočítat)"),
-                                        ContestMessage("Přehrát nahrávku QSO"), .verbatim("Smazat QSO")])
-        #expect(single.map(\.isEnabled) == [true, true, true])
+        #expect(single.map(\.title) == [ContestMessage("Upravit QSO…"), ContestMessage("Označit jako X-QSO (nepočítat)"),
+                                        ContestMessage("Přehrát nahrávku QSO"),
+                                        ContestMessage("Naladit na frekvenci QSO"),
+                                        ContestMessage("Přepočítat od tohoto QSO"), ContestMessage("Kopírovat jako ADIF"),
+                                        .verbatim("Smazat QSO")])
+        #expect(single.allSatisfy { $0.isEnabled })
         table.select([w1aw, dl])
-        let bulk: [LogTableModel.MenuItem] = BulkAction.allCases.map { .bulk($0) } + [.deleteSelection]
+        let bulk: [LogTableModel.MenuItem] = BulkAction.allCases.map { .bulk($0) } + [.copyAdif, .deleteSelection]
         #expect(table.menuItems(forRow: dl) == bulk)
         #expect(LogTableModel.MenuItem.deleteSelection.title == .verbatim("Smazat"))
         // A row outside the selection gets its own items.
