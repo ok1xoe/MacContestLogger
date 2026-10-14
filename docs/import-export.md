@@ -15,10 +15,15 @@ logging, the QSOs logged without a contest:
 | `DXCC`, `COUNTRY`, `CONT` | country and continent |
 | `APP_N1MM_RUNNING` | Run (`Y`) / S&P (`N`), N1MM extension |
 | `OPERATOR`, `COMMENT` | operator, note |
+| `PFX` | WPX prefix of the call |
+| `APP_N1MM_EXCHANGE1` | the received exchange (N1MM's field) |
+| `APP_N1MM_POINTS`, `APP_N1MM_ISRUNQSO` | QSO points; Run (`1`) / S&P (`0`) |
+| `APP_N1MM_MULT1`–`3` | the multipliers the QSO counted as new (from a replay of the open contest) |
 
 Import (`IMPORT`) reads `SRX_STRING` / `STX_STRING` back into the exchange (the
 report at the start is not tripled), so export → import preserves the exchange
-also for score recalculation.
+also for score recalculation. A file from N1MM without `SRX_STRING` gives the exchange from
+`APP_N1MM_EXCHANGE1`, and `APP_N1MM_ISRUNQSO` sets Run / S&P.
 
 ### ADIF by date
 
@@ -28,6 +33,10 @@ date...) asks for the **first and last day (UTC)**; both days are included whole
 in the chosen period; **Exportovat…** (Export...) then asks for the file (suggested name
 `maccontestlogger-2026-11-28-2026-11-29.adi`). The content is the same as the whole export, limited to those
 QSOs of the active contest (or of free logging). A period without a QSO writes no file and says so.
+
+**Ze všech závodů v databázi** (From all contests in the database) — N1MM *ADIF by date from ALL contests* — counts
+and exports the QSOs of every contest stored in the open database (and of free logging) in that period. Such a file
+has no `CONTEST_ID` (the QSOs belong to different contests); the suggested name starts with `maccontestlogger-all-`.
 
 ## EDI (REG1TEST, VHF)
 
@@ -58,6 +67,23 @@ summary...) writes into the chosen directory:
 | `<CALLSIGN>.csv` | CSV (comma, quoting per RFC 4180) — time, callsign, band, kHz, mode, reports, numbers, exchanges, country, continent, Run/S&P, operator, X-QSO, note |
 | `<CALLSIGN>.txt` | a text listing with fixed columns — for printing or as an attachment |
 | `<CALLSIGN>-summary.txt` | summary: contest, station, the contest setup and station details (category, sent exchange, operators, start, locator, zones…), period, QSOs / points / multipliers / score (recalculated), band × mode table |
+
+### Text sorted by band
+
+**"Soubor → Export → Text podle pásma…"** (File → Export → Text sorted by band...) — N1MM *Export to file (generic),
+sorted by band* — writes the same fixed-column listing as `<CALLSIGN>.txt`, but band by band from the lowest band,
+in time order within each band (suggested name `<CALLSIGN>-by-band.txt`).
+
+## Cabrillo
+
+**"Soubor → Export → Export Cabrillo…"** writes Cabrillo 3.0. The contest setup offers the Cabrillo 3.0 categories,
+including `CATEGORY-TIME: 8-HOURS`, `CATEGORY-STATION: DISTRIBUTED / EXPLORER / ROVER-LIMITED / ROVER-UNLIMITED` and
+`CATEGORY-OVERLAY: YL / YOUTH / NOVICE-TECH / OVER-50`; `GRID-LOCATOR` comes from the station locator.
+
+**Copy for master.scp.** With *Settings → Other → After a Cabrillo export, prepare an e-mail with a copy to
+logs@supercheckpartial.com* (off by default; N1MM's *CC Cabrillo to logs@supercheckpartial.com*), a successful
+Cabrillo export opens a new message in your mail client addressed to `logs@supercheckpartial.com` with the file
+attached. MacContestLogger sends nothing itself — you send or discard the message.
 
 ## Merging logs
 

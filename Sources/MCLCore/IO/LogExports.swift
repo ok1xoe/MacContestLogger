@@ -101,13 +101,30 @@ public enum LogExports {
         "%5s %-16s %-12s %5s %9s %-5s %-4s %-12s %-4s %-14s %s%n",
         "#", "Čas UTC", "Volačka", "Pásmo", "kHz", "Mód", "RSTs", "Výměna odesl.", "RSTp", "Výměna přij.", "Pozn.")
 
+    /// N1MM „Export to file (generic) — sorted by band": the time order within each band, the bands from the lowest
+    /// (QSOs without a band last). Numbered in that order.
+    public static func textByBand(_ title: String, _ qsos: [Qso]) -> String {
+        let order: [Band: Int] = Dictionary(uniqueKeysWithValues: Band.allCases.enumerated().map { ($1, $0) })
+        let byTime: [(offset: Int, element: Qso)] = Array(sorted(qsos).enumerated())
+        let byBand: [Qso] = byTime.sorted { a, b in
+            let ba: Int = a.element.band.flatMap { order[$0] } ?? Int.max
+            let bb: Int = b.element.band.flatMap { order[$0] } ?? Int.max
+            return ba != bb ? ba < bb : a.offset < b.offset
+        }.map(\.element)
+        return listing(title, byBand)
+    }
+
     /// Fixed-column text listing (for printing / attachment).
     public static func text(_ title: String, _ qsos: [Qso]) -> String {
+        listing(title, sorted(qsos))
+    }
+
+    private static func listing(_ title: String, _ ordered: [Qso]) -> String {
         var out = title + "\n"
         out += String(repeating: "-", count: max(20, title.utf16.count)) + "\n"
         out += textHeader
         var i = 1
-        for q in sorted(qsos) {
+        for q in ordered {
             let args: [JavaFormat.Arg] = [
                 .int(i), .string(q.timestampUtc.map(time) ?? ""), .string(q.call), .string(q.band?.adif ?? ""),
                 .double(Double(q.freqHz) / 1000.0), .string(q.mode?.rawValue ?? ""), .string(q.rstSent),

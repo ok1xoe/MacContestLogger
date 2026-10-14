@@ -392,6 +392,20 @@ public final class ImportExportModel {
         status.show(IoTexts.otherWritten(names: written, dir: directory.path))
     }
 
+    /// N1MM „Export to file (generic) — sorted by band": the text listing of the open log, band by band (UTF-8).
+    public func exportTextByBand(to file: URL) async {
+        let title: String = PrintLayout.title(definitionName: logName, call: config.config.station.call)
+        do {
+            let qsos: [Qso] = try await readLog()
+            try await BlockingQueue.run {
+                try Data(LogExports.textByBand(title, qsos).utf8).write(to: file)
+            }
+            status.show("Exportováno do %s", .string(file.path))
+        } catch {
+            status.showVerbatim(ErrorText.message(error))
+        }
+    }
+
     // MARK: - printing (`AS:4025-4035`)
 
     /// Kotlin `printLog()` up to the dialog: the title `"<contest name or Deník> — <call>"` and the text listing of

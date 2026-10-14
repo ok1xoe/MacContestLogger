@@ -26,6 +26,9 @@ struct OtherTab: View {
                 SettingsCheckbox(
                     label: language.tr("Každý operátor má vlastní F-klávesy (kopie zpráv stanice při prvním OPON / Ctrl+O)"),
                     isOn: $draft.functionKeysPerOperator)
+                SettingsCheckbox(
+                    label: language.tr("Po exportu Cabrilla připravit e-mail s kopií na logs@supercheckpartial.com (pro master.scp)"),
+                    isOn: $draft.ccCabrilloToScp)
             }
             MenuFileGroup(app: app)
         }

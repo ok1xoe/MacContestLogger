@@ -128,6 +128,7 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var preferredCallbook: String = CallbookService.hamQth.rawValue
     /// The Dupesheet windows sort each column by suffix.
     public var dupesheetSortBySuffix: Bool = true
+    public var ccCabrilloToScp: Bool = false
     public var showSentCw: Bool = false
     /// Shift+PgUp/PgDn CW speed step (WPM), as typed.
     public var cwSpeedStepSecondary: String = ""
@@ -476,6 +477,7 @@ extension ConfigurerDraft {
         nPlusOneEnabled = config.nPlusOneEnabled
         preferredCallbook = config.preferredCallbook
         dupesheetSortBySuffix = config.dupesheetSortBySuffix
+        ccCabrilloToScp = config.ccCabrilloToScp
         showSentCw = config.showSentCw
         cwSpeedStepSecondary = String(config.cwSpeedStepSecondary)
         clearPrefilledExchange = config.clearPrefilledExchange

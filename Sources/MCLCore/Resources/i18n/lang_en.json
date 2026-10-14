@@ -1920,5 +1920,8 @@
  "Obnova z transakčního souboru: není otevřený závod": "Transaction file recovery: no contest is open",
  "Lookup (volačka před zápisem)": "Lookup (call before logging)",
  "All QSOs: přeposílat kontakty ostatních stanic na cíle Contacts": "All QSOs: forward other stations' contacts to the Contacts targets",
- "Sdílet port s dalšími aplikacemi": "Share the port with other applications"
+ "Sdílet port s dalšími aplikacemi": "Share the port with other applications",
+ "Ze všech závodů v databázi": "From all contests in the database",
+ "Po exportu Cabrilla připravit e-mail s kopií na logs@supercheckpartial.com (pro master.scp)": "After a Cabrillo export, prepare an e-mail with a copy to logs@supercheckpartial.com (for master.scp)",
+ "Text podle pásma…": "Text sorted by band…"
 }

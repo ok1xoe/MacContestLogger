@@ -17,9 +17,10 @@ import Testing
         #expect(dims.map(\.key) == ["OPERATOR", "POWER", "OVERLAY", "STATION", "ASSISTED", "TRANSMITTER", "TIME"])
         #expect(dims[0].options == ["SINGLE-OP", "MULTI-OP", "CHECKLOG"])
         #expect(dims[0].label == "Operátor")
-        #expect(dims[2].options == ["N/A", "CLASSIC", "ROOKIE", "TB-WIRES", "YOUTH", "YL"])
-        #expect(dims[3].options == ["FIXED", "MOBILE", "PORTABLE", "ROVER", "EXPEDITION", "HQ", "SCHOOL"])
-        #expect(dims[6].options == ["N/A", "6-HOURS", "12-HOURS", "24-HOURS"])
+        #expect(dims[2].options == ["N/A", "CLASSIC", "ROOKIE", "TB-WIRES", "YOUTH", "YL", "NOVICE-TECH", "OVER-50"])
+        #expect(dims[3].options == ["FIXED", "MOBILE", "PORTABLE", "ROVER", "EXPEDITION", "HQ", "SCHOOL",
+                                    "DISTRIBUTED", "ROVER-LIMITED", "ROVER-UNLIMITED", "EXPLORER"])
+        #expect(dims[6].options == ["N/A", "6-HOURS", "8-HOURS", "12-HOURS", "24-HOURS"])
     }
 
     @Test func bandOptionsAllPlusUppercaseBands() throws {

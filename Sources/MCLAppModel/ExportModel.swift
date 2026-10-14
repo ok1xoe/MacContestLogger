@@ -29,11 +29,18 @@ extension ImportExportModel {
     ///
     /// With `range` (Export → ADIF by date) only the QSOs of those UTC days are written; none in it = no file and a
     /// status line saying so.
-    public func exportAdif(to file: URL, range: AdifDateRange? = nil) async {
-        let contestId: String? = contest.definition?.cabrillo?.contestName
+    ///
+    /// `allContests` (N1MM „ADIF by date from ALL contests"): every contest of the database and free logging, without
+    /// `CONTEST_ID` (the QSOs belong to different contests).
+    ///
+    /// The file carries N1MM's own fields (`PFX`, `APP_N1MM_EXCHANGE1`, `_POINTS`, `_ISRUNQSO`, and `_MULT1`–`3` of
+    /// the open contest's replay).
+    public func exportAdif(to file: URL, range: AdifDateRange? = nil, allContests: Bool = false) async {
+        let contestId: String? = allContests ? nil : contest.definition?.cabrillo?.contestName
         let station: Station = config.config.station.toStation()
+        let session: ContestSession? = allContests ? nil : contest.runtime.freshSession()
         do {
-            var qsos: [Qso] = try await readLog()
+            var qsos: [Qso] = allContests ? try await readAllContests() : try await readLog()
             if let range {
                 qsos = range.filter(qsos)
                 if qsos.isEmpty {
@@ -43,7 +50,12 @@ extension ImportExportModel {
             }
             let exported: [Qso] = qsos
             try await BlockingQueue.run {
-                try AdifWriter(contestId: contestId).writeToFile(exported, station: station, to: file)
+                var writer = AdifWriter(contestId: contestId)
+                writer.n1mmFields = true
+                if let session {
+                    writer.multipliers = Self.newMultipliers(session, exported)
+                }
+                try writer.writeToFile(exported, station: station, to: file)
             }
             if range != nil {
                 status.show("Exportováno do %s (%s QSO)", .string(file.path), .int(exported.count))
@@ -57,11 +69,12 @@ extension ImportExportModel {
 
     /// Kotlin `exportCabrillo(path)`: Cabrillo 3.0 of the active contest with CLAIMED-SCORE recounted from zero over
     /// the whole log (`contest.freshScore(qsos)`), the contest's setup and QTCs; US-ASCII.
-    public func exportCabrillo(to file: URL) async {
+    @discardableResult
+    public func exportCabrillo(to file: URL) async -> Bool {
         guard let definition = contest.definition, let replaySession = contest.runtime.freshSession(),
               let fieldsSession = contest.runtime.freshSession() else {
             status.show("Cabrillo: není aktivní závod")
-            return
+            return false
         }
         let request = CabrilloRequest(
             definition: definition, station: config.config.station, setup: contest.activeSetup,
@@ -71,7 +84,7 @@ extension ImportExportModel {
             qsos = try await readLog()
         } catch {
             status.showVerbatim(ErrorText.message(error))
-            return
+            return false
         }
         let built: Result<CabrilloExporter.Result, CabrilloFailure> = (try? await BlockingQueue.run {
             Self.buildCabrillo(request, qsos: qsos, replaySession: replaySession, fieldsSession: fieldsSession)
@@ -80,7 +93,7 @@ extension ImportExportModel {
         switch built {
         case .failure(let failure):
             status.showVerbatim("Cabrillo: " + failure.message)
-            return
+            return false
         case .success(let value):
             result = value
         }
@@ -91,7 +104,7 @@ extension ImportExportModel {
             }
         } catch {
             status.show("Cabrillo: zápis selhal (%s)", .string(ErrorText.message(error)))
-            return
+            return false
         }
         messages.add(result.warnings.map { "Cabrillo: " + $0 }, at: now())
         let summary: String = "Cabrillo: " + String(result.qsoCount) + " QSO → " + file.lastPathComponent
@@ -102,9 +115,34 @@ extension ImportExportModel {
                                                                    .int(result.warnings.count))],
                               separator: " · ")
         }
+        return true
     }
 
     // MARK: - work off the main thread
+
+    /// Every contest's live QSOs of the database (and free logging), by time.
+    func readAllContests() async throws -> [Qso] {
+        await contest.settleActivations()
+        return try await database.handle.run { access in
+            try access.service.findAllIncludingDeleted().filter { !$0.deleted }
+        }
+    }
+
+    /// The multipliers each QSO counted as new in a replay of the log (by `Qso.uuid`, binding order) — N1MM's
+    /// `APP_N1MM_MULT1`–`3`.
+    nonisolated static func newMultipliers(_ session: ContestSession, _ qsos: [Qso]) -> [String: [String]] {
+        var out: [String: [String]] = [:]
+        _ = ContestReplay.replay(session, qsos) { qso, result in
+            let keys: [String] = result.multipliers.compactMap { mult in
+                guard mult.countsAsMultiplier && mult.isNew, let key = mult.key, !key.isEmpty else { return nil }
+                return key
+            }
+            if !keys.isEmpty && !qso.uuid.isEmpty {
+                out[qso.uuid] = keys
+            }
+        }
+        return out
+    }
 
     /// What the Cabrillo export reads on the main thread (Kotlin reads it synchronously).
     struct CabrilloRequest: Sendable {

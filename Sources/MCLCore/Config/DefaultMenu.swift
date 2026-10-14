@@ -54,6 +54,7 @@ public enum DefaultMenu {
         "settings.print": "Tisk deníku…",
         "settings.profiles": "Profily nastavení…",
         "settings.exportOther": "Export CSV, text a souhrn…",
+        "settings.exportByBand": "Text podle pásma…",
         "contest": "Závod",
         "contest.new": "Nový závod…",
         "contest.open": "Otevřít závod…",
@@ -148,7 +149,8 @@ public enum DefaultMenu {
             ]),
             node("file.export", [
                 leaf("settings.export"), leaf("settings.exportAdifRange"), leaf("settings.exportCabrillo"),
-                leaf("settings.exportEdi"), leaf("settings.exportOther"), leaf("callhistory.exportN1mm"),
+                leaf("settings.exportEdi"), leaf("settings.exportOther"), leaf("settings.exportByBand"),
+                leaf("callhistory.exportN1mm"),
                 leaf("callhistory.exportCsv"), leaf("fkeys.export"),
             ]),
             leaf("sep.file.3"), leaf("file.post3830"), leaf("settings.print"),

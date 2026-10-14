@@ -134,6 +134,7 @@ import Testing
         expected.callHistoryShowUserInfo = true
         expected.preferredCallbook = "hamqth"
         expected.dupesheetSortBySuffix = true
+        expected.ccCabrilloToScp = false
         expected.showSentCw = false
         expected.cwSpeedStepSecondary = 1
         expected.clearPrefilledExchange = false
@@ -355,6 +356,7 @@ import Testing
         w.same(\.nPlusOneEnabled, \.nPlusOneEnabled, false)
         w.same(\.preferredCallbook, \.preferredCallbook, "qrz")
         w.same(\.dupesheetSortBySuffix, \.dupesheetSortBySuffix, false)
+        w.same(\.ccCabrilloToScp, \.ccCabrilloToScp, true)
         w.same(\.showSentCw, \.showSentCw, true)
         w.same(\.clearPrefilledExchange, \.clearPrefilledExchange, true)
         w.same(\.resetRxAfterRunQso, \.resetRxAfterRunQso, true)

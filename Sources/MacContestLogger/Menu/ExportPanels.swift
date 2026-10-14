@@ -18,9 +18,9 @@ enum ExportPanels {
             save(message: app.language.tr("Export deníku do ADIF"), name: name) { file in
                 app.exports.start { await $0.exportAdif(to: file) }
             }
-        case .saveAdifRange(let name, let range):
+        case .saveAdifRange(let name, let range, let allContests):
             save(message: app.language.tr("Export deníku do ADIF"), name: name) { file in
-                app.exports.start { await $0.exportAdif(to: file, range: range) }
+                app.exports.start { await $0.exportAdif(to: file, range: range, allContests: allContests) }
             }
         case .saveCallHistory(let format, let name):
             let message: String = format == .csv ? app.language.tr("Export call history do CSV")
@@ -37,7 +37,12 @@ enum ExportPanels {
             }
         case .saveCabrillo(let name):
             save(message: app.language.tr("Export deníku do Cabrilla"), name: name) { file in
-                app.exports.start { await $0.exportCabrillo(to: file) }
+                app.exports.start { exports in
+                    let written: Bool = await exports.exportCabrillo(to: file)
+                    if written && app.config.config.ccCabrilloToScp {
+                        ScpCabrilloMail.compose(file, call: app.config.config.station.call)
+                    }
+                }
             }
         case .openImport:
             // Kotlin `chooseImportPath()`: the title is not translated.
@@ -55,6 +60,10 @@ enum ExportPanels {
         case .chooseDirectory(.edi):
             chooseDirectory(message: app.language.tr("Adresář pro EDI soubory")) { dir in
                 app.exports.start { await $0.exportEdi(to: dir) }
+            }
+        case .saveTextByBand(let name):
+            save(message: app.language.tr("Text podle pásma…"), name: name) { file in
+                app.exports.start { await $0.exportTextByBand(to: file) }
             }
         case .chooseDirectory(.other):
             chooseDirectory(message: app.language.tr("Adresář pro CSV, text a souhrn")) { dir in
@@ -140,5 +149,20 @@ enum ExportPanels {
                 chosen(url)
             }
         }
+    }
+}
+
+/// N1MM „CC Cabrillo to logs@supercheckpartial.com": a new message in the mail client with the Cabrillo file
+/// attached. Nothing is sent by the app — the operator sends (or discards) the message.
+enum ScpCabrilloMail {
+    static let address = "logs@supercheckpartial.com"
+
+    @MainActor
+    static func compose(_ file: URL, call: String) {
+        guard let service = NSSharingService(named: .composeEmail) else { return }
+        service.recipients = [address]
+        service.subject = "Cabrillo " + call + " " + file.lastPathComponent
+        guard service.canPerform(withItems: [file]) else { return }
+        service.perform(withItems: [file])
     }
 }
