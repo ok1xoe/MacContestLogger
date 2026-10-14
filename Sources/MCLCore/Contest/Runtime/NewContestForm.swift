@@ -28,6 +28,8 @@ public struct NewContestForm: Equatable, Sendable {
     public var functionKeyFiles: [String: String] = [:]
     /// N1MM Associated Files: the contest's own master.scp (`ContestSetup.scpFile`); empty = the global one.
     public var scpFile: String = ""
+    /// N1MM Associated Files: the contest's goal file (`ContestSetup.goalFile`); empty = the goals stay as they are.
+    public var goalFile: String = ""
     /// N1MM „start the serial from other than 1": the first serial of the log (`ContestSetup.firstSerial`).
     public var firstSerial: Int = 1
 
@@ -64,6 +66,7 @@ public struct NewContestForm: Equatable, Sendable {
         form.callHistoryFile = saved?.callHistoryFile ?? ""
         form.functionKeyFiles = saved?.functionKeyFiles ?? [:]
         form.scpFile = saved?.scpFile ?? ""
+        form.goalFile = saved?.goalFile ?? ""
         let midnight: Int64 = todayMidnightUtc(now)
         if let start = expectedStart(definition, now: now), !savedStartIsCurrent(saved, definition, now: now) {
             // N1MM: the start defaults to the next weekday the contest usually starts on (`period.startWeekday`).
@@ -142,6 +145,7 @@ public struct NewContestForm: Equatable, Sendable {
         setup.callHistoryFile = KotlinText.trim(callHistoryFile)
         setup.functionKeyFiles = functionKeyFiles
         setup.scpFile = KotlinText.trim(scpFile)
+        setup.goalFile = KotlinText.trim(goalFile)
         setup.firstSerial = max(1, firstSerial)
         return setup
     }
@@ -158,6 +162,7 @@ public struct NewContestForm: Equatable, Sendable {
         }
         form.functionKeyFiles = setup.functionKeyFiles
         form.scpFile = setup.scpFile
+        form.goalFile = setup.goalFile
         form.firstSerial = setup.firstSerial
         return form
     }

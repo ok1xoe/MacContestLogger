@@ -28,12 +28,16 @@ private struct WorldMapContent: View {
         let model: WorldMapWindowModel = app.worldMap
         let language: LanguageModel = app.language
         VStack(alignment: .leading, spacing: 6) {
-            ToolChips(choices: [
-                ToolChips.Choice(label: language.tr("Čtverce"), selected: !model.dxccMode,
-                                 identifier: "worldmap.squares", action: { model.dxccMode = false }),
-                ToolChips.Choice(label: language.tr("DXCC + šedá linie"), selected: model.dxccMode,
-                                 identifier: "worldmap.dxcc", action: { model.dxccMode = true }),
-            ])
+            HStack(spacing: 8) {
+                ToolChips(choices: [
+                    ToolChips.Choice(label: language.tr("Čtverce"), selected: !model.dxccMode,
+                                     identifier: "worldmap.squares", action: { model.dxccMode = false }),
+                    ToolChips.Choice(label: language.tr("DXCC + šedá linie"), selected: model.dxccMode,
+                                     identifier: "worldmap.dxcc", action: { model.dxccMode = true }),
+                ])
+                Spacer(minLength: 0)
+                options(model, language: language)
+            }
             if model.needsContest {
                 Text(verbatim: model.noContestText)
                     .windowFont(13)
@@ -60,11 +64,42 @@ private struct WorldMapContent: View {
         }
     }
 
+    /// N1MM Grayline setup: the layers, the number of spots drawn and „Clear All Spots".
+    private func options(_ model: WorldMapWindowModel, language: LanguageModel) -> some View {
+        Menu {
+            ForEach(WorldMapLayer.allCases, id: \.self) { layer in
+                Toggle(isOn: Binding(get: { model.shows(layer) }, set: { model.setLayer(layer, shown: $0) })) {
+                    Text(verbatim: language.tr(layer.titleKey))
+                }
+            }
+            Divider()
+            Picker(language.tr("Počet zobrazených spotů"), selection: Binding(get: { model.spotCount },
+                                                                          set: { model.setSpotCount($0) })) {
+                ForEach(WorldMapModel.spotCountOptions, id: \.self) { count in
+                    Text(verbatim: count < 0 ? language.tr("Vše") : String(count)).tag(count)
+                }
+            }
+            Button(language.tr("Smazat všechny spoty z mapy")) {
+                model.clearSpots()
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .accessibilityLabel(Text(verbatim: language.tr("Volby mapy")))
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(language.tr("Volby mapy"))
+        .accessibilityIdentifier("worldmap.options")
+    }
+
     private func scene(_ model: WorldMapWindowModel) -> WorldMapScene {
         WorldMapScene(geo: model.geo, projection: model.projection, scheme: model.scheme,
                       political: model.political, dxccMode: model.dxccMode,
                       fieldStates: model.dxccMode ? [:] : model.fieldStates,
                       dots: model.dxccMode ? model.dots : [], night: model.night, nowMillis: model.nowMillis,
-                      station: model.station, title: model.title)
+                      station: model.shows(.home) ? model.station : nil, title: model.title,
+                      showSun: model.shows(.sun), showEquator: model.shows(.equator),
+                      showMeridian: model.shows(.meridian))
     }
 }

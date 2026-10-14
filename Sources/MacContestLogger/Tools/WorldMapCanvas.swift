@@ -16,12 +16,17 @@ struct WorldMapScene: Equatable {
     var nowMillis: Int64
     var station: (lat: Double, lon: Double)?
     var title: String
+    /// N1MM Grayline setup: the Sun, the Equator and the Greenwich meridian (the home location is `station`).
+    var showSun = true
+    var showEquator = false
+    var showMeridian = false
 
     static func == (lhs: WorldMapScene, rhs: WorldMapScene) -> Bool {
         lhs.geo.rings.count == rhs.geo.rings.count && lhs.projection == rhs.projection && lhs.scheme == rhs.scheme
             && lhs.political == rhs.political && lhs.dxccMode == rhs.dxccMode && lhs.fieldStates == rhs.fieldStates
             && lhs.dots == rhs.dots && lhs.night == rhs.night && lhs.nowMillis == rhs.nowMillis
             && lhs.station?.lat == rhs.station?.lat && lhs.station?.lon == rhs.station?.lon && lhs.title == rhs.title
+            && lhs.showSun == rhs.showSun && lhs.showEquator == rhs.showEquator && lhs.showMeridian == rhs.showMeridian
     }
 }
 
@@ -264,8 +269,28 @@ final class WorldMapNSView: NSView {
             cg.strokePath()
         }
 
+        // The Equator and the Greenwich meridian (dashed).
+        if scene.showEquator || scene.showMeridian {
+            cg.saveGState()
+            cg.setStrokeColor(NSColor(argb: dark ? 0xAAFF_FFFF : 0x9900_0000).cgColor)
+            cg.setLineWidth(1)
+            cg.setLineDash(phase: 0, lengths: [6, 4])
+            if scene.showEquator {
+                let y = CGFloat(projection.equatorY(height: height))
+                cg.move(to: CGPoint(x: 0, y: y))
+                cg.addLine(to: CGPoint(x: size.width, y: y))
+            }
+            if scene.showMeridian {
+                let x = CGFloat(projection.meridianX(width: width))
+                cg.move(to: CGPoint(x: x, y: 0))
+                cg.addLine(to: CGPoint(x: x, y: size.height))
+            }
+            cg.strokePath()
+            cg.restoreGState()
+        }
+
         // The Sun (the subsolar point).
-        if let sun = projection.sunMarker(width: width, height: height, epochMillis: scene.nowMillis) {
+        if scene.showSun, let sun = projection.sunMarker(width: width, height: height, epochMillis: scene.nowMillis) {
             let center = CGPoint(x: CGFloat(sun.x), y: CGFloat(sun.y))
             cg.setFillColor(NSColor(argb: 0x33FF_EB3B).cgColor)
             cg.fillEllipse(in: CGRect(x: center.x - 14, y: center.y - 14, width: 28, height: 28))

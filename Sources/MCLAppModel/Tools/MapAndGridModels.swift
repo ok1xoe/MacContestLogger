@@ -140,6 +140,7 @@ public final class WorldMapWindowModel {
         observer = feed.addObserver { [weak self] in
             guard let self, self.isOpen else { return }
             self.spots = self.feed.snapshot()
+            self.pruneCleared()
             self.recompute()
         }
         nowMillis = Int64(now().timeIntervalSince1970 * 1_000)
@@ -252,6 +253,7 @@ public final class WorldMapWindowModel {
     /// Recomputes the dots (off the main thread) and the squares (the analysis is cheap and main-actor bound).
     func recompute() {
         guard isOpen else { return }
+        let spots: [DxSpot] = shownSpots
         if contest.isActive {
             let grid: MultGridView = analysis.current().multiplierGrid(kind: "grid", spots: spots)
             fieldStates = WorldMapModel.fieldStates(grid: grid)
@@ -306,6 +308,62 @@ public final class WorldMapWindowModel {
         tasks.append(task)
     }
 
+    // MARK: - N1MM Grayline setup
+
+    /// The spots „Clear All Spots" removed from the map (the spot list itself keeps them).
+    @ObservationIgnored private var cleared: Set<DxSpot> = []
+    /// Bumped by the options so the view redraws.
+    public private(set) var optionsRevision = 0
+
+    /// The spots the map draws: not cleared, the most recent `graylineSpots` of them.
+    public var shownSpots: [DxSpot] {
+        WorldMapModel.shownSpots(spots, count: config.config.graylineSpots, cleared: cleared)
+    }
+
+    /// Whether a layer (Sun, Equator, meridian, home) is drawn.
+    public func shows(_ layer: WorldMapLayer) -> Bool {
+        _ = optionsRevision
+        return config.config.graylineLayers.contains(layer.rawValue)
+    }
+
+    /// Shows or hides a layer (saved).
+    public func setLayer(_ layer: WorldMapLayer, shown: Bool) {
+        var layers: [String] = config.config.graylineLayers.filter { $0 != layer.rawValue }
+        if shown {
+            layers.append(layer.rawValue)
+        }
+        config.config.graylineLayers = WorldMapLayer.allCases.map(\.rawValue).filter { layers.contains($0) }
+        config.saveSilently()
+        optionsRevision += 1
+    }
+
+    /// N1MM „Number of Spots to Display".
+    public var spotCount: Int {
+        _ = optionsRevision
+        return config.config.graylineSpots
+    }
+
+    /// Sets the number of spots drawn (saved).
+    public func setSpotCount(_ count: Int) {
+        config.config.graylineSpots = count
+        config.saveSilently()
+        optionsRevision += 1
+        recompute()
+    }
+
+    /// N1MM „Clear All Spots": the spots now in the list are no longer drawn; new spots are.
+    public func clearSpots() {
+        cleared = Set(spots)
+        optionsRevision += 1
+        recompute()
+    }
+
+    /// Forgets the cleared spots that left the spot list.
+    private func pruneCleared() {
+        guard !cleared.isEmpty else { return }
+        cleared.formIntersection(spots)
+    }
+
     // MARK: - click
 
     /// A click on the canvas: the field under it, the first spot whose grid begins with it, tuned to it
@@ -313,7 +371,7 @@ public final class WorldMapWindowModel {
     @discardableResult
     public func tap(x: Float, y: Float, width: Int, height: Int) -> DxSpot? {
         let point = projection.coordinates(x: x, y: y, width: width, height: height)
-        let spot: DxSpot? = WorldMapModel.tap(lon: point.lon, lat: point.lat, spots: spots,
+        let spot: DxSpot? = WorldMapModel.tap(lon: point.lon, lat: point.lat, spots: shownSpots,
                                               hasLookup: contest.runtime.dxccLookup != nil) { [callbook] call in
             callbook.gridFromCsv(call) ?? callbook.record(for: call)?.grid
         }

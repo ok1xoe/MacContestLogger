@@ -317,6 +317,38 @@ final class RecordedClipboard {
         #expect(saved.goals == ["100": 40, "101": 50])
     }
 
+    @Test func theContestsGoalFileIsLoadedWhenItOpens() async throws {
+        let tool = try await ToolApp.make()
+        let info: InfoModel = tool.tools.info
+        let file: URL = tool.app.dir.child("contest-goals.txt")
+        try "100 40\n101 50\n".write(to: file, atomically: true, encoding: .utf8)
+        var setup = ContestSetup()
+        setup.goalFile = " " + file.path + " "
+        #expect(await tool.model.contest.createAndStart(definitionId: "cq-ww-cw", setup: setup))
+        await info.settle()
+        #expect(tool.model.config.config.goals == ["100": 40, "101": 50])
+        // Without a goal file the goals stay; an unreadable one is reported.
+        #expect(await tool.model.contest.createAndStart(definitionId: "cq-ww-ssb", setup: ContestSetup()))
+        await info.settle()
+        #expect(tool.model.config.config.goals == ["100": 40, "101": 50])
+        var missing = ContestSetup()
+        missing.goalFile = tool.app.dir.child("none.txt").path
+        #expect(await tool.model.contest.createAndStart(definitionId: "cq-ww-cw", setup: missing))
+        await info.settle()
+        #expect(tool.model.status.message.hasPrefix("Soubor cílů závodu"), "\(tool.model.status.message)")
+        #expect(tool.model.config.config.goals == ["100": 40, "101": 50])
+    }
+
+    @Test func theRunMultIndicatorFollowsTheStationType() async throws {
+        let tool = try await ToolApp.make()
+        let info: InfoModel = tool.tools.info
+        #expect(info.stationTypeText == nil)
+        tool.model.config.config.cluster.stationType = .mult
+        #expect(info.stationTypeText == "MULT")
+        tool.model.config.config.cluster.stationType = .run
+        #expect(info.stationTypeText == "RUN")
+    }
+
     @Test func unrecognizedGoalLinesAreReported() async throws {
         let tool = try await ToolApp.make()
         let info: InfoModel = tool.tools.info

@@ -388,6 +388,36 @@ import Testing
         #expect(map.spots.count == 1)
     }
 
+    @Test func theGraylineOptionsAreSavedAndClearSpotsHidesTheCurrentOnes() async throws {
+        let tool = try await ToolApp.make(positions: true)
+        try await tool.start("cq-ww-cw")
+        let map: WorldMapWindowModel = tool.tools.worldMap
+        map.open()
+        #expect(map.shows(.sun) && map.shows(.home) && !map.shows(.equator) && !map.shows(.meridian))
+        map.setLayer(.equator, shown: true)
+        map.setLayer(.sun, shown: false)
+        #expect(tool.model.config.config.graylineLayers == ["equator", "home"])
+        #expect(map.shows(.equator) && !map.shows(.sun))
+
+        tool.model.dxCluster.spots.add(DxSpot(spotter: "OK1RR", freqHz: 14_030_000, dxCall: "W1AW", comment: ""))
+        tool.model.dxCluster.spots.add(DxSpot(spotter: "OK1RR", freqHz: 14_031_000, dxCall: "JA1ABC", comment: ""))
+        await eventually("the spots reach the map") { map.spots.count == 2 }
+        map.setSpotCount(1)
+        #expect(tool.model.config.config.graylineSpots == 1)
+        #expect(map.shownSpots.map(\.dxCall) == ["JA1ABC"])
+        map.setSpotCount(-1)
+        map.clearSpots()
+        #expect(map.shownSpots.isEmpty)
+        await map.settle()
+        #expect(!map.dots.contains { $0.state == .spotted })
+        tool.model.dxCluster.spots.add(DxSpot(spotter: "OK1RR", freqHz: 14_032_000, dxCall: "K1ABC", comment: ""))
+        await eventually("the new spot reaches the map") { map.spots.count == 3 }
+        #expect(map.shownSpots.map(\.dxCall) == ["K1ABC"])
+        await map.settle()
+        #expect(map.dots.contains { $0.state == .spotted })
+        map.close()
+    }
+
     @Test func theSquaresModeNeedsAContestAndShowsTheWorkedFields() async throws {
         let tool = try await ToolApp.make()
         let map: WorldMapWindowModel = tool.tools.worldMap

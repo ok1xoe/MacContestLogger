@@ -37,6 +37,9 @@ has its own.
   continues the numbering.
 - **master.scp závodu**: the contest's own Super Check Partial file (N1MM Associated Files), loaded while the contest
   is open; empty = the file from Settings. The contest's own call history and function key files work the same way.
+- **Soubor cílů závodu** (Contest goal file): a goal file (the format of the Info window's **Importovat cíle ze
+  souboru…**; band columns are summed) loaded into the Info window's goals whenever the contest opens; empty = the
+  goals stay as they are.
 - **Soubor → Nastavení závodu…** (File → Contest setup...) opens the same window over the open log: categories, sent
   exchange, operators (**Operátoři z deníku** fills in every operator logged with its QSOs), soapbox, times, the first
   serial and the associated files can be changed afterwards; the QSOs stay and the score is recomputed.

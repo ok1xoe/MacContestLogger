@@ -133,6 +133,18 @@ private struct InfoContent: View {
             if let changes = info.bandChanges {
                 timer(changes)
             }
+            if let type = info.stationTypeText {
+                Text(verbatim: type)
+                    .windowFont(13, weight: .bold, design: .monospaced)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(RoundedRectangle(cornerRadius: 4).stroke(InfoColors.operatorCall))
+                    .foregroundStyle(InfoColors.operatorCall)
+                    .help(app.language.tr("Typ stanice multi-op (Ctrl+Alt+M)"))
+                    .accessibilityLabel(Text(verbatim: app.language.tr("Typ stanice multi-op (Ctrl+Alt+M)")))
+                    .accessibilityValue(Text(verbatim: type))
+                    .accessibilityIdentifier("info.stationType")
+            }
         }
         .accessibilityIdentifier("info.timers")
     }

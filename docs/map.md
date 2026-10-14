@@ -15,6 +15,18 @@ An equivalent of N1MM **Grayline / Mapping** and the DXLog map. **Okno → Mapa 
   **red** = spotted and not yet worked, gray = nothing so far.
 - A cross = my station (locator / coordinates from Settings → Stanice (Station)).
 
+### Map options (⋯ at the top right)
+
+N1MM's Grayline setup, for both modes; the choices are saved.
+
+- **Zobrazit Slunce / rovník / nultý poledník / domácí polohu** (Show Sun / Equator / Meridian / Home
+  Location) — the Sun and the station are on by default, the Equator and the Greenwich meridian are drawn
+  as dashed lines when switched on.
+- **Počet zobrazených spotů** (Number of Spots to Display) — only the most recent 0, 50, 100, 150 or 200
+  spots count as spotted on the map (**Vše** = every spot in the list, the default).
+- **Smazat všechny spoty z mapy** (Clear All Spots) — the spots now in the list are no longer shown on the
+  map; spots that arrive afterwards are. The spot list and the band map keep them.
+
 ## Squares
 
 Multiplikátory → Čtverce (Multipliers → Squares) on the map: Maidenhead fields of a grid contest (worked,

@@ -230,6 +230,10 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var moveMultsBands: String = ""
     /// The spot modes Move Multipliers lists (`CONTEST`, `ALL`, `CW`, `PHONE`, `DIGI`). Swift-only key.
     public var moveMultsModes: String = "CONTEST"
+    /// N1MM Grayline setup: the map layers shown (`sun`, `equator`, `meridian`, `home`). Swift-only key.
+    public var graylineLayers: [String] = WorldMapLayer.defaults
+    /// N1MM Grayline „Number of Spots to Display" (0, 50 … 200; -1 = every spot). Swift-only key.
+    public var graylineSpots: Int = -1
     /// The Entry window parts hidden by its right-click menu (`EntrySection` raw values). Swift-only key.
     public var entryHiddenSections: [String] = []
     /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
@@ -304,6 +308,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case logShowModeColumn
         case multGridBands, multExpected, multGridShowAll
         case moveMultsDisplay, moveMultsRange, moveMultsBands, moveMultsModes
+        case graylineLayers, graylineSpots
         case entryHiddenSections
         case resetRxAfterRunQso
         case macroQsyStepKHz, functionKeysPerOperator
@@ -438,6 +443,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         moveMultsRange = c.value(.moveMultsRange, default: d.moveMultsRange)
         moveMultsBands = c.value(.moveMultsBands, default: d.moveMultsBands)
         moveMultsModes = c.value(.moveMultsModes, default: d.moveMultsModes)
+        graylineLayers = c.value(.graylineLayers, default: d.graylineLayers)
+        graylineSpots = c.value(.graylineSpots, default: d.graylineSpots)
         entryHiddenSections = c.value(.entryHiddenSections, default: d.entryHiddenSections)
         resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
         let qsyStep: Int = c.value(.macroQsyStepKHz, default: d.macroQsyStepKHz)

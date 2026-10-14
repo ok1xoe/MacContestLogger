@@ -202,6 +202,28 @@ private struct NewContestContent: View {
                 .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.secondary.opacity(0.4)))
             callHistoryRow
             scpRow
+            goalRow
+        }
+    }
+
+    /// N1MM Contest Setup → Associated Files: the contest's goal file, loaded into the Info window's goals when the
+    /// contest opens (empty = the goals stay as they are).
+    private var goalRow: some View {
+        HStack(spacing: 12) {
+            Text(verbatim: language.tr("Soubor cílů závodu"))
+                .frame(width: 140, alignment: .leading)
+            TextField(text: Binding(get: { form.form.goalFile }, set: { form.form.goalFile = $0 })) {
+                Text(verbatim: language.tr("prázdné = cíle zůstanou, jak jsou"))
+            }
+            .textFieldStyle(.roundedBorder)
+            .accessibilityLabel(Text(verbatim: language.tr("Soubor cílů závodu")))
+            Button {
+                ExportPanels.openFile(message: language.tr("Vyber soubor cílů pro tento závod")) { url in
+                    form.form.goalFile = url.path
+                }
+            } label: {
+                Text(verbatim: language.tr("Vybrat soubor…"))
+            }
         }
     }
 
