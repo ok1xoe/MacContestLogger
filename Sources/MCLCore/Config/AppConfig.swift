@@ -218,6 +218,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
     public var resetRxAfterRunQso: Bool = false
     /// N1MM „PgUp/PgDn Incr (kHz)": the QSY step of the `{PGUP}`/`{PGDN}`/`{FREQUP}`/`{FREQDN}` macros. Swift-only key.
+    /// N1MM „Use Separate Function Key Files for Each Operator": every operator signed on (Ctrl+O / OPON) other than
+    /// the station call gets their own copy of the F-key messages. Swift-only key.
+    public var functionKeysPerOperator: Bool = false
     public var macroQsyStepKHz: Int = 1 {
         didSet {
             if macroQsyStepKHz <= 0 { macroQsyStepKHz = 1 }
@@ -283,7 +286,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case entryShowUtcClock
         case entryHiddenSections
         case resetRxAfterRunQso
-        case macroQsyStepKHz
+        case macroQsyStepKHz, functionKeysPerOperator
         case checkHiddenPanes, checkPaneWeights, checkYankOrder, checkYankAllowDupes, checkFavorEndDifferences
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
@@ -411,6 +414,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
         let qsyStep: Int = c.value(.macroQsyStepKHz, default: d.macroQsyStepKHz)
         macroQsyStepKHz = qsyStep <= 0 ? 1 : qsyStep
+        functionKeysPerOperator = c.value(.functionKeysPerOperator, default: d.functionKeysPerOperator)
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
         callHistoryLookupEnabled = c.value(.callHistoryLookupEnabled, default: d.callHistoryLookupEnabled)
         callHistoryExtraFiles = c.value(.callHistoryExtraFiles, default: d.callHistoryExtraFiles)

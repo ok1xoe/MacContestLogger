@@ -54,6 +54,9 @@ public final class MenuModel {
     /// Kotlin `pendingSettingsTab` (MSGS, WKEY, NETCONFIG, the action FUNCTION_KEYS_SETUP): the Settings tab
     /// selected after the pending menu action ran (`applyPendingSettingsTab`).
     public var pendingSettingsTab: String?
+    /// N1MM right click on an F-key button: the message set (`FunctionKeyKind`) and Run (`true`) / S&P the
+    /// Function Keys tab shows when it opens; the tab clears it.
+    public var functionKeysFocus: FunctionKeysFocus?
 
     /// Top-level nodes.
     public private(set) var tree: [MenuNode] = []
@@ -257,5 +260,16 @@ public struct MenuShape: Equatable, Sendable {
             collect(entry.children, depth: depth + 1, into: &ids)
         }
         ids.append(String(depth) + ":end")
+    }
+}
+
+/// The message set the Function Keys tab opens on.
+public struct FunctionKeysFocus: Equatable, Sendable {
+    public var kind: FunctionKeyKind
+    public var run: Bool
+
+    public init(kind: FunctionKeyKind, run: Bool) {
+        self.kind = kind
+        self.run = run
     }
 }

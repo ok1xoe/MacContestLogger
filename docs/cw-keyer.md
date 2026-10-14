@@ -35,8 +35,31 @@ Other options:
 ## "Nastavení → Function Keys → CW" (Settings → Function Keys → CW)
 
 Messages F1–F12 separately for **Run** and **S&P**. The default set corresponds to
-the N1MM "CW Default Messages.mc". The format is the same as in N1MM, so `.mc`
-files can be carried over by hand.
+the N1MM "CW Default Messages.mc". The tab opens with Alt+K or a right click on an
+F-key button of the entry window (on the set the keys send now); hovering over a
+button shows its message.
+
+### Function key files (.mc)
+
+The SSB, CW and Digi sets are read and written as N1MM function key files:
+**Načíst .mc…** (Load) fills the shown set from a file, **Uložit .mc…** (Save) writes it,
+**Kopírovat do schránky** copies it as a file's text. In the file, lines starting with
+`#` are comments; every other line is a message (blank lines too), `Label,Message`;
+lines 1–12 are the Run messages F1–F12, lines 13–24 the S&P ones (missing S&P messages
+repeat the Run ones), `&&` in a label is `&`. N1MM's own `.mc` files load as they are.
+
+**Contest's file (N1MM Associated Files).** With a contest open, **Přiřadit soubor k
+závodu…** (assign) loads a file into the set and remembers it for the contest; **Uložit
+jako soubor závodu…** saves the set to a new file and assigns it. The contest's files are
+loaded whenever the contest opens, and a change of the set in Settings is written back to
+its file. **Zrušit přiřazení** removes the assignment.
+
+**Separate files for each operator** (Settings → Other, N1MM "Use Separate Function Key
+Files for Each Operator"): an operator other than the station call who signs on with
+Ctrl+O or `OPON` gets a copy of the station's messages the first time, and their own
+messages afterwards; their changes never touch the station's (master) messages, which
+come back when the station call signs on again. The operators' files are kept in
+`FunctionKeys/` of the data folder.
 
 | Macro | Meaning |
 |---|---|

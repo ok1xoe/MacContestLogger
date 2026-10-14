@@ -23,6 +23,9 @@ struct OtherTab: View {
                 SettingsCheckbox(label: language.tr("Ve splitu po zapsání Run QSO vrátit RX na TX frekvenci (Alt+S)"),
                                  isOn: $draft.resetRxAfterRunQso)
                 SettingsCheckbox(label: language.tr("Pípnout, když je volačka dupe"), isOn: $draft.beepOnDupe)
+                SettingsCheckbox(
+                    label: language.tr("Každý operátor má vlastní F-klávesy (kopie zpráv stanice při prvním OPON / Ctrl+O)"),
+                    isOn: $draft.functionKeysPerOperator)
             }
             MenuFileGroup(app: app)
         }

@@ -17,10 +17,13 @@ public struct ContestSetup: Codable, Equatable, Sendable {
     /// N1MM Contest Setup → Associated Files: the call history file of this contest; empty = the global
     /// `AppConfig.callHistoryFile`. Swift-only key, written only when set.
     public var callHistoryFile: String = ""
+    /// N1MM Contest Setup → Associated Files: the function key file (`.mc`) of each message set of this contest
+    /// (`FunctionKeyKind` raw value → path), loaded when the contest opens. Swift-only key, written only when set.
+    public var functionKeyFiles: [String: String] = [:]
 
     enum CodingKeys: String, CodingKey {
         case category, sentExchange, operators, soapbox, startedAt, endedAt, tour, skeds, bonusStations
-        case callHistoryFile
+        case callHistoryFile, functionKeyFiles
     }
 
     public init() {}
@@ -38,9 +41,10 @@ public struct ContestSetup: Codable, Equatable, Sendable {
         skeds = c.value(.skeds, default: d.skeds)
         bonusStations = c.value(.bonusStations, default: d.bonusStations)
         callHistoryFile = c.value(.callHistoryFile, default: d.callHistoryFile)
+        functionKeyFiles = c.value(.functionKeyFiles, default: d.functionKeyFiles)
     }
 
-    /// The synthesized encoding, except that an empty `callHistoryFile` is left out (the setup v1.1.1 writes).
+    /// The synthesized encoding, except that an empty `callHistoryFile` / `functionKeyFiles` is left out (the setup v1.1.1 writes).
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(category, forKey: .category)
@@ -54,6 +58,9 @@ public struct ContestSetup: Codable, Equatable, Sendable {
         try c.encode(bonusStations, forKey: .bonusStations)
         if !callHistoryFile.isEmpty {
             try c.encode(callHistoryFile, forKey: .callHistoryFile)
+        }
+        if !functionKeyFiles.isEmpty {
+            try c.encode(functionKeyFiles, forKey: .functionKeyFiles)
         }
     }
 }

@@ -1754,5 +1754,18 @@
  "Anténa: TRX není připojený": "Antenna: the rig is not connected",
  "Anténa: %s": "Antenna: %s",
  "Anténa s kódem %s není v tabulce antén": "No antenna with code %s in the antenna table",
- "PTT zapnuto ({TX}; Esc ukončí, pojistka 30 s)": "PTT on ({TX}; Esc ends it, 30 s safeguard)"
+ "PTT zapnuto ({TX}; Esc ukončí, pojistka 30 s)": "PTT on ({TX}; Esc ends it, 30 s safeguard)",
+ "Soubor závodu: %s": "Contest file: %s",
+ "Závod nemá vlastní soubor zpráv (platí tyto zprávy).": "The contest has no message file of its own (these messages apply).",
+ "Přiřadit soubor k závodu…": "Assign a file to the contest…",
+ "Uložit jako soubor závodu…": "Save as the contest's file…",
+ "Vyber soubor F-kláves (.mc, formát N1MM)": "Choose a function key file (.mc, N1MM format)",
+ "Každý operátor má vlastní F-klávesy (kopie zpráv stanice při prvním OPON / Ctrl+O)": "Separate function keys for each operator (a copy of the station's messages at the first OPON / Ctrl+O)",
+ "Upravit F-klávesy… (Alt+K)": "Edit function keys… (Alt+K)",
+ "(prázdná zpráva)": "(empty message)",
+ "Soubor F-kláves %s nejde načíst": "The function key file %s cannot be read",
+ "Soubor F-kláves %s nejde uložit": "The function key file %s cannot be saved",
+ "F-klávesy závodu načteny: %s": "The contest's function keys loaded: %s",
+ "F-klávesy operátora %s": "Function keys of operator %s",
+ "Kopírovat do schránky": "Copy to clipboard"
 }

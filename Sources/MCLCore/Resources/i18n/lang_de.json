@@ -1754,5 +1754,18 @@
  "Anténa: TRX není připojený": "Antenne: TRX ist nicht verbunden",
  "Anténa: %s": "Antenne: %s",
  "Anténa s kódem %s není v tabulce antén": "Keine Antenne mit Code %s in der Antennentabelle",
- "PTT zapnuto ({TX}; Esc ukončí, pojistka 30 s)": "PTT ein ({TX}; Esc beendet, Sicherung 30 s)"
+ "PTT zapnuto ({TX}; Esc ukončí, pojistka 30 s)": "PTT ein ({TX}; Esc beendet, Sicherung 30 s)",
+ "Soubor závodu: %s": "Datei des Contests: %s",
+ "Závod nemá vlastní soubor zpráv (platí tyto zprávy).": "Der Contest hat keine eigene Nachrichtendatei (diese Nachrichten gelten).",
+ "Přiřadit soubor k závodu…": "Datei dem Contest zuordnen…",
+ "Uložit jako soubor závodu…": "Als Datei des Contests speichern…",
+ "Vyber soubor F-kláves (.mc, formát N1MM)": "Funktionstasten-Datei wählen (.mc, N1MM-Format)",
+ "Každý operátor má vlastní F-klávesy (kopie zpráv stanice při prvním OPON / Ctrl+O)": "Eigene Funktionstasten je Operator (Kopie der Stationsnachrichten beim ersten OPON / Ctrl+O)",
+ "Upravit F-klávesy… (Alt+K)": "Funktionstasten bearbeiten… (Alt+K)",
+ "(prázdná zpráva)": "(leere Nachricht)",
+ "Soubor F-kláves %s nejde načíst": "Die Funktionstasten-Datei %s kann nicht gelesen werden",
+ "Soubor F-kláves %s nejde uložit": "Die Funktionstasten-Datei %s kann nicht gespeichert werden",
+ "F-klávesy závodu načteny: %s": "Funktionstasten des Contests geladen: %s",
+ "F-klávesy operátora %s": "Funktionstasten von Operator %s",
+ "Kopírovat do schránky": "In die Zwischenablage kopieren"
 }
