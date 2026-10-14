@@ -5,6 +5,7 @@
       "children": [
         { "id": "contest.new",  "label": "Nový závod…",            "state": "enable" },
         { "id": "contest.open", "label": "Otevřít závod…",         "state": "enable" },
+        { "id": "contest.setup", "label": "Nastavení závodu…",      "state": "enable" },
         { "id": "file.openRecent", "label": "Otevřít nedávné", "state": "enable" },
         { "id": "sep.file.1", "state": "enable" },
         { "id": "database.new",  "label": "Nová databáze…",     "state": "enable" },
@@ -122,7 +123,8 @@
         { "id": "settings.keys", "label": "Klávesy…", "state": "enable" },
         { "id": "settings.profiles", "label": "Profily nastavení…", "state": "enable" },
         { "id": "sep.settings.1", "state": "enable" },
-        { "id": "settings.callHistoryLookup", "label": "Zapnout dohledávání v call history", "state": "enable" }
+        { "id": "settings.callHistoryLookup", "label": "Zapnout dohledávání v call history", "state": "enable" },
+        { "id": "settings.exchangeAbbreviations", "label": "Zkratky výměny…", "state": "enable" }
       ]
     },
     {

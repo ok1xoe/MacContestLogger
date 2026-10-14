@@ -15,7 +15,7 @@ public final class MenuModel {
     /// import, merge, exports, printing, data tools, definition editor and profiles, the Settings window, the
     /// contest recording and radio tool windows, the spot windows, the network windows and the info and tool windows).
     public static let implementedActions: Set<String> = [
-        "contest.new", "contest.open", "contest.rescore", "contest.none", "database.new", "database.open",
+        "contest.new", "contest.open", "contest.setup", "contest.rescore", "contest.none", "database.new", "database.open",
         "window.log", "settings.exportCabrillo", "settings.export", "settings.downloadScp", "contest.postcontest",
         "settings.import", "settings.merge", "settings.exportEdi", "settings.exportOther", "settings.print",
         "database.refillDxcc", "database.updateClubLogDxcc", "contest.updateCallHistory", "contest.updateDefinitions", "contest.editor",
@@ -28,7 +28,7 @@ public final class MenuModel {
         "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
         "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast", "edit.editLast", "edit.editCurrent", "edit.quickEdit", "edit.quickEditForward",
         "file.openRecent", "recent.clear", "file.copyContest", "contest.rescoreHours", "settings.exportAdifRange", "callhistory.exportN1mm",
-        "callhistory.exportCsv", "fkeys.export", "callhistory.clear", "callhistory.import", "settings.callHistoryLookup", "tools.addCallToCountry", "file.post3830", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
+        "callhistory.exportCsv", "fkeys.export", "callhistory.clear", "callhistory.import", "settings.callHistoryLookup", "tools.addCallToCountry", "file.post3830", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder", "settings.exchangeAbbreviations",
     ]
 
     /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key
@@ -126,7 +126,7 @@ public final class MenuModel {
         case "contest.new", "contest.none":
             return contest.engineAvailable
         case "settings.exportCabrillo", "settings.exportEdi", "file.post3830", "contest.rescore", "contest.rescoreHours",
-             "contest.updateCallHistory":
+             "contest.updateCallHistory", "contest.setup":
             return contest.isActive
         default:
             return true

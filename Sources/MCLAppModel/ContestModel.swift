@@ -424,6 +424,45 @@ public final class ContestModel {
         return rows ?? []
     }
 
+    /// N1MM „Delete" in the contest list: the contest with its QSOs and QTCs is removed from the database. The open
+    /// contest cannot be deleted. `true` = deleted.
+    public func deleteContest(_ contestId: String) async -> Bool {
+        if contestId == activeId {
+            status.show("Otevřený závod nejde smazat — nejdřív otevři jiný")
+            return false
+        }
+        let deleted: Int??
+        do {
+            deleted = try await database.handle.run { access in
+                let count: Int? = try access.contests.delete(contestId: contestId)
+                if count != nil, try access.repository.metaGet("last_contest_id") == contestId {
+                    try access.repository.metaSet("last_contest_id", "")
+                }
+                return count
+            }
+        } catch {
+            status.show("Smazání závodu selhalo: %s", .string(ErrorText.message(error)))
+            return false
+        }
+        guard let count = deleted ?? nil else {
+            status.show("Závod není v databázi")
+            return false
+        }
+        status.show("Závod smazán (%s QSO)", .int(count))
+        await refreshRecent()
+        return true
+    }
+
+    /// The setup stored with a contest of the open database (`nil` = none or unreadable).
+    public func storedSetup(_ contestId: String) async -> ContestSetup? {
+        let store: ConfigStore = config.store
+        let json: String?? = try? await database.handle.run { access in
+            try access.contests.find(contestId)?.setupJson
+        }
+        guard let text = json ?? nil else { return nil }
+        return store.fromJSON(text, as: ContestSetup.self)
+    }
+
     /// The database was switched (Kotlin `openDatabase` after the swap): no contest, no active contest in the
     /// logbook, the log re-read (its recount request is a no-op without a contest).
     public func databaseSwitched() async {

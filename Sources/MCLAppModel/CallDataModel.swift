@@ -55,6 +55,14 @@ public final class CallDataModel {
     @ObservationIgnored public var contestContext: @MainActor () -> ContestContext? = { nil }
     /// The active contest's own call history file (`ContestSetup.callHistoryFile`; wired by the app).
     @ObservationIgnored public var contestCallHistoryFile: @MainActor () -> String? = { nil }
+    /// The active contest's own master.scp (`ContestSetup.scpFile`, N1MM Associated Files; wired by the app).
+    @ObservationIgnored public var contestScpFile: @MainActor () -> String? = { nil }
+
+    /// The master.scp in use: the active contest's own file, otherwise the configured `scpFile` (trimmed).
+    var effectiveScpPath: String {
+        let own: String = KotlinStrings.trim(contestScpFile() ?? "")
+        return own.isEmpty ? KotlinStrings.trim(config.config.scpFile) : own
+    }
 
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let status: StatusModel
@@ -139,9 +147,9 @@ public final class CallDataModel {
         reloadCallHistory()
     }
 
-    /// Kotlin `reloadScp()`: the trimmed `config.scpFile`; blank = an empty database.
+    /// Kotlin `reloadScp()`: the active contest's own master.scp, otherwise the trimmed `config.scpFile`; blank = an empty database.
     public func reloadScp() {
-        let path: String = KotlinStrings.trim(config.config.scpFile)
+        let path: String = effectiveScpPath
         scpPath = path
         scpGeneration += 1
         let generation: Int = scpGeneration
@@ -239,6 +247,7 @@ public final class CallDataModel {
             _ = config.config.callHistoryFile
             _ = config.config.callHistoryExtraFiles
             _ = contestCallHistoryFile()
+            _ = contestScpFile()
             _ = contestContext()
         } onChange: { [weak self] in
             MainHop.post {
@@ -249,7 +258,7 @@ public final class CallDataModel {
     }
 
     private func pathsChanged() {
-        if KotlinStrings.trim(config.config.scpFile) != scpPath {
+        if effectiveScpPath != scpPath {
             reloadScp()
         }
         if currentSources() != callHistorySources {

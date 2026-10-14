@@ -27,6 +27,26 @@ newest first; a click opens one the same way as **Otevřít závod…**, and **V
 the list (the contests stay in the database). The list is stored in the database file itself, so every database
 has its own.
 
+### The contest window (N1MM Contest Setup)
+
+- **Nový závod…** has a search field (**Hledat závod**, name or id) and **Řadit podle názvu** (Sort by name) over the
+  contest list; **Pravidla závodu** (Contest rules) opens the rules page of the chosen definition
+  (`metadata.officialUrl`), **Nápověda k nastavení** this documentation, and **Vyplnit podle posledního závodu**
+  (Populate from last log) copies the Cabrillo categories and operators of the contest opened last.
+- **První pořadové číslo** (First serial number): the serial of the first QSO, for the next part of a contest that
+  continues the numbering.
+- **master.scp závodu**: the contest's own Super Check Partial file (N1MM Associated Files), loaded while the contest
+  is open; empty = the file from Settings. The contest's own call history and function key files work the same way.
+- **Soubor → Nastavení závodu…** (File → Contest setup...) opens the same window over the open log: categories, sent
+  exchange, operators (**Operátoři z deníku** fills in every operator logged with its QSOs), soapbox, times, the first
+  serial and the associated files can be changed afterwards; the QSOs stay and the score is recomputed.
+- **Otevřít závod…** lists the contests of the database; the bin button deletes a contest with all its QSOs after a
+  confirmation (the open contest cannot be deleted).
+- **Nastavení → Zkratky výměny…** (Settings → Exchange abbreviations...) opens the file
+  `ExchangeAbbreviations.txt` in the data folder: one pair per line, `ALA=AL`; a typed value equal to an
+  abbreviation is logged as its replacement in the text fields of the exchange (state, province, district…). The
+  file is read again whenever it changes.
+
 A database is a single SQLite file per contest; with **Soubor → Nová databáze…**
 (File → New database...) you can create several (for example one per weekend).
 

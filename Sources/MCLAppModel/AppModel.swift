@@ -422,6 +422,9 @@ public final class AppModel {
         callData.contestCallHistoryFile = { [weak contest] in
             contest?.activeSetup?.callHistoryFile
         }
+        callData.contestScpFile = { [weak contest] in
+            contest?.activeSetup?.scpFile
+        }
         callData.contestContext = { [weak contest] in
             contest.flatMap(Self.callHistoryContext)
         }

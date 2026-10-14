@@ -15,6 +15,16 @@ public final class NewContestModel {
     /// Kotlin `selectedId` (initially the first definition's id).
     public private(set) var selectedId: String?
     public var form: NewContestForm
+    /// File → Contest setup: the open log whose setup is edited (`nil` = a new contest). The contest cannot be
+    /// changed then.
+    public let editingContestId: String?
+    /// The contest list's search text (name or id, case-insensitive) and its order (`true` = by name).
+    public var search: String = ""
+    public var sortByName: Bool = false
+    /// The setup of the last log (N1MM „Populate all from last log"); `nil` = none, set when read.
+    public var lastSetup: ContestSetup?
+    /// The operators of the edited log's QSOs (N1MM „Update Ops from Log"); wired for the edit mode.
+    @ObservationIgnored var logOperators: (@MainActor () -> [String])?
 
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let now: @Sendable () -> Date
@@ -26,7 +36,70 @@ public final class NewContestModel {
         self.now = now
         self.form = NewContestForm()
         self.selectedId = contests.first?.id
+        self.editingContestId = nil
         prefill()
+    }
+
+    /// File → Contest setup over the open log: its definition and stored setup.
+    init(editing contestId: String, definition: ContestDefinition, setup: ContestSetup, config: ConfigModel,
+         now: @escaping @Sendable () -> Date) {
+        self.contests = [definition]
+        self.labels = NewContestForm.labels([definition])
+        self.config = config
+        self.now = now
+        self.selectedId = definition.id
+        self.editingContestId = contestId
+        self.form = NewContestForm.editing(definition: definition, setup: setup)
+    }
+
+    public var isEditing: Bool {
+        editingContestId != nil
+    }
+
+    /// The combo box's labels after the search and the order.
+    public var visibleLabels: [String] {
+        let needle: String = KotlinStrings.trim(search).lowercased()
+        var shown: [NewContestForm.Label] = labels.filter { label in
+            needle.isEmpty || label.text.lowercased().contains(needle) || (label.id ?? "").lowercased().contains(needle)
+        }
+        if sortByName {
+            shown.sort { $0.text.localizedStandardCompare($1.text) == .orderedAscending }
+        }
+        return shown.map(\.text)
+    }
+
+    /// The rules page of the chosen contest (`metadata.officialUrl`); `nil` = none.
+    public var rulesUrl: URL? {
+        guard let text = definition?.metadata?.officialUrl.map({ KotlinStrings.trim($0) }), !text.isEmpty,
+              let url = URL(string: text), let scheme = url.scheme?.lowercased(),
+              scheme == "https" || scheme == "http" else { return nil }
+        return url
+    }
+
+    /// The user documentation of the contest setup (N1MM „Show Setup").
+    public static let setupHelpUrl = URL(string: "https://github.com/ok1xoe/MacContestLogger/blob/main/docs/definition-editor.md")
+
+    /// „Vyplnit podle posledního závodu": the categories and operators of the last log.
+    public func populateFromLast() {
+        guard let lastSetup else { return }
+        form.populate(from: lastSetup, bandOptions: bandOptions, modeOptions: modeOptions)
+    }
+
+    /// „Operátoři z deníku": the distinct operators of the log's QSOs; nothing when the log has none.
+    public func updateOperatorsFromLog() {
+        let list: String = NewContestForm.operators(fromLog: logOperators?() ?? [])
+        if !list.isEmpty {
+            form.operators = list
+        }
+    }
+
+    /// The first serial as typed (digits only; empty or 0 = 1).
+    public var firstSerialText: String {
+        get { String(form.firstSerial) }
+        set {
+            let digits: String = String(newValue.filter { $0.isASCII && $0.isNumber }.prefix(6))
+            form.firstSerial = max(1, Int(digits) ?? 1)
+        }
     }
 
     /// Kotlin `contests.first { it.id() == selectedId }`; `nil` without definitions.
@@ -60,6 +133,7 @@ public final class NewContestModel {
 
     /// The combo box chose a label (Kotlin `labelToId[lbl]?.let { selectedId = it }`); a new id prefills the form.
     public func select(label: String) {
+        guard !isEditing else { return }
         guard let entry = labels.first(where: { $0.text == label }), let id = entry.id else { return }
         guard id != selectedId else { return }
         selectedId = id

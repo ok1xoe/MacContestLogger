@@ -20,7 +20,8 @@ import Testing
         let publishedFiles = try ContestDataLayoutTests.relativeFiles(under: published)
         let fixtureFiles = try ContestDataLayoutTests.relativeFiles(under: fixture)
         #expect(Set(fixtureFiles).isSubset(of: Set(publishedFiles)))
-        for path in publishedFiles where fixtureFiles.contains(path) {
+        // The index lists the published files (more than the fixture's); `indexListsEveryFile` checks it.
+        for path in publishedFiles where fixtureFiles.contains(path) && path != "index.txt" {
             let a = try Data(contentsOf: published.appendingPathComponent(path))
             let b = try Data(contentsOf: fixture.appendingPathComponent(path))
             #expect(a == b, "\(path) differs between contest-data/ and the fixture corpus")

@@ -65,6 +65,8 @@ enum ExportPanels {
             }
         case .openDataFolder(let dir):
             NSWorkspace.shared.open(dir)
+        case .openFile(let file):
+            NSWorkspace.shared.open(file)
         case .openCallHistoryImport:
             openFiles(message: app.language.tr("Importovat call history (lze vybrat více souborů)")) { files in
                 app.dataTools.importCallHistoryFiles(files)
