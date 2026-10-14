@@ -1853,5 +1853,10 @@
  "Smazaná QSO": "Gelöschte QSOs",
  "Žádná smazaná QSO": "Keine gelöschten QSOs",
  "Smazáno": "Gelöscht",
- "Obnovit": "Wiederherstellen"
+ "Obnovit": "Wiederherstellen",
+ "Rate k tomuto QSO v okně Info": "Raten bis zu diesem QSO im Info-Fenster",
+ "Rate k QSO %s (%s)": "Raten bei QSO %s (%s)",
+ "Aktuální rate": "Aktuelle Raten",
+ "%s: zatím žádné QSO": "%s: noch kein QSO",
+ "Předchozí QSO s %s: %s": "Bisherige QSOs mit %s: %s"
 }

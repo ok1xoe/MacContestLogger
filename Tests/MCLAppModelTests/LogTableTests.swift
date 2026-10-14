@@ -169,12 +169,13 @@ import Testing
         let w1aw: Int64 = try id(app, "W1AW")
         let dl: Int64 = try id(app, "DL1ABC")
         let single: [LogTableModel.MenuItem] = [.edit, .toggleXqso(isXqso: false), .playRecording, .jumpToFrequency,
-                                                .rescoreFromHere, .copyAdif, .deleteOne]
+                                                .rescoreFromHere, .ratesToHere, .copyAdif, .deleteOne]
         #expect(table.menuItems(forRow: w1aw) == single)
         #expect(single.map(\.title) == [ContestMessage("Upravit QSO…"), ContestMessage("Označit jako X-QSO (nepočítat)"),
                                         ContestMessage("Přehrát nahrávku QSO"),
                                         ContestMessage("Naladit na frekvenci QSO"),
-                                        ContestMessage("Přepočítat od tohoto QSO"), ContestMessage("Kopírovat jako ADIF"),
+                                        ContestMessage("Přepočítat od tohoto QSO"),
+                                        ContestMessage("Rate k tomuto QSO v okně Info"), ContestMessage("Kopírovat jako ADIF"),
                                         .verbatim("Smazat QSO")])
         #expect(single.allSatisfy { $0.isEnabled })
         table.select([w1aw, dl])

@@ -53,6 +53,10 @@ struct LogWindowView: View {
                          titles: logbook.visibleColumns.map { language.tr($0.title) },
                          title: language.tr("Přehled spojení"), table: table, language: language,
                          onSort: { logbook.sort(by: $0) })
+            if !table.typedCall.isEmpty {
+                Divider()
+                LogPreviousQsosPane(app: app, table: table)
+            }
         }
         .environment(\.windowFontSize, session.fontSize)
         .onAppear {

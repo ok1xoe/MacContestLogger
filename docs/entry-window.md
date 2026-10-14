@@ -31,9 +31,9 @@ In a contest the typed call is checked on the current band and on every band but
 | grey | a dupe |
 
 The callsign text has the colour of the current band (a dupe keeps the red border and the DUPE chip); the band
-buttons get a frame in the colour of the call on that band. Under the frequency the bearing line shows the short
-and long path beam headings and the short-path distance to the call's country (Settings → Station: your latitude
-and longitude).
+buttons get a frame in the colour of the call on that band. Under the frequency the bearing line shows the call's
+country and, as N1MM's status line, the short and long path beam headings and the short-path distance to it
+(Settings → Station: your latitude and longitude; without them only the country).
 
 ## Editing a QSO
 

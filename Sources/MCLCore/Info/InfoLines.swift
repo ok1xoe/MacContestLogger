@@ -50,6 +50,15 @@ public enum InfoLines {
     }
 
     /// N1MM's bearing line of the Entry window: `SP 51° LP 231° · 4847 km`; `nil` without a heading or a distance.
+    /// N1MM's status line of the typed call: the country, then the bearing line when the position is known
+    /// (`Germany · SP 51° LP 231° · 4847 km`); `nil` without a country.
+    public static func countryAndBearing(_ info: CallsignInfo?) -> String? {
+        guard let info else { return nil }
+        let parts: [String] = [info.entityName.flatMap { KotlinText.isBlank($0) ? nil : $0 }, bearing(info)]
+            .compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
     public static func bearing(_ info: CallsignInfo?) -> String? {
         guard let info, let shortPath = info.shortPathDeg, let longPath = info.longPathDeg,
               let km = info.distanceKm else { return nil }
