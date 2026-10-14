@@ -17,6 +17,24 @@ public struct StatisticsTable: Equatable, Sendable {
     public let totalLabel: String
     public let columnTotals: [String]
     public let grandTotal: String
+
+    /// The table as tab-separated lines (the header, the rows, the totals; `·` cells as `0`) — N1MM Copy All and
+    /// Print to file, readable by a spreadsheet.
+    public var tabSeparated: String {
+        func line(_ head: String, _ cells: [String], _ total: String) -> String {
+            ([head] + cells.map { $0 == "·" ? "0" : $0 } + [total]).joined(separator: "\t")
+        }
+        var lines: [String] = [line(rowHeader, columns, totalLabel)]
+        lines += rows.map { line($0.label, $0.cells, $0.total) }
+        lines.append(line(totalLabel, columnTotals, grandTotal))
+        return lines.joined(separator: "\n") + "\n"
+    }
+
+    /// The count of a cell as a number (the graph).
+    public func count(row: Int, column: Int) -> Int {
+        guard rows.indices.contains(row), rows[row].cells.indices.contains(column) else { return 0 }
+        return Int(rows[row].cells[column]) ?? 0
+    }
 }
 
 /// The bar chart "QSO per hour" of the Statistics window (`SW:127-146`).
@@ -103,7 +121,11 @@ public enum StatsViews {
     /// The pivot table (`SW:85-104`): zero counts are `·`, totals are the pivot's.
     public static func statisticsTable(qsos: [Qso], rowDim: LogStatistics.Dimension,
                                        colDim: LogStatistics.Dimension) -> StatisticsTable {
-        let pivot: LogStatistics.Pivot = LogStatistics.pivot(qsos, rowDim, colDim)
+        statisticsTable(pivot: LogStatistics.pivot(qsos, rowDim, colDim), rowHeader: rowDim.label)
+    }
+
+    /// The table of a pivot with the given header of the first column.
+    public static func statisticsTable(pivot: LogStatistics.Pivot, rowHeader: String) -> StatisticsTable {
         let rows: [StatisticsTable.Row] = pivot.rows.map { row in
             let cells: [String] = pivot.cols.map { col in
                 let count: Int = pivot.count(row, col)
@@ -111,7 +133,7 @@ public enum StatsViews {
             }
             return StatisticsTable.Row(label: row, cells: cells, total: text(pivot.rowTotal(row)))
         }
-        return StatisticsTable(rowHeader: rowDim.label, columns: pivot.cols, rows: rows, totalLabel: "Celkem",
+        return StatisticsTable(rowHeader: rowHeader, columns: pivot.cols, rows: rows, totalLabel: "Celkem",
                                columnTotals: pivot.cols.map { text(pivot.colTotal($0)) },
                                grandTotal: String(pivot.total))
     }

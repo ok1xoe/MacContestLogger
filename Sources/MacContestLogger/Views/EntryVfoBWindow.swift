@@ -147,8 +147,10 @@ struct EntryVfoFocus: ViewModifier {
             .onChange(of: app.rig.focusVfoRequest, initial: true) {
                 guard app.rig.focusVfoRequest == vfo else { return }
                 app.rig.focusVfoRequest = nil
+                let caretAtEnd: Bool = app.rig.focusCaretAtEnd
+                app.rig.focusCaretAtEnd = false
                 activator.makeKey()
-                focus.focus(.call)
+                focus.focus(.call, caretAtEnd: caretAtEnd)
             }
     }
 }

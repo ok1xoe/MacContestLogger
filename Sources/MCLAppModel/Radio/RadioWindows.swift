@@ -34,6 +34,17 @@ extension AppModel {
         return second ? vfoB.entry.form.call : entry.form.call
     }
 
+    /// N1MM: typing in a window that takes no text (Statistics) goes on in the Entry window — the characters are
+    /// added to the active window's call, which takes the focus with the caret at its end.
+    public func typeIntoEntry(_ text: String) {
+        let typed: String = text.filter { $0.isLetter || $0.isNumber || $0 == "/" }.uppercased()
+        guard !typed.isEmpty else { return }
+        let target: EntryModel = activeEntry ?? entry
+        target.callChanged(target.form.call + typed)
+        rig.focusCaretAtEnd = true
+        rig.focusVfoRequest = target === entry ? 0 : 1
+    }
+
     /// Kotlin `currentExchange`: the received contest exchange typed in the active window.
     public var currentExchange: JavaLinkedMap<String> {
         activeEntry?.form.contestExchange ?? JavaLinkedMap()

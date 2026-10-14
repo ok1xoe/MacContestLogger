@@ -10,15 +10,21 @@ public struct StatisticsSnapshot: Equatable, Sendable {
     public let reports: [ReportSection]
 }
 
-/// The Statistics window (`StatisticsWindow.kt`): the pivot table with the hourly chart, or the reports. The snapshot
-/// is computed off the main thread when the log's revision or the choice changes, with a generation.
+/// The Statistics window (`StatisticsWindow.kt`, N1MM Statistics): the pivot table (or its graph) with the hourly
+/// chart, or the reports. The snapshot is computed off the main thread when the log's revision or the choice changes,
+/// with a generation. The contest's dimensions (points, new multipliers, the exchange fields, the multipliers) and
+/// leaving out the dupes come from a replay of the log into a fresh session of the active contest.
 @Observable @MainActor
 public final class StatisticsModel {
 
     /// Kotlin `rowDim` (`HOUR` at first).
-    public private(set) var rowDimension: LogStatistics.Dimension = .HOUR
+    public private(set) var rowDimension: StatsDimension = .base(.HOUR)
     /// Kotlin `colDim` (`BAND` at first).
-    public private(set) var columnDimension: LogStatistics.Dimension = .BAND
+    public private(set) var columnDimension: StatsDimension = .base(.BAND)
+    /// N1MM „Include dupes and X-QSOs".
+    public private(set) var includeDupes = true
+    /// The pivot as a graph instead of the table.
+    public private(set) var showGraph = false
     /// The "Rate, přestávky, běhy" view instead of the pivot.
     public private(set) var showReports = false
     public private(set) var snapshot: StatisticsSnapshot?
@@ -26,26 +32,50 @@ public final class StatisticsModel {
 
     @ObservationIgnored private let logbook: LogbookModel
     @ObservationIgnored private let language: LanguageModel
+    @ObservationIgnored private let contest: ContestModel?
     @ObservationIgnored private var derived: LogDerived<StatisticsSnapshot>?
 
-    init(logbook: LogbookModel, language: LanguageModel) {
+    init(logbook: LogbookModel, language: LanguageModel, contest: ContestModel? = nil) {
         self.logbook = logbook
         self.language = language
+        self.contest = contest
     }
 
-    /// The row choices of the picker (every dimension but `NONE`) and the column choices.
-    public var rowChoices: [LogStatistics.Dimension] {
-        StatsViews.rowDimensions
+    /// The contest's own dimensions (points, new multiplier, exchange fields, multipliers); none outside a contest.
+    public var contestDimensions: [StatsDimension] {
+        guard let contest, contest.isActive else { return [] }
+        return StatsPivot.contestDimensions(contest.definition)
     }
 
-    public var columnChoices: [LogStatistics.Dimension] {
-        StatsViews.columnDimensions
+    /// The row choices of the picker and the column choices (also „—", the totals only).
+    public var rowChoices: [StatsDimension] {
+        StatsDimension.general + contestDimensions
+    }
+
+    public var columnChoices: [StatsDimension] {
+        StatsDimension.general + contestDimensions + [.base(.NONE)]
+    }
+
+    /// The label of a dimension in the window's language.
+    public func label(_ dimension: StatsDimension) -> String {
+        switch dimension {
+        case .base(let base): return language.tr(base.label)
+        case .minutes(let minutes): return language.tr("Po %s minutách", .int(minutes))
+        case .modeBand: return language.tr("Pásmo a mód")
+        case .points: return language.tr("Body")
+        case .newMultiplier: return language.tr("Nový násobič")
+        case .station: return language.tr("Stanice")
+        case .exchange(let id): return language.tr("Výměna: %s", .string(id))
+        case .multiplier(_, let name): return language.tr("Násobič: %s", .string(name))
+        }
     }
 
     public func open() {
         guard !isOpen else { return }
         isOpen = true
-        let derived = LogDerived<StatisticsSnapshot>(logbook: logbook, source: { [weak self] in
+        let derived = LogDerived<StatisticsSnapshot>(logbook: logbook, tracked: { [weak self] in
+            _ = self?.contest?.activeId
+        }, source: { [weak self] in
             self?.job() ?? { _ in Self.emptySnapshot() }
         }, apply: { [weak self] value in
             self?.snapshot = value
@@ -60,19 +90,41 @@ public final class StatisticsModel {
         derived = nil
     }
 
-    public func setRows(_ dimension: LogStatistics.Dimension) {
+    public func setRows(_ dimension: StatsDimension) {
         rowDimension = dimension
         derived?.refresh()
     }
 
-    public func setColumns(_ dimension: LogStatistics.Dimension) {
+    public func setColumns(_ dimension: StatsDimension) {
         columnDimension = dimension
         derived?.refresh()
+    }
+
+    public func setRows(_ dimension: LogStatistics.Dimension) {
+        setRows(.base(dimension))
+    }
+
+    public func setColumns(_ dimension: LogStatistics.Dimension) {
+        setColumns(.base(dimension))
+    }
+
+    public func setIncludeDupes(_ on: Bool) {
+        includeDupes = on
+        derived?.refresh()
+    }
+
+    public func setShowGraph(_ on: Bool) {
+        showGraph = on
     }
 
     public func setShowReports(_ on: Bool) {
         showReports = on
         derived?.refresh()
+    }
+
+    /// The table as tab-separated text (N1MM Copy All; also what Save writes).
+    public var tableText: String? {
+        snapshot?.table.tabSeparated
     }
 
     func settle() async {
@@ -89,15 +141,26 @@ public final class StatisticsModel {
     }
 
     private func job() -> LogDerived<StatisticsSnapshot>.Job {
-        let rows: LogStatistics.Dimension = rowDimension
-        let columns: LogStatistics.Dimension = columnDimension
+        let rows: StatsDimension = rowDimension
+        let columns: StatsDimension = columnDimension
+        let includeDupes: Bool = self.includeDupes
         let reports: Bool = showReports
         let translator: Translator = language.translator
+        let header: String = label(rows)
+        let needsReplay: Bool = rows.needsContest || columns.needsContest || !includeDupes
+        // The fresh session is made here, on the main actor; the replay runs in the job.
+        let fresh: ContestSession? = needsReplay && (contest?.isActive ?? false) ? contest?.runtime.freshSession() : nil
         return { qsos in
-            StatisticsSnapshot(
-                table: StatsViews.statisticsTable(qsos: qsos, rowDim: rows, colDim: columns),
-                chart: StatsViews.hourlyChart(qsos: qsos, translate: translator),
-                reports: reports ? StatsViews.reports(qsos: qsos, translate: translator) : [])
+            let facts: [Int64: StatsFact] = fresh.map { StatsPivot.facts($0, qsos) } ?? [:]
+            let pivot: LogStatistics.Pivot = StatsPivot.pivot(qsos, rows: rows, columns: columns, facts: facts,
+                                                              includeDupes: includeDupes)
+            let counted: [Qso] = includeDupes ? qsos : qsos.filter { qso in
+                !qso.xqso && !(qso.id.flatMap { facts[$0] }?.dupe ?? false)
+            }
+            return StatisticsSnapshot(
+                table: StatsViews.statisticsTable(pivot: pivot, rowHeader: header),
+                chart: StatsViews.hourlyChart(qsos: counted, translate: translator),
+                reports: reports ? StatsViews.reports(qsos: counted, translate: translator) : [])
         }
     }
 }
