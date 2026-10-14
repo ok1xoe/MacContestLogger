@@ -51,6 +51,8 @@ public struct FunctionKeyContext: Sendable {
     public var callExchangeSeparator: String = " "
     /// N1MM „Send partial calls": ESM resends only the corrected part of the call (`PartialCall`); `nil` = the whole.
     public var partialCall: String?
+    /// The radio of this entry window (1 = radio 1 / VFO A, 2 = radio 2 / VFO B) for `{FKEY(r1%r2)}`.
+    public var radio: Int = 1
 
     public init(mode: Mode, digitalReady: Bool, postContest: Bool, run: Bool, call: String, rstSent: String,
                 freqHz: Int64, progress: EsmProgress, stationCall: String, voice: FunctionKeySet, cw: FunctionKeySet,
@@ -187,9 +189,10 @@ public enum FunctionKeyRouter {
                               template: String? = nil, into out: inout FunctionKeyOutcome) {
         let set: [FunctionKeyMessage] = (digital ? context.digital : context.cw).messages(run: context.run,
                                                                                          opposite: opposite)
+        let texts: [String] = set.map { RadioMessageMacro.select($0.text, radio: context.radio) }
         let keyed: [(key: Int, text: String)] = template.map { [(-1, $0)] } ?? indices.compactMap { i in
-            guard i >= 0, i < set.count, !KotlinStrings.isBlank(set[i].text) else { return nil }
-            var text: String = set[i].text
+            guard i >= 0, i < texts.count, !KotlinStrings.isBlank(texts[i]) else { return nil }
+            var text: String = texts[i]
             if i == context.esmKeys.hisCall, let partial = context.partialCall {
                 // N1MM „Send partial calls": the corrected part only.
                 text = JavaText.replace(JavaText.replace(text, "{CALL}", partial), "!", partial)
@@ -199,7 +202,7 @@ public enum FunctionKeyRouter {
         var ctx: CwMessageBuilder.Context = context.cwBase
         ctx.hisCall = KotlinStrings.trim(context.call)
         ctx.rst = KotlinStrings.isBlank(context.rstSent) ? "599" : context.rstSent
-        ctx.functionKeys = set.map(\.text)
+        ctx.functionKeys = texts
         ctx.freqHz = context.freqHz
         ctx.frequencyR = !digital
         if digital {
@@ -294,7 +297,7 @@ public enum FunctionKeyRouter {
             // Nothing on the stack: log and thank (`!` is the call just logged).
             next.hisCall = ""
             let end: Int = context.esmKeys.end
-            let tu: String = end < set.count ? set[end].text : ""
+            let tu: String = end < set.count ? RadioMessageMacro.select(set[end].text, radio: context.radio) : ""
             second = CwMessageBuilder.build(tu, next)
         }
         var parts: [CwMessage.Part] = first.parts
