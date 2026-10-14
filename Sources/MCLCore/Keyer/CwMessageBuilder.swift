@@ -15,7 +15,13 @@ import Foundation
 /// - control `{LOG}`, `{WIPE}`, `{RUN}`, `{S&P}`… → `CwMessage.Action`; the call stack `{SOCALLSTACK}`,
 ///   `{STACKANOTHER}`, `{CLRSTACK}` too (`{LOGTHENPOP}` is split off by `FunctionKeyRouter` before building), and
 ///   `{SPOTME}` (a self-spot to the DX cluster);
-/// - `{F1}`…`{F12}` – text of another F-key (chaining, at most 3 levels of insertion).
+/// - `{F1}`…`{F12}` – text of another F-key (chaining, at most 3 levels of insertion);
+/// - Swift-only N1MM macros: the last QSO `{LASTCALL}`, `{PREVNR}`, `{LASTEXCH}`, `{PREVTIME}`; names `{NAME}`
+///   (the Name field, else the call history), `{NAMEANDSPACE}`, `{CHNAME}`; station `{GRID}`, `{CLUSTER}`;
+///   frequency `{FREQ}` (R for the decimal point in CW), `{FREQROUND}`, `{LRMHZ}`, `{RRMHZ}`; his locator
+///   `{GRIDSQUARE}`, `{GRIDBEARING}`, `{REVGRIDBEARING}`, `{KMGRIDDISTANCE}`; time `{TIME1}`, `{TIME2}`, `{TIMEGMT}`,
+///   `{DATE}`, `{DATE1}`, `{DAYTIME}`, `{DATEGMT}`, `{TIMESTAMP}`; alternating `{VARYMSG1&a&b&n&}`; the actions
+///   `{CQ}`, `{QSYCQ}`, `{EXCHSENT}`, `{CTRLHOME}`, `{FORCELOG}`, `{FORCELOGNOTE}`, `{SPACE}` and `{COMMENT text}`.
 ///
 /// Other macros in `{}` are not transmitted and are returned in `CwMessage.unknownMacros`.
 ///
@@ -87,6 +93,28 @@ public enum CwMessageBuilder {
         public var digitalButtons: [String] = []
         /// `{FILE:name}`: the text of a file in the messages folder (`nil` = missing).
         public var fileText: @Sendable (String) -> String? = { _ in nil }
+        /// `{FREQ}` / `{FREQROUND}`: the QSO frequency (Hz, 0 = unknown); `frequencyR`: R for the decimal point (CW).
+        public var freqHz: Int64 = 0
+        public var frequencyR: Bool = false
+        /// `{NAME}`: the entry window's Name field (`nil` / blank = the call history's name instead).
+        public var entryName: String?
+        /// `{GRIDSQUARE}`…: the other station's locator from the entry window.
+        public var hisGrid: String = ""
+        /// `{PREVNR}`, `{LASTEXCH}`, `{PREVTIME}`: the serial sent, the exchange received and the time of the last
+        /// logged QSO.
+        public var lastSerial: String = ""
+        public var lastExchange: String = ""
+        public var lastTime: Date?
+        /// `{CLUSTER}`: the DX cluster login.
+        public var clusterCall: String = ""
+        /// `{LRMHZ}` / `{RRMHZ}`: the whole MHz of the left (VFO A / radio 1) and right (VFO B / radio 2) rig.
+        public var leftMHz: String = ""
+        public var rightMHz: String = ""
+        /// The local time zone of `{TIME1}`, `{DATE}`, `{DATE1}`, `{DAYTIME}` and the locale of the short dates.
+        public var timeZone: TimeZone = .current
+        public var locale: Locale = .current
+        /// How many times `{VARYMSG1}` / `{VARYMSG2}` were sent before.
+        public var varyCounts: [Int] = []
 
         public init(
             myCall: String, hisCall: String, lastLogged: String, serial: Int, rst: String, exchange: String,
@@ -123,12 +151,17 @@ public enum CwMessageBuilder {
         "{SCQ}": .resumeCq, "{TX}": .digitalTx, "{RX}": .digitalRx, "{CLRRX}": .clearRx, "{CLRTX}": .clearTx,
         "{ALT-T}": .toggleTx, "{ALT-Q}": .jumpCq, "{ALIGN}": .align, "{ENABLEAFC}": .afcOn, "{DISABLEAFC}": .afcOff,
         "{ENABLENET}": .netOn, "{DISABLENET}": .netOff, "{SPOTME}": .spotMe,
+        "{CQ}": .cq, "{QSYCQ}": .cqFrequency, "{EXCHSENT}": .exchangeSent, "{CTRLHOME}": .ctrlHome,
+        "{FORCELOG}": .forceLog, "{FORCELOGNOTE}": .forceLogNote, "{SPACE}": .space,
     ]
 
     /// Builds the message (`nil` template = empty message, like Java `null`).
     public static func build(_ template: String?, _ ctx: Context) -> CwMessage {
         guard let template else { return CwMessage(parts: []) }
-        return build(units: expandFunctionKeys(Array(template.utf16), ctx, depth: 0), ctx)
+        let expanded: [UInt16] = expandFunctionKeys(Array(template.utf16), ctx, depth: 0)
+        guard expanded.contains(0x7B) else { return build(units: expanded, ctx, varyUsed: []) }
+        let vary = VaryMessage.expand(JavaChar.string(expanded), counts: ctx.varyCounts)
+        return build(units: Array(vary.text.utf16), ctx, varyUsed: vary.used)
     }
 
     /// `{F1}`…`{F12}` (Java regex `(?i)\{F(1[0-2]|[1-9])\}`): inserts `" " + text + " "` of another F-key,
@@ -195,9 +228,10 @@ public enum CwMessageBuilder {
         return nil
     }
 
-    private static func build(units t: [UInt16], _ ctx: Context) -> CwMessage {
+    private static func build(units t: [UInt16], _ ctx: Context, varyUsed: [Int]) -> CwMessage {
         var parts: [CwMessage.Part] = []
         var actionList: [CwMessage.Action] = []
+        var commands: [MacroCommand] = []
         var unknown: [String] = []
         var text: [UInt16] = []
         var i = 0
@@ -237,6 +271,10 @@ public enum CwMessageBuilder {
                     actionList.append(action)
                     continue
                 }
+                if let command = MacroCommand.parse(JavaChar.string(raw)) {
+                    commands.append(command)
+                    continue
+                }
                 if let value = macroValue(macro, ctx) {
                     text.append(contentsOf: value.utf16)
                 } else {
@@ -264,7 +302,8 @@ public enum CwMessageBuilder {
             }
         }
         flush(&text, &parts)
-        return CwMessage(parts: parts, actions: actionList, unknownMacros: unknown)
+        return CwMessage(parts: parts, actions: actionList, unknownMacros: unknown, commands: commands,
+                         varyUsed: varyUsed)
     }
 
     /// Macro value, `nil` = unknown macro.
@@ -288,11 +327,40 @@ public enum CwMessageBuilder {
         case "{MYSTATE}": ctx.station.state
         case "{OPERATOR}": ctx.station.operator
         case "{TIME}": time(ctx.now)
-        case "{NAME}": ctx.hisName
+        case "{NAME}": name(ctx)
         case "{LDIGFQ}": ctx.leftDigitalFrequency
         case "{RDIGFQ}": ctx.rightDigitalFrequency
-        default: nil
+        default: extendedValue(macro, ctx)
         }
+    }
+
+    /// The Swift-only N1MM text macros (`nil` = unknown).
+    private static func extendedValue(_ macro: String, _ ctx: Context) -> String? {
+        switch macro {
+        case "{LASTCALL}": ctx.lastLogged
+        case "{PREVNR}": ctx.lastSerial
+        case "{LASTEXCH}": ctx.lastExchange
+        case "{PREVTIME}": ctx.lastTime.map { MacroTime.format($0, "HHmm") } ?? ""
+        case "{NAMEANDSPACE}": name(ctx).isEmpty ? "" : name(ctx) + " "
+        case "{CHNAME}": ctx.hisName
+        case "{GRID}": ctx.station.grid
+        case "{CLUSTER}": ctx.clusterCall
+        case "{FREQ}": MacroFrequency.text(ctx.freqHz, round: false, r: ctx.frequencyR)
+        case "{FREQROUND}": MacroFrequency.text(ctx.freqHz, round: true, r: ctx.frequencyR)
+        case "{LRMHZ}": ctx.leftMHz
+        case "{RRMHZ}": ctx.rightMHz
+        case "{GRIDSQUARE}": JavaText.toUpperCase(JavaText.trim(ctx.hisGrid))
+        case "{GRIDBEARING}": MacroGrid.bearing(from: ctx.station.grid, to: ctx.hisGrid, reverse: false)
+        case "{REVGRIDBEARING}": MacroGrid.bearing(from: ctx.station.grid, to: ctx.hisGrid, reverse: true)
+        case "{KMGRIDDISTANCE}": MacroGrid.distance(from: ctx.station.grid, to: ctx.hisGrid)
+        default: MacroTime.value(macro, ctx.now, timeZone: ctx.timeZone, locale: ctx.locale)
+        }
+    }
+
+    /// `{NAME}`: the Name field when it holds something, otherwise the call history's name.
+    private static func name(_ ctx: Context) -> String {
+        let field: String = JavaText.trim(ctx.entryName ?? "")
+        return field.isEmpty ? ctx.hisName : field
     }
 
     /// `DateTimeFormatter.ofPattern("HHmm").withZone(UTC)`; `nil` → "".

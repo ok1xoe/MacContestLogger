@@ -61,6 +61,18 @@ public struct CwMessage: Equatable, Sendable {
         case netOff = "NET_OFF"
         /// `{SPOTME}` (N1MM): spot my own station to the DX cluster on the entry window's frequency (Swift-only).
         case spotMe = "SPOT_ME"
+        /// `{CQ}` (N1MM): the key counts as the CQ key — Run and the CQ frequency remembered, as F1 does (Swift-only).
+        case cq = "CQ"
+        /// `{EXCHSENT}` (N1MM): ESM takes the exchange as sent, as if the Exchange key had been used (Swift-only).
+        case exchangeSent = "EXCH_SENT"
+        /// `{CTRLHOME}` (N1MM): the cursor into the call field with its text selected (Swift-only).
+        case ctrlHome = "CTRL_HOME"
+        /// `{FORCELOG}` / `{FORCELOGNOTE}` (N1MM): log past the exchange check, without / with the note prompt of
+        /// Ctrl+Alt+Enter (Swift-only).
+        case forceLog = "FORCE_LOG"
+        case forceLogNote = "FORCE_LOG_NOTE"
+        /// `{SPACE}` (N1MM): the space bar in the call field — on to the exchange (Swift-only).
+        case space = "SPACE"
     }
 
     /// Message parts in transmission order.
@@ -69,11 +81,18 @@ public struct CwMessage: Equatable, Sendable {
     public let actions: [Action]
     /// Unrecognised macros (to be reported; not transmitted).
     public let unknownMacros: [String]
+    /// Macros with a parameter (`{COMMENT text}`…), in message order (Swift-only).
+    public let commands: [MacroCommand]
+    /// The `{VARYMSG1}` / `{VARYMSG2}` macros this message used (1, 2): their counters move on when it is sent.
+    public let varyUsed: [Int]
 
-    public init(parts: [Part], actions: [Action] = [], unknownMacros: [String] = []) {
+    public init(parts: [Part], actions: [Action] = [], unknownMacros: [String] = [], commands: [MacroCommand] = [],
+                varyUsed: [Int] = []) {
         self.parts = parts
         self.actions = actions
         self.unknownMacros = unknownMacros
+        self.commands = commands
+        self.varyUsed = varyUsed
     }
 
     /// Nothing to transmit (no text and no prosign — even empty text counts as "something", as in Java).
@@ -93,7 +112,7 @@ public struct CwMessage: Equatable, Sendable {
     /// The message with the line breaks as spaces (CW keyers).
     public var withoutNewlines: CwMessage {
         CwMessage(parts: parts.map { $0 == Self.newline ? .text(" ") : $0 }, actions: actions,
-                  unknownMacros: unknownMacros)
+                  unknownMacros: unknownMacros, commands: commands, varyUsed: varyUsed)
     }
 
     /// The message as plain text — for keyers without prosigns and speed changes (CAT) and for display. A prosign is

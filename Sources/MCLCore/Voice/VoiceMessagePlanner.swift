@@ -27,6 +27,8 @@ public enum VoiceMessagePlanner {
         public var freqHz: Int64
         /// Texts F1…F12 of the current set for `{F1}`…; missing item = "".
         public var functionKeys: [String]
+        /// How many times `{VARYMSG1}` / `{VARYMSG2}` were sent before (Swift-only).
+        public var varyCounts: [Int] = []
 
         public init(operatorCall: String, myCall: String, hisCall: String, serial: Int32, freqHz: Int64,
                     functionKeys: [String] = []) {
@@ -54,6 +56,10 @@ public enum VoiceMessagePlanner {
         public var missing: [String]
         public var steps: [Step]
         public var unknownMacros: [String]
+        /// The parameterized macros (`{COMMENT text}`…), performed when the message starts (Swift-only).
+        public var commands: [MacroCommand] = []
+        /// The `{VARYMSGn}` macros the message used.
+        public var varyUsed: [Int] = []
 
         public init(files: [JavaPath], missing: [String], steps: [Step]? = nil, unknownMacros: [String] = []) {
             self.files = files
@@ -81,7 +87,8 @@ public enum VoiceMessagePlanner {
     private static let actions: [String: CwMessage.Action] = [
         "{LOG}": .log, "{WIPE}": .wipe, "{RUN}": .run, "{S&P}": .searchAndPounce,
         "{CLEARRIT}": .clearRit, "{RITCLEAR}": .clearRit, "{CQFREQ}": .cqFrequency, "{NOSPLIT}": .splitOff,
-        "{SPOTME}": .spotMe,
+        "{SPOTME}": .spotMe, "{CQ}": .cq, "{QSYCQ}": .cqFrequency, "{EXCHSENT}": .exchangeSent,
+        "{CTRLHOME}": .ctrlHome, "{FORCELOG}": .forceLog, "{FORCELOGNOTE}": .forceLogNote, "{SPACE}": .space,
     ]
 
     /// Items of a message with `{F1}`…`{F12}` replaced by the items of that key (depth ≤ 2 as in CW; deeper stays
@@ -199,11 +206,18 @@ public enum VoiceMessagePlanner {
         var missing: [String] = []
         var steps: [Step] = []
         var unknown: [String] = []
+        var commands: [MacroCommand] = []
         var flushed = 0
         guard let text else {
             return Plan(files: files, missing: missing)
         }
-        for token in items(text, ctx.functionKeys) {
+        let vary = VaryMessage.expand(text, counts: ctx.varyCounts)
+        var varyUsed: [Int] = vary.used
+        let keys: [String] = ctx.functionKeys.map { key in
+            let expanded = VaryMessage.expand(key, counts: ctx.varyCounts)
+            return expanded.text
+        }
+        for token in items(vary.text, keys) {
             if token.isEmpty || JavaChar.equalsIgnoreCase(token, "empty.wav") {
                 continue
             }
@@ -217,6 +231,10 @@ public enum VoiceMessagePlanner {
                     flushed = files.count
                 }
                 steps.append(.action(action))
+                continue
+            }
+            if let command = MacroCommand.parse(token) {
+                commands.append(command)
                 continue
             }
             if CallStackMacro.handledBeforeVoice.contains(macro) {
@@ -258,7 +276,15 @@ public enum VoiceMessagePlanner {
         if files.count > flushed {
             steps.append(.play(Array(files[flushed...])))
         }
-        return Plan(files: files, missing: missing, steps: steps, unknownMacros: unknown)
+        for (index, key) in ctx.functionKeys.enumerated() where vary.text.uppercased().contains("{F\(index + 1)}") {
+            for number in VaryMessage.expand(key, counts: ctx.varyCounts).used where !varyUsed.contains(number) {
+                varyUsed.append(number)
+            }
+        }
+        var plan = Plan(files: files, missing: missing, steps: steps, unknownMacros: unknown)
+        plan.commands = commands
+        plan.varyUsed = varyUsed
+        return plan
     }
 
     /// Where to record a message (N1MM "Recording on the Fly"): only when the message plays exactly one
@@ -311,7 +337,7 @@ public enum VoiceMessagePlanner {
         let name = item.uppercased()
         switch name {
         case "{LOG}", "{WIPE}", "{RUN}", "{S&P}", "{END}", "{CLEARRIT}", "{RITCLEAR}", "{CQFREQ}", "{NOSPLIT}",
-             "{SPOTME}":
+             "{SPOTME}", "{CQ}", "{QSYCQ}", "{EXCHSENT}", "{CTRLHOME}", "{FORCELOG}", "{FORCELOGNOTE}", "{SPACE}":
             return true
         default:
             guard name.hasPrefix("{F"), name.hasSuffix("}"), let number = Int(name.dropFirst(2).dropLast()) else {

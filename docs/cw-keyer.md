@@ -95,6 +95,27 @@ duration is calculated from real Morse code timing and the speed.
 | `{CQFREQ}` | jump to the CQ frequency (and clear the fields) |
 | `{NOSPLIT}` | turns split off |
 | `{SPOTME}` | spots your own station to the DX cluster on the entry window's frequency, with the [spot comment](dx-cluster.md#spot-comment-spotting-sp-qsos-and-special-calls) (`CQ` when blank); check that the contest rules allow self-spots |
+| `{LASTCALL}`, `{PREVNR}`, `{LASTEXCH}`, `{PREVTIME}` | the last logged QSO: its call, the serial sent, the exchange received, its UTC time `HHmm` (for a fill after the QSO was logged) |
+| `{NAME}` | the Name field of the entry window; when it is empty or the contest has none, the name from the call history |
+| `{NAMEANDSPACE}` | the same followed by a space (nothing when there is no name) |
+| `{CHNAME}` | the name from the call history, even when call history lookup is off |
+| `{GRID}` | my locator (Settings → Station); `{CLUSTER}` the DX cluster login (the station call when none is set) |
+| `{FREQ}` / `{FREQROUND}` | the entry window's frequency in kHz (`14025R3` in CW: R for the decimal point) / rounded to the kHz |
+| `{LRMHZ}` / `{RRMHZ}` | the whole MHz of VFO A / radio 1 and VFO B / radio 2 |
+| `{GRIDSQUARE}`, `{GRIDBEARING}`, `{REVGRIDBEARING}`, `{KMGRIDDISTANCE}` | the locator in the entry window, the bearing to it, the reverse bearing and the distance in km from my locator (VHF station passing: `{CALL} {GRIDSQUARE} {GRIDBEARING} deg {KMGRIDDISTANCE} km`) |
+| `{TIME2}` / `{TIMEGMT}` | UTC `HHmm` / `HH:mm:ss` |
+| `{TIME1}`, `{DATE}`, `{DATE1}`, `{DAYTIME}` | local `HH:mm:ss`, the short date of the system's regional format, `dd.mm.yy`, `yymmddhhmm` |
+| `{DATEGMT}`, `{TIMESTAMP}` | the UTC date and time in the regional format / `yyyy-mm-dd hhmm` |
+| `{VARYMSG1&Primary&Alternate&N&}` / `{VARYMSG2…}` | alternating text: `N` = 0 always the primary, 1 always the alternate, more than 1 the alternate every N-th send (`{VARYMSG1 &CQ * *&CQ CQ * *&3&}` sends a longer CQ every third time). The counters count sends in every mode |
+| `{CQ}` | the key works as the CQ key: Run and the CQ frequency are remembered, like F1 |
+| `{QSYCQ}` | the same as `{CQFREQ}` |
+| `{EXCHSENT}` | ESM takes the exchange as sent (an exchange sent from another key) |
+| `{CTRLHOME}` | the cursor into the callsign field with its text selected |
+| `{FORCELOG}` / `{FORCELOGNOTE}` | logs past the exchange check, like Ctrl+Alt+Enter — without the note prompt / with it |
+| `{SPACE}` | the space bar in the callsign field (on to the exchange) |
+| `{COMMENT text}` | adds the text to the note of the QSO in progress, or of the last logged QSO when the callsign field is empty |
+
+Characters a keyer cannot send (`:` in `{TIMEGMT}`, for example) are left out.
 
 N1MM interface-control macros (`{CAT1ASC}`, `{TX}`/`{RX}`, `{KEYBOARD}`...) are not
 sent and are reported in the status line as unknown.

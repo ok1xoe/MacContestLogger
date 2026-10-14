@@ -28,6 +28,8 @@ public final class VoiceKeyerModel {
     @ObservationIgnored weak var keyer: KeyerModel?
     /// Performs a control macro of a message (`{LOG}`, `{WIPE}`, `{RUN}`…) in the entry window; wired by the app.
     @ObservationIgnored var performAction: (@MainActor (CwMessage.Action) -> Void)?
+    /// The parameterized macros of a message (`{COMMENT text}`…), performed when it starts.
+    @ObservationIgnored var performCommand: (@MainActor (MacroCommand) -> Void)?
     @ObservationIgnored private let voiceKeyer: VoiceKeyer
     @ObservationIgnored let ptt: VoicePtt
     @ObservationIgnored private let settings: VoiceSettingsBox
@@ -130,9 +132,7 @@ public final class VoiceKeyerModel {
         let app: AppConfig = config.config
         let request = PlanRequest(
             text: texts.joined(separator: ","), wavDir: wavDirectory, lettersPath: app.voiceKeyer.lettersPath,
-            context: VoiceMessagePlanner.Context(operatorCall: operating.operatorCall, myCall: app.station.call,
-                                                 hisCall: hisCall, serial: Int32(clamping: nextSerial()),
-                                                 freqHz: freqHz, functionKeys: set.map(\.text)),
+            context: planContext(hisCall: hisCall, freqHz: freqHz, keys: set.map(\.text)),
             ttsVoice: app.ttsVoice, synthesize: hardware.synthesize)
         settings.update(outputDevice: app.voiceKeyer.outputDevice, pttDelayMs: app.voiceKeyer.pttDelayMs)
         ptt.arm(target: keyer.activeRigLane(), viaCat: app.voiceKeyer.pttViaCat)
@@ -145,6 +145,15 @@ public final class VoiceKeyerModel {
             self.planned(outcome, indices: indices, key: last)
         })
         return nil
+    }
+
+    private func planContext(hisCall: String, freqHz: Int64, keys: [String]) -> VoiceMessagePlanner.Context {
+        var context = VoiceMessagePlanner.Context(operatorCall: operating.operatorCall,
+                                                  myCall: config.config.station.call, hisCall: hisCall,
+                                                  serial: Int32(clamping: nextSerial()), freqHz: freqHz,
+                                                  functionKeys: keys)
+        context.varyCounts = operating.varyCounts
+        return context
     }
 
     private func planned(_ outcome: PlanOutcome, indices: [Int], key: Int) {
@@ -164,6 +173,9 @@ public final class VoiceKeyerModel {
             }
             // Actions before the first audio (or of a message with no audio) are performed at once.
             let leading: [CwMessage.Action] = plan.leadingActions
+            for command in plan.commands {
+                performCommand?(command)
+            }
             for action in leading {
                 performAction?(action)
             }
@@ -177,6 +189,7 @@ public final class VoiceKeyerModel {
                 }
                 return
             }
+            operating.noteVaryUsed(plan.varyUsed)
             voiceToken &+= 1
             let token: Int64 = voiceToken
             playingKey = key

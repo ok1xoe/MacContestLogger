@@ -98,6 +98,10 @@ public struct FunctionKeyOutcome: Equatable, Sendable {
     public var transmission: FunctionKeyTransmission?
     /// Actions of the control macros, in message order (`CwMessage.Action`).
     public var actions: [CwMessage.Action] = []
+    /// The parameterized macros (`{COMMENT text}`…), performed before the actions.
+    public var commands: [MacroCommand] = []
+    /// The `{VARYMSGn}` macros of the sent message (their counters move on).
+    public var varyUsed: [Int] = []
     /// F1 sent: `onCqSent(freqHz)` — CQ frequency remembered, Run (N1MM "CQ key is special").
     public var cqSentFreqHz: Int64?
     /// Ctrl+Shift+F in phone: start/stop recording this key.
@@ -182,6 +186,8 @@ public enum FunctionKeyRouter {
         ctx.hisCall = KotlinStrings.trim(context.call)
         ctx.rst = KotlinStrings.isBlank(context.rstSent) ? "599" : context.rstSent
         ctx.functionKeys = set.map(\.text)
+        ctx.freqHz = context.freqHz
+        ctx.frequencyR = !digital
         if digital {
             ctx.cutNumbers = false
             ctx.leadingZeros = false
@@ -196,6 +202,10 @@ public enum FunctionKeyRouter {
             message = CwMessageBuilder.build(joined, ctx)
         }
         let index: Int = indices[indices.count - 1]
+        out.commands = message.commands
+        if !message.isEmpty {
+            out.varyUsed = message.varyUsed
+        }
         if digital {
             if !message.isEmpty {
                 // N1MM {TX}/{RX}: a message with {TX} and no {RX} leaves fldigi transmitting; both are then
@@ -261,7 +271,8 @@ public enum FunctionKeyRouter {
         }
         parts += second.parts
         return CwMessage(parts: parts, actions: first.actions + [.logThenPop] + second.actions,
-                         unknownMacros: first.unknownMacros + second.unknownMacros)
+                         unknownMacros: first.unknownMacros + second.unknownMacros,
+                         commands: first.commands + second.commands, varyUsed: first.varyUsed + second.varyUsed)
     }
 
     /// A refused press: nothing sent, the ESM progress and the last sent keys stay.
