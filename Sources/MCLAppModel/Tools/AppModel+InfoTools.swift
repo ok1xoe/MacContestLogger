@@ -117,6 +117,7 @@ extension AppModel {
             model?.entry.sentExchangeText ?? ""
         }
         info.sources.clipboard = environment.clipboard
+        model.clipboard = environment.clipboard
         info.windowSync = { [weak model] id, open in
             model?.windows.setOpen(id, open)
         }

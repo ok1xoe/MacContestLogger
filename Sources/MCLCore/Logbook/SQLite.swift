@@ -322,6 +322,40 @@ public final class LogbookDatabase {
                 mode         TEXT
             )
             """)
+        // N1MM DELETEDQS: a copy of every QSO deleted from the log, kept for a restore. Local, not synced.
+        try db.execute("""
+            CREATE TABLE IF NOT EXISTS deleted_qso (
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                deleted_at_utc INTEGER NOT NULL,
+                original_id    INTEGER,
+                timestamp_utc  INTEGER NOT NULL,
+                call           TEXT    NOT NULL,
+                freq_hz        INTEGER NOT NULL,
+                band           TEXT,
+                mode           TEXT,
+                rst_sent       TEXT,
+                rst_rcvd       TEXT,
+                exchange_sent  TEXT,
+                exchange_rcvd  TEXT,
+                serial_sent    INTEGER,
+                serial_rcvd    INTEGER,
+                points         INTEGER NOT NULL DEFAULT 0,
+                multiplier     INTEGER NOT NULL DEFAULT 0,
+                run_mode       TEXT,
+                operator       TEXT,
+                comment        TEXT,
+                dxcc_entity    INTEGER,
+                dxcc_name      TEXT,
+                continent      TEXT,
+                uuid           TEXT,
+                station_id     TEXT,
+                version        INTEGER NOT NULL DEFAULT 0,
+                updated_at_utc INTEGER,
+                deleted        INTEGER NOT NULL DEFAULT 0,
+                contest_id     TEXT,
+                xqso           INTEGER NOT NULL DEFAULT 0
+            )
+            """)
     }
 
     /// Adds the sync columns to an older DB created before cluster sync was introduced.

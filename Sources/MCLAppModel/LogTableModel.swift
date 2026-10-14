@@ -24,6 +24,14 @@ public final class LogTableModel {
         case playRecording
         /// Kotlin „Smazat QSO" (outside `tr`), no confirmation.
         case deleteOne
+        /// N1MM „Edit contact": the edit dialog of the row.
+        case edit
+        /// N1MM „Jump to this frequency": the rig to the QSO's frequency and mode.
+        case jumpToFrequency
+        /// N1MM „Rescore from this point on": a rescore of the QSOs from this one on.
+        case rescoreFromHere
+        /// N1MM „Copy as ADIF": the row, or the selection it is part of, to the clipboard as ADIF.
+        case copyAdif
         /// A bulk action over the selection (the selection bar's actions in the menu).
         case bulk(BulkAction)
         /// „Smazat" of the selection bar: asks „Smazat N QSO?".
@@ -35,6 +43,14 @@ public final class LogTableModel {
                 return ContestMessage(isXqso ? "Zrušit X-QSO (počítat)" : "Označit jako X-QSO (nepočítat)")
             case .playRecording:
                 return ContestMessage("Přehrát nahrávku QSO")
+            case .edit:
+                return ContestMessage("Upravit QSO…")
+            case .jumpToFrequency:
+                return ContestMessage("Naladit na frekvenci QSO")
+            case .rescoreFromHere:
+                return ContestMessage("Přepočítat od tohoto QSO")
+            case .copyAdif:
+                return ContestMessage("Kopírovat jako ADIF")
             case .deleteOne:
                 return .verbatim("Smazat QSO")
             case .bulk(let action):
@@ -70,10 +86,28 @@ public final class LogTableModel {
 
     /// „Dohledat na …": opens a call's page on a callbook in the browser.
     @ObservationIgnored private let openCallPage: @MainActor (String, CallbookService) -> Void
+    /// What the row actions need from the rest of the app (fakes in tests).
+    @ObservationIgnored let actions: RowActions
+
+    /// The row actions' ports: the edit dialog, the rig, the rescore and the clipboard.
+    public struct RowActions {
+        public var edit: @MainActor (Int64) -> Void = { _ in }
+        public var tune: @MainActor (Int64, Mode?) -> Void = { _, _ in }
+        public var rescoreFrom: @MainActor (Date) -> Void = { _ in }
+        public var copy: @MainActor (String) -> Void = { _ in }
+        /// Whether a contest is open (the rescore item).
+        public var contestActive: @MainActor () -> Bool = { false }
+        /// N1MM „Show Mode Column": saved in the configuration.
+        public var setModeColumn: @MainActor (Bool) -> Void = { _ in }
+
+        public init() {}
+    }
 
     public init(logbook: LogbookModel, windows: WindowsModel, status: StatusModel,
                 playRecording: @escaping @MainActor (Qso) -> Void = { _ in },
-                openCallPage: @escaping @MainActor (String, CallbookService) -> Void = { _, _ in }) {
+                openCallPage: @escaping @MainActor (String, CallbookService) -> Void = { _, _ in },
+                actions: RowActions = RowActions()) {
+        self.actions = actions
         self.openCallPage = openCallPage
         self.logbook = logbook
         self.windows = windows
@@ -86,7 +120,35 @@ public final class LogTableModel {
                   playRecording: { [weak recording = app.recording] qso in recording?.playQsoRecording(qso) },
                   openCallPage: { [weak callbook = app.callbook] call, service in
                       callbook?.openPage(call, on: service)
-                  })
+                  },
+                  actions: Self.rowActions(app))
+    }
+
+    private static func rowActions(_ app: AppModel) -> RowActions {
+        var actions = RowActions()
+        actions.edit = { [weak logbook = app.logbook, weak dialogs = app.dialogs] id in
+            guard let logbook, let dialogs,
+                  let model = QsoEditModel.logged(id: id, logbook: logbook, dialogs: dialogs) else { return }
+            dialogs.openQsoEdit(model)
+        }
+        actions.tune = { [weak rig = app.rig] hz, mode in
+            rig?.qsy(hz, mode: mode)
+        }
+        actions.rescoreFrom = { [weak contest = app.contest] since in
+            contest?.requestRescore(manual: true, from: since)
+        }
+        actions.copy = { [weak app] text in
+            app?.clipboard(text)
+        }
+        actions.contestActive = { [weak contest = app.contest] in
+            contest?.runtime.isActive ?? false
+        }
+        actions.setModeColumn = { [weak config = app.config] on in
+            guard let config else { return }
+            config.config.logShowModeColumn = on
+            config.saveSilently()
+        }
+        return actions
     }
 
     // MARK: - selection
@@ -167,10 +229,70 @@ public final class LogTableModel {
         logbook.setOnlyWarnings(!logbook.onlyWarnings)
     }
 
+    /// N1MM View → Notes: only the QSOs with a note, or all again.
+    public func toggleNotes() {
+        logbook.setOnlyNotes(!logbook.onlyNotes)
+        clearSelection()
+    }
+
+    /// N1MM „Show Mode Column".
+    public var showsModeColumn: Bool {
+        !logbook.hiddenColumns.contains(.mode)
+    }
+
+    public func setShowsModeColumn(_ on: Bool) {
+        var hidden: Set<LogTableColumns.Column> = logbook.hiddenColumns
+        if on {
+            hidden.remove(.mode)
+        } else {
+            hidden.insert(.mode)
+        }
+        logbook.setHiddenColumns(hidden)
+        actions.setModeColumn(on)
+    }
+
+    // MARK: - deleted QSOs (N1MM DELETEDQS)
+
+    /// The deleted QSOs shown in the „Smazaná QSO" sheet; `nil` = the sheet is closed.
+    public private(set) var deleted: [LogbookRepository.DeletedQso]?
+    /// The archive rows chosen in the sheet.
+    public var deletedSelection: Set<Int64> = []
+
+    /// Opens the sheet with the active contest's deleted QSOs.
+    public func openDeleted() {
+        track(Task { [weak self] in
+            guard let self else { return }
+            let rows: [LogbookRepository.DeletedQso] = await self.logbook.deletedQsos() ?? []
+            self.deletedSelection = []
+            self.deleted = rows
+        })
+    }
+
+    public func closeDeleted() {
+        deleted = nil
+        deletedSelection = []
+    }
+
+    /// „Obnovit": the chosen deleted QSOs go back into the log; the sheet shows what is left.
+    public func restoreDeleted() {
+        guard let rows = deleted else { return }
+        let chosen: [LogbookRepository.DeletedQso] = rows.filter { deletedSelection.contains($0.archiveId) }
+        guard !chosen.isEmpty else { return }
+        track(Task { [weak self] in
+            guard let self else { return }
+            await self.logbook.restoreDeleted(chosen)
+            let left: [LogbookRepository.DeletedQso] = await self.logbook.deletedQsos() ?? []
+            self.deletedSelection = []
+            if self.deleted != nil {
+                self.deleted = left
+            }
+        })
+    }
+
     /// The text right of the search field: the hint while the search is blank and the warnings filter is off,
     /// otherwise „<shown> z <total>" (Kotlin literal, translated as elsewhere).
     public var searchCaption: ContestMessage {
-        if KotlinStrings.isBlank(logbook.query) && !logbook.onlyWarnings {
+        if KotlinStrings.isBlank(logbook.query) && !logbook.onlyWarnings && !logbook.onlyNotes {
             return ContestMessage("např. ok1 · 57 · ex:JN79 · nrrx:12 · band:20m")
         }
         return ContestMessage("%s z %s", .int(logbook.displayed.count), .int(logbook.rows.count))
@@ -230,9 +352,17 @@ public final class LogTableModel {
     public func menuItems(forRow id: Int64?) -> [MenuItem] {
         guard let id, let qso = row(id) else { return [] }
         if showsSelectionBar && selected.contains(id) {
-            return BulkAction.allCases.map { MenuItem.bulk($0) } + [.deleteSelection]
+            return BulkAction.allCases.map { MenuItem.bulk($0) } + [.copyAdif, .deleteSelection]
         }
-        return [.toggleXqso(isXqso: qso.xqso), .playRecording, .deleteOne]
+        var items: [MenuItem] = [.edit, .toggleXqso(isXqso: qso.xqso), .playRecording]
+        if qso.freqHz > 0 {
+            items.append(.jumpToFrequency)
+        }
+        if actions.contestActive(), qso.timestampUtc != nil {
+            items.append(.rescoreFromHere)
+        }
+        items += [.copyAdif, .deleteOne]
+        return items
     }
 
     /// „Dohledat na HamQTH" / „Dohledat na QRZ.com" of the row's menu: open the row's call page on the service in
@@ -270,6 +400,18 @@ public final class LogTableModel {
             if let qso = row(id) {
                 playRecording(qso)
             }
+        case .edit:
+            actions.edit(id)
+        case .jumpToFrequency:
+            if let qso = row(id), qso.freqHz > 0 {
+                actions.tune(Int64(qso.freqHz), qso.mode)
+            }
+        case .rescoreFromHere:
+            if let time = row(id)?.timestampUtc {
+                actions.rescoreFrom(time)
+            }
+        case .copyAdif:
+            copyAdif(row: id)
         case .deleteOne:
             deleteOne(id: id)
         case .bulk(let action):
@@ -277,6 +419,14 @@ public final class LogTableModel {
         case .deleteSelection:
             askDeleteSelection()
         }
+    }
+
+    /// „Kopírovat jako ADIF": the selection the row is part of (in the displayed order), otherwise the row.
+    public func copyAdif(row id: Int64) {
+        let qsos: [Qso] = showsSelectionBar && selected.contains(id) ? chosen : row(id).map { [$0] } ?? []
+        guard !qsos.isEmpty else { return }
+        actions.copy(AdifWriter().toAdif(qsos))
+        status.show(ContestMessage("Zkopírováno %s QSO jako ADIF", .int(qsos.count)))
     }
 
     // MARK: - bulk actions

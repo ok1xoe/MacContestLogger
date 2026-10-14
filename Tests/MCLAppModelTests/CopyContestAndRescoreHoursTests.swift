@@ -149,6 +149,27 @@ import Testing
         #expect(all.first { $0.call == "DL1ABC" }?.dxccEntity != nil)
     }
 
+    @Test func rescoreFromAQsoRescoresOnlyFromItsTimeOn() async throws {
+        let now = TestNow(Self.t0)
+        let app = try await TestApp.make(now: now)
+        let model: AppModel = app.model
+        try await app.startCqWwCw()
+        let early: Date = Self.t0.addingTimeInterval(-30 * 3600)
+        let late: Date = Self.t0.addingTimeInterval(-3600)
+        try await Self.inject(app, "DL1ABC", zone: "14", at: early)
+        try await Self.inject(app, "W1AW", zone: "5", at: late)
+        let total: Int64 = try #require(model.contest.score?.total)
+
+        model.contest.requestRescore(manual: true, from: late)
+        await model.contest.settleRescore()
+
+        let since: String = LogTableColumns.editTimeText(late)
+        #expect(model.status.message == "Skóre přepočteno od \(since): 1 QSO, celkem \(total) (beze změny) · doplněna země u 1 QSO", "\(model.status.message)")
+        let rows: [Qso] = try await model.database.handle.run { try $0.service.findAll() }
+        #expect(rows.first { $0.call == "DL1ABC" }?.dxccEntity == nil, "before the QSO: context only")
+        #expect(rows.first { $0.call == "W1AW" }?.dxccEntity != nil)
+    }
+
     @Test func aWindowWithoutQsosSaysSoAndChangesNothing() async throws {
         let now = TestNow(Self.t0)
         let app = try await TestApp.make(now: now)

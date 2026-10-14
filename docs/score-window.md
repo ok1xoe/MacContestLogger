@@ -27,4 +27,7 @@ multiplier, so the result of every QSO in the window is exactly what a full resc
 written to. The window's QSOs are the ones counted in the report (and the ones whose missing country is filled in);
 the score shown is the whole log's. With no QSO in the window nothing is done and the status line says so.
 
+**Přepočítat od tohoto QSO** (Rescore from this QSO on) in the [log window's row menu](log-window.md#row-menu),
+equivalent of N1MM **Rescore from this point on**, does the same for the QSOs from the chosen QSO's time on.
+
 In free logging (without a contest) the window only states that the breakdown is not available.

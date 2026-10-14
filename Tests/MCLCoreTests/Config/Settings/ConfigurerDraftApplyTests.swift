@@ -301,6 +301,7 @@ import Testing
                                "entryHiddenBands",
                                "entryBandButtonsClick",
                                "entryShowUtcClock",
+                               "logShowModeColumn",
                                "entryHiddenSections",
                                "resetRxAfterRunQso", "macroQsyStepKHz", "functionKeysPerOperator",
                                "ctyEnabled",

@@ -98,7 +98,7 @@ public enum LogTableEdit {
 /// The labels are `ContestMessage`s evaluated when shown (Kotlin translates them once, when the enum is
 /// initialised — a technique difference); the ones Kotlin writes outside `tr` are verbatim.
 public enum BulkAction: CaseIterable, Sendable {
-    case `operator`, mode, frequency, shiftTime, interpolate, xqso
+    case `operator`, mode, frequency, station, shiftTime, interpolate, xqso
 
     /// The button of the selection bar.
     public var button: ContestMessage {
@@ -106,6 +106,7 @@ public enum BulkAction: CaseIterable, Sendable {
         case .operator: return ContestMessage("Operátor…")
         case .mode: return ContestMessage("Mód…")
         case .frequency: return .verbatim("Frekvence…")
+        case .station: return ContestMessage("Stanice…")
         case .shiftTime: return ContestMessage("Posun času…")
         case .interpolate: return ContestMessage("Interpolovat čas")
         case .xqso: return .verbatim("X-QSO")
@@ -118,6 +119,7 @@ public enum BulkAction: CaseIterable, Sendable {
         case .operator: return ContestMessage("Operátor")
         case .mode: return ContestMessage("Mód")
         case .frequency: return .verbatim("Frekvence")
+        case .station: return ContestMessage("Stanice")
         case .shiftTime: return ContestMessage("Posun času")
         case .interpolate: return ContestMessage("Interpolace času")
         case .xqso: return .verbatim("X-QSO")
@@ -130,6 +132,7 @@ public enum BulkAction: CaseIterable, Sendable {
         case .operator: return ContestMessage("Volačka operátora (prázdné = smazat)")
         case .mode: return .verbatim("CW, SSB, RTTY, FT8…")
         case .frequency: return ContestMessage("Frekvence v kHz (určí i pásmo), např. 14025.5")
+        case .station: return ContestMessage("Název stanice v síti (prázdné = smazat)")
         case .shiftTime: return .verbatim("+5 / -5 minut, +1:30, -2h")
         case .interpolate, .xqso: return .verbatim("")
         }
@@ -203,6 +206,15 @@ public enum BulkAction: CaseIterable, Sendable {
             }
             return Self.bulkUpdate(chosen, .verbatim("Frekvence")) { list in
                 BulkEdit.setFrequencyHz(&list, freqHz: hz)
+                return true
+            }
+        case .station:
+            // N1MM „Change Station Name": the multi-op station (computer) the QSOs were logged on.
+            let name: String = t
+            return Self.bulkUpdate(chosen, ContestMessage("Stanice")) { list in
+                for i in list.indices {
+                    list[i].stationId = name
+                }
                 return true
             }
         case .shiftTime:

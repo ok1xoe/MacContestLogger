@@ -51,6 +51,7 @@ enum ProfileMergeSchema {
             Property("entryHiddenBands", .list(.string), .fieldDefault),
             Property("entryBandButtonsClick", .boolean, .fieldDefault),
             Property("entryShowUtcClock", .boolean, .fieldDefault),
+            Property("logShowModeColumn", .boolean, .fieldDefault),
             Property("entryHiddenSections", .list(.string), .fieldDefault),
             Property("resetRxAfterRunQso", .boolean, .fieldDefault),
             Property("macroQsyStepKHz", .int, .fieldDefault),

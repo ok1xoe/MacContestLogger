@@ -158,10 +158,11 @@ import Testing
         // 13 keys of the ESM key assignments, partial calls, the call / exchange separator, F-key stacking and the CQ repeat's maximum duration and
         // 9 keys of the two-radio, audio, OTRSP, contest swap and needed-QSO macros and
         // 11 keys of the audio setup (level meter, test tone, message level, radio 2 output) and the advanced voicing of serial numbers and
-        // 2 keys of File → Export → Function Keys.
-        #expect(map.count == 1_836)
+        // 2 keys of File → Export → Function Keys and
+        // 19 keys of the log window's row actions, view options, deleted QSOs and the edit dialog's arrows.
+        #expect(map.count == 1_855)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_836)
+        #expect(german.count == 1_855)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

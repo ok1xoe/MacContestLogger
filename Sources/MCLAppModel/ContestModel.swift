@@ -637,11 +637,16 @@ public final class ContestModel {
 
     /// Kotlin `requestRescore(manual)`: captures the contest, the log snapshot and the score first (a manual request
     /// runs at once).
-    public func requestRescore(manual: Bool = false, lastHours: Int? = nil) {
+    ///
+    /// `from`: N1MM „Rescore from this point on" — like the last N hours, only the QSOs from that time on are
+    /// rescored and written (the earlier ones are replayed as context).
+    public func requestRescore(manual: Bool = false, lastHours: Int? = nil, from start: Date? = nil) {
         if runtime.isActive {
             var captured = RescoreCapture(contestId: runtime.activeId, snapshot: logbook.rows,
                                           before: runtime.score?.total)
-            if let lastHours {
+            if let start, lastHours == nil {
+                captured.since = start
+            } else if let lastHours {
                 let since: Date = RescoreWindow.cutoff(hours: lastHours, now: now())
                 guard RescoreWindow.count(captured.snapshot, since: since) > 0 else {
                     status.show(ContestMessage("Přepočet skóre: v posledních %s h nejsou žádná QSO", .int(lastHours)))
@@ -684,7 +689,7 @@ public final class ContestModel {
         case .discard:
             return
         case .rerun(let manual):
-            requestRescore(manual: manual, lastHours: capture.hours)
+            requestRescore(manual: manual, lastHours: capture.hours, from: capture.hours == nil ? capture.since : nil)
             return
         case .adopt:
             break
@@ -711,6 +716,9 @@ public final class ContestModel {
         if let hours = capture.hours, let window {
             parts = RescoreScheduler.windowSummary(hours: hours, replayed: window.replayed, skipped: window.skipped,
                                                    before: capture.before, after: after, filled: filled)
+        } else if let since = capture.since, let window {
+            parts = RescoreScheduler.fromSummary(since: since, replayed: window.replayed, skipped: window.skipped,
+                                                 before: capture.before, after: after, filled: filled)
         } else {
             parts = RescoreScheduler.summary(replayed: outcome.replayed, skipped: outcome.skipped,
                                              before: capture.before, after: after, filled: filled)
