@@ -1701,5 +1701,19 @@
  "Split není zapnutý": "Split is not on",
  "Split: RX na TX %s": "Split: RX to TX %s",
  "Ve splitu po zapsání Run QSO vrátit RX na TX frekvenci (Alt+S)": "In split, reset RX to the TX frequency after a Run QSO is logged (Alt+S)",
- "Split: RX na TX frekvenci": "Split: RX to TX frequency"
+ "Split: RX na TX frekvenci": "Split: RX to TX frequency",
+ "Tlačítka pásem": "Band buttons",
+ "Nápovědy u frekvence (callbook, call history…)": "Hints by the frequency (callbook, call history…)",
+ "Azimut a vzdálenost": "Bearing and distance",
+ "Řádek Run/S&P a ESM": "Run/S&P and ESM line",
+ "Rychlost CW": "CW speed",
+ "Tlačítka F1–F12": "F1–F12 buttons",
+ "Tlačítka Wipe, Log It, Edit…": "Wipe, Log It, Edit… buttons",
+ "Klik na tlačítko pásma mění pásmo": "Band button click changes the band",
+ "Zobrazená pásma": "Bands shown",
+ "Hodiny UTC": "UTC clock",
+ "Informace uživatele (call history)": "User information (call history)",
+ "dvojitý násobič": "double multiplier",
+ "nové QSO": "new QSO",
+ "dupe": "dupe"
 }

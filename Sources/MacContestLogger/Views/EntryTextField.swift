@@ -76,6 +76,8 @@ struct EntryTextField: NSViewRepresentable {
     var isError: Bool = false
     /// A background tint (N1MM QuickEdit's light blue); `nil` = the normal text background.
     var tint: NSColor?
+    /// The text colour (N1MM's call colours); `nil` = the normal one (or the error colour).
+    var textTint: NSColor?
     var placeholder: String = ""
     var accessibilityLabel: String
     var focus: EntryFocusController?
@@ -119,7 +121,7 @@ struct EntryTextField: NSViewRepresentable {
         field.isEnabled = context.environment.isEnabled
         field.placeholderString = placeholder
         field.setAccessibilityLabel(accessibilityLabel)
-        field.textColor = isError ? DomainColors.dupe : NSColor.textColor
+        field.textColor = textTint ?? (isError ? DomainColors.dupe : NSColor.textColor)
         field.backgroundColor = tint ?? NSColor.textBackgroundColor
         field.layer?.borderWidth = isError ? 1 : 0
         field.layer?.borderColor = DomainColors.dupe.cgColor

@@ -3,6 +3,38 @@
 The entry window is the main window: the frequency strip, the band × mode buttons, the fields of the QSO, the
 hints, the F-key messages and the action buttons. Keys are listed in [keyboard shortcuts](keyboard-shortcuts.md).
 
+## Right-click menu
+
+A right click anywhere in the entry window (outside the text fields) opens N1MM's view menu:
+
+- **the parts shown** — band buttons, the hints by the frequency (callbook, call history, worked before…), the
+  bearing and distance, the Run/S&P and ESM line, the CW speed, the F1–F12 buttons and the Wipe / Log It / Edit
+  buttons. A hidden part makes the window smaller.
+- **Klik na tlačítko pásma mění pásmo** (N1MM *Band Button Left Click Enabled*): off = the band buttons only show
+  the bands and their colours, a click does nothing.
+- **Zobrazená pásma** — which bands have a button.
+- **Hodiny UTC** (N1MM *Show GMT Time*) — a UTC clock in the frequency strip.
+- **Informace uživatele (call history)** (N1MM *Show User Information*) — the call history line of the typed call
+  (also Settings → Contest).
+
+The choices are saved with the settings.
+
+## Colours of the typed call
+
+In a contest the typed call is checked on the current band and on every band button:
+
+| Colour | Meaning |
+|---|---|
+| green | a double (or better) multiplier |
+| red | a multiplier |
+| blue | a new QSO without a multiplier |
+| grey | a dupe |
+
+The callsign text has the colour of the current band (a dupe keeps the red border and the DUPE chip); the band
+buttons get a frame in the colour of the call on that band. Under the frequency the bearing line shows the short
+and long path beam headings and the short-path distance to the call's country (Settings → Station: your latitude
+and longitude).
+
 ## Editing a QSO
 
 - **Ctrl+Y**, the **Edit** button or **Úpravy → Upravit poslední spojení…** (N1MM *Edit Last Contact*) open the

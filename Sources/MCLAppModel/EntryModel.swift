@@ -39,6 +39,10 @@ public final class EntryModel {
     public internal(set) var lastPaperTime: Date?
     /// Kotlin `state.pendingNote`: the Ctrl+N note for the QSO in progress.
     public internal(set) var pendingNote: String?
+    /// The typed call's status on each band of the band buttons (`updateBandStatuses`).
+    public internal(set) var bandStatuses: [Band: CallBandStatus] = [:]
+    /// What `bandStatuses` were computed for (a CAT poll with nothing new recomputes nothing).
+    @ObservationIgnored var bandStatusKey: String?
     /// N1MM QuickEdit (Ctrl+Q / Ctrl+A): the logged QSO in the fields, `nil` = normal entry.
     public internal(set) var quickEdit: QuickEditState?
     /// A held Shift shows the opposite F-key set (Kotlin `shiftHeld`).
@@ -359,6 +363,7 @@ public final class EntryModel {
             contest.preview(call: form.call, band: band?.adif ?? "", mode: form.mode.rawValue,
                             exchange: form.contestExchange, ownQth: previewQth)
         }
+        updateBandStatuses()
         let dupe: Bool = isDupe
         if dupe && !wasDupe && config.config.beepOnDupe && quickEdit == nil {
             ports.beep()
@@ -367,7 +372,7 @@ public final class EntryModel {
     }
 
     /// `countyLine.firstOrNull()?.takeIf { usesRoverQth } ?: roverQthForDupe()`.
-    private var previewQth: String? {
+    var previewQth: String? {
         let usesRover: Bool = contest.usesRoverQth
         if usesRover, let first = countyLine.first {
             return first
@@ -405,6 +410,7 @@ public final class EntryModel {
         form = form.wiped(contestActive: contest.isActive, rstFieldIds: EntryForm.rstFieldIds(fields))
         esmProgress = .empty
         wasDupe = isDupe
+        updateBandStatuses()
         selfSpot.typed()
         trackCallForSelfSpot()
         if focus {

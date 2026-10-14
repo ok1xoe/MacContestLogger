@@ -21,13 +21,18 @@ struct EntryPanelView: View {
             FrequencyStripView(app: app, panel: panel, focus: focus)
             StationCallWarning(app: app)
             HStack(alignment: .top, spacing: 8) {
-                BandGridView(app: app, entry: panel.entry)
+                if panel.entry.isShown(.bandButtons) {
+                    BandGridView(app: app, entry: panel.entry)
+                }
                 EntryColumn(app: app, panel: panel, focus: focus)
             }
         }
         .padding(8)
         .background(TuningWheelArea(monitor: wheel))
         .disabled(!app.acceptsEntryInput)
+        .contextMenu {
+            EntryViewMenu(app: app, entry: panel.entry)
+        }
     }
 }
 
@@ -61,9 +66,15 @@ private struct EntryColumn: View {
             if panel.suggestions.showsNPlusOneRow {
                 NPlusOneView(app: app, panel: panel)
             }
-            InfoStripView(app: app, panel: panel)
-            FunctionKeyBar(app: app, panel: panel)
-            EntryActionBar(app: app, panel: panel, focus: focus)
+            if panel.entry.isShown(.statusLine) {
+                InfoStripView(app: app, panel: panel)
+            }
+            if panel.entry.isShown(.functionKeys) {
+                FunctionKeyBar(app: app, panel: panel)
+            }
+            if panel.entry.isShown(.actionButtons) {
+                EntryActionBar(app: app, panel: panel, focus: focus)
+            }
         }
     }
 }
@@ -125,7 +136,8 @@ private struct EntryFieldsRow: View {
         let entry: EntryModel = self.entry
         return EntryFieldBox(key: .call, text: entry.form.call, transform: .uppercase, big: true,
                              label: app.language.tr("Volačka"), isError: entry.isDupe && entry.quickEdit == nil,
-                             focus: focus, onChange: { entry.callChanged($0) }, tinted: entry.quickEdit != nil)
+                             focus: focus, onChange: { entry.callChanged($0) }, tinted: entry.quickEdit != nil,
+                             textTint: entry.callStatus.map(DomainColors.call))
         .overlay(alignment: .trailing) {
             CallMarkView(app: app, entry: entry)
         }
@@ -169,12 +181,15 @@ private struct EntryFieldBox: View {
     var onTab: (@MainActor (_ backward: Bool) -> Bool)?
     /// N1MM QuickEdit tints the fields light blue.
     var tinted: Bool = false
+    /// N1MM's call colour of the call field.
+    var textTint: NSColor?
 
     var body: some View {
         WindowFontReader { size in
             EntryTextField(key: key, text: text, transform: transform,
                            fontSize: WindowFont.size(big ? 20 : 14, windowSize: size), bold: big, isError: isError,
-                           tint: tinted ? DomainColors.quickEdit : nil, accessibilityLabel: label, focus: focus, onChange: onChange, onTab: onTab)
+                           tint: tinted ? DomainColors.quickEdit : nil, textTint: textTint,
+                           accessibilityLabel: label, focus: focus, onChange: onChange, onTab: onTab)
                 .frame(height: WindowFont.size(big ? 34 : 26, windowSize: size))
         }
     }
@@ -273,9 +288,12 @@ private struct BandGridView: View {
                 VStack(spacing: 3) {
                     Text(verbatim: EntryGrid.title(column))
                         .windowFont(11, design: .monospaced)
-                    ForEach(grid.rows, id: \.band) { row in
+                    ForEach(grid.rows.filter { entry.showsBand($0.band) }, id: \.band) { row in
                         let cell = grid.cell(row, column, currentBand: entry.band, currentMode: entry.form.mode)
-                        BandCellView(label: row.label, cell: cell) {
+                        let status: CallBandStatus? = entry.bandStatuses[row.band]
+                        BandCellView(label: row.label, cell: cell, status: status,
+                                     statusText: status.map { app.language.tr(EntryViewMenu.statusKey($0)) },
+                                     clickable: entry.bandButtonsClick) {
                             if let kHz = cell.kHz {
                                 entry.qsy(toKHz: kHz, mode: EntryGrid.mode(column))
                             }
@@ -290,6 +308,11 @@ private struct BandGridView: View {
 private struct BandCellView: View {
     let label: String
     let cell: EntryGrid.Cell
+    /// The typed call's status on this band (N1MM's band button colours).
+    let status: CallBandStatus?
+    let statusText: String?
+    /// N1MM „Band Button Left Click Enabled".
+    let clickable: Bool
     let action: () -> Void
     @Environment(\.windowFontSize) private var size
 
@@ -302,8 +325,11 @@ private struct BandCellView: View {
                 .background(RoundedRectangle(cornerRadius: 3).fill(background))
         }
         .buttonStyle(.plain)
-        .disabled(!cell.enabled)
+        .disabled(!cell.enabled || !clickable)
+        .overlay(RoundedRectangle(cornerRadius: 3)
+            .stroke(status.map { Color(nsColor: DomainColors.call($0)) } ?? Color.clear, lineWidth: 2))
         .accessibilityLabel(Text(verbatim: label))
+        .accessibilityValue(Text(verbatim: statusText ?? ""))
         .accessibilityAddTraits(cell.active ? .isSelected : [])
     }
 
@@ -320,5 +346,43 @@ private struct BandCellView: View {
             return .white
         }
         return cell.enabled ? Color.secondary : Color.secondary.opacity(0.4)
+    }
+}
+
+/// N1MM's Entry window right-click menu: the parts shown, the band buttons (which bands, whether a click changes the
+/// band), the UTC clock and the call history's user information.
+struct EntryViewMenu: View {
+    let app: AppModel
+    let entry: EntryModel
+
+    static func statusKey(_ status: CallBandStatus) -> String {
+        switch status {
+        case .doubleMultiplier: return "dvojitý násobič"
+        case .multiplier: return "násobič"
+        case .newQso: return "nové QSO"
+        case .dupe: return "dupe"
+        }
+    }
+
+    var body: some View {
+        let language: LanguageModel = app.language
+        ForEach(EntrySection.allCases, id: \.self) { section in
+            Toggle(language.tr(section.label), isOn: Binding(get: { entry.isShown(section) },
+                                                             set: { entry.setShown(section, $0) }))
+        }
+        Divider()
+        Toggle(language.tr("Klik na tlačítko pásma mění pásmo"),
+               isOn: Binding(get: { entry.bandButtonsClick }, set: { entry.bandButtonsClick = $0 }))
+        Menu(language.tr("Zobrazená pásma")) {
+            ForEach(EntryGrid.of(app.contest).rows, id: \.band) { row in
+                Toggle(row.label, isOn: Binding(get: { entry.showsBand(row.band) },
+                                                set: { entry.setShowsBand(row.band, $0) }))
+            }
+        }
+        Divider()
+        Toggle(language.tr("Hodiny UTC"),
+               isOn: Binding(get: { entry.showsUtcClock }, set: { entry.showsUtcClock = $0 }))
+        Toggle(language.tr("Informace uživatele (call history)"),
+               isOn: Binding(get: { entry.showsUserInformation }, set: { entry.showsUserInformation = $0 }))
     }
 }

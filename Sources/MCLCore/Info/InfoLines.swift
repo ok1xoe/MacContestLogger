@@ -49,6 +49,13 @@ public enum InfoLines {
         return try CallsignInfo.forEntity(entity, myLat: myLat, myLon: myLon, now: now)
     }
 
+    /// N1MM's bearing line of the Entry window: `SP 51° LP 231° · 4847 km`; `nil` without a heading or a distance.
+    public static func bearing(_ info: CallsignInfo?) -> String? {
+        guard let info, let shortPath = info.shortPathDeg, let longPath = info.longPathDeg,
+              let km = info.distanceKm else { return nil }
+        return "SP " + String(shortPath) + "° LP " + String(longPath) + "° · " + String(km) + " km"
+    }
+
     /// `MI0BPB - 14090.07 [VE3KI @ 3 min]` — the last spot of the typed call (`RW:340-346`); `""` without a spot.
     ///
     /// - Parameters:

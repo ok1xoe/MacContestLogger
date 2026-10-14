@@ -382,6 +382,14 @@ public final class ContestRuntime {
                                           at: at)
     }
 
+    /// A preview that changes nothing (not even `lastPreview`): the typed call on another band; `nil` outside a
+    /// contest or on an engine error.
+    public func peek(call: String, band: String, mode: String, exchange: JavaLinkedMap<String>,
+                     ownQth: String? = nil, at: Date = Date()) -> ContestSession.LogResult? {
+        guard let session else { return nil }
+        return try? session.preview(call: call, band: band, mode: mode, receivedRaw: exchange, ownQth: ownQth, at: at)
+    }
+
     /// Counts a QSO into the live session and refreshes the score; `nil` outside a contest.
     @discardableResult
     public func log(call: String, band: String, mode: String, exchange: JavaLinkedMap<String>, ownQth: String? = nil,
