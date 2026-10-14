@@ -133,10 +133,11 @@ public final class VoiceKeyerModel {
             return nil
         }
         keyer.tx.announceTx()
-        let set: [FunctionKeyMessage] = messages(opposite: opposite)
+        let radio: Int = keyer.rig.map { $0.vfo.twoEntryWindows && $0.vfo.activeVfo == 1 ? 2 : 1 } ?? 1
+        let set: [String] = messages(opposite: opposite).map { RadioMessageMacro.select($0.text, radio: radio) }
         let texts: [String] = indices.compactMap { index in
-            guard index >= 0, index < set.count, !KotlinStrings.isBlank(set[index].text) else { return nil }
-            return set[index].text
+            guard index >= 0, index < set.count, !KotlinStrings.isBlank(set[index]) else { return nil }
+            return set[index]
         }
         // N1MM: `{SETWAVDIR}` runs before the message's wav files are looked up.
         for item in texts.flatMap({ $0.split(separator: ",") }) {
@@ -147,7 +148,7 @@ public final class VoiceKeyerModel {
         let app: AppConfig = config.config
         let request = PlanRequest(
             text: texts.joined(separator: ","), wavDir: wavDirectory, lettersPath: app.voiceKeyer.lettersPath,
-            context: planContext(hisCall: hisCall, freqHz: freqHz, keys: set.map(\.text)),
+            context: planContext(hisCall: hisCall, freqHz: freqHz, keys: set),
             ttsVoice: app.ttsVoice, synthesize: hardware.synthesize)
         settings.update(outputDevice: outputDevice(app), pttDelayMs: app.voiceKeyer.pttDelayMs,
                         gain: Double(app.voiceKeyer.outputLevel) / 100)

@@ -1267,6 +1267,7 @@ extension EntryModel {
         context.esmKeys = app.esm.keys
         context.callExchangeSeparator = app.esm.callExchangeSeparator
         context.partialCall = partialCallSend
+        context.radio = radioNumber
         context.cwBase.hisName = callHistoryName
         context.cwBase.digitalButtons = app.digital.diMessages.map(\.text)
         fillMacroData(&context.cwBase, app: app)
@@ -1296,6 +1297,12 @@ extension EntryModel {
         base.rightMHz = rigMHz(vfo: 1)
         base.otherFreqHz = otherRadioHz
         base.varyCounts = operating.varyCounts
+    }
+
+    /// `{FKEY(r1%r2)}`: 2 for the VFO B / radio 2 window while two entry windows are shown, otherwise 1.
+    var radioNumber: Int {
+        guard let rig, rig.vfo.twoEntryWindows else { return 1 }
+        return vfo == 1 ? 2 : 1
     }
 
     /// `{OTHERFREQ}`…: the other entry window's frequency (SO2R / SO2V), otherwise the rig's other VFO (its split
