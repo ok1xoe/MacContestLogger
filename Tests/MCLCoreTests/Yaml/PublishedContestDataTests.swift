@@ -2,8 +2,11 @@ import Foundation
 import Testing
 @testable import MCLCore
 
-/// The repository-root `contest-data/` is what `DefinitionUpdater.defaultBase` serves to users;
-/// it must stay byte-identical to the test fixture corpus.
+/// The repository-root `contest-data/` is what `DefinitionUpdater.defaultBase` serves to users. The fixture corpus is
+/// the frozen subset the Java parity references were measured over: every fixture file is published byte-identical,
+/// and the definitions and sets added after the port are checked here instead (the index lists every file, each
+/// definition passes the definition editor's check against the published sets and scores a QSO without an engine
+/// error).
 @Suite struct PublishedContestDataTests {
 
     @Test func rootContestDataMatchesFixtureCorpus() throws {
@@ -16,11 +19,89 @@ import Testing
 
         let publishedFiles = try ContestDataLayoutTests.relativeFiles(under: published)
         let fixtureFiles = try ContestDataLayoutTests.relativeFiles(under: fixture)
-        #expect(publishedFiles == fixtureFiles)
+        #expect(Set(fixtureFiles).isSubset(of: Set(publishedFiles)))
         for path in publishedFiles where fixtureFiles.contains(path) {
             let a = try Data(contentsOf: published.appendingPathComponent(path))
             let b = try Data(contentsOf: fixture.appendingPathComponent(path))
             #expect(a == b, "\(path) differs between contest-data/ and the fixture corpus")
+        }
+    }
+
+    static var root: URL {
+        URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("contest-data")
+    }
+
+    static func files(_ dir: String) throws -> [String] {
+        let url = root.appendingPathComponent(dir)
+        return try FileManager.default.contentsOfDirectory(atPath: url.path)
+            .filter { !$0.hasPrefix(".") }.sorted().map { dir + "/" + $0 }
+    }
+
+    @Test func indexListsEveryFile() throws {
+        let text = try String(contentsOf: Self.root.appendingPathComponent("index.txt"), encoding: .utf8)
+        let listed: [String] = text.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && !$0.hasPrefix("#") }
+        let rootFiles: [String] = try FileManager.default.contentsOfDirectory(atPath: Self.root.path)
+            .filter { $0.hasSuffix(".yaml") }
+        let present: [String] = (rootFiles + (try Self.files("contests")) + (try Self.files("multipliers"))).sorted()
+        #expect(listed.sorted() == present)
+        #expect(Set(listed).count == listed.count, "no file listed twice")
+    }
+
+    @Test func everyDefinitionPassesTheEditorCheck() throws {
+        let known: [String] = DefinitionEditing.knownSets(Self.root.appendingPathComponent("multipliers"))
+        let contests: URL = Self.root.appendingPathComponent("contests")
+        for name in try Self.files("contests") {
+            let url = Self.root.appendingPathComponent(name)
+            let id = url.deletingPathExtension().lastPathComponent
+            let text = try String(contentsOf: url, encoding: .utf8)
+            let check = DefinitionEditing.check(text, fileId: id, knownSets: known)
+            let errors = check.issues.filter { $0.severity == .error }.map(\.message)
+            #expect(!check.hasErrors, "\(id): \(errors)")
+        }
+        let catalog = try ContestCatalog.fromDir(contests)
+        #expect(catalog.count == (try Self.files("contests")).count)
+    }
+
+    @Test func everyDefinitionScoresAQso() throws {
+        let dxcc = try SessionFixture.dxcc()
+        let registry = try MultiplierSetRegistry(dxcc: dxcc).loadDir(Self.root.appendingPathComponent("multipliers"))
+        for definition in try ContestCatalog.fromDir(Self.root.appendingPathComponent("contests")) {
+            let session = ContestSession(definition: definition, dxcc: dxcc, registry: registry, myCall: "OK1XOE",
+                                         myGrid: "JO70")
+            let band: String = definition.bands?.compactMap { $0 }.first ?? "20m"
+            let mode: String = definition.modes?.compactMap { $0 }.first ?? "CW"
+            var raw = JavaLinkedMap<String>()
+            for case let field? in definition.exchange?.received ?? [] {
+                raw.put(field.id, Self.sample(field))
+            }
+            for call in ["DL1ABC", "W1AW", "OK1ABC"] {
+                do {
+                    _ = try session.log(call: call, band: band, mode: mode, receivedRaw: raw,
+                                        at: Date(timeIntervalSince1970: 1_795_867_500))
+                } catch {
+                    Issue.record("\(definition.id ?? "?") \(call): \(error)")
+                }
+            }
+            do {
+                _ = try session.score()
+            } catch {
+                Issue.record("\(definition.id ?? "?") score: \(error)")
+            }
+        }
+    }
+
+    private static func sample(_ field: ContestDefinition.ExchangeField) -> String {
+        switch field.type {
+        case .RST: return "599"
+        case .RS: return "59"
+        case .SERIAL, .INTEGER: return "12"
+        case .LOCATOR: return "JO62"
+        case .CQ_ZONE: return "14"
+        case .ITU_ZONE: return "28"
+        default: return "AB"
         }
     }
 }

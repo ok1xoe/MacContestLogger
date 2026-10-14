@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: arrl_sections
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "ARRL / RAC sections", description: "The 85 ARRL and RAC sections (Field Day, Sweepstakes, ARRL 160, VHF)." }
+valuesFile: arrl_sections.csv
