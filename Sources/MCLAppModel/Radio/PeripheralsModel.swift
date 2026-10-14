@@ -135,6 +135,14 @@ public final class PeripheralsModel {
         }
     }
 
+    /// N1MM `{OTRSP cmd}`: a raw command to the controller (nothing without one).
+    func otrspRaw(_ command: String) {
+        let handles: Handles = self.handles
+        lane.submit {
+            handles.otrsp?.raw(command)
+        }
+    }
+
     /// `o.aux(port, code)` of an antenna (errors ignored).
     func otrspAux(port: Int, code: Int) {
         let handles: Handles = self.handles

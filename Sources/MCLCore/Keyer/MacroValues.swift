@@ -15,6 +15,36 @@ enum MacroFrequency {
         let decimal: Int64 = tenths % 10
         return decimal == 0 ? khz : khz + (r ? "R" : ".") + String(decimal)
     }
+
+    /// `{OTHERBAND}`: the band as N1MM names it (`80`, `20`, `50`, `144`, `432`…); `""` outside the bands.
+    static func band(_ freqHz: Int64) -> String {
+        guard freqHz > 0, let band = Band.from(frequencyHz: Int(clamping: freqHz)) else { return "" }
+        switch band {
+        case .m6: return "50"
+        case .m2: return "144"
+        case .cm70: return "432"
+        case .cm23: return "1296"
+        case .cm13: return "2304"
+        case .cm9: return "3456"
+        case .cm6: return "5760"
+        case .cm3: return "10368"
+        default: return String(band.rawValue.dropLast())
+        }
+    }
+
+    /// `{OTHERMHZ}`: MHz with one decimal (`3.5`, `14.0`; `3R5` in CW).
+    static func mhz(_ freqHz: Int64, r: Bool) -> String {
+        guard freqHz > 0 else { return "" }
+        let tenths: Int64 = freqHz / 100_000
+        return String(tenths / 10) + (r ? "R" : ".") + String(tenths % 10)
+    }
+
+    /// `{OTHERFREQCUT}`: the last three digits of the kHz as cut numbers (`7025` → `TNE` in the T/N style).
+    static func cut(_ freqHz: Int64, style: CutStyle) -> String {
+        guard freqHz > 0 else { return "" }
+        let khz: String = String(freqHz / 1000)
+        return style.apply(String(khz.suffix(3)))
+    }
 }
 
 /// `{GRIDBEARING}`, `{REVGRIDBEARING}`, `{KMGRIDDISTANCE}` (N1MM): from my locator to the one in the entry window.

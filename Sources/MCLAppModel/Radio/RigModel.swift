@@ -30,6 +30,8 @@ public final class RigModel {
     public internal(set) var auxAntenna: AntennaEntry?
     /// N1MM `{ANTRXnTOGGLE}`: the port and RX antenna state per rig index.
     @ObservationIgnored var macroAntenna: [Int: MacroAntennaState] = [:]
+    /// N1MM `{ACTIVEAUDIO…}` / `{INACTIVEAUDIO…}`: the AF mute last set per rig index.
+    @ObservationIgnored var macroMuted: [Int: Bool] = [:]
     /// Kotlin `focusVfoRequest`: the entry window `vfo` takes the focus (the view clears it).
     public var focusVfoRequest: Int?
 

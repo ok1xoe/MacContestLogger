@@ -159,6 +159,25 @@ Characters a keyer cannot send (`:` in `{TIMEGMT}`, for example) are left out.
 | `{SETWAVDIR text}` | the value of `{WAVDIR}` in the voice messages' paths (`{SETWAVDIR {OPERATOR}_2}`); the main window's title shows it. A change of operator resets it |
 
 CAT commands are rig-specific and are sent as written: check them against your rig's manual.
+
+### Two radios (SO2R / SO2V), audio and contests
+
+| Macro | Action |
+|---|---|
+| `{OTHERFREQ}` / `{OTHERFREQROUND}` | the frequency of the other entry window's VFO / radio in kHz (`7025R3` in CW) / rounded to the kHz (for passing a station); with one window the rig's split TX frequency |
+| `{OTHERBAND}`, `{OTHERMHZ}`, `{OTHERFREQCUT}` | the other radio's band (`40`, `144`), its MHz (`7.0`, `7R0` in CW) and the last three kHz digits as cut numbers |
+| `{JUMPRX}` / `{JUMPRXTX}` | the other entry window becomes the active one (in this app the active window has the receive and the transmit focus together) |
+| `{CONDJUMP}` | the same, only when not in split |
+| `{CTRLF1}`…`{CTRLF12}` | sends that F-key of the other entry window on its radio (`TU {CTRLF1}` thanks here and calls CQ on the other radio). With a call typed in this window the focus comes back once the message has been sent; with an empty call field it stays on the other radio |
+| `{STOPTX}` | releases the PTT (a `{TX}` or a tune carrier) |
+| `{STEREOON}` / `{STEREOOFF}` | SO2R stereo headphones on / off (OTRSP `RXnS` / `RXn`) |
+| `{OTRSP cmd}` / `{OTRSPOTHER RX}` | a command to the OTRSP device as written (`{OTRSP AUX13}`); `RX` alone is the RX command of the active / the inactive radio |
+| `{ACTIVEAUDIOTOGGLE}`, `{ACTIVEAUDIOON}`, `{ACTIVEAUDIOOFF}` | mutes / unmutes the active rig's audio over CAT (hamlib `MUTE`; only rigs whose driver has it) |
+| `{INACTIVEAUDIOTOGGLE}`, `{INACTIVEAUDIOON}`, `{INACTIVEAUDIOOFF}` | the same for the inactive rig (SO2R) |
+| `{POPPREVNEEDEDQ}` / `{POPNEXTNEEDEDQ}` | VHF multi-band: the previous / next station of the log not yet worked on this band comes into the entry window with its exchange (locator…; the serial and reports are not copied) |
+| `{SWAPCONTESTS}` | opens the contest opened before this one (File → Open recent); the call and exchange typed move along |
+| `{SWAPCONTESTS3}`…`{SWAPCONTESTS6}` | cycles through the last 3–6 contests opened |
+| `{SWAPCONTESTS name}` | opens the recent contest whose title holds the name |
 Other N1MM interface-control macros (`{KEYBOARD}`...) are not sent and are reported in the status line as unknown.
 
 ## CW from the keyboard

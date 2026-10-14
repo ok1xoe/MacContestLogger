@@ -112,3 +112,71 @@ struct MacroAntennaState: Equatable, Sendable {
         return (rxOn[next] ?? false) ? 1 : 0
     }
 }
+
+/// The two-radio macros of the F-key messages (N1MM): stereo, OTRSP commands and the AF mute of the active or the
+/// inactive rig.
+extension RigModel {
+
+    /// `{STEREOON}` / `{STEREOOFF}`: OTRSP `RXnS` / `RXn` for the active rig (SO2R).
+    func setSo2rStereo(_ on: Bool) {
+        guard vfo.so2r else {
+            show(.tr("Stereo jen v SO2R"))
+            return
+        }
+        vfo.setStereo(on)
+        peripherals.otrspRx(rig: vfo.activeVfo + 1, stereo: on)
+        show(RigTexts.so2rStereo(on))
+    }
+
+    /// `{OTRSP cmd}` / `{OTRSPOTHER cmd}`: the command as written; `RX` alone is the RX command of the active / the
+    /// inactive radio (with the stereo state).
+    func sendOtrsp(_ command: String, other: Bool) {
+        guard peripherals.otrspOpen else {
+            show(.tr("OTRSP: zařízení není připojené (Nastavení → SO2R)"))
+            return
+        }
+        if command == "RX" {
+            let radio: Int = (other ? 1 - vfo.activeVfo : vfo.activeVfo) + 1
+            peripherals.otrspRx(rig: radio, stereo: vfo.stereo)
+        } else {
+            peripherals.otrspRaw(command)
+        }
+    }
+
+    /// `{ACTIVEAUDIO…}` / `{INACTIVEAUDIO…}`: hamlib `U MUTE 1` / `U MUTE 0` on the active or the inactive rig
+    /// (`on` = unmute, `nil` = toggle). The inactive rig exists only in SO2R. Only rigs whose hamlib driver knows MUTE
+    /// follow it.
+    func setAudio(inactive: Bool, on: Bool?) {
+        let index: Int
+        if inactive {
+            guard vfo.so2r else {
+                show(.tr("Neaktivní rig je jen v SO2R"))
+                return
+            }
+            index = vfo.catIndex(for: 1 - vfo.activeVfo)
+        } else {
+            index = vfo.activeCatIndex
+        }
+        guard index < lanes.count else { return }
+        let muted: Bool = on.map { !$0 } ?? !(macroMuted[index] ?? false)
+        macroMuted[index] = muted
+        lanes[index].run({ cat -> RigOutcome in
+            RigOutcome.run(cat) { rig in
+                let reply: RigRawReply = try rig.sendRaw("U MUTE " + (muted ? "1" : "0"))
+                if reply.code < 0 {
+                    throw CatException("RPRT " + String(reply.code))
+                }
+            }
+        }, then: { [weak self] outcome in
+            switch outcome {
+            case .done:
+                self?.show(muted ? .tr("TRX %s: zvuk ztlumen", .int(index + 1))
+                                 : .tr("TRX %s: zvuk zapnut", .int(index + 1)))
+            case .noRig:
+                self?.show(.tr("CAT makro: TRX %s není připojený", .int(index + 1)))
+            case .failed(let message):
+                self?.show(.tr("CAT makro: %s", .string(message)))
+            }
+        })
+    }
+}

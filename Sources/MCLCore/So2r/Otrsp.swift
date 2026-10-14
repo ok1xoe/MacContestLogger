@@ -63,6 +63,11 @@ public final class Otrsp: Sendable {
         try rx(radio, stereo: stereo)
     }
 
+    /// N1MM `{OTRSP cmd}`: any command the device knows, as written (printable ASCII).
+    public func raw(_ command: String) {
+        sink(command)
+    }
+
     /// BCD value for the antenna switch / band decoder of rig `radio` (0–15).
     public func aux(_ radio: Int32, value: Int32) throws(JavaIllegalArgumentError) {
         if value < 0 || value > 15 {

@@ -18,6 +18,16 @@ public enum MacroCommand: Equatable, Sendable {
     case auxAntenna(Int)
     /// `{ANTRX1TOGGLE}`…`{ANTRX4TOGGLE}`: the rig's antenna port n; the same port again toggles its RX antenna.
     case antennaRx(Int)
+    /// `{CTRLF1}`…`{CTRLF12}` (N1MM, SO2R / SO2V): the key's message sent on the other radio (index from 0).
+    case otherRadioKey(Int)
+    /// `{OTRSP cmd}` / `{OTRSPOTHER cmd}`: a command to the OTRSP device; `RX` is the RX command of the active /
+    /// the inactive radio (`other`).
+    case otrsp(String, other: Bool)
+    /// `{SWAPCONTESTS}` / `{SWAPCONTESTS3}`…`{SWAPCONTESTS6}`: the next of the last n contests opened (2 = the
+    /// previous one).
+    case swapContests(Int)
+    /// `{SWAPCONTESTS name}`: the contest of the Open recent list whose title holds the name.
+    case swapContest(String)
 
     /// The command of a parameterized macro (`raw` = the whole macro with its braces); `nil` = not a parameterized
     /// macro this app knows.
@@ -31,6 +41,15 @@ public enum MacroCommand: Equatable, Sendable {
            let port = Int(String(upper.dropFirst(6).prefix(1))), (1...4).contains(port) {
             return .antennaRx(port)
         }
+        if upper.hasPrefix("{CTRLF"), let number = Int(upper.dropFirst(6).dropLast()), (1...12).contains(number) {
+            return .otherRadioKey(number - 1)
+        }
+        if upper == "{SWAPCONTESTS}" {
+            return .swapContests(2)
+        }
+        if upper.hasPrefix("{SWAPCONTESTS"), let n = Int(upper.dropFirst(13).dropLast()), (3...6).contains(n) {
+            return .swapContests(n)
+        }
         guard let (name, argument) = split(raw) else { return nil }
         switch name {
         case "COMMENT":
@@ -42,6 +61,12 @@ public enum MacroCommand: Equatable, Sendable {
             return argument.isEmpty ? nil : .telnet(argument)
         case "SETWAVDIR":
             return argument.isEmpty ? nil : .setWavDir(argument)
+        case "OTRSP", "OTRSPOTHER":
+            guard !argument.isEmpty, argument.count <= 32,
+                  argument.allSatisfy({ $0.isASCII && !$0.isNewline }) else { return nil }
+            return .otrsp(argument.uppercased(), other: name == "OTRSPOTHER")
+        case "SWAPCONTESTS":
+            return argument.isEmpty ? nil : .swapContest(argument)
         case "AUXANTSEL":
             guard let code = Int(argument), (0...63).contains(code) else { return nil }
             return .auxAntenna(code)

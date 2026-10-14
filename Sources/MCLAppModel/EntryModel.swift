@@ -44,6 +44,8 @@ public final class EntryModel {
     @ObservationIgnored var deferredGeneration: Int = 0
     /// N1MM „Send partial calls": the part of a corrected call the ESM send in progress carries (`nil` = the whole).
     @ObservationIgnored var partialCallSend: String?
+    /// `{CTRLFn}`: cancels a pending return of the focus to this window.
+    @ObservationIgnored var returnGeneration: Int = 0
     /// The typed call's status on each band of the band buttons (`updateBandStatuses`).
     public internal(set) var bandStatuses: [Band: CallBandStatus] = [:]
     /// The exchange values the call history or a spot filled in (field id → value), for N1MM „Clear auto-populated

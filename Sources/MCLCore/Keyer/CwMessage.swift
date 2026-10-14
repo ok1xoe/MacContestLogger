@@ -83,6 +83,29 @@ public struct CwMessage: Equatable, Sendable {
         case turnRotor = "TURN_ROTOR"
         case longPath = "LONG_PATH"
         case stopRotor = "STOP_ROTOR"
+        /// `{JUMPRX}` / `{JUMPRXTX}` (N1MM, SO2R / SO2V): the focus to the other entry window (in this app the active
+        /// window has the receive and the transmit focus together).
+        case jumpRx = "JUMP_RX"
+        case jumpRxTx = "JUMP_RX_TX"
+        /// `{CONDJUMP}` (N1MM): the jump only when not in split.
+        case condJump = "COND_JUMP"
+        /// `{STOPTX}` (N1MM): the PTT released (a manual `{TX}` PTT, a tune carrier).
+        case stopTx = "STOP_TX"
+        /// `{STEREOON}` / `{STEREOOFF}` (N1MM, SO2R): stereo headphones on / off (OTRSP).
+        case stereoOn = "STEREO_ON"
+        case stereoOff = "STEREO_OFF"
+        /// `{ACTIVEAUDIOTOGGLE}`, `{ACTIVEAUDIOON}`, `{ACTIVEAUDIOOFF}` and the `{INACTIVEAUDIO…}` ones (N1MM): the
+        /// AF of the active / inactive rig muted or unmuted over CAT (hamlib MUTE).
+        case activeAudioToggle = "ACTIVE_AUDIO_TOGGLE"
+        case activeAudioOn = "ACTIVE_AUDIO_ON"
+        case activeAudioOff = "ACTIVE_AUDIO_OFF"
+        case inactiveAudioToggle = "INACTIVE_AUDIO_TOGGLE"
+        case inactiveAudioOn = "INACTIVE_AUDIO_ON"
+        case inactiveAudioOff = "INACTIVE_AUDIO_OFF"
+        /// `{POPPREVNEEDEDQ}` / `{POPNEXTNEEDEDQ}` (N1MM, VHF): the previous / next station worked on another band
+        /// but not on this one, with its exchange, into the entry window.
+        case popPrevNeeded = "POP_PREV_NEEDED"
+        case popNextNeeded = "POP_NEXT_NEEDED"
         /// `{TX}` in CW and SSB (N1MM): the active rig's PTT on until Esc (a manual PTT, with the tune's safeguard).
         case manualPtt = "MANUAL_PTT"
     }

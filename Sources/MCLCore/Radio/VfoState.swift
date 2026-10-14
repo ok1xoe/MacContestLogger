@@ -70,4 +70,9 @@ public struct VfoState: Sendable, Equatable {
         stereo.toggle()
         return stereo
     }
+
+    /// `{STEREOON}` / `{STEREOOFF}`.
+    public mutating func setStereo(_ on: Bool) {
+        stereo = on
+    }
 }
