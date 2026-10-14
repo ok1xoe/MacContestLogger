@@ -18,7 +18,7 @@ All Settings tabs are functional (the earlier mock-ups of the N1MM layout have b
 | Klávesy (Keys) | remapping of shortcuts |
 | Digital Modes | how to log the rig's data mode (PKTUSB → FT8 / RTTY / DIGITAL...) |
 | Other | CW speed step, tuning and RIT step (CW / phone), RIT clearing after a QSO, resetting RX to the TX frequency after a Run QSO in split, dupe beep |
-| CW klíč (CW keyer) | Winkeyer / CAT keying |
+| CW klíč (CW keyer) | Winkeyer / CAT keying; *Zobrazovat odesílané CW ve stavovém řádku* (N1MM *Display Sent CW*) |
 | Mode Control | mode in the log taken from the rig / band plan / always fixed; RTTY sent to the rig as FSK or AFSK |
 | Antennas | antenna table, rotator (rotctld, UDP) |
 | Score Reporting | online scoreboard, Club Log Live Stream, DXCC from Club Log ([DXCC data](dxcc-data.md)) |
@@ -151,9 +151,10 @@ Synchronizace času** (Settings → Other → Time synchronization):
 
 **Závod → Call history** (Contest → Call history) holds the main call history file, the additional files merged after
 it (**Přidat soubory…** / **Odebrat**), the open contest's own file (**Přiřadit závodu…**, applied at once), the total of
-loaded callsigns and two switches: **Zapnout dohledávání v call history** (Enable call history lookup, also a check item
-in the Nastavení menu) and **Zobrazovat informace uživatele (UserText)** (Show user information). Details:
-[Call history](call-history.md).
+loaded callsigns and three switches: **Zapnout dohledávání v call history** (Enable call history lookup, also a check
+item in the Nastavení menu), **Zobrazovat informace uživatele (UserText)** (Show user information) and **Při změně
+volačky smazat výměnu doplněnou z call history nebo spotu** (N1MM *Clear auto-populated exchange on callsign change*).
+Details: [Call history](call-history.md).
 
 ## Menu bar
 

@@ -41,6 +41,11 @@ public final class EntryModel {
     public internal(set) var pendingNote: String?
     /// The typed call's status on each band of the band buttons (`updateBandStatuses`).
     public internal(set) var bandStatuses: [Band: CallBandStatus] = [:]
+    /// The exchange values the call history or a spot filled in (field id → value), for N1MM „Clear auto-populated
+    /// exchange on callsign change".
+    @ObservationIgnored var autoFilled: [String?: String] = [:]
+    /// The serial number a sent message of this QSO carried (N1MM's serial sequence warning).
+    @ObservationIgnored var serialSentInQso: Int?
     /// What `bandStatuses` were computed for (a CAT poll with nothing new recomputes nothing).
     @ObservationIgnored var bandStatusKey: String?
     /// N1MM QuickEdit (Ctrl+Q / Ctrl+A): the logged QSO in the fields, `nil` = normal entry.
@@ -247,7 +252,29 @@ public final class EntryModel {
     /// operator's again (`callFromSpot = false`, `EP:659, 667, 1105`).
     public func callChanged(_ text: String) {
         selfSpot.typed()
+        if text != form.call {
+            clearAutoFilledExchange()
+        }
         setCallText(text)
+    }
+
+    /// N1MM „Clear auto-populated exchange on callsign change": the values the call history or a spot filled in and
+    /// the operator has not changed go.
+    func clearAutoFilledExchange() {
+        guard !autoFilled.isEmpty else { return }
+        let filled: [String?: String] = autoFilled
+        autoFilled = [:]
+        guard config.config.clearPrefilledExchange else { return }
+        var kept = JavaLinkedMap<String>()
+        for (id, value) in form.contestExchange.entries {
+            if let auto = filled[id], value == auto {
+                continue
+            }
+            kept.put(id, value)
+        }
+        if kept != form.contestExchange {
+            form.contestExchange = kept
+        }
     }
 
     /// The frequency field changed: the preview, the shared tuned frequency without tuning the rig (typing never
@@ -315,6 +342,7 @@ public final class EntryModel {
     public private(set) var lastEditedField: String?
 
     public func editContestField(_ id: String?, _ text: String) {
+        autoFilled[id] = nil
         if lastEditedField != id {
             lastEditedField = id
         }
@@ -409,6 +437,8 @@ public final class EntryModel {
         }
         form = form.wiped(contestActive: contest.isActive, rstFieldIds: EntryForm.rstFieldIds(fields))
         esmProgress = .empty
+        autoFilled = [:]
+        serialSentInQso = nil
         wasDupe = isDupe
         updateBandStatuses()
         selfSpot.typed()
@@ -479,6 +509,8 @@ public final class EntryModel {
         /// The call was a dupe and the expanded spot comment (for „Spot all S&P QSOs").
         var dupe: Bool = false
         var spotComment: String = ""
+        /// N1MM's serial sequence warning: the serial a sent message carried, when the QSO is logged with another one.
+        var serialMismatch: (sent: Int, logged: Int)?
     }
 
     /// The synchronous part of `logQso`: command, paper time, checks, assembly and wipe. `nil` = nothing to log.
@@ -537,6 +569,9 @@ public final class EntryModel {
                               previousWipeMemory: wipeMemory)
         work.dupe = isDupe
         work.spotComment = spotComment(form)
+        if let sent = serialSentInQso, let logged = copies.first?.qso.serialSent, sent != logged {
+            work.serialMismatch = (sent, logged)
+        }
         if let at {
             lastPaperTime = at
         }
@@ -660,6 +695,10 @@ public final class EntryModel {
                 if case .status(let key) = effect {
                     status.show(key)
                 }
+            }
+            if index == 0, let mismatch = work.serialMismatch {
+                status.show(ContestMessage("Pozor: odesláno číslo %s, zapsáno %s", .int(mismatch.sent),
+                                           .int(mismatch.logged)))
             }
             if index == 0 {
                 autoSpotLogged(work, qso: prepared)

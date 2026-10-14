@@ -65,3 +65,19 @@ N1MM's QuickEdit edits logged QSOs right in the entry window, without a dialog:
 **Ctrl+F** opens the log window with the QSOs of the callsign typed in the callsign field. Pressing **Ctrl+F**
 again with the same callsign (N1MM *Find Again*) selects the next of those QSOs in the log window, and after the
 last one starts again from the first.
+
+## While typing and logging
+
+- **`?` in the callsign** — when the cursor comes back to the callsign field (Space, Tab, Esc…), a `?` is selected so
+  the next key replaces it; with two or more `?` the text from the first to the last one is selected (`DL?K?A`).
+  Any other field is selected whole when it gets the cursor, so a serial number is simply typed over.
+- **Clearing the auto-populated exchange** — with *Settings → Contest → Při změně volačky smazat výměnu doplněnou
+  z call history nebo spotu* a change of the callsign clears the exchange values the call history or a spot filled
+  in (values you typed stay).
+- **Serial number warning** — when a message with the serial number (`#`, `{NR}`, `{EXCH}`) was sent for the QSO
+  and the QSO is logged with another number (another station of the network took it meanwhile), the status line
+  says *Pozor: odesláno číslo …, zapsáno …*.
+- **Tuning away before logging** — a typed callsign is stored in the band map when you tune away
+  ([self-spot](dx-cluster.md)), and the status line warns that the QSO was not logged.
+- **Sent CW** — with *Settings → CW klíč → Zobrazovat odesílané CW ve stavovém řádku* the status line shows the
+  text of every CW message as it is sent (`CW: 5NN 001`).
