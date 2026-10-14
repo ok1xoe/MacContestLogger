@@ -223,6 +223,57 @@ public final class DefinitionEditorModel {
         }
     }
 
+    // MARK: - UDC import
+
+    /// „Importovat UDC…" (N1MM user defined contest): the `.udc` file converted (`UdcImport`) and opened as a new,
+    /// unsaved definition with the conversion notes as comments at its top; an id already taken gets `-2`, `-3`….
+    /// The open sets the definition needs are written into `<root>/multipliers` (an existing set is kept).
+    public func importUdc(file: URL) async {
+        await tracked { await self.performImportUdc(file: file) }
+    }
+
+    private func performImportUdc(file: URL) async {
+        let dxcc: (any DxccLookup)? = contest.runtime.dxccLookup
+        let multipliers: URL = root.appendingPathComponent("multipliers")
+        let converted: Result<UdcImport.Result, any Error>
+        do {
+            converted = .success(try await BlockingQueue.run {
+                let text: String = UdcImport.decode(try Data(contentsOf: file))
+                let result = UdcImport.convert(UdcImport.parse(text)) { prefix in
+                    dxcc?.resolve(prefix)?.adifDxcc
+                }
+                for (id, yaml) in result.sets {
+                    let target: URL = multipliers.appendingPathComponent(id + ".yaml")
+                    if !FileManager.default.fileExists(atPath: target.path) {
+                        try FileManager.default.createDirectory(at: multipliers, withIntermediateDirectories: true)
+                        try Data(yaml.utf8).write(to: target, options: .atomic)
+                    }
+                }
+                return result
+            })
+        } catch {
+            converted = .failure(error)
+        }
+        switch converted {
+        case .failure(let error):
+            showStatus(ContestMessage("Import UDC: %s", .string(ErrorText.message(error))))
+        case .success(let result):
+            if !result.sets.isEmpty {
+                refresh()
+                await contest.reloadContestData()
+            }
+            var id: String = result.id
+            var suffix = 2
+            while ids.contains(id) {
+                id = result.id + "-" + String(suffix)
+                suffix += 1
+            }
+            startNew(id, content: DefinitionEditing.withId(result.yaml, id))
+            showStatus(ContestMessage("UDC %s převeden — %s poznámek v komentářích nahoře, zkontroluj a ulož",
+                                      .string(file.lastPathComponent), .int(result.notes.count)))
+        }
+    }
+
     // MARK: - county import
 
     /// „Importovat okresy…": the file read like `Files.readAllLines` (strict UTF-8), `CountyListImport.parse` and

@@ -1829,5 +1829,10 @@
  "Smazat závod?": "Delete the contest?",
  "Závod %s a všechna jeho QSO (%s) se z databáze nevratně smažou.": "The contest %s and all its QSOs (%s) are deleted from the database for good.",
  "Zkratky výměny…": "Exchange abbreviations…",
- "Soubor zkratek nejde založit: %s": "The abbreviations file cannot be created: %s"
+ "Soubor zkratek nejde založit: %s": "The abbreviations file cannot be created: %s",
+ "Import UDC: %s": "UDC import: %s",
+ "UDC %s převeden — %s poznámek v komentářích nahoře, zkontroluj a ulož": "UDC %s converted — %s notes in the comments at the top, review and save",
+ "Importovat UDC…": "Import UDC…",
+ "Soubor závodu N1MM (.udc)": "N1MM contest file (.udc)",
+ "Převede uživatelský závod N1MM (.udc) na definici; poznámky převodu jsou v komentářích": "Converts an N1MM user defined contest (.udc) into a definition; the conversion notes are in comments"
 }

@@ -364,4 +364,26 @@ import Testing
 
         #expect(editor.footerText == "Import okresů: Id sady smí mít jen malá písmena, číslice a _: Bad-Id")
     }
+
+    @Test func udcImportOpensANewDefinitionAndWritesItsSets() async throws {
+        let (app, editor, root) = try await Self.make()
+        let file: URL = app.dir.child("MYTEST.udc")
+        try Data("""
+            [Contest]
+            Name=CQWWCW
+            DisplayName=Imported
+            Mode=CW
+            Multiplier1Name=Sect
+            MultWindowType=Districts
+            CabrilloString=SNT,4,SentNr,4,CallSign,13,RCV,4,Exchange1,6
+            """.utf8).write(to: file)
+
+        await editor.importUdc(file: file)
+
+        #expect(editor.currentId == "cqwwcw", "the id of the file is free")
+        #expect(editor.text.hasPrefix("# Imported from an N1MM UDC file"))
+        #expect(editor.isDirty)
+        #expect(editor.footerText.hasPrefix("UDC MYTEST.udc převeden"))
+        #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent("multipliers/cqwwcw_districts.yaml").path))
+    }
 }

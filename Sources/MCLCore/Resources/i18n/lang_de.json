@@ -1829,5 +1829,10 @@
  "Smazat závod?": "Contest löschen?",
  "Závod %s a všechna jeho QSO (%s) se z databáze nevratně smažou.": "Der Contest %s und alle seine QSOs (%s) werden endgültig aus der Datenbank gelöscht.",
  "Zkratky výměny…": "Rapport-Abkürzungen…",
- "Soubor zkratek nejde založit: %s": "Die Abkürzungsdatei kann nicht angelegt werden: %s"
+ "Soubor zkratek nejde založit: %s": "Die Abkürzungsdatei kann nicht angelegt werden: %s",
+ "Import UDC: %s": "UDC-Import: %s",
+ "UDC %s převeden — %s poznámek v komentářích nahoře, zkontroluj a ulož": "UDC %s umgewandelt — %s Hinweise in den Kommentaren oben, prüfen und speichern",
+ "Importovat UDC…": "UDC importieren…",
+ "Soubor závodu N1MM (.udc)": "N1MM-Contestdatei (.udc)",
+ "Převede uživatelský závod N1MM (.udc) na definici; poznámky převodu jsou v komentářích": "Wandelt einen benutzerdefinierten N1MM-Contest (.udc) in eine Definition um; die Hinweise stehen in Kommentaren"
 }
