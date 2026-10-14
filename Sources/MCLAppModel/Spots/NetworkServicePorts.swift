@@ -34,6 +34,13 @@ public struct UdpPorts: Sendable {
     public var makeAdifListener: @Sendable (_ host: String, _ port: Int, _ handler: @escaping @Sendable (String) -> Void)
         throws -> (any UdpListening)?
     public var makeBroadcaster: @Sendable () throws -> any Broadcaster
+    /// The N1MM and ADIF receivers on a shared port (`sharePort`); `nil` = the plain makers.
+    public var makeSharedN1mmListener: (@Sendable (_ host: String, _ port: Int,
+                                                   _ handler: @escaping @Sendable (String) -> Void)
+        throws -> (any UdpListening)?)?
+    public var makeSharedAdifListener: (@Sendable (_ host: String, _ port: Int,
+                                                   _ handler: @escaping @Sendable (String) -> Void)
+        throws -> (any UdpListening)?)?
     /// JTDX's TCP logbook receiver (ADIF over TCP); `nil` result = inert.
     public var makeAdifTcpListener: @Sendable (_ host: String, _ port: Int, _ handler: @escaping @Sendable (String) -> Void)
         throws -> (any UdpListening)? = { _, _, _ in nil }
@@ -76,6 +83,24 @@ public struct UdpPorts: Sendable {
         makeAdifTcpListener: { host, port, handler in
             try AdifTcpListener(bindHost: host, bindPort: port, handler: handler)
         })
+        .sharing(
+            n1mm: { host, port, handler in
+                try N1mmListener(bindHost: host, bindPort: port, sharePort: true, handler: handler)
+            },
+            adif: { host, port, handler in
+                try AdifUdpListener(bindHost: host, bindPort: port, sharePort: true, handler: handler)
+            })
+
+    /// These ports with the shared-port receivers.
+    public func sharing(
+        n1mm: @escaping @Sendable (String, Int, @escaping @Sendable (String) -> Void) throws -> (any UdpListening)?,
+        adif: @escaping @Sendable (String, Int, @escaping @Sendable (String) -> Void) throws -> (any UdpListening)?)
+        -> UdpPorts {
+        var copy = self
+        copy.makeSharedN1mmListener = n1mm
+        copy.makeSharedAdifListener = adif
+        return copy
+    }
 }
 
 /// The broadcaster of `UdpPorts.inert`: sends nothing.

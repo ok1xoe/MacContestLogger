@@ -519,6 +519,8 @@ extension EntryModel {
         esmProgress = EsmFlow.jumpToExchange(esmProgress, esmEnabled: operating.esmEnabled, mode: form.mode,
                                              run: operating.isRun, call: form.call)
         exchangeFocusRequest += 1
+        integrations?.callLookedUp(call: form.call, freqHz: Int(form.freqHz), mode: form.mode,
+                                   radioNr: rig?.vfo.so2r == true ? (rig?.vfo.catIndex(for: vfo) ?? 0) + 1 : 1)
     }
 
     /// Kotlin `jumpToCqFrequency(band)` (Alt+Q, `{CQFREQ}`): the band's CQ frequency into the field, Run, the QSY to

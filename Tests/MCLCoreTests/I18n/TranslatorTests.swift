@@ -165,10 +165,11 @@ import Testing
         // 15 keys of the Multipliers window's bands displayed, expected multipliers and right-click menu and
         // 13 keys of the Move Multipliers window's spotted stations view and
         // 12 keys of the Grayline layers, spot count and clearing, the MULT/RUN indicator and the contest goal file and
-        // 5 keys of the transaction file recovery.
-        #expect(map.count == 1_919)
+        // 5 keys of the transaction file recovery and
+        // 3 keys of the Spots, Lookup and All QSOs broadcast and the shared receive port.
+        #expect(map.count == 1_922)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_919)
+        #expect(german.count == 1_922)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

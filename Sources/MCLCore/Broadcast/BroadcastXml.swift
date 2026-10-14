@@ -171,6 +171,37 @@ public enum BroadcastXml {
         public init() {}
     }
 
+    /// A cluster spot for N1MM's `<spot>` packet.
+    public struct SpotData: Equatable, Sendable {
+        public var stationName: String?
+        public var dxCall: String
+        public var freqHz: Int64
+        public var spotter: String
+        public var timestamp: Date?
+        /// `add` or `delete`.
+        public var action: String
+        public var mode: String
+        public var comment: String
+        /// The spot's status for this station (`dupe`, `single mult`, `double mult`, `new qso`…).
+        public var status: String
+        /// All that apply, comma separated.
+        public var statusList: String
+
+        public init(stationName: String?, dxCall: String, freqHz: Int64, spotter: String, timestamp: Date?,
+                    action: String, mode: String, comment: String, status: String, statusList: String) {
+            self.stationName = stationName
+            self.dxCall = dxCall
+            self.freqHz = freqHz
+            self.spotter = spotter
+            self.timestamp = timestamp
+            self.action = action
+            self.mode = mode
+            self.comment = comment
+            self.status = status
+            self.statusList = statusList
+        }
+    }
+
     public struct AppInfoData: Equatable, Sendable {
         public var dbName: String?
         public var contestNr: Int32
@@ -418,6 +449,66 @@ public enum BroadcastXml {
         b += tag("timestamp", ts(s.timestamp))
         b += "</dynamicresults>"
         return b
+    }
+
+    /// N1MM `<spot>`: frequency in kHz with one decimal.
+    public static func spot(_ s: SpotData) -> String {
+        var b = "<spot>"
+        b += tag("app", app)
+        b += tag("StationName", s.stationName)
+        b += tag("dxcall", s.dxCall)
+        b += tag("frequency", JavaFormat.fixed(Double(s.freqHz) / 1000.0, precision: 1))
+        b += tag("spottercall", s.spotter)
+        b += tag("timestamp", ts(s.timestamp))
+        b += tag("action", s.action)
+        b += tag("mode", s.mode)
+        b += tag("comment", s.comment)
+        b += tag("status", s.status)
+        b += tag("statuslist", s.statusList)
+        b += "</spot>"
+        return b
+    }
+
+    /// N1MM's spot status words: `dupe`, a new multiplier (`single`/`double`/`triple mult`), otherwise `new qso`.
+    public static func spotStatus(dupe: Bool, newMults: Int, isCq: Bool) -> (status: String, list: String) {
+        var list: [String] = []
+        let status: String
+        if dupe {
+            status = "dupe"
+        } else if newMults >= 3 {
+            status = "triple mult"
+        } else if newMults == 2 {
+            status = "double mult"
+        } else if newMults == 1 {
+            status = "single mult"
+        } else {
+            status = "new qso"
+        }
+        list.append(status)
+        if isCq {
+            list.append("cq")
+        }
+        return (status, list.joined(separator: ","))
+    }
+
+    /// A received `contactinfo` forwarded by N1MM „All QSOs": `IsOriginal` False (added when missing).
+    public static func forwarded(_ xml: String) -> String {
+        if let range = xml.range(of: "<IsOriginal>True</IsOriginal>") {
+            return xml.replacingCharacters(in: range, with: "<IsOriginal>False</IsOriginal>")
+        }
+        if xml.contains("<IsOriginal>") {
+            return xml
+        }
+        if let end = xml.range(of: "</contactinfo>", options: .backwards) {
+            return xml.replacingCharacters(in: end, with: "<IsOriginal>False</IsOriginal></contactinfo>")
+        }
+        return xml
+    }
+
+    /// Was the contact logged on the sending station (`IsOriginal` True or missing)? Forwarded copies are not
+    /// forwarded again (no packet storm between two stations that both forward).
+    public static func isOriginal(_ xml: String) -> Bool {
+        !xml.contains("<IsOriginal>False</IsOriginal>")
     }
 
     public static func appInfo(_ a: AppInfoData) -> String {

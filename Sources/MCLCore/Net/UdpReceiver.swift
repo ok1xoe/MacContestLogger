@@ -46,7 +46,10 @@ final class UdpReceiver: @unchecked Sendable {
     /// Java `new DatagramSocket(new InetSocketAddress(host, port))`: the port is checked before the name,
     /// an unresolvable name (even a bad IPv6 literal) → `SocketException: Unresolved address`
     /// (`BIND.unresolved`), `""` → loopback (`BIND.empty`). Blocking (DNS).
-    static func unicast(host: String, port: Int) throws -> UdpReceiver {
+    ///
+    /// `share` (Swift-only, N1MM's shared UDP port): `SO_REUSEADDR` + `SO_REUSEPORT` before the bind, so another
+    /// application can bind the same port too; broadcast datagrams then reach every one of them.
+    static func unicast(host: String, port: Int, share: Bool = false) throws -> UdpReceiver {
         try checkPort(port)
         let address: JavaInetAddress
         do {
@@ -54,13 +57,13 @@ final class UdpReceiver: @unchecked Sendable {
         } catch {
             throw JavaSocketError.unresolvedAddress
         }
-        return try UdpReceiver(bind: address, port: port, multicast: false)
+        return try UdpReceiver(bind: address, port: port, multicast: false, share: share)
     }
 
     /// Java `new DatagramSocket(new InetSocketAddress(address, port))` over a resolved address.
-    static func unicast(address: JavaInetAddress, port: Int) throws -> UdpReceiver {
+    static func unicast(address: JavaInetAddress, port: Int, share: Bool = false) throws -> UdpReceiver {
         try checkPort(port)
-        return try UdpReceiver(bind: address, port: port, multicast: false)
+        return try UdpReceiver(bind: address, port: port, multicast: false, share: share)
     }
 
     /// Java `new MulticastSocket(port)` + `joinGroup(group)`. `interfaceIndex` only for tests (loopback `lo0`);
@@ -78,7 +81,8 @@ final class UdpReceiver: @unchecked Sendable {
         return receiver
     }
 
-    private init(bind address: JavaInetAddress?, port: Int, multicast: Bool) throws(JavaSocketError) {
+    private init(bind address: JavaInetAddress?, port: Int, multicast: Bool,
+                 share: Bool = false) throws(JavaSocketError) {
         let fd: Int32 = socket(AF_INET6, SOCK_DGRAM, 0)
         guard fd >= 0 else {
             throw JavaSocketError.datagramFailure(errno)
@@ -92,7 +96,7 @@ final class UdpReceiver: @unchecked Sendable {
         _ = setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &zero, intSize)
         _ = setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &one, intSize)
         _ = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &sendBuffer, intSize)
-        if multicast {
+        if multicast || share {
             _ = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, intSize)
             _ = setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &one, intSize)
         }

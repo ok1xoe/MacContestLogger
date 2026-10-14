@@ -595,7 +595,11 @@ public final class ClusterSyncModel {
         }
     }
 
+    /// QSOs the re-read brought from other stations (N1MM „All QSOs" forwarding); wired by the app.
+    @ObservationIgnored public var onRemoteQsos: (@MainActor ([Qso]) -> Void)?
+
     private func refreshLog() async {
+        let known: Set<String> = onRemoteQsos == nil ? [] : Set(logbook.rows.map(\.uuid))
         do {
             try await reload()
         } catch {
@@ -605,6 +609,13 @@ public final class ClusterSyncModel {
             return
         }
         contest.requestRescore()
+        if let onRemoteQsos {
+            let own: String = logbook.syncStationId ?? ""
+            let fresh: [Qso] = logbook.rows.filter { !known.contains($0.uuid) && !$0.uuid.isEmpty && $0.stationId != own }
+            if !fresh.isEmpty {
+                onRemoteQsos(fresh)
+            }
+        }
     }
 
     // MARK: - tests

@@ -227,6 +227,13 @@ extension ConfigurerDraft {
         config.n1mmRecv.receiveBind = Self.trim(nrReceiveBind)
         config.adifUdp.receiveEnabled = auReceiveEnabled
         config.adifUdp.receiveBind = Self.trim(auReceiveBind)
+        config.broadcast.spotsEnabled = bcSpotsEnabled
+        config.broadcast.spotsTargets = Self.trim(bcSpotsTargets)
+        config.broadcast.lookupEnabled = bcLookupEnabled
+        config.broadcast.lookupTargets = Self.trim(bcLookupTargets)
+        config.broadcast.allQsosEnabled = bcAllQsosEnabled
+        config.n1mmRecv.sharePort = nrSharePort
+        config.adifUdp.sharePort = auSharePort
     }
 
     private func applyDxCluster(_ dx: inout DxClusterConfig, now: JavaInstant) {

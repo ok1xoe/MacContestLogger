@@ -67,12 +67,14 @@ struct WsjtTab: View {
                     "Naslouchá standardnímu N1MM contactinfo broadcastu a importuje QSO do aktivního závodu. V RUMlogu/N1MM+ nastav cíl broadcastu na tuto adresu (unicast host:port, nebo multicast skupina). Výchozí port 12061. Změny se projeví po uložení."))
                 SettingsToggleRow(label: language.tr("Příjem zapnut"), isOn: $draft.nrReceiveEnabled,
                                   text: $draft.nrReceiveBind)
+                SettingsCheckbox(label: language.tr("Sdílet port s dalšími aplikacemi"), isOn: $draft.nrSharePort)
             }
             SettingsGroup(title: language.tr("ADIF přes UDP (fldigi)")) {
                 SettingsCaption(language.tr(
                     "Přijímá holý ADIF záznam po UDP (fldigi apod.) a importuje QSO do aktivního závodu. V programu nastav cíl UDP na tuto adresu. Výchozí port 2333. Změny se projeví po uložení."))
                 SettingsToggleRow(label: language.tr("Příjem zapnut"), isOn: $draft.auReceiveEnabled,
                                   text: $draft.auReceiveBind)
+                SettingsCheckbox(label: language.tr("Sdílet port s dalšími aplikacemi"), isOn: $draft.auSharePort)
             }
         }
     }

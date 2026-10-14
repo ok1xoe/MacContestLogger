@@ -11,8 +11,10 @@ public final class AdifUdpListener: Sendable {
     private let handler: @Sendable (String) -> Void
 
     /// Errors as in `WsjtxListener.init`. Blocking (DNS).
-    public init(bindHost: String, bindPort: Int, handler: @escaping @Sendable (String) -> Void) throws {
-        self.receiver = try UdpReceiver.unicast(host: bindHost, port: bindPort)
+    /// `sharePort`: the port can be shared with other applications (`UdpReceiver.unicast(share:)`).
+    public init(bindHost: String, bindPort: Int, sharePort: Bool = false,
+                handler: @escaping @Sendable (String) -> Void) throws {
+        self.receiver = try UdpReceiver.unicast(host: bindHost, port: bindPort, share: sharePort)
         self.handler = handler
     }
 

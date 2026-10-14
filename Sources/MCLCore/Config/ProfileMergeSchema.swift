@@ -195,6 +195,19 @@ enum ProfileMergeSchema {
             Property("diTextColor", .string, .fieldDefault),
             Property("diBackgroundColor", .string, .fieldDefault),
         ],
+        "cz.ok1xoe.maccontestlogger.config.BroadcastConfig": [
+            Property("spotsEnabled", .boolean, .fieldDefault),
+            Property("spotsTargets", .string, .fieldDefault),
+            Property("lookupEnabled", .boolean, .fieldDefault),
+            Property("lookupTargets", .string, .fieldDefault),
+            Property("allQsosEnabled", .boolean, .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.N1mmRecvConfig": [
+            Property("sharePort", .boolean, .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.AdifUdpConfig": [
+            Property("sharePort", .boolean, .fieldDefault),
+        ],
         "cz.ok1xoe.maccontestlogger.config.WsjtxConfig": [
             Property("highlightCalls", .boolean, .fieldDefault),
             Property("mirrorDxCall", .boolean, .fieldDefault),

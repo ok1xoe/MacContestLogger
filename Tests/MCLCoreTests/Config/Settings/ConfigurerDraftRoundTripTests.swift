@@ -213,6 +213,13 @@ import Testing
         expected.digital.autoTrxUpdate = true
         expected.digital.rttyModem = "RTTY"
         expected.digital.pskModem = "BPSK31"
+        expected.broadcast.spotsEnabled = false
+        expected.broadcast.spotsTargets = ""
+        expected.broadcast.lookupEnabled = false
+        expected.broadcast.lookupTargets = ""
+        expected.broadcast.allQsosEnabled = false
+        expected.n1mmRecv.sharePort = false
+        expected.adifUdp.sharePort = false
         #expect(decoded == expected)
     }
 
@@ -389,6 +396,13 @@ import Testing
         w.same(\.nrReceiveBind, \.n1mmRecv.receiveBind, "127.0.0.1:12062")
         w.same(\.auReceiveEnabled, \.adifUdp.receiveEnabled, true)
         w.same(\.auReceiveBind, \.adifUdp.receiveBind, "127.0.0.1:2334")
+        w.same(\.bcSpotsEnabled, \.broadcast.spotsEnabled, true)
+        w.same(\.bcSpotsTargets, \.broadcast.spotsTargets, "10.0.0.5:12060")
+        w.same(\.bcLookupEnabled, \.broadcast.lookupEnabled, true)
+        w.same(\.bcLookupTargets, \.broadcast.lookupTargets, "10.0.0.6:12060")
+        w.same(\.bcAllQsosEnabled, \.broadcast.allQsosEnabled, true)
+        w.same(\.nrSharePort, \.n1mmRecv.sharePort, true)
+        w.same(\.auSharePort, \.adifUdp.sharePort, true)
     }
 
     static func wireOther(_ w: inout Wiring) {

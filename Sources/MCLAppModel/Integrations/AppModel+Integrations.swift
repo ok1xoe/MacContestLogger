@@ -111,6 +111,13 @@ extension AppModel {
         integrations.isTransmitting = { [weak keyer = model.keyer] in
             keyer?.isSending ?? false
         }
+        model.cluster.onRemoteQsos = { [weak integrations] qsos in
+            integrations?.forwardRemote(qsos)
+        }
+        model.spotFeed.addObserver { [weak integrations, weak feed = model.spotFeed] in
+            guard let integrations, let feed else { return }
+            integrations.spotsChanged(feed.snapshot())
+        }
         integrations.syncInfo = { [weak logbook = model.logbook] in
             (logbook?.syncStationId, logbook?.reservedServerSerial)
         }

@@ -170,6 +170,13 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var nrReceiveBind: String = ""
     public var auReceiveEnabled: Bool = false
     public var auReceiveBind: String = ""
+    public var bcSpotsEnabled: Bool = false
+    public var bcSpotsTargets: String = ""
+    public var bcLookupEnabled: Bool = false
+    public var bcLookupTargets: String = ""
+    public var bcAllQsosEnabled: Bool = false
+    public var nrSharePort: Bool = false
+    public var auSharePort: Bool = false
 
     // MARK: Voice keyer, modes, steps, appearance, antennas, rotator, SO2R — `CD:248-289`
 
@@ -508,6 +515,13 @@ extension ConfigurerDraft {
         nrReceiveBind = config.n1mmRecv.receiveBind
         auReceiveEnabled = config.adifUdp.receiveEnabled
         auReceiveBind = config.adifUdp.receiveBind
+        bcSpotsEnabled = config.broadcast.spotsEnabled
+        bcSpotsTargets = config.broadcast.spotsTargets
+        bcLookupEnabled = config.broadcast.lookupEnabled
+        bcLookupTargets = config.broadcast.lookupTargets
+        bcAllQsosEnabled = config.broadcast.allQsosEnabled
+        nrSharePort = config.n1mmRecv.sharePort
+        auSharePort = config.adifUdp.sharePort
     }
 
     private mutating func loadOther(_ config: AppConfig) {
