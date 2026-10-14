@@ -27,7 +27,7 @@ extension EntryModel {
     /// the rig's frequency into its field and its mode (by Mode Control, not in a single-mode contest), then the
     /// shared tuned frequency follows the rig — and the field (`LaunchedEffect(freqKHz)` after the recomposition).
     func followRig() {
-        guard isActivePanel, let rig, let state = rig.activeState else { return }
+        guard isActivePanel, quickEdit == nil, let rig, let state = rig.activeState else { return }
         let text: String = CatStatusLine.fieldText(state.freqHz)
         let fieldChanged: Bool = text != form.freqKHz
         form.freqKHz = text
@@ -51,7 +51,7 @@ extension EntryModel {
     }
 
     private func followTunedFrequency() {
-        guard isActivePanel, let rig else { return }
+        guard isActivePanel, quickEdit == nil, let rig else { return }
         let tuned: Int64 = rig.tuning.tunedFreqHz
         if tuned > 0 && form.freqHz != tuned {
             let text: String = CatStatusLine.fieldText(tuned)

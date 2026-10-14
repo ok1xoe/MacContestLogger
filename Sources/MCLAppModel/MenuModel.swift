@@ -26,7 +26,7 @@ public final class MenuModel {
         "window.score", "window.movemults", "window.dupesheet", "window.dupesheet2", "window.check", "view.unmatchedMark", "window.statistics", "window.qtc",
         "window.propagation", "window.bandnotes", "window.simulator", "window.dxccmap", "mult.dxcc", "mult.grid",
         "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
-        "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast", "edit.editLast", "edit.editCurrent",
+        "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast", "edit.editLast", "edit.editCurrent", "edit.quickEdit", "edit.quickEditForward",
         "file.openRecent", "recent.clear", "file.copyContest", "contest.rescoreHours", "settings.exportAdifRange", "callhistory.exportN1mm",
         "callhistory.exportCsv", "callhistory.clear", "callhistory.import", "settings.callHistoryLookup", "tools.addCallToCountry", "file.post3830", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder",
     ]
@@ -36,7 +36,8 @@ public final class MenuModel {
     /// window's key router stays the only one that reacts to the keys.
     public static let shortcutActions: [String: ShortcutAction] = [
         "edit.wipe": .wipe, "edit.wipeUndo": .wipeUndo, "edit.incrementNr": .incrementNr, "edit.note": .note,
-        "edit.find": .find, "edit.deleteLast": .deleteLast, "edit.editLast": .editLast, "help.docs": .help,
+        "edit.find": .find, "edit.deleteLast": .deleteLast, "edit.editLast": .editLast,
+        "edit.quickEdit": .quickEditBack, "edit.quickEditForward": .quickEditForward, "help.docs": .help,
     ]
 
     /// The node whose children are the contests of File → Open recent, made at run time.

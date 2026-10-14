@@ -132,7 +132,7 @@ import Testing
             "dx_window Ctrl+TAB",
             // Swift-only (call stacking).
             "stack_call Ctrl+Alt+G", "grab_stack Alt+G", "insert_grab HELP", "toggle_tx Alt+T", "digital_left Alt+Cmd+LEFT", "digital_right Alt+Cmd+RIGHT",
-            "edit_last Ctrl+Y",
+            "edit_last Ctrl+Y", "quick_edit_back Ctrl+Q", "quick_edit_forward Ctrl+A",
         ]
         let actual: [String] = ShortcutAction.allCases.map { "\($0.id) \($0.defaultCombo().format())" }
         #expect(actual == expected)

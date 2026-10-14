@@ -46,7 +46,9 @@
         { "id": "edit.find", "label": "Najít volačku v deníku", "state": "enable" },
         { "id": "edit.deleteLast", "label": "Smazat poslední QSO", "state": "enable" },
         { "id": "edit.editLast", "label": "Upravit poslední spojení…", "state": "enable" },
-        { "id": "edit.editCurrent", "label": "Upravit rozpracované spojení…", "state": "enable" }
+        { "id": "edit.editCurrent", "label": "Upravit rozpracované spojení…", "state": "enable" },
+        { "id": "edit.quickEdit", "label": "QuickEdit (o QSO zpět)", "state": "enable" },
+        { "id": "edit.quickEditForward", "label": "QuickEdit (o QSO vpřed)", "state": "enable" }
       ]
     },
     {

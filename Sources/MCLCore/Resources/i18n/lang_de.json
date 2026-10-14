@@ -1684,5 +1684,16 @@
  "Upravit rozpracované spojení": "Aktuelle Verbindung bearbeiten",
  "Upravit spojení": "Verbindung bearbeiten",
  "Frekvence (kHz)": "Frequenz (kHz)",
- "X-QSO (nepočítá se)": "X-QSO (zählt nicht)"
+ "X-QSO (nepočítá se)": "X-QSO (zählt nicht)",
+ "QuickEdit: první QSO deníku": "QuickEdit: erstes QSO im Log",
+ "QuickEdit: poslední QSO deníku": "QuickEdit: letztes QSO im Log",
+ "QuickEdit začíná Ctrl+Q": "QuickEdit beginnt mit Ctrl+Q",
+ "QuickEdit %s/%s: Enter uloží, Esc zruší": "QuickEdit %s/%s: Enter speichert, Esc bricht ab",
+ "QuickEdit: %s uloženo": "QuickEdit: %s gespeichert",
+ "QuickEdit zrušen": "QuickEdit abgebrochen",
+ "QuickEdit: o QSO zpět": "QuickEdit: ein QSO zurück",
+ "QuickEdit: o QSO vpřed": "QuickEdit: ein QSO vor",
+ "QuickEdit %s/%s": "QuickEdit %s/%s",
+ "QuickEdit (o QSO zpět)": "QuickEdit (ein QSO zurück)",
+ "QuickEdit (o QSO vpřed)": "QuickEdit (ein QSO vor)"
 }
