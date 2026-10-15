@@ -190,10 +190,11 @@ import Testing
         // the Multipliers window's modes shown and
         // the cluster list chooser and
         // 27 keys of the built-in RTTY modem and
-        // the built-in modem's mode status.
-        #expect(map.count == 2_466)
+        // the built-in modem's mode status and
+        // 6 keys of the modem profiles.
+        #expect(map.count == 2_472)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_466)
+        #expect(german.count == 2_472)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

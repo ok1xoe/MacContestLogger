@@ -80,4 +80,29 @@ import Testing
         #expect(app.model.audio2.userNames == ["rtty2"], "receiver 2 now listens to radio 2's input")
         modem.detach(1)
     }
+
+    /// The pane's demodulator and profiles: saved from receiver 1, loaded onto receiver 2 only (independent tuning).
+    @Test func demodulatorAndProfiles() async throws {
+        let app = try await Self.make()
+        let one: BuiltinEngineModel = app.model.makeBuiltinEngine(side: 0)
+        let two: BuiltinEngineModel = app.model.makeBuiltinEngine(side: 1)
+        one.start()
+        two.start()
+        one.setDemodulator("fir")
+        one.setShift(850)
+        #expect(one.demodulator == "fir")
+        #expect(app.model.builtinModem.channel(1).choice("demodType") == "iir")
+        one.saveProfile(2, name: "SITOR 850")
+        #expect(one.profileError == nil)
+        #expect(two.profiles[2]?.name == "SITOR 850")
+        two.loadProfile(2)
+        #expect(two.tuning.shiftHz == 850)
+        #expect(two.demodulator == "fir")
+        one.setShift(170)
+        #expect(two.tuning.shiftHz == 850)
+        one.deleteProfile(2)
+        #expect(two.profiles[2] == nil)
+        one.stop()
+        two.stop()
+    }
 }

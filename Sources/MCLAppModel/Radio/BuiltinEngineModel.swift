@@ -79,6 +79,7 @@ public final class BuiltinEngineModel {
         transmitting = snapshot.transmitting
         squelchLevel = channel.number("squelchLevel") ?? squelchLevel
         squelchOn = channel.flag("squelch") ?? squelchOn
+        demodulator = channel.choice("demodType") ?? demodulator
         if let spectrum = snapshot.spectrum, !snapshot.transmitting {
             waterfall.push(spectrum, fromHz: fromHz, toHz: toHz)
             frame &+= 1
@@ -143,6 +144,46 @@ public final class BuiltinEngineModel {
         let value: Double = min(max(squelchLevel + Double(steps) * 1_024, 0), 32_768)
         channel.set("squelchLevel", number: value)
         squelchLevel = value
+    }
+
+    /// The demodulator (MMTTY: `iir`, `fir`, `pll`, `fft`).
+    public private(set) var demodulator: String = "iir"
+
+    public func setDemodulator(_ name: String) {
+        guard BuiltinRttyChannel.demodulators.contains(name) else { return }
+        channel.set("demodType", choice: name)
+        if modem.hub.currentSettings.linked {
+            modem.channel(1 - side).set("demodType", choice: name)
+        }
+        demodulator = channel.choice("demodType") ?? demodulator
+    }
+
+    /// The profile slots (names) for the menu.
+    public var profiles: [BuiltinModemProfile?] {
+        modem.profileSlots
+    }
+
+    /// The last profile action's error (`nil` = fine).
+    public private(set) var profileError: String?
+
+    public func loadProfile(_ slot: Int) {
+        modem.applyProfile(slot, side: side)
+        refreshTuning()
+    }
+
+    public func saveProfile(_ slot: Int, name: String) {
+        profileError = modem.saveProfile(slot, name: name, side: side)
+    }
+
+    public func deleteProfile(_ slot: Int) {
+        profileError = modem.deleteProfile(slot)
+    }
+
+    private func refreshTuning() {
+        tuning = channel.tuning
+        demodulator = channel.choice("demodType") ?? demodulator
+        squelchLevel = channel.number("squelchLevel") ?? squelchLevel
+        squelchOn = channel.flag("squelch") ?? squelchOn
     }
 
     public func setSquelch(_ on: Bool) {

@@ -30,8 +30,9 @@ public final class BuiltinModemModel {
     /// Why a receiver has no audio (the input could not be opened), `nil` = it listens or is not attached.
     public private(set) var audioErrors: [String?] = [nil, nil]
 
-    init(hub: BuiltinModemHub, audio: AudioModel, audio2: AudioModel,
+    init(hub: BuiltinModemHub, audio: AudioModel, audio2: AudioModel, dataDir: URL,
          setup: @escaping @MainActor () -> BuiltinModemSetup) {
+        profileStore = BuiltinModemProfiles(directory: dataDir)
         self.hub = hub
         self.audio = audio
         self.audio2 = audio2
@@ -41,6 +42,60 @@ public final class BuiltinModemModel {
     }
 
     @ObservationIgnored private var lastSetup: BuiltinModemSetup
+    @ObservationIgnored let profileStore: BuiltinModemProfiles
+    /// The profile slots (MMTTY's profiles, 16; `nil` = empty), read on first use and after every change.
+    public private(set) var profiles: [BuiltinModemProfile?] = []
+    @ObservationIgnored private var profilesRead = false
+
+    /// The slots for the menus.
+    public var profileSlots: [BuiltinModemProfile?] {
+        if !profilesRead {
+            profilesRead = true
+            profiles = profileStore.load()
+        }
+        return profiles
+    }
+
+    /// A profile onto a receiver (with linked tuning onto both); `false` = the slot is empty.
+    @discardableResult
+    public func applyProfile(_ slot: Int, side: Int) -> Bool {
+        let slots: [BuiltinModemProfile?] = profileSlots
+        guard slots.indices.contains(slot), let profile = slots[slot] else { return false }
+        let side: Int = Self.clamp(side)
+        hub.channels[side].apply(profile: profile.values)
+        if hub.currentSettings.linked {
+            hub.channels[1 - side].apply(profile: profile.values)
+        }
+        return true
+    }
+
+    /// The receiver's current setup saved as a profile; the error text, `nil` = saved.
+    public func saveProfile(_ slot: Int, name: String, side: Int) -> String? {
+        let trimmed: String = name.trimmingCharacters(in: .whitespaces)
+        let profile = BuiltinModemProfile(name: trimmed.isEmpty ? "Profil " + String(slot + 1) : trimmed,
+                                          values: hub.channels[Self.clamp(side)].profileValues())
+        return store(profile, slot: slot)
+    }
+
+    /// Clears a slot; the error text, `nil` = done.
+    public func deleteProfile(_ slot: Int) -> String? {
+        store(nil, slot: slot)
+    }
+
+    private func store(_ profile: BuiltinModemProfile?, slot: Int) -> String? {
+        do {
+            try profileStore.save(profile, slot: slot)
+        } catch {
+            switch error {
+            case .unreadable: return BuiltinModemProfiles.fileName + ": unreadable, not overwritten"
+            case .badSlot(let bad): return "slot " + String(bad)
+            case .io(let text): return text
+            }
+        }
+        profiles = profileStore.load()
+        profilesRead = true
+        return nil
+    }
 
     /// A change of the options (Settings): the transmit options go to the hub, an attached receiver whose input or
     /// channel changed listens again.

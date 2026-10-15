@@ -1177,6 +1177,7 @@ public final class AppModel {
             (model?.activeEntry ?? model?.entry)?.band?.adif ?? ""
         }
         model.builtinModem = BuiltinModemModel(hub: model.keyer.lane.builtin, audio: model.audio, audio2: model.audio2,
+                                               dataDir: model.dataDir,
                                                setup: { [weak config = model.config] in
                                                    config?.config.builtinModem ?? BuiltinModemSetup()
                                                })

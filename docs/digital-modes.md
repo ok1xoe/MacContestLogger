@@ -343,6 +343,11 @@ The engine pane:
 - **M / S** — the mark and space frequencies; with AFC on they follow the signal.
 - **Posun** (shift: 170, 200, 425, 850 Hz) and the **speed** (45.45, 50, 75, 100, 110 Bd; also the Op Mode
   menu: `RTTY` = 45.45, `RTTY-50`, `RTTY-75`…).
+- The **demodulator** (MMTTY's IIR, FIR, PLL or FFT; IIR by default).
+- **Profil** (Profile) — MMTTY's modem profiles: 16 slots in `RttyProfiles.json` of the data folder. *Uložit do*
+  (Save to) stores this receiver's whole setup — shift, speed, demodulator, AFC/NET/Rev, squelch, filters, the
+  AA6YQ/LMS/notch options — under a name; *Načíst* (Load) puts a profile onto this receiver (onto both with linked
+  tuning); *Smazat* (Delete) clears a slot. A profile file that cannot be read is never overwritten.
 - **SQ** — the squelch (text only above the threshold, the red line in the level meter).
 - **XY** — MMTTY's XY scope: mark against space; a correctly tuned signal is a cross.
 - The display range (300–3000, 1000–2500, 1700–2700 or 0–6000 Hz).
