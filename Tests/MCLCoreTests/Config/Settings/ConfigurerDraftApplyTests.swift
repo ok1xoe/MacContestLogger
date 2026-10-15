@@ -307,6 +307,7 @@ import Testing
                                "graylineLayers", "graylineSpots",
                                "entryHiddenSections",
                                "resetRxAfterRunQso", "macroQsyStepKHz", "functionKeysPerOperator",
+                               "runNumber", "statusColumns",
                                "ctyEnabled",
                                "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",
                                "callHistoryFile", "functionKeyFiles", "firstSerial", "scpFile", "goalFile",

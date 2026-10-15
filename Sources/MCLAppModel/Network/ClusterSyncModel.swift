@@ -322,7 +322,8 @@ public final class ClusterSyncModel {
             stationId: config.config.cluster.stationId, operatorCall: sources.operatorCall(),
             stationType: config.config.cluster.stationType, catFreqHz: sources.catFreqHz(),
             catMode: sources.catMode(), tunedFreqHz: sources.tunedFreqHz(), runMode: sources.runMode(),
-            qsoCount: logbook.qsoCount, sending: sources.isSending(), typedCall: sources.typedCall())
+            qsoCount: logbook.qsoCount, sending: sources.isSending(), typedCall: sources.typedCall(),
+            runNumber: config.config.cluster.runNumber)
     }
 
     /// The band of the own frequency as the interlock compares it (Kotlin `Band.fromFrequencyHz(...).adif`).

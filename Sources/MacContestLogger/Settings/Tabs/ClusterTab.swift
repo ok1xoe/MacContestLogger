@@ -64,6 +64,14 @@ struct ClusterTab: View {
                 draft.stationType = .mult
             }
         }
+        SettingsText(language.tr("RUN stanice v Multi-two (ostatní ji vidí jako RUN1 / RUN2):"), size: 14)
+        HStack(spacing: 12) {
+            SettingsRadio(label: language.tr("Bez čísla"), selected: draft.runNumber != 1 && draft.runNumber != 2) {
+                draft.runNumber = 0
+            }
+            SettingsRadio(label: "Run1", selected: draft.runNumber == 1) { draft.runNumber = 1 }
+            SettingsRadio(label: "Run2", selected: draft.runNumber == 2) { draft.runNumber = 2 }
+        }
         SettingsText(language.tr("Pravidla provozu při zápisu (pravidlo N minut, změny pásma za hodinu, MULT):"),
                      size: 14)
         HStack(spacing: 12) {

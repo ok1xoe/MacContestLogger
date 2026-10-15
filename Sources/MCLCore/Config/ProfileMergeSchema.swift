@@ -120,6 +120,10 @@ enum ProfileMergeSchema {
             Property("specialCalls", .list(.string), .fieldDefault),
             Property("specialCallsIncludeBonus", .boolean, .fieldDefault),
         ],
+        "cz.ok1xoe.maccontestlogger.config.ClusterConfig": [
+            Property("runNumber", .int, .fieldDefault),
+            Property("statusColumns", .list(.string), .fieldDefault),
+        ],
         "cz.ok1xoe.maccontestlogger.config.RunModeConfig": [
             Property("repeatMaxMinutes", .int, .fieldDefault),
         ],

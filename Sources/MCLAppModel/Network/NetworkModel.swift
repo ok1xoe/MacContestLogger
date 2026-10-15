@@ -27,6 +27,8 @@ public final class NetworkModel {
     @ObservationIgnored private let language: LanguageModel
     @ObservationIgnored private let spots: SpotBuffer
     @ObservationIgnored private let now: @Sendable () -> Date
+    @ObservationIgnored private let config: ConfigModel
+    @ObservationIgnored private let logbook: LogbookModel
     /// Kotlin `prefillCall = …`: the call goes into the active entry window; set by the app.
     @ObservationIgnored var prefillCall: @MainActor (String) -> Void = { _ in }
     /// Kotlin `showNetStatus = true`: the network status window opens; set by the app.
@@ -39,7 +41,9 @@ public final class NetworkModel {
     @ObservationIgnored var stackReceived: (@MainActor (String) -> Void)?
 
     public init(cluster: ClusterSyncModel, status: StatusModel, language: LanguageModel, spots: SpotBuffer,
-                now: @escaping @Sendable () -> Date) {
+                config: ConfigModel, logbook: LogbookModel, now: @escaping @Sendable () -> Date) {
+        self.config = config
+        self.logbook = logbook
         self.cluster = cluster
         self.status = status
         self.language = language
@@ -211,6 +215,40 @@ public final class NetworkModel {
     /// The partner window's call field (Kotlin `it.uppercase().filter { c -> c.isLetterOrDigit() || c == '/' }`).
     public static func partnerCallFilter(_ text: String) -> String {
         String(KotlinStrings.uppercase(text).filter { $0.isLetter || $0.isNumber || $0 == "/" })
+    }
+
+    // MARK: - the station table
+
+    /// The columns of the Network Status station table (N1MM: right-click the header to choose them).
+    public var columns: [NetworkStationColumn] {
+        NetworkStationColumn.resolve(config.config.cluster.statusColumns)
+    }
+
+    /// Shows or hides a column (saved).
+    public func toggleColumn(_ column: NetworkStationColumn) {
+        saveColumns(NetworkStationColumn.toggled(columns, column))
+    }
+
+    /// Moves a column one place left (`-1`) or right (`1`) (saved).
+    public func moveColumn(_ column: NetworkStationColumn, by delta: Int) {
+        saveColumns(NetworkStationColumn.moved(columns, column, by: delta))
+    }
+
+    /// Back to the default columns.
+    public func resetColumns() {
+        saveColumns([])
+    }
+
+    private func saveColumns(_ next: [NetworkStationColumn]) {
+        let names: [String] = next == NetworkStationColumn.defaultOrder ? [] : next.map(\.rawValue)
+        guard names != config.config.cluster.statusColumns else { return }
+        config.config.cluster.statusColumns = names
+        config.saveSilently()
+    }
+
+    /// Rates, last QSO and pass frequency of every station (from the shared log and the Alt+Z announcements).
+    public func stationExtras() -> [String: NetworkStationExtras] {
+        NetworkStationExtras.compute(logbook.rows, passFrequencies: chat.passFrequencies)
     }
 
     /// The chat window is open: everything is read (the window calls it when it appears; a line arriving while it is

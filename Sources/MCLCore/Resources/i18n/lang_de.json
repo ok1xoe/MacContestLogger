@@ -1947,5 +1947,17 @@
  "Vybraná smazaná QSO (bez výběru všechna) do souboru ADIF": "Die ausgewählten gelöschten QSOs (ohne Auswahl alle) in eine ADIF-Datei",
  "QSO ve čtverci %s": "QSOs im Planquadrat %s",
  "%s nesedí k zemi %s": "%s passt nicht zu %s",
- "Lokátor neodpovídá zemi volačky — zkontroluj ho": "Der Locator passt nicht zum Land des Rufzeichens — bitte prüfen"
+ "Lokátor neodpovídá zemi volačky — zkontroluj ho": "Der Locator passt nicht zum Land des Rufzeichens — bitte prüfen",
+ "Typ": "Typ",
+ "Pass kHz": "Pass kHz",
+ "Rate 10": "Rate 10",
+ "Rate 100": "Rate 100",
+ "Posl. QSO": "Letztes QSO",
+ "Sloupce": "Spalten",
+ "Pořadí sloupců": "Spaltenreihenfolge",
+ "Posunout doleva": "Nach links",
+ "Posunout doprava": "Nach rechts",
+ "Výchozí sloupce": "Standardspalten",
+ "RUN stanice v Multi-two (ostatní ji vidí jako RUN1 / RUN2):": "RUN-Station in Multi-Two (die anderen sehen sie als RUN1 / RUN2):",
+ "Bez čísla": "Ohne Nummer"
 }

@@ -351,8 +351,8 @@ public final class InfoModel {
 
     /// N1MM's MULT/RUN indicator: this station's multi-op type (Ctrl+Alt+M, Settings → Cluster); `nil` = none set.
     public var stationTypeText: String? {
-        let type: OperatingGuard.StationType = config.config.cluster.stationType
-        return type == .none ? nil : type.rawValue
+        let type: String = config.config.cluster.announcedStationType
+        return type.isEmpty ? nil : type
     }
 
     /// The window options of the config (`config.infoWindow`): which parts the window shows.
