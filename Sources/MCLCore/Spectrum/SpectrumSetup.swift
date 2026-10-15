@@ -33,6 +33,18 @@ public struct SpectrumSetup: Equatable, Sendable {
         case refDb
         /// The displayed dB range (Cmd+Shift + mouse wheel).
         case rangeDb
+        /// N1MM „Show red signal markers": the markers at the detected signals.
+        case showMarkers
+        /// Which signals get a marker and which Shift+Up/Down stops on (`SpectrumMarkerFilter`).
+        case markerFilter
+        /// N1MM „Show these Spots": the spots over the spectrum.
+        case showSpots
+        /// N1MM „Show only spots you can hear": only spots with a detected signal within the tuning tolerance.
+        case onlyHeardSpots
+        /// N1MM „Static Sensitivity", 0 (off) … 100.
+        case staticSensitivity
+        /// Unknown signals go into the band map and the Available window as `@frequency` spots (off by default).
+        case unknownAsSpots
     }
 
     /// The stored values (non-default ones).
@@ -51,8 +63,10 @@ public struct SpectrumSetup: Equatable, Sendable {
     public static func defaultValue(_ key: Key) -> String {
         switch key {
         case .orientation: SpectrumOrientation.auto.rawValue
-        case .reverseScale, .noiseAsLine, .reduceSmearing: "false"
-        case .snapToSignal, .showWaterfall, .showInstant: "true"
+        case .reverseScale, .noiseAsLine, .reduceSmearing, .onlyHeardSpots, .unknownAsSpots: "false"
+        case .snapToSignal, .showWaterfall, .showInstant, .showMarkers, .showSpots: "true"
+        case .markerFilter: SpectrumMarkerFilter.all.rawValue
+        case .staticSensitivity: "50"
         case .decaySpeed: SpectrumDecaySpeed.medium.rawValue
         case .background: SpectrumBackground.black.rawValue
         case .sizeFactor: "40"
@@ -109,6 +123,17 @@ public struct SpectrumSetup: Equatable, Sendable {
     public var sizeFactor: Int {
         get { number(.sizeFactor, in: 20...80) }
         set { set(.sizeFactor, String(Swift.min(80, Swift.max(20, newValue)))) }
+    }
+
+    public var markerFilter: SpectrumMarkerFilter {
+        get { SpectrumMarkerFilter(rawValue: text(.markerFilter)) ?? .all }
+        set { set(.markerFilter, newValue.rawValue) }
+    }
+
+    /// N1MM „Static Sensitivity", 0 (off) … 100.
+    public var staticSensitivity: Int {
+        get { number(.staticSensitivity, in: 0...100) }
+        set { set(.staticSensitivity, String(Swift.min(100, Swift.max(0, newValue)))) }
     }
 
     /// The display scale (threshold, reference, range) as stored.

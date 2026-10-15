@@ -102,6 +102,9 @@ public indirect enum EntryKeyDecision: Equatable, Sendable {
     case scpMove(by: Int, to: Int)
     /// ↑/↓ without suggestions: tune the rig (`-1` for ↑, `+1` for ↓) — not available without a rig.
     case tune(Int)
+    /// Shift+↑/↓ (N1MM Shift+Up/Down, Spectrum Display): the next detected signal (`+1` higher for Shift+↓, `-1`
+    /// lower for Shift+↑, like the tuning direction of the plain arrows); without a spectrum it tunes like `tune`.
+    case spectrumJump(Int)
     /// Tab / Shift+Tab / space in exchange fields (`fieldKeys`): move the focus.
     case focusMove(by: Int, skipReports: Bool)
     /// Space in the call field (`jumpToExchange()`).
@@ -232,6 +235,9 @@ public enum EntryKeyRouter {
         }
         let down: Bool = stroke.isKey(AwtKeyCodes.vkDown)
         let up: Bool = stroke.isKey(AwtKeyCodes.vkUp)
+        if (up || down) && stroke.isShiftDown && !stroke.isControlDown && !stroke.isAltDown {
+            return .spectrumJump(down ? 1 : -1)
+        }
         if context.suggestionCount > 0 {
             if down {
                 return .scpMove(by: 1, to: min(context.scpPick + 1, context.suggestionCount - 1))

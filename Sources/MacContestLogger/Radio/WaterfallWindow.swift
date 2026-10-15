@@ -54,6 +54,19 @@ struct WaterfallWindowView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
+                if model.picture?.isStatic == true {
+                    Text(verbatim: language.tr("Statika"))
+                        .windowFont(11, weight: .semibold)
+                        .foregroundStyle(Color(domain: DomainColors.dupe))
+                        .accessibilityLabel(Text(verbatim: language.tr("Statika potlačena")))
+                }
+                Button(model.cqFrequencies.isEmpty ? "CQ" : language.tr("Zrušit")) {
+                    model.toggleCqFrequencies()
+                }
+                .windowFont(11)
+                .help(language.tr("Nejtišší frekvence pro CQ (průměr 60 s); Shift+šipky mezi nimi skáčou"))
+                .accessibilityLabel(Text(verbatim: language.tr("Nejtišší frekvence pro CQ")))
+                .accessibilityIdentifier("spectrum.cq")
                 IconButton(symbol: "minus.magnifyingglass", label: language.tr("Oddálit spektrum")) {
                     model.zoom(by: -1)
                 }
@@ -94,8 +107,10 @@ struct WaterfallWindowView: View {
         let axis = SpectrumAxisLayout(vertical: !model.isHorizontal, binZeroAtBottom: !setup.flag(.reverseScale))
         let lines: [SpectrumLine] = lines(model)
         let share: CGFloat = setup.flag(.showWaterfall) ? CGFloat(setup.sizeFactor) / 100 : 1
+        let markers: [Double] = model.markers.compactMap { model.fraction(ofHz: $0.centerHz) }
         let spectrum = ZStack {
-            SpectrumPaneView(picture: model.picture, setup: setup, axis: axis, lines: lines)
+            SpectrumPaneView(picture: model.picture, setup: setup, axis: axis, lines: lines, markers: markers,
+                             cqMarkers: model.cqMarkers)
             SpectrumPointerArea(
                 axis: axis,
                 onHover: { model.hover(fraction: $0) },
@@ -110,6 +125,7 @@ struct WaterfallWindowView: View {
                 },
                 accessibilityText: language.tr("Spektrum"),
                 accessibilityValueText: infoText)
+            SpectrumSpotLabels(model: model, axis: axis, language: language)
         }
         let waterfall = WaterfallLayerView(
             image: model.image,
@@ -146,5 +162,52 @@ struct WaterfallWindowView: View {
             .onChange(of: size) { _, new in model.layout(width: new.width, height: new.height) }
             .onChange(of: setup.orientation) { _, _ in model.layout(width: size.width, height: size.height) }
         }
+    }
+}
+
+/// The spots over the spectrum pane (N1MM): the call at its frequency, coloured by dupe / new multiplier, the tuned
+/// one framed; a click goes to the spot.
+private struct SpectrumSpotLabels: View {
+    let model: WaterfallModel
+    let axis: SpectrumAxisLayout
+    let language: LanguageModel
+
+    var body: some View {
+        GeometryReader { geometry in
+            let size: CGSize = geometry.size
+            ForEach(Array(model.overlaySpots.enumerated()), id: \.offset) { index, item in
+                if let along = model.fraction(ofHz: item.spot.freqHz) {
+                    Button {
+                        model.tuneToSpot(item.spot)
+                    } label: {
+                        Text(verbatim: item.spot.call)
+                            .windowFont(10, design: .monospaced)
+                            .foregroundStyle(color(item))
+                            .padding(.horizontal, 2)
+                            .overlay(RoundedRectangle(cornerRadius: 2)
+                                .stroke(item.tuned ? Color.yellow : Color.clear, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    .help(item.spot.call)
+                    .accessibilityLabel(Text(verbatim: language.tr("Spot") + " " + item.spot.call))
+                    .position(position(along, index: index, size: size))
+                }
+            }
+        }
+    }
+
+    private func color(_ item: SpectrumOverlaySpot) -> Color {
+        if item.spot.dupe { return .gray }
+        if item.spot.mult { return Color(domain: DomainColors.callMult) }
+        return item.heard ? .white : Color(white: 0.75)
+    }
+
+    /// Staggered over three rows near the top (horizontal), or along the right edge (vertical).
+    private func position(_ along: Double, index: Int, size: CGSize) -> CGPoint {
+        if axis.vertical {
+            let down: Double = axis.binZeroAtBottom ? 1 - along : along
+            return CGPoint(x: size.width - 40, y: down * Double(size.height))
+        }
+        return CGPoint(x: along * Double(size.width), y: 10 + Double(index % 3) * 14)
     }
 }

@@ -39,6 +39,18 @@ public final class WaterfallModel {
     public private(set) var zoom: Int = 1
     /// The pane layout follows the window's shape (N1MM „Auto" orientation); reported by the view.
     public private(set) var isHorizontal = true
+    /// N1MM's CQ button: the recommended CQ frequencies, best first (empty = the markers are off).
+    public internal(set) var cqFrequencies: [Double] = []
+
+    /// The spots over the spectrum (telnet and local spots with their dupe / mult state); wired by the app model.
+    @ObservationIgnored var spotsProvider: (@MainActor (_ lowHz: Double, _ highHz: Double) -> [SpectrumSpot])?
+    /// Puts the `@frequency` spots of unknown signals into the spot buffer (replacing the previous ones); wired by
+    /// the app model.
+    @ObservationIgnored var publishUnknown: (@MainActor (_ spots: [(call: String, freqHz: Int)]) -> Void)?
+    /// Refreshes since the last `@frequency` update (they are published every 2 s).
+    @ObservationIgnored var unknownCountdown = 0
+    /// The `@frequency` spots are in the buffer (they go when the option or the window does).
+    @ObservationIgnored var publishedUnknown = false
 
     /// The FFT rows (`Waterfall(SAMPLE_RATE, WATERFALL_MAX_HZ, WATERFALL_ROWS)`).
     @ObservationIgnored let waterfall = Waterfall(sampleRate: Double(AudioCapture.sampleRate),
@@ -49,13 +61,13 @@ public final class WaterfallModel {
     /// The trace, decay and detection shared by every source.
     @ObservationIgnored let pipeline = SpectrumPipeline()
     @ObservationIgnored private let audio: AudioModel
-    @ObservationIgnored private let rig: RigModel
-    @ObservationIgnored private let config: ConfigModel
+    @ObservationIgnored let rig: RigModel
+    @ObservationIgnored let config: ConfigModel
     @ObservationIgnored private let clock: any RescoreClock
     /// One long-lived serial queue for the renders (CPU work only, never the cooperative pool; no thread per render).
     @ObservationIgnored private let renderQueue = DispatchQueue(label: "waterfall-render", qos: .userInitiated)
     @ObservationIgnored private var timer: (any RescoreTimer)?
-    @ObservationIgnored private var isOpen = false
+    @ObservationIgnored private(set) var isOpen = false
     /// The listener and the audio user (given back on close, or by `deinit` if the model goes without one).
     @ObservationIgnored private let hold: AudioHold
     @ObservationIgnored private var rendering = false
@@ -102,6 +114,8 @@ public final class WaterfallModel {
         guard isOpen else { return }
         isOpen = false
         generation += 1
+        withdrawUnknownSpots()
+        cqFrequencies = []
         timer?.cancel()
         timer = nil
         hold.release()
@@ -320,6 +334,14 @@ public final class WaterfallModel {
 
     // MARK: - rendering
 
+    /// The pipeline's settings now (the saved options, the zoom and the receive frequency).
+    var pipelineSettings: SpectrumPipeline.Settings {
+        let setup: SpectrumSetup = self.setup
+        return SpectrumPipeline.Settings(scale: setup.scale, decay: setup.decaySpeed,
+                                         staticSensitivity: setup.staticSensitivity,
+                                         resetOnRetune: setup.flag(.reduceSmearing), zoom: zoom, rxHz: Double(rxHz))
+    }
+
     /// One refresh: the source's newest line through the pipeline and the waterfall rows into an image on the render
     /// queue (one render at a time), the result set on the main actor.
     func refresh() {
@@ -329,9 +351,7 @@ public final class WaterfallModel {
         let pipeline: SpectrumPipeline = self.pipeline
         let tuning: SpectrumTuning = self.tuning
         let setup: SpectrumSetup = self.setup
-        let settings = SpectrumPipeline.Settings(scale: setup.scale, decay: setup.decaySpeed, staticSensitivity: 0,
-                                                 resetOnRetune: setup.flag(.reduceSmearing), zoom: zoom,
-                                                 rxHz: Double(rxHz))
+        let settings = pipelineSettings
         let vertical: Bool = !isHorizontal
         let binZeroAtBottom: Bool = !setup.flag(.reverseScale)
         let started: Int = generation
@@ -353,6 +373,7 @@ public final class WaterfallModel {
                 self.image = rendered.image
                 if self.picture != rendered.picture {
                     self.picture = rendered.picture
+                    self.pictureChanged()
                 }
             }
         }
