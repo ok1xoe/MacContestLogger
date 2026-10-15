@@ -218,6 +218,9 @@ struct MacContestLoggerApp: App {
         toolWindow("Mapa", id: WorldMapWindowView.id, size: CGSize(width: 900, height: 520)) {
             WorldMapWindowView(host: host)
         }
+        toolWindow("Mapa lokátorových čtverců", id: GridSquareMapWindowView.id, size: CGSize(width: 760, height: 560)) {
+            GridSquareMapWindowView(host: host)
+        }
         multWindow("dxcc")
         multWindow("grid")
         multWindow("itu")

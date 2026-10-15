@@ -2161,5 +2161,20 @@
  "Call history nezná pro tuto volačku žádný lokátor": "Die Call History kennt für dieses Rufzeichen keinen Locator",
  "%s uložen do bandmapy na %s": "%s in der Bandmap auf %s gespeichert",
  "Pass: na pásmu %s není žádná stanice sítě": "Pass: keine Netzwerkstation auf %s",
- "Poslední stanici na toto pásmo": "Letzte Station auf dieses Band"
+ "Poslední stanici na toto pásmo": "Letzte Station auf dieses Band",
+ "Mapa lokátorových čtverců": "Locator-Quadratkarte",
+ "Pracované čtverce: %s": "Gearbeitete Quadrate: %s",
+ "QSO: %s": "QSOs: %s",
+ "Čtverec %s": "Quadrat %s",
+ "Azimut %s°, vzdálenost %s km (od %s)": "Richtung %s°, Entfernung %s km (von %s)",
+ "Všechna pásma": "Alle Bänder",
+ "Očekávané": "Erwartet",
+ "Střed na vlastní čtverec": "Auf eigenes Quadrat zentrieren",
+ "Vymazat očekávané násobiče": "Erwartete Multiplikatoren löschen",
+ "pracováno": "gearbeitet",
+ "spotováno": "gespottet",
+ "očekáváno": "erwartet",
+ "Nastavit střed mapy sem": "Kartenmitte hierher setzen",
+ "Azimut ke středu čtverce": "Richtung zur Quadratmitte",
+ "Jeden čtverec na řádek (např. JN79).": "Ein Quadrat pro Zeile (z. B. JN79)."
 }

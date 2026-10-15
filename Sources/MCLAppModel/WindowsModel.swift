@@ -33,7 +33,7 @@ public final class WindowsModel {
     /// DXCC mode) and one window per multiplier kind (`mult:<kind>`).
     public static let infoToolWindows: Set<String> = Set([
         "rate", "goals", "goals-from-log", "statistics", "score", "dupesheet", "dupesheet2", "skeds", "qtc", "simulator",
-        "check", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc",
+        "check", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc", "gridmap",
     ]).union(multWindowIds)
 
     /// `mult:<kind>` for every kind of the multiplier grids (Kotlin `openMultWindows`).
@@ -63,6 +63,7 @@ public final class WindowsModel {
         "window.propagation": "propagation", "window.bandnotes": "bandnotes", "window.simulator": "simulator",
         "mult.dxcc": "mult:dxcc", "mult.grid": "mult:grid", "mult.itu": "mult:itu", "mult.cq": "mult:cq",
         "mult.districts": "mult:districts", "mult.other": "mult:other", "mult.sections": "mult:sections",
+        "mult.gridmap": "gridmap",
     ]
 
     /// Windows Kotlin never saves in `config.openWindows` (their `showXxx` flag starts `false`): `profiles`

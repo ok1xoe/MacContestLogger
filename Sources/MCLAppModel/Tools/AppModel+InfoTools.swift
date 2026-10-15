@@ -19,6 +19,8 @@ public final class InfoTools {
     public let bandNotes: BandNotesModel
     public let propagation: PropagationWindowModel
     public let worldMap: WorldMapWindowModel
+    /// N1MM „Grid Square Map" (`gridmap`).
+    public let gridMap: GridSquareMapModel
 
     private let makeGrid: @MainActor (String) -> MultGridModel
     private var grids: [String: MultGridModel] = [:]
@@ -26,7 +28,7 @@ public final class InfoTools {
     init(info: InfoModel, goals: GoalsModel, statistics: StatisticsModel, score: ScoreWindowModel,
          dupesheet: DupesheetModel, dupesheet2: DupesheetModel, skeds: SkedModel, skedWatcher: SkedWatcher, tourWatcher: TourWatcher,
          qtc: QtcModel, bandNotes: BandNotesModel, propagation: PropagationWindowModel,
-         worldMap: WorldMapWindowModel, makeGrid: @escaping @MainActor (String) -> MultGridModel) {
+         worldMap: WorldMapWindowModel, gridMap: GridSquareMapModel, makeGrid: @escaping @MainActor (String) -> MultGridModel) {
         self.info = info
         self.goals = goals
         self.statistics = statistics
@@ -40,6 +42,7 @@ public final class InfoTools {
         self.bandNotes = bandNotes
         self.propagation = propagation
         self.worldMap = worldMap
+        self.gridMap = gridMap
         self.makeGrid = makeGrid
     }
 
@@ -68,6 +71,7 @@ public final class InfoTools {
         dupesheet.close()
         dupesheet2.close()
         worldMap.close()
+        gridMap.close()
         for grid in grids.values {
             grid.close()
         }
@@ -97,6 +101,7 @@ extension AppModel {
     public var bandNotes: BandNotesModel { infoTools.bandNotes }
     public var propagation: PropagationWindowModel { infoTools.propagation }
     public var worldMap: WorldMapWindowModel { infoTools.worldMap }
+    public var gridMap: GridSquareMapModel { infoTools.gridMap }
 
     /// The model of the multiplier window of a kind (`mult:<kind>`), made on first use.
     public func multGrid(kind: String) -> MultGridModel { infoTools.multGrid(kind: kind) }
@@ -179,11 +184,15 @@ extension AppModel {
         let config: ConfigModel = model.config
         let logbook: LogbookModel = model.logbook
         let entry: EntryModel = model.entry
+        let gridMap = GridSquareMapModel(GridSquareMapModel.Dependencies(
+            contest: contest, analysis: analysis, feed: feed, rig: rig, language: language, config: config,
+            logbook: logbook))
+        gridMap.setRoverQth = { [weak entry] text in entry?.setRoverQth(text) }
         model.infoTools = InfoTools(
             info: info, goals: goals, statistics: statistics, score: score, dupesheet: dupesheet, dupesheet2: dupesheet2,
             skeds: skeds,
             skedWatcher: skedWatcher, tourWatcher: tourWatcher, qtc: qtc, bandNotes: bandNotes,
-            propagation: propagation, worldMap: worldMap, makeGrid: { kind in
+            propagation: propagation, worldMap: worldMap, gridMap: gridMap, makeGrid: { kind in
                 let grid = MultGridModel(kind: kind, contest: contest, analysis: analysis, feed: feed, rig: rig,
                                          language: language, config: config, logbook: logbook)
                 grid.setRoverQth = { [weak entry] text in entry?.setRoverQth(text) }

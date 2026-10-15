@@ -25,7 +25,7 @@ public final class MenuModel {
         "window.chat", "window.partner", "window.wsjtxdecodes", "wsjtx.launch", "wsjtx.launch2", "window.hamqthlog", "window.rate", "window.skeds",
         "window.score", "window.movemults", "window.dupesheet", "window.dupesheet2", "window.check", "view.unmatchedMark", "window.statistics", "window.qtc",
         "window.propagation", "window.bandnotes", "window.simulator", "window.dxccmap", "mult.dxcc", "mult.grid",
-        "mult.map", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
+        "mult.map", "mult.gridmap", "mult.itu", "mult.cq", "mult.districts", "mult.other", "mult.sections",
         "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast", "edit.editLast", "edit.editCurrent", "edit.quickEdit", "edit.quickEditForward",
         "file.openRecent", "recent.clear", "file.copyContest", "contest.rescoreHours", "settings.exportAdifRange", "callhistory.exportN1mm",
         "callhistory.exportCsv", "fkeys.export", "file.recoverJournal", "callhistory.clear", "callhistory.import", "settings.callHistoryLookup", "tools.addCallToCountry", "file.post3830", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder", "settings.exchangeAbbreviations",
