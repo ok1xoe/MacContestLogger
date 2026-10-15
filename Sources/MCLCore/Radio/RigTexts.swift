@@ -33,6 +33,8 @@ public enum RigTexts {
     public static let otherVfoLabel = "VFO B"
     public static let splitLabel = "Split"
     public static let swapLabel = "SWAP"
+    /// The sub receiver (dual watch, N1MM Alt+F12) — not translated, like the others.
+    public static let subReceiverLabel = "Sub RX"
 
     /// `setOtherVfo`: `"VFO B ${khz(freqHz)}"`.
     public static func otherVfoDone(_ freqHz: Int64) -> EntryStatus {

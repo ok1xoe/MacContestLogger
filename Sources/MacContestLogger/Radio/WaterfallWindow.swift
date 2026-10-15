@@ -99,6 +99,10 @@ struct WaterfallWindowView: View {
         if let tx = model.txLine {
             lines.append(SpectrumLine(fraction: tx, color: .systemRed))
         }
+        if let other = model.otherVfoLine {
+            // N1MM SO2V: the second VFO in the skin's highlight colour.
+            lines.append(SpectrumLine(fraction: other, color: .controlAccentColor))
+        }
         return lines
     }
 

@@ -742,12 +742,17 @@ public final class AppModel {
             rig?.azimuthTo(call)
         }
         rig.rotator.currentAntenna = { [weak rig] in
-            // The chosen antenna, while it serves the tuned band.
-            guard let rig, let antenna = rig.antenna.current else { return nil }
-            if let band = rig.currentBand, AntennaSelector.forBand([antenna], band: band).isEmpty {
-                return nil
+            // The chosen antenna, while it serves the tuned band. In SO2R the other radio may have chosen it on its
+            // own band: then the first antenna of the focused radio's band and its rotors (N1MM: the rotor follows
+            // the radio with the focus).
+            guard let rig else { return nil }
+            let band: Band? = rig.currentBand
+            if let antenna = rig.antenna.current,
+               band == nil || !AntennaSelector.forBand([antenna], band: band!).isEmpty {
+                return antenna
             }
-            return antenna
+            guard rig.vfo.so2r, let band else { return nil }
+            return AntennaSelector.forBand(rig.config.config.antennas, band: band).first
         }
         rig.rotator.lastQsoCall = { [weak logbook] in
             logbook?.rows.last?.call

@@ -21,7 +21,7 @@ import Testing
         "FOCUS_SWAP", "SWAP_RADIOS", "SWAP_RADIOS_KEEP_FOCUS",
         "DUELING_CQ", "FOCUS_OTHER", "TOGGLE_CTRLFX", "TOGGLE_STEREO_MACROS",
         "OTHER_SPOT_UP", "OTHER_SPOT_DOWN", "OTHER_MULT_UP", "OTHER_MULT_DOWN", "OTHER_BAND_UP", "OTHER_BAND_DOWN",
-        "OTHER_CQ_FREQUENCY",
+        "OTHER_CQ_FREQUENCY", "SO2V_DUAL_CQ",
     ]
 
     private static let expected: [String: EntryArea] = [
@@ -44,13 +44,13 @@ import Testing
         "FOCUS_SWAP": .radio, "SWAP_RADIOS": .radio, "SWAP_RADIOS_KEEP_FOCUS": .radio,
         "DUELING_CQ": .local, "FOCUS_OTHER": .local, "TOGGLE_CTRLFX": .local, "TOGGLE_STEREO_MACROS": .local,
         "OTHER_SPOT_UP": .spots, "OTHER_SPOT_DOWN": .spots, "OTHER_MULT_UP": .spots, "OTHER_MULT_DOWN": .spots,
-        "OTHER_BAND_UP": .radio, "OTHER_BAND_DOWN": .radio, "OTHER_CQ_FREQUENCY": .radio,
+        "OTHER_BAND_UP": .radio, "OTHER_BAND_DOWN": .radio, "OTHER_CQ_FREQUENCY": .radio, "SO2V_DUAL_CQ": .radio,
     ]
 
     @Test func everyShortcutActionHasAnArea() {
-        #expect(ShortcutAction.allCases.count == 90)
+        #expect(ShortcutAction.allCases.count == 91)
         #expect(Set(ShortcutAction.allCases.map(\.name)) == Set(Self.runShortcutOrder))
-        #expect(Self.runShortcutOrder.count == 90)
+        #expect(Self.runShortcutOrder.count == 91)
         for action in ShortcutAction.allCases {
             #expect(EntryActionAvailability.area(of: action) == Self.expected[action.name], "\(action.name)")
         }

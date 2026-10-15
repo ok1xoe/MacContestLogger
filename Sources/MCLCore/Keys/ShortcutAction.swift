@@ -129,6 +129,8 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case otherBandDown
     /// N1MM Shift+Alt+Q: the other radio to its band's CQ frequency.
     case otherCqFrequency
+    /// N1MM Ctrl+Alt+D (SO2V): CQ repeat on VFO A with the sub receiver on.
+    case so2vDualCq
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -229,12 +231,13 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .otherBandUp: Spec(name: "OTHER_BAND_UP", id: "other_band_up", label: "Druhé rádio: pásmo výš", defaultKeys: "Ctrl+Shift+PAGE_UP")
         case .otherBandDown: Spec(name: "OTHER_BAND_DOWN", id: "other_band_down", label: "Druhé rádio: pásmo níž", defaultKeys: "Ctrl+Shift+PAGE_DOWN")
         case .otherCqFrequency: Spec(name: "OTHER_CQ_FREQUENCY", id: "other_cq_freq", label: "Druhé rádio: na jeho CQ frekvenci", defaultKeys: "Alt+Shift+Q")
+        case .so2vDualCq: Spec(name: "SO2V_DUAL_CQ", id: "so2v_dual_cq", label: "SO2V: CQ na VFO A, druhý přijímač zap / vyp", defaultKeys: "Ctrl+Alt+D")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode, .focusSwap, .swapRadios, .swapRadiosKeepFocus, .duelingCq, .focusOther, .toggleCtrlFx, .toggleStereoMacros, .otherSpotUp, .otherSpotDown, .otherMultUp, .otherMultDown, .otherBandUp, .otherBandDown, .otherCqFrequency]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode, .focusSwap, .swapRadios, .swapRadiosKeepFocus, .duelingCq, .focusOther, .toggleCtrlFx, .toggleStereoMacros, .otherSpotUp, .otherSpotDown, .otherMultUp, .otherMultDown, .otherBandUp, .otherBandDown, .otherCqFrequency, .so2vDualCq]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

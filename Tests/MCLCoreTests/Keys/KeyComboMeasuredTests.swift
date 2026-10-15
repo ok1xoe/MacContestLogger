@@ -142,6 +142,7 @@ import Testing
             "other_spot_up Shift+Cmd+DOWN", "other_spot_down Shift+Cmd+UP", "other_mult_up Ctrl+Alt+Shift+DOWN",
             "other_mult_down Ctrl+Alt+Shift+UP", "other_band_up Ctrl+Shift+PAGE_UP",
             "other_band_down Ctrl+Shift+PAGE_DOWN", "other_cq_freq Alt+Shift+Q",
+            "so2v_dual_cq Ctrl+Alt+D",
         ]
         let actual: [String] = ShortcutAction.allCases.map { "\($0.id) \($0.defaultCombo().format())" }
         #expect(actual == expected)

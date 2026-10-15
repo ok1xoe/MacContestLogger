@@ -100,7 +100,8 @@ The **Volby rádia** (Radio options) group of the rig sheet holds the N1MM per-r
   alone.
 - **Vedlejší přijímač stále zapnutý** (Sub receiver always on) — switches hamlib's dual watch (`DUAL_WATCH`)
   on every time the rig connects (K3 with a sub receiver, FT-1000 series, IC-756 family…). A rig without it
-  ignores the command. Alt+F12 stays "frequency A → B".
+  ignores the command. With this option **Alt+F12** toggles the sub receiver (N1MM's Dual Receive toggle); without
+  it Alt+F12 copies the frequency A → B.
 
 A serial port (rig, Winkeyer, foot switch, OTRSP) that was configured but cannot be found now (an unplugged
 USB adapter) is shown with an asterisk, `* /dev/cu.usbserial-…`, and a warning line under its drop-down.

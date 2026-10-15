@@ -107,7 +107,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Alt+F7** | split to the entered frequency or offset (`+2`); empty = turn split off |
 | **Ctrl+Enter** | frequency in the callsign field = transmit (split) frequency |
 | **Alt+F10** | swaps VFO A ↔ B |
-| **Alt+F12** | VFO A frequency to VFO B |
+| **Alt+F12** | VFO A frequency to VFO B; on a rig with "Sub receiver always on" (Settings → TCVR) the sub receiver (dual watch) on / off |
+| **Ctrl+Alt+D** | SO2V: CQ repeat on VFO A with the sub receiver on (tune the sub receiver between the CQs); again = off |
 | **Alt+'** | the rig's filter to the other width of its mode, wide ↔ narrow (the band map's Wide/Narrow button; widths in Settings → DX Cluster) |
 | **Ctrl+Alt+R** | CW reverse on / off (the rig's CW ↔ CWR mode, the filter width kept) |
 
@@ -189,7 +190,7 @@ turned the Mission Control shortcuts off.
 
 ## Unsupported N1MM shortcuts
 
-SO2V **Ctrl+Alt+D**, filters **Alt+'**, callsign stack
+Filters **Alt+'**, callsign stack
 **Alt+G / Ctrl+Alt+G**, multi-op **Ctrl+Alt+M / Alt+Z**, autosend **Ctrl+Shift+M** (the AutoSend threshold itself is
 set in Nastavení → Práh AutoSend (CW)…, see [ESM](esm.md#autosend-cw)).
 
