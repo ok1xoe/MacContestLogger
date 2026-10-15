@@ -129,6 +129,7 @@ extension ConfigurerDraft {
         config.cwKeyer.cutNumbers = cwCutNumbers
         config.cwKeyer.leadingZeros = cwLeadingZeros
         config.cwKeyer.cutStyle = cwCutStyle
+        config.cwKeyer.options = cwOptions
         config.cwKeyer.runMessages = cwRun.map { $0.toMessage() }
         config.cwKeyer.spMessages = cwSp.map { $0.toMessage() }
         config.digital.engine = digiEngine
@@ -355,6 +356,7 @@ extension ConfigurerDraft {
         let entries: [AntennaEntry] = antennas.map { $0.toEntry() }
         config.antennas = entries.filter { !KotlinText.isBlank($0.name) }
         config.antennaViaRig = antennaViaRig
+        config.rotor.autoAntenna = antennaAutoByAzimuth
         config.transverters = transverters.compactMap { $0.toEntry() }
         config.footswitchPort = footswitchPort
         config.footswitchPin = footswitchPin

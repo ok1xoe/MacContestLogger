@@ -228,6 +228,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var ritClearAfterLog: Bool = false
     public var antennas: [AntennaDraft] = []
     public var antennaViaRig: Bool = false
+    /// N1MM „Auto-select antenna based on azimuth" when the call is entered (`RotorSetup.autoAntenna`).
+    public var antennaAutoByAzimuth: Bool = false
     public var transverters: [TransverterDraft] = []
     public var footswitchPort: String = ""
     public var footswitchPin: String = ""
@@ -341,6 +343,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var cwCutNumbers: Bool = false
     public var cwLeadingZeros: Bool = false
     public var cwCutStyle: CutStyle = .tn
+    /// Weight, word spacing and the Winkeyer setup.
+    public var cwOptions: CwKeyingOptions = CwKeyingOptions()
     public var cwRun: [FunctionKeyDraft] = []
     public var cwSp: [FunctionKeyDraft] = []
     public var digiEngine: DigitalConfig.Engine = .none
@@ -595,6 +599,7 @@ extension ConfigurerDraft {
     private mutating func loadRigExtras(_ config: AppConfig) {
         antennas = config.antennas.map { AntennaDraft($0) }
         antennaViaRig = config.antennaViaRig
+        antennaAutoByAzimuth = config.rotor.autoAntenna
         transverters = config.transverters.map { TransverterDraft($0) }
         footswitchPort = config.footswitchPort
         footswitchPin = config.footswitchPin
@@ -709,6 +714,7 @@ extension ConfigurerDraft {
         cwCutNumbers = config.cwKeyer.cutNumbers
         cwLeadingZeros = config.cwKeyer.leadingZeros
         cwCutStyle = config.cwKeyer.cutStyle
+        cwOptions = config.cwKeyer.options
         cwRun = config.cwKeyer.runMessages.map { FunctionKeyDraft($0) }
         cwSp = config.cwKeyer.spMessages.map { FunctionKeyDraft($0) }
         digiEngine = config.digital.engine

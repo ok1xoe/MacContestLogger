@@ -21,6 +21,8 @@ public enum KeyerTexts {
     public static let cwDisabled = "CW klíč je vypnutý (Nastavení → CW klíč)"
     /// `cwKeyerOrOpen` with Winkeyer and no port — likewise.
     public static let winkeyerNoPort = "Winkeyer: vyber port v Nastavení → CW klíč"
+    /// DTR/RTS keying without a port — likewise.
+    public static let serialNoPort = "Klíčování DTR/RTS: vyber port v Nastavení → CW klíč"
 
     /// A failed CW send: `"CW: ${it.message}"` (the message may already be a translated text).
     public static func cwFailure(_ message: String?) -> EntryStatus {

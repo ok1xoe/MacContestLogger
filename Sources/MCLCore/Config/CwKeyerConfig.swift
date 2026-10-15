@@ -33,6 +33,13 @@ public struct CwKeyerConfig: Codable, Equatable, Sendable {
     /// N1MM F-key stacking: a key pressed while a message is sent is queued after it (sent in full, in order)
     /// instead of interrupting it. Swift-only key.
     public var stackMessages: Bool = false
+    /// Weight, word spacing and the Winkeyer setup (stored flat under their own keys). Swift-only keys.
+    public var options: CwKeyingOptions = CwKeyingOptions() {
+        didSet {
+            let normalized = options.normalized()
+            if normalized != options { options = normalized }
+        }
+    }
     /// Always exactly `VoiceKeyerConfig.keyCount` items.
     public var runMessages: [FunctionKeyMessage] = CwKeyerConfig.defaultRun() {
         didSet {
@@ -65,6 +72,21 @@ public struct CwKeyerConfig: Codable, Equatable, Sendable {
         stackMessages = c.value(.stackMessages, default: d.stackMessages)
         runMessages = CwKeyerConfig.normalized(c.value(.runMessages, default: d.runMessages))
         spMessages = CwKeyerConfig.normalized(c.value(.spMessages, default: d.spMessages))
+        options = (try? CwKeyingOptions(from: decoder)) ?? d.options
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(method, forKey: .method)
+        try c.encode(winkeyerPort, forKey: .winkeyerPort)
+        try c.encode(speed, forKey: .speed)
+        try c.encode(cutNumbers, forKey: .cutNumbers)
+        try c.encode(leadingZeros, forKey: .leadingZeros)
+        try c.encode(cutStyle, forKey: .cutStyle)
+        try c.encode(runMessages, forKey: .runMessages)
+        try c.encode(spMessages, forKey: .spMessages)
+        try c.encode(stackMessages, forKey: .stackMessages)
+        try options.encode(to: encoder)
     }
 
     /// Clamps the speed to the range `minWpm...maxWpm`.

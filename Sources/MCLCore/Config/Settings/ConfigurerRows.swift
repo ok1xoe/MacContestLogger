@@ -170,24 +170,37 @@ public struct AntennaDraft: Identifiable, Equatable, Sendable {
     public var name: String
     public var bands: String
     public var sector: String
+    /// The rotor names (comma separated), the offset in degrees and the bidirectional flag (Swift-only columns).
+    public var rotors: String
+    public var offset: String
+    public var bidirectional: Bool
 
     public init(_ entry: AntennaEntry) {
         code = String(entry.code)
         name = entry.name
         bands = entry.bands
         sector = entry.sector
+        rotors = entry.rotors
+        offset = entry.offset == 0 ? "" : String(entry.offset)
+        bidirectional = entry.bidirectional
     }
 
-    /// `toEntry()`: code `toIntOrNull() ?: 0` (no trimming) clamped to 0…15, texts trimmed.
+    /// `toEntry()`: code `toIntOrNull() ?: 0` (no trimming) clamped to 0…15, texts trimmed; the offset is a whole
+    /// number of degrees −359…359 (anything else 0).
     public func toEntry() -> AntennaEntry {
         let raw: Int = ConfigurerRows.toIntOrNull(code) ?? 0
         let clamped: Int = min(max(raw, 0), 15)
+        let degrees: Int = Int(KotlinText.trim(offset)).flatMap { (-359...359).contains($0) ? $0 : nil } ?? 0
+        let names: String = AntennaEntry(code: 0, name: "", bands: "", sector: "", rotors: rotors).rotorNames
+            .joined(separator: ", ")
         return AntennaEntry(
-            code: clamped, name: KotlinText.trim(name), bands: KotlinText.trim(bands), sector: KotlinText.trim(sector))
+            code: clamped, name: KotlinText.trim(name), bands: KotlinText.trim(bands), sector: KotlinText.trim(sector),
+            rotors: names, offset: degrees, bidirectional: bidirectional)
     }
 
     public static func == (lhs: AntennaDraft, rhs: AntennaDraft) -> Bool {
         lhs.code == rhs.code && lhs.name == rhs.name && lhs.bands == rhs.bands && lhs.sector == rhs.sector
+            && lhs.rotors == rhs.rotors && lhs.offset == rhs.offset && lhs.bidirectional == rhs.bidirectional
     }
 }
 

@@ -35,6 +35,8 @@ public final class BandmapModel {
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
     /// The entry window the spot keys act for (the active one); wired by `AppModel`.
     @ObservationIgnored var keyEntry: (@MainActor () -> EntryModel?)?
+    /// „Natočit rotátor" on a spot: the call and the spot's grid (`nil` = unknown).
+    @ObservationIgnored var rotorTurner: @MainActor (String, String?) -> Void = { _, _ in }
     /// The top bar's and the programmable buttons' collaborators (`BandmapModel+TopBar`); wired by `AppModel`.
     @ObservationIgnored weak var dxCluster: DxClusterModel?
     @ObservationIgnored weak var statusLine: StatusModel?
@@ -587,6 +589,11 @@ public final class BandmapModel {
     /// „Blacklist spottera …".
     public func blacklistSpotter(_ spot: DxSpot) {
         blacklist.blacklistSpotter(spot.spotter)
+    }
+
+    /// „Natočit rotátor na …" (N1MM Turn Rotor): the rotator to the spotted station, by the spot's grid when known.
+    public func turnRotor(_ spot: DxSpot) {
+        rotorTurner(spot.dxCall, analyzer().gridForSpot(spot))
     }
 
     /// „Odebrat spot" (every spot of the call).
