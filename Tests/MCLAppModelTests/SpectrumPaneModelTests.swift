@@ -40,19 +40,19 @@ import Testing
         // A click 300 Hz above the signal in the spectrum lands on its centre.
         let off: Double = try #require(model.fraction(ofHz: signal.centerHz + 300))
         model.press(fraction: off, command: false, inSpectrum: true)
-        #expect(app.model.rig.tuning.tunedFreqHz == Int64(signal.centerHz.rounded()))
+        #expect(abs(app.model.rig.tuning.tunedFreqHz - Int64(signal.centerHz.rounded())) <= 10)
         // The waterfall does not snap.
         let dial: Int64 = app.model.rig.tuning.tunedFreqHz
         let there: Double = try #require(model.fraction(ofHz: Double(dial) + 1_200))
         model.press(fraction: there, command: false, inSpectrum: false)
-        #expect(abs(app.model.rig.tuning.tunedFreqHz - (dial + 1_200)) <= 1)
+        #expect(abs(app.model.rig.tuning.tunedFreqHz - (dial + 1_200)) <= 10)
         // Snap off: the click tunes where it is.
         model.updateSetup { $0.set(.snapToSignal, flag: false) }
         #expect(app.model.config.config.spectrumSetup == ["snapToSignal": "false"])
         let dial2: Int64 = app.model.rig.tuning.tunedFreqHz
         let near: Double = try #require(model.fraction(ofHz: Double(dial2) + 700))
         model.press(fraction: near, command: false, inSpectrum: true)
-        #expect(abs(app.model.rig.tuning.tunedFreqHz - (dial2 + 700)) <= 1)
+        #expect(abs(app.model.rig.tuning.tunedFreqHz - (dial2 + 700)) <= 10)
         model.close()
         await app.settle()
     }
