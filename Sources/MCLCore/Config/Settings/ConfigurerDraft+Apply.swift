@@ -307,6 +307,8 @@ extension ConfigurerDraft {
         config.cwSpeedStepSecondary = Self.clamped(cwSpeedStepSecondary, 1, 10) ?? 1
         config.clearPrefilledExchange = clearPrefilledExchange
         config.resetRxAfterRunQso = resetRxAfterRunQso
+        config.autoSendThreshold = Self.trimmedInt(autoSendThreshold).map { min(max(0, $0), 20) }
+            ?? config.autoSendThreshold
         config.macroQsyStepKHz = Self.clamped(macroQsyStepKHz, 1, 100) ?? 1
         config.functionKeysPerOperator = functionKeysPerOperator
         config.clubLog.enabled = clEnabled

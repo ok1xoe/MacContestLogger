@@ -576,12 +576,17 @@ extension EntryModel {
             show(message)
             return
         }
-        if !outcome.keys.isEmpty {
+        var keys: [Int] = outcome.keys
+        if autoSentCurrentCall {
+            // AutoSend already sent the call while it was typed: the ESM Enter sends the rest without it.
+            keys.removeAll { $0 == config.config.esm.keys.hisCall }
+        }
+        if !keys.isEmpty {
             // N1MM „Send partial calls": the corrected call's resend carries only the part that changed.
             if config.config.esm.sendPartialCalls, operating.isRun, esmProgress.callCorrected(form.call) {
                 partialCallSend = PartialCall.part(sent: esmProgress.sentCall, call: form.call)
             }
-            sendKeys(outcome.keys, refocus: false)
+            sendKeys(keys, refocus: false)
             partialCallSend = nil
         }
         if outcome.log {
@@ -1432,7 +1437,7 @@ extension EntryModel {
         return parts.joined(separator: " ")
     }
 
-    private func keyerSettings(opposite: Bool) -> KeyerSettings {
+    func keyerSettings(opposite: Bool) -> KeyerSettings {
         let app: AppConfig = config.config
         let set = FunctionKeySet(run: app.voiceKeyer.runMessages, sp: app.voiceKeyer.spMessages)
         let texts: [String] = set.messages(run: operating.isRun, opposite: opposite).map(\.text)

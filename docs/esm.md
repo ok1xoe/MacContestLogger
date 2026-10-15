@@ -60,6 +60,15 @@ CQ repeat (Alt+R) and the send shortcuts use the assignments too.
   full after it, as in N1MM; its button lights when its turn comes. Esc stops everything,
   queue included. Off = the new key interrupts the message (the earlier behaviour).
 
+## AutoSend (CW)
+
+N1MM **CW/PH AutoSend Threshold** (Ctrl+Shift+M in N1MM): **Nastavení → Práh AutoSend (CW)…** or Settings → Other →
+Kroky. In Run and CW, once the given number of characters has been typed after the call's last digit, the call starts
+going out while you type; the characters you add at its end follow one by one. The next Enter then sends the exchange
+without the call (a call you corrected meanwhile is sent again first, as usual). 0 = off (the default). Example with 2:
+typing `DL1ABC` sends `DL1AB` after the `B`, then `C`. Phone is not supported (a recorded voice keyer cannot speak a
+call letter by letter while it is typed).
+
 ## Call stacking
 
 With a [call stack](call-stacking.md) and a **Next Call key** (Settings → Function Keys → Call

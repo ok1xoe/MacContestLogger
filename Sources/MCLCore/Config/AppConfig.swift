@@ -257,6 +257,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var entryHiddenSections: [String] = []
     /// N1MM „Reset RX freq when running split": after a Run QSO in split, the receive frequency goes to the transmit one. Swift-only key.
     public var resetRxAfterRunQso: Bool = false
+    /// N1MM „CW/PH AutoSend Threshold": in Run and CW the call starts going out after this many characters typed
+    /// after its last digit; 0 = off. Swift-only key.
+    public var autoSendThreshold: Int = 0
     /// N1MM „PgUp/PgDn Incr (kHz)": the QSY step of the `{PGUP}`/`{PGDN}`/`{FREQUP}`/`{FREQDN}` macros. Swift-only key.
     /// N1MM „Use Separate Function Key Files for Each Operator": every operator signed on (Ctrl+O / OPON) other than
     /// the station call gets their own copy of the F-key messages. Swift-only key.
@@ -348,6 +351,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case graylineLayers, graylineSpots
         case entryHiddenSections
         case resetRxAfterRunQso
+        case autoSendThreshold
         case macroQsyStepKHz, functionKeysPerOperator
         case checkHiddenPanes, checkPaneWeights, checkYankOrder, checkYankAllowDupes, checkFavorEndDifferences
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
@@ -492,6 +496,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         graylineSpots = c.value(.graylineSpots, default: d.graylineSpots)
         entryHiddenSections = c.value(.entryHiddenSections, default: d.entryHiddenSections)
         resetRxAfterRunQso = c.value(.resetRxAfterRunQso, default: d.resetRxAfterRunQso)
+        autoSendThreshold = c.value(.autoSendThreshold, default: d.autoSendThreshold)
         let qsyStep: Int = c.value(.macroQsyStepKHz, default: d.macroQsyStepKHz)
         macroQsyStepKHz = qsyStep <= 0 ? 1 : qsyStep
         functionKeysPerOperator = c.value(.functionKeysPerOperator, default: d.functionKeysPerOperator)

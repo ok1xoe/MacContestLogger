@@ -2209,5 +2209,17 @@
  "CI-V adresa se předá rigctld spuštěnému aplikací (prázdné = výchozí hamlib). Když spojení s rigem vypadne a do timeoutu se neobnoví, bandmapa ukáže upozornění s tlačítkem Reset Radio.": "Die CI-V-Adresse wird an das von der Anwendung gestartete rigctld übergeben (leer = Hamlib-Standard). Bricht die Verbindung zum Funkgerät ab und kehrt innerhalb des Timeouts nicht zurück, zeigt die Bandmap eine Warnung mit der Schaltfläche Reset Radio.",
  "* Nastavený port %s teď není k dispozici (odpojený USB převodník?)": "* Der eingestellte Port %s ist jetzt nicht verfügbar (USB-Adapter getrennt?)",
  "Reverzní CW (CW-R) na rigu 2": "Reverse CW (CW-R) an Funkgerät 2",
- "Problém s rádiem: TRX neodpovídá": "Funkgeräteproblem: Transceiver antwortet nicht"
+ "Problém s rádiem: TRX neodpovídá": "Funkgeräteproblem: Transceiver antwortet nicht",
+ "F2–F4, F11, F12 = jako funkční klávesy, ESC = zastavit vysílání, SWITCH_RADIOS = druhé zadávací okno (SO2V / SO2R, jako \\). PTT spínače hlídá síťový Interlock jako každé vysílání (první vyhrává, zámek pásma).": "F2–F4, F11, F12 = wie die Funktionstasten, ESC = Senden stoppen, SWITCH_RADIOS = das andere Eingabefenster (SO2V / SO2R, wie \\). Die PTT des Schalters beachtet den Netzwerk-Interlock wie jede Aussendung (der Erste gewinnt, Bandsperre).",
+ "Majáky NCDXF jsou jen na 20, 17, 15, 12 a 10 m": "NCDXF-Baken gibt es nur auf 20, 17, 15, 12 und 10 m",
+ "Maják NCDXF: vysílá %s (%s), azimut %s°": "NCDXF-Bake: %s (%s) sendet, Richtung %s°",
+ "Maják NCDXF: vysílá %s (%s)": "NCDXF-Bake: %s (%s) sendet",
+ "Naladit maják NCDXF pro pásmo": "NCDXF-Bake für dieses Band abstimmen",
+ "Práh AutoSend (CW)…": "AutoSend-Schwelle (CW)…",
+ "AutoSend volačky (CW)": "Rufzeichen-AutoSend (CW)",
+ "Počet znaků za poslední číslicí volačky, po kterém se v Run začne vysílat (0 = vypnuto)": "Zeichen nach der letzten Ziffer des Rufzeichens, ab denen im Run gesendet wird (0 = aus)",
+ "Neplatný práh AutoSend (0–20)": "Ungültige AutoSend-Schwelle (0–20)",
+ "AutoSend vypnut": "AutoSend aus",
+ "AutoSend: vysílání volačky po %s znacích za číslicí": "AutoSend: Rufzeichen wird nach %s Zeichen nach der Ziffer gesendet",
+ "AutoSend volačky v CW (znaků za číslicí, 0 = vyp.)": "Rufzeichen-AutoSend in CW (Zeichen nach der Ziffer, 0 = aus)"
 }

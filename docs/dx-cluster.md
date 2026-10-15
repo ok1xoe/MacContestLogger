@@ -420,6 +420,11 @@ window's info strip shows which NCDXF/IARU beacon is transmitting at this moment
 from the published schedule — 10 seconds per beacon and band, a 3-minute cycle starting at 00:00 UTC — so the
 computer clock must be right (N1MM shows it in its status bar the same way).
 
+**Nástroje → Naladit maják NCDXF pro pásmo** (Tools → Tune to NCDXF beacon for this band, N1MM "Tune to beacon for
+this band"): on 20, 17, 15, 12 or 10 m the active entry window and the rig go to the band's beacon frequency in CW,
+and the status line names the beacon sending now with its bearing from your locator
+(`Maják NCDXF: vysílá OH2B (Finland), azimut 27°`). On other bands it only says where the beacons are.
+
 **Odstranit chybné (busted) spoty** (N1MM "Remove Busted Spots"): among the live spots, two calls within the tuning
 tolerance of the mode (Settings → DX Cluster) that differ by one character (a changed, added or missing character)
 are a correct call and its busted copy — typically a skimmer's wrong decode. The call reported fewer times (spots,

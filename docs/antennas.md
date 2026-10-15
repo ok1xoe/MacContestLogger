@@ -68,8 +68,14 @@ port, line and action:
 | **PTT** | holds the transmitter (CAT PTT) while pressed — phone without VOX |
 | **ENTER** | like Enter in the active entry window (with ESM it sends a message according to the state) |
 | **F1** | sends CQ (F1) |
+| **F2**, **F3**, **F4**, **F11**, **F12** | sends that function key's message |
+| **ESC** | stops sending, like Esc (the CQ repeat goes off too) |
+| **SWITCH_RADIOS** | SO2V / SO2R: moves to the other entry window, like `\` (N1MM "Typing Focus" and "Switch Radios" — one action in MCL, where the focus and the rig switch together) |
 
-The input is read every 20 ms with debouncing.
+The input is read every 20 ms with debouncing. In a multi-op network the footswitch PTT obeys
+the [interlock](multi-op.md) like every other transmission, which covers N1MM's "First One Wins"
+(the default) and "Band lockout" (interlock scope "same band"); a hardware lockout line wired to
+the footswitch input is not supported.
 
 ### Rotator over UDP
 

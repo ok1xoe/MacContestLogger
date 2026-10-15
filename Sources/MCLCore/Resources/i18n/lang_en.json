@@ -2209,5 +2209,17 @@
  "CI-V adresa se předá rigctld spuštěnému aplikací (prázdné = výchozí hamlib). Když spojení s rigem vypadne a do timeoutu se neobnoví, bandmapa ukáže upozornění s tlačítkem Reset Radio.": "The CI-V address is passed to the rigctld the app starts (empty = hamlib default). When the connection to the rig is lost and does not come back within the timeout, the band map shows an alert with a Reset Radio button.",
  "* Nastavený port %s teď není k dispozici (odpojený USB převodník?)": "* The configured port %s is not available now (USB adapter unplugged?)",
  "Reverzní CW (CW-R) na rigu 2": "Reverse CW (CW-R) on rig 2",
- "Problém s rádiem: TRX neodpovídá": "Radio problem: the transceiver does not respond"
+ "Problém s rádiem: TRX neodpovídá": "Radio problem: the transceiver does not respond",
+ "F2–F4, F11, F12 = jako funkční klávesy, ESC = zastavit vysílání, SWITCH_RADIOS = druhé zadávací okno (SO2V / SO2R, jako \\). PTT spínače hlídá síťový Interlock jako každé vysílání (první vyhrává, zámek pásma).": "F2–F4, F11, F12 = like the function keys, ESC = stop sending, SWITCH_RADIOS = the other entry window (SO2V / SO2R, like \\). The switch's PTT obeys the network Interlock like any transmission (first one wins, band lockout).",
+ "Majáky NCDXF jsou jen na 20, 17, 15, 12 a 10 m": "NCDXF beacons are only on 20, 17, 15, 12 and 10 m",
+ "Maják NCDXF: vysílá %s (%s), azimut %s°": "NCDXF beacon: %s (%s) is sending, bearing %s°",
+ "Maják NCDXF: vysílá %s (%s)": "NCDXF beacon: %s (%s) is sending",
+ "Naladit maják NCDXF pro pásmo": "Tune to NCDXF beacon for this band",
+ "Práh AutoSend (CW)…": "AutoSend threshold (CW)…",
+ "AutoSend volačky (CW)": "Call AutoSend (CW)",
+ "Počet znaků za poslední číslicí volačky, po kterém se v Run začne vysílat (0 = vypnuto)": "Characters after the call's last digit after which sending starts in Run (0 = off)",
+ "Neplatný práh AutoSend (0–20)": "Invalid AutoSend threshold (0–20)",
+ "AutoSend vypnut": "AutoSend off",
+ "AutoSend: vysílání volačky po %s znacích za číslicí": "AutoSend: the call is sent after %s characters past the digit",
+ "AutoSend volačky v CW (znaků za číslicí, 0 = vyp.)": "Call AutoSend in CW (characters after the digit, 0 = off)"
 }

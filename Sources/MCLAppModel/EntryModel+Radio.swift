@@ -194,19 +194,26 @@ extension EntryModel {
 
     // MARK: - footswitch
 
-    /// Kotlin `LaunchedEffect(state.footswitchPresses)` (`EP:864-870`): only the active window acts — F1 sends,
-    /// ENTER is the ESM Enter or logs.
+    /// Kotlin `LaunchedEffect(state.footswitchPresses)` (`EP:864-870`): only the active window acts — an F-key
+    /// action sends that key, ENTER is the ESM Enter or logs, ESC stops sending (Esc's first step), SWITCH_RADIOS
+    /// moves to the other entry window in SO2V / SO2R (`\`).
     func footswitchPressed() {
-        guard isActivePanel else { return }
-        switch config.config.footswitchAction {
-        case Footswitch.Action.f1.rawValue:
-            sendKeys([0], refocus: true)
-        case Footswitch.Action.enter.rawValue:
+        guard isActivePanel, let action = Footswitch.Action(rawValue: config.config.footswitchAction) else { return }
+        if let key = action.functionKey {
+            sendKeys([key], refocus: true)
+            return
+        }
+        switch action {
+        case .enter:
             if esmActive {
                 esmEnter()
             } else {
                 submit()
             }
+        case .esc:
+            _ = stopSending()
+        case .switchRadios:
+            runShortcut(.switchRadio)
         default:
             break
         }

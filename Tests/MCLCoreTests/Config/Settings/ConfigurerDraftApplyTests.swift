@@ -306,7 +306,7 @@ import Testing
                                "moveMultsDisplay", "moveMultsRange", "moveMultsBands", "moveMultsModes",
                                "graylineLayers", "graylineSpots",
                                "entryHiddenSections",
-                               "resetRxAfterRunQso", "macroQsyStepKHz", "functionKeysPerOperator",
+                               "resetRxAfterRunQso", "autoSendThreshold", "macroQsyStepKHz", "functionKeysPerOperator",
                                "runNumber", "statusColumns", "master", "timeFromMaster", "interlockLastWins",
                                "ctyEnabled",
                                "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",

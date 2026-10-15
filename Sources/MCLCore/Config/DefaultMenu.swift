@@ -20,6 +20,7 @@ public enum DefaultMenu {
         "settings.callHistoryLookup": "Zapnout dohledávání v call history",
         "settings.exchangeAbbreviations": "Zkratky výměny…",
         "tools.addCallToCountry": "Přiřadit volačku k zemi…",
+        "tools.tuneBeacon": "Naladit maják NCDXF pro pásmo",
         "file.post3830": "Odeslat výsledek na 3830…",
         "file.import": "Import",
         "file.export": "Export",
@@ -58,6 +59,7 @@ public enum DefaultMenu {
         "help.checkUpdates": "Zkontrolovat aktualizace…",
         "settings.announcements": "Hlášení pro nevidomé (VoiceOver)",
         "settings.keys": "Klávesy…",
+        "settings.autoSend": "Práh AutoSend (CW)…",
         "settings": "Nastavení",
         "settings.open": "Nastavení…",
         "settings.import": "Import QSO (ADIF/Cabrillo)…",
@@ -180,7 +182,8 @@ public enum DefaultMenu {
         let view = node("view", [leaf("view.unmatchedMark"), leaf("view.qrz"), leaf("view.google")])
         let contest = node("contest", [leaf("contest.postcontest"), leaf("contest.record"), leaf("contest.none")])
         let tools = node("tools", [
-            leaf("contest.rescore"), leaf("contest.rescoreHours"), leaf("database.refillDxcc"), leaf("tools.addCallToCountry"), leaf("sep.tools.1"),
+            leaf("contest.rescore"), leaf("contest.rescoreHours"), leaf("database.refillDxcc"), leaf("tools.addCallToCountry"),
+            leaf("tools.tuneBeacon"), leaf("sep.tools.1"),
             leaf("settings.downloadScp"), leaf("contest.updateDefinitions"), leaf("database.updateClubLogDxcc"),
             leaf("tools.importCountryFile"), leaf("tools.removeCountryFile"),
             leaf("contest.updateCallHistory"), leaf("callhistory.clear"), leaf("beacons.load"),
@@ -191,6 +194,7 @@ public enum DefaultMenu {
         let settings = node("settings", [
             settingsOpen, leaf("settings.keys"), leaf("settings.profiles"), leaf("sep.settings.1"),
             leaf("settings.callHistoryLookup"), leaf("settings.exchangeAbbreviations"), leaf("settings.announcements"),
+            leaf("settings.autoSend"),
         ])
         let help = node("help", [
             leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("help.contestRules"),
