@@ -157,21 +157,60 @@ table.
 
 ## Built-in QSO parties
 
-The California (CQP), Florida (FQP) and New England (NEQP) QSO parties are built in, with their county lists.
+The California (CQP), Florida (FQP), New England (NEQP), 7th Call Area (7QP), Indiana (INQP) and Delaware (DEQP)
+QSO parties are built in, with their county lists.
 
 - **In-state or out-of-state** follows the **ARRL section** in the station data (like N1MM): a section of the
   party's state makes you an in-state station (for CQP the California sections EB, LAX, ORG, SB, SCV, SDG, SF, SJV,
-  SV). When the log is created, the status line says which one you are; a station outside the USA and Canada
-  should have the section `DX`, otherwise it is warned to correct it.
+  SV; for 7QP AZ, EWA, ID, MT, NV, OR, UT, WWA, WY). When the log is created, the status line says which one you
+  are; a station outside the USA and Canada should have the section `DX`, otherwise it is warned to correct it.
 - In-state stations work everyone and count states / provinces (a county of the party's state counts as that
   state) and, where the rules say so, DXCC countries; out-of-state stations may only work the party's state and count
   its counties. A QSO with an out-of-state station from outside is logged with a warning and scores nothing.
 - Set **ROVERQTH** to your county (in-state) or your state / province (out-of-state): that is what is sent.
 - A mobile in another county is a new station (`dupe.byField`); a station on a county line is logged as `ALC/BAK`.
 
-The combined same-weekend log of N1MM (7QP, Indiana, New England and Delaware, "IN7QPNEDE") is not built in: the 7QP
-and Indiana county lists could not be taken from their organizers. A combined party can be put together from the
-template with the county lists imported.
+| Party | Counties (received code) | Points | Multipliers |
+|---|---|---|---|
+| 7QP | 259, state + county (`ORDES`, `AZYVP`) | phone 2, CW 3, digital 4 | outside: counties once; inside: 50 states, 13 provinces and at most 10 DXCC countries once |
+| Indiana | 92, `IN` + county (`INMRN`) | 2 per CW or phone QSO | everyone: counties once per mode; inside also the other 49 states and 13 provinces (no DX) |
+| New England | 68, state + county (`MAMID`) | phone 1, CW and digital 2 | outside: counties once; inside: states, provinces and DXCC countries once |
+| Delaware | 3: `NDE` New Castle, `KDE` Kent, `SDE` Sussex | inside: phone 1, CW and digital 2; outside: 10 and 20 | per band: outside counties; inside states, provinces and DXCC countries; × power (QRP 3, LOW 2, HIGH 1) |
+
+In-state stations of 7QP, Indiana and Delaware also get the counties of the other parties of that weekend right: a
+county such as `ORDES`, `INMRN`, `MAMID` or `NDE` counts as its state (the set `qp_weekend_qth`). The Delaware
+definition leaves out the 50-point electronic log bonus, the in-state 6 m-and-up contacts and the FT8/FT4 log,
+which the rules want as a separate file with the Field Day exchange.
+
+## Same-weekend combined log (IN7QPNE)
+
+On the first weekend of May the 7QP, Indiana, New England and Delaware QSO parties run at the same time, and their
+sponsors accept one log for all of them (N1MM **IN7QPNE**). A station **outside all four areas** chooses the contest
+**"7QP + Indiana + New England + Delaware QSO Parties (combined, IN7QPNE)"**:
+
+- Send RS(T) and your state / province or `DX` (set **ROVERQTH**).
+- Log the received county exactly as sent. The code decides the party, its QSO points and its multiplier:
+  `ORDES` is 7QP, `INMRN` Indiana, `MAMID` New England, `NDE` Delaware. Anything else is not a station of the four
+  parties: it is logged with a warning and scores nothing.
+- A county line is entered as `ORDES/JEF` (shorthand for `ORDES/ORJEF`, counties of one state), `IDFRA/UTCAC` (two
+  states) or `INMRN/HAM`; one QSO per county is logged.
+- Each party is scored by its own rules and the score is their sum. The Score window shows every party:
+  `7QP: points 5 × multipliers 1 = 5  ·  Indiana: … =  score 76`. The Delaware power factor applies to the
+  Delaware part only (the power category of the contest setup).
+- A station may be worked once per band and mode, a mobile again from every county. Indiana has no digital QSOs and
+  New England no 160 m; such QSOs score nothing for that party.
+- Submit the same Cabrillo file (`CONTEST: IN7QPNE`) to all four sponsors; each one scores its own QSOs.
+
+A station inside one of the areas uses that party's own definition; the in-state definitions already count the
+other parties' counties as their states.
+
+The definition uses `scoring.parts` (see [definition-editor.md](definition-editor.md)); versions that do not know it
+show a single total of all points times all counties.
+
+Sources: [7QP rules](https://www.7qp.org/) and its county list (States & Counties), [Indiana QSO Party
+rules](https://www.hdxcc.org/inqp/rules.html) and [counties](https://www.hdxcc.org/inqp/counties.html),
+[New England QSO Party rules](https://www.neqp.org/rules), [Delaware QSO Party
+rules](https://www.fsarc.org/qsoparty/rules-2024.html), [N1MM+ QSO party setup](https://n1mmwp.hamdocs.com/manual-supported/contests-setup/setup-qsop-contests/).
 
 ## Section lists in the contest dialog
 
