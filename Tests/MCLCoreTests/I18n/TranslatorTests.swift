@@ -181,9 +181,9 @@ import Testing
         // the window layouts, the settings backups, the data folder and the digital radio mode and
         // 37 keys of the program menu items (update check, country list, diagnostics, contest rules) and
         // the simulator's QSB/QRM and the VoiceOver announcements.
-        #expect(map.count == 2_239)
+        #expect(map.count == 2_324)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_239)
+        #expect(german.count == 2_324)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

@@ -24,6 +24,15 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var rts: PinState = .unset
     public var host: String = ""
     public var rigPort: String = ""
+    /// N1MM per-radio options (`RigConfig.civAddress` … `timeoutSeconds`).
+    public var civAddress: String = ""
+    public var pollRate: PollRate = .normal
+    public var reverseCw: Bool = false
+    public var muteMicOnVoice: Bool = false
+    public var subReceiverOn: Bool = false
+    public var rigTimeout: String = ""
+    /// N1MM „Use Reverse CW Radio 2" (SO2R rig 2).
+    public var rig2ReverseCw: Bool = false
 
     // MARK: Station — `CD:39-62` (latitude/longitude are derived from the locator, `gridLatLon`)
 
@@ -141,6 +150,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var cwSpeedStepSecondary: String = ""
     public var clearPrefilledExchange: Bool = false
     public var resetRxAfterRunQso: Bool = false
+    /// `AppConfig.autoSendThreshold` as typed.
+    public var autoSendThreshold: String = ""
     /// The `{PGUP}`/`{PGDN}` QSY step (kHz), as typed.
     public var macroQsyStepKHz: String = ""
     public var functionKeysPerOperator: Bool = false
@@ -219,6 +230,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var ritClearAfterLog: Bool = false
     public var antennas: [AntennaDraft] = []
     public var antennaViaRig: Bool = false
+    /// N1MM „Auto-select antenna based on azimuth" when the call is entered (`RotorSetup.autoAntenna`).
+    public var antennaAutoByAzimuth: Bool = false
     public var transverters: [TransverterDraft] = []
     public var footswitchPort: String = ""
     public var footswitchPin: String = ""
@@ -332,6 +345,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var cwCutNumbers: Bool = false
     public var cwLeadingZeros: Bool = false
     public var cwCutStyle: CutStyle = .tn
+    /// Weight, word spacing and the Winkeyer setup.
+    public var cwOptions: CwKeyingOptions = CwKeyingOptions()
     public var cwRun: [FunctionKeyDraft] = []
     public var cwSp: [FunctionKeyDraft] = []
     public var digiEngine: DigitalConfig.Engine = .none
@@ -400,6 +415,12 @@ extension ConfigurerDraft {
         rts = rig.rts
         host = rig.host
         rigPort = String(rig.port)
+        civAddress = rig.civAddress
+        pollRate = rig.pollRate
+        reverseCw = rig.reverseCw
+        muteMicOnVoice = rig.muteMicOnVoice
+        subReceiverOn = rig.subReceiverOn
+        rigTimeout = String(rig.timeoutSeconds)
     }
 
     private mutating func loadStation(_ station: StationConfig) {
@@ -503,6 +524,7 @@ extension ConfigurerDraft {
         cwSpeedStepSecondary = String(config.cwSpeedStepSecondary)
         clearPrefilledExchange = config.clearPrefilledExchange
         resetRxAfterRunQso = config.resetRxAfterRunQso
+        autoSendThreshold = String(config.autoSendThreshold)
         macroQsyStepKHz = String(config.macroQsyStepKHz)
         functionKeysPerOperator = config.functionKeysPerOperator
         clEnabled = config.clubLog.enabled
@@ -580,6 +602,7 @@ extension ConfigurerDraft {
     private mutating func loadRigExtras(_ config: AppConfig) {
         antennas = config.antennas.map { AntennaDraft($0) }
         antennaViaRig = config.antennaViaRig
+        antennaAutoByAzimuth = config.rotor.autoAntenna
         transverters = config.transverters.map { TransverterDraft($0) }
         footswitchPort = config.footswitchPort
         footswitchPin = config.footswitchPin
@@ -591,6 +614,7 @@ extension ConfigurerDraft {
         rotatorPort = String(config.rotatorPort)
         rig2Host = config.rig2.host
         rig2Port = String(config.rig2.port)
+        rig2ReverseCw = config.rig2.reverseCw
         otrspPort = config.otrspPort
         cwPitch = String(config.cwPitchHz)
     }
@@ -693,6 +717,7 @@ extension ConfigurerDraft {
         cwCutNumbers = config.cwKeyer.cutNumbers
         cwLeadingZeros = config.cwKeyer.leadingZeros
         cwCutStyle = config.cwKeyer.cutStyle
+        cwOptions = config.cwKeyer.options
         cwRun = config.cwKeyer.runMessages.map { FunctionKeyDraft($0) }
         cwSp = config.cwKeyer.spMessages.map { FunctionKeyDraft($0) }
         digiEngine = config.digital.engine

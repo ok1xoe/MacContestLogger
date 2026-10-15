@@ -187,7 +187,9 @@ public final class VoiceKeyerModel {
             ttsVoice: app.ttsVoice, synthesize: hardware.synthesize)
         settings.update(outputDevice: outputDevice(app), pttDelayMs: app.voiceKeyer.pttDelayMs,
                         gain: Double(app.voiceKeyer.outputLevel) / 100)
-        ptt.arm(target: keyer.activeRigLane(), viaCat: app.voiceKeyer.pttViaCat)
+        let rigIndex: Int = keyer.rig?.vfo.activeCatIndex ?? 0
+        ptt.arm(target: keyer.activeRigLane(), viaCat: app.voiceKeyer.pttViaCat,
+                muteMic: (rigIndex == 1 ? app.rig2 : app.rig).muteMicOnVoice)
         generation &+= 1
         let planGeneration: Int64 = generation
         planning = true
@@ -610,6 +612,10 @@ final class VoicePtt: @unchecked Sendable {
     private var armed: Int64 = 0
     private var keyRequests = 0
     private var releaseRequests = 0
+    /// N1MM „Mute mic on supported radios" for the current message.
+    private var muteMic = false
+    /// The microphone gain to restore per muted rig (`MicMute`).
+    private var mutedGains: [ObjectIdentifier: String] = [:]
 
     /// Key jobs handed to a rig lane so far (tests).
     var requestedKeys: Int {
@@ -632,12 +638,32 @@ final class VoicePtt: @unchecked Sendable {
     }
 
     /// A message starts: its rig and the current fence epoch.
-    func arm(target: RigLane?, viaCat: Bool) {
+    func arm(target: RigLane?, viaCat: Bool, muteMic: Bool = false) {
         lock.withLock {
             self.target = target
             via = viaCat
+            self.muteMic = muteMic
             armed = epoch
         }
+    }
+
+    /// Rigs whose microphone is muted now (tests).
+    var mutedRigCount: Int {
+        lock.withLock { mutedGains.count }
+    }
+
+    /// Before the key: the microphone muted when the message asks for it (best effort, never fails the key).
+    private func muteIfAsked(_ cat: any CatPort, lane: RigLane) {
+        let asked: Bool = lock.withLock { muteMic && mutedGains[ObjectIdentifier(lane)] == nil }
+        guard asked, let rig = cat.rigOrNull(), let gain = MicMute.mute(rig) else { return }
+        lock.withLock { mutedGains[ObjectIdentifier(lane)] = gain }
+    }
+
+    /// After the release: the muted microphone's gain back (best effort).
+    private func unmute(_ rig: (any RigController)?, lane: RigLane) {
+        let gain: String? = lock.withLock { mutedGains.removeValue(forKey: ObjectIdentifier(lane)) }
+        guard let gain, let rig else { return }
+        MicMute.restore(rig, gain: gain)
     }
 
     /// The voice keyer's `ptt(on)` (its own queue; blocks until the rig's lane ran the command).
@@ -676,6 +702,7 @@ final class VoicePtt: @unchecked Sendable {
         guard cat.snapshot.connected, isKeyed(lane) else { return }
         try cat.setPtt(false)
         forget(lane)
+        unmute(cat.rigOrNull(), lane: lane)
     }
 
     /// A fresh connection of `lane`'s rig (its connect thread, before the first poll): `T 0` first if the rig is still
@@ -683,6 +710,7 @@ final class VoicePtt: @unchecked Sendable {
     func releaseOwed(_ rig: any RigController, lane: RigLane) -> Bool {
         guard isKeyed(lane), (try? rig.setPtt(false)) != nil else { return false }
         forget(lane)
+        unmute(rig, lane: lane)
         return true
     }
 
@@ -708,11 +736,13 @@ final class VoicePtt: @unchecked Sendable {
     private func key(_ cat: any CatPort, lane: RigLane, epoch armedEpoch: Int64) throws {
         let current: Bool = lock.withLock { epoch == armedEpoch }
         guard current, cat.snapshot.connected else { return }
+        muteIfAsked(cat, lane: lane)
         do {
             try cat.setPtt(true)
         } catch {
             do {
                 try cat.setPtt(false)
+                unmute(cat.rigOrNull(), lane: lane)
             } catch {
                 // That `T 0` failed too: the rig counts as keyed, so the release before a disconnect, the quit and
                 // the next connection of the rig send `T 0` again.

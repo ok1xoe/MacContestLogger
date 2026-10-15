@@ -63,7 +63,7 @@ public final class AvailMultModel {
     public private(set) var ascending = true
 
     @ObservationIgnored let feed: SpotFeed
-    @ObservationIgnored private let analysis: SpotAnalysisModel
+    @ObservationIgnored let analysis: SpotAnalysisModel
     @ObservationIgnored let contest: ContestModel
     @ObservationIgnored private let blacklist: BlacklistModel
     @ObservationIgnored private let callbook: CallbookModel
@@ -77,7 +77,7 @@ public final class AvailMultModel {
     /// The waterfall's newest rows (`nil` while the waterfall window is closed); wired by the app model.
     @ObservationIgnored public var spectrum: @MainActor () -> SignalHeard.Spectrum? = { nil }
     /// Turns the rotator to a call (the row menu); wired by the app model.
-    @ObservationIgnored var rotorTurner: @MainActor (String) -> Void = { _ in }
+    @ObservationIgnored var rotorTurner: @MainActor (String, String?) -> Void = { _, _ in }
 
     private struct CacheKey: Equatable {
         let feed: Int

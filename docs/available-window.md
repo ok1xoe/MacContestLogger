@@ -48,7 +48,7 @@ the receiver audio); with it closed the column stays empty.
   focus to that radio's entry window (N1MM *focus follows spot*).
 - **Middle click** (the mouse wheel button) deletes the spot under the pointer.
 - **Right click**: remove the spot, blacklist the call or the spotter, QRZ.com / HamQTH, **Natočit rotátor** (the
-  rotator to the station, short path, like Alt+J), **QSY druhého rádia / VFO** (SO2V / SO2R: the other VFO or radio
+  rotator to the station, short path, like Alt+J; by the spot's grid when known), **QSY druhého rádia / VFO** (SO2V / SO2R: the other VFO or radio
   goes to the spot and the focus stays where it is), delete all spots.
 - **Alt+A** / **Shift+Alt+A** in the entry window: the next / previous spot of the list (as sorted and filtered) is
   tuned and taken, the row is highlighted; the list wraps around. Both keys can be remapped in Settings → Keys.

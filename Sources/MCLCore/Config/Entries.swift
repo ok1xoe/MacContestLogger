@@ -45,16 +45,29 @@ public struct AntennaEntry: Codable, Equatable, Sendable {
     public var bands: String = ""
     /// Sector in degrees `120-240`; empty = omnidirectional.
     public var sector: String = ""
+    /// N1MM „Rotor Description": the rotor(s) turning this antenna, comma separated (several = a stack turned
+    /// together); empty = the default rotator. Swift-only; written only when set.
+    public var rotors: String = ""
+    /// N1MM „Offset": degrees the antenna's main lobe points away from the rotor's heading (the rotor turns to
+    /// bearing − offset). Swift-only; written only when not 0.
+    public var offset: Int = 0
+    /// N1MM „Bidirectional" (SteppIR, a dipole): the rotor may use either end of the beam and turns at most 180°.
+    /// Swift-only; written only when set.
+    public var bidirectional: Bool = false
 
-    enum CodingKeys: String, CodingKey { case code, name, bands, sector }
+    enum CodingKeys: String, CodingKey { case code, name, bands, sector, rotors, offset, bidirectional }
 
     public init() {}
 
-    public init(code: Int, name: String, bands: String, sector: String) {
+    public init(code: Int, name: String, bands: String, sector: String, rotors: String = "", offset: Int = 0,
+                bidirectional: Bool = false) {
         self.code = code
         self.name = name
         self.bands = bands
         self.sector = sector
+        self.rotors = rotors
+        self.offset = offset
+        self.bidirectional = bidirectional
     }
 
     public init(from decoder: Decoder) throws {
@@ -64,6 +77,32 @@ public struct AntennaEntry: Codable, Equatable, Sendable {
         name = c.value(.name, default: d.name)
         bands = c.value(.bands, default: d.bands)
         sector = c.value(.sector, default: d.sector)
+        rotors = c.value(.rotors, default: d.rotors)
+        offset = c.value(.offset, default: d.offset)
+        bidirectional = c.value(.bidirectional, default: d.bidirectional)
+    }
+
+    /// The v1.1.1 keys, plus the Swift-only rotor columns only when they differ from the default.
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(code, forKey: .code)
+        try c.encode(name, forKey: .name)
+        try c.encode(bands, forKey: .bands)
+        try c.encode(sector, forKey: .sector)
+        if !rotors.isEmpty {
+            try c.encode(rotors, forKey: .rotors)
+        }
+        if offset != 0 {
+            try c.encode(offset, forKey: .offset)
+        }
+        if bidirectional {
+            try c.encode(bidirectional, forKey: .bidirectional)
+        }
+    }
+
+    /// The rotor names of `rotors` (split by commas, trimmed, blanks dropped); empty = the default rotator.
+    public var rotorNames: [String] {
+        rotors.split(separator: ",").map { KotlinStrings.trim(String($0)) }.filter { !$0.isEmpty }
     }
 }
 

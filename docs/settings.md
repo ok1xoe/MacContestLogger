@@ -18,7 +18,7 @@ All Settings tabs are functional (the earlier mock-ups of the N1MM layout have b
 | Klávesy (Keys) | remapping of shortcuts |
 | Digital Modes | how to log the rig's data mode (PKTUSB → FT8 / RTTY / DIGITAL...) |
 | Other | CW speed step and secondary step (Shift+PgUp/PgDn), tuning and RIT step (CW / phone), the QSY step of the `{PGUP}`/`{PGDN}`/`{FREQUP}`/`{FREQDN}` macros, separate function key files for each operator, RIT clearing after a QSO, resetting RX to the TX frequency after a Run QSO in split, dupe beep |
-| CW klíč (CW keyer) | Winkeyer / CAT keying; *Zobrazovat odesílané CW ve stavovém řádku* (N1MM *Display Sent CW*) |
+| CW klíč (CW keyer) | Winkeyer / CAT keying; *Zobrazovat odesílané CW ve stavovém řádku* (N1MM *Display Sent CW*); CW weight and contest word spacing; DTR/RTS keying with PTT line, PTT delay and CAT PTT; the sound-card CW monitor; the Winkeyer settings (N1MM Winkey tab, see [CW keyer](cw-keyer.md#winkeyer-settings)) |
 | Mode Control | mode in the log taken from the rig / band plan / always fixed; RTTY sent to the rig as FSK or AFSK |
 | Antennas | antenna table, rotator (rotctld, UDP) |
 | Score Reporting | online scoreboard, Club Log Live Stream, DXCC from Club Log ([DXCC data](dxcc-data.md)) |
@@ -76,6 +76,34 @@ code as soon as a text is renamed.
 Some messages contain **`%s`** as a placeholder for a value filled in at runtime
 (`"Opraveno %s z %s QSO"`). The translation must keep the same number of
 placeholders; their order may be rearranged.
+
+## Rig options (Hardware → Set)
+
+The **Volby rádia** (Radio options) group of the rig sheet holds the N1MM per-radio options:
+
+- **Icom CI-V adresa (hex)** (Icom Addr) — shown for an Icom model. Enter the address as N1MM does, without
+  the `H` (`94`, `94H` and `0x94` are all accepted). It is passed to the `rigctld` the app starts
+  (`--set-conf civaddr=0x94`); empty = the hamlib default. A shared `rigctld` you start yourself needs
+  `-C civaddr=0x94` on its own command line.
+- **Dotazování rádia** (Radio polling rate) — Normal (every 500 ms), 50 % slower (750 ms) or 100 % slower
+  (1 s) for a rig that struggles with frequent polling.
+- **Timeout TRX** (Transceiver timeout, default 15 s) — when the connection to the rig is lost (not closed
+  by you) and has not come back within this time, the band map shows a red **Problém s rádiem** (Radio problem)
+  bar with **Reset Radio**, which connects the rig again (× hides the bar). 0 = no alert.
+- **Reverzní CW (CW-R)** (Use Reverse CW) — whenever the app puts the rig into CW it sends CW-R instead
+  (`M CWR`). Rig 2 has its own box in the SO2R group of the Hardware tab. Ctrl+Alt+R still toggles CW / CW-R
+  by hand.
+- **Ztlumit mikrofon rádia během hlasových zpráv** (Mute mic on supported radios) — off by default. While a
+  voice message from the computer keys the rig over CAT, the rig's microphone gain is read, set to 0 and restored
+  after the PTT is released (hamlib `MICGAIN`; e.g. Elecraft K3, Ten-Tec Orion). Use it only when the message
+  audio enters the rig through a line / data input, not the microphone input. A rig without `MICGAIN` is left
+  alone.
+- **Vedlejší přijímač stále zapnutý** (Sub receiver always on) — switches hamlib's dual watch (`DUAL_WATCH`)
+  on every time the rig connects (K3 with a sub receiver, FT-1000 series, IC-756 family…). A rig without it
+  ignores the command. Alt+F12 stays "frequency A → B".
+
+A serial port (rig, Winkeyer, foot switch, OTRSP) that was configured but cannot be found now (an unplugged
+USB adapter) is shown with an asterisk, `* /dev/cu.usbserial-…`, and a warning line under its drop-down.
 
 ## Mode Control
 

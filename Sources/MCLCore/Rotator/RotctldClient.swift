@@ -62,6 +62,14 @@ public final class RotctldClient: @unchecked Sendable {
         try expectOk("natočení")
     }
 
+    /// Turns to a controller azimuth as given, not normalised (a rotor with limits: `-90`, `420` on a 450° rotor).
+    public func turnToRaw(_ azimuth: Double) throws {
+        lock.lock()
+        defer { lock.unlock() }
+        try send(JavaFormat.format("P %.1f 0", .double(azimuth)))
+        try expectOk("natočení")
+    }
+
     public func stop() throws {
         lock.lock()
         defer { lock.unlock() }

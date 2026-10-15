@@ -77,6 +77,16 @@ public struct HardwarePorts: Sendable {
 
     /// `WinkeyerKeyer.open(port, wpm)` (blocks; called on the keyer lane).
     public var openWinkeyer: @Sendable (String, Int) throws -> any CwKeyer = { _, _ in throw InertHardwareError() }
+    /// `SerialKeyLines.open(port, keyLine, pttLine)` — DTR/RTS CW keying (blocks; called on the keyer lane).
+    public var openKeyLines: @Sendable (String, CwKeyingOptions.SerialLine, CwKeyingOptions.SerialLine) throws
+        -> any CwKeyLines = { _, _, _ in throw InertHardwareError() }
+    /// The clock of the DTR/RTS element scheduler (tests pass a recording fake).
+    public var makeCwSleeper: @Sendable () -> any CwSleeper = { MonotonicCwSleeper() }
+    /// `SoundCard.playPcm` on the chosen device — the sound-card CW monitor (blocks; called on the monitor lane).
+    public var playMonitor: @Sendable ([UInt8], WavFile.PcmFormat, String?, () -> Bool) throws(AudioIOError) -> Void = {
+        _, _, _, _ throws(AudioIOError) in
+        throw AudioIOError(InertHardwareError.message)
+    }
     /// `SoundCard.player { outputDevice }` — the voice keyer's audio output (plays on the voice keyer's queue).
     /// The second closure is the playback level (0…1).
     public var voicePlayer: @Sendable (@escaping @Sendable () -> String?, @escaping @Sendable () -> Double)
@@ -102,6 +112,10 @@ public struct HardwarePorts: Sendable {
     }
     /// `FldigiClient(host, port)` (called on the keyer lane).
     public var makeFldigi: @Sendable (String, Int) throws -> any FldigiPort = { _, _ in throw InertHardwareError() }
+    /// The N1MM Rotor heading broadcast receiver on a UDP port (blocks while binding; called on the rotator lane). Only
+    /// receives; started only when the operator switched the network rotor display on.
+    public var listenRotorNetwork: @Sendable (_ port: Int, _ handler: @escaping @Sendable (String, Double) -> Void)
+        throws -> RotorNetworkListener = { _, _ in throw InertHardwareError() }
     /// `capture.start(deviceName)` — the receiver audio input (blocks; called on the audio lane).
     public var startAudio: @Sendable (AudioCapture, String?) throws(AudioIOError) -> Void = { _, _ throws(AudioIOError) in
         throw AudioIOError(InertHardwareError.message)
@@ -145,6 +159,10 @@ public struct HardwarePorts: Sendable {
     public static let live: HardwarePorts = {
         var ports: HardwarePorts = liveRadio
         ports.openWinkeyer = { port, wpm in try WinkeyerKeyer.open(portPath: port, wpm: wpm) }
+        ports.openKeyLines = { path, key, ptt in try SerialKeyLines.open(path: path, keyLine: key, pttLine: ptt) }
+        ports.playMonitor = { bytes, format, device, cancelled throws(AudioIOError) in
+            try SoundCard.playPcm(bytes, format: format, deviceName: device, cancelled: cancelled)
+        }
         ports.voicePlayer = { device, gain in SoundCard.player(deviceName: device, gain: gain) }
         ports.recordMessage = { target, device in try SoundCard.record(target: target, deviceName: device) }
         ports.microphoneAccess = { await MicrophoneAccess.request() }
@@ -153,6 +171,9 @@ public struct HardwarePorts: Sendable {
         ports.openSerial = { path, baud in try SerialPort.open(path: path, settings: SerialPort.Settings(baud: baud)) }
         ports.startAudio = { capture, device throws(AudioIOError) in try capture.start(deviceName: device) }
         ports.makeSimAudio = { noise in try SimAudioPlayer(noiseLevel: noise) }
+        ports.listenRotorNetwork = { port, handler in
+            try RotorNetworkListener(bindHost: "0.0.0.0", port: port, handler: handler)
+        }
         return ports
     }()
 

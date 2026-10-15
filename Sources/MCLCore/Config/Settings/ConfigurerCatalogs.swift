@@ -18,7 +18,7 @@ public enum ConfigurerCatalogs {
     public static let footswitchPins: [String] = ["CTS", "DSR", "DCD"]
 
     /// Foot-switch actions (`HardwareTab.kt:136`).
-    public static let footswitchActions: [String] = ["PTT", "ENTER", "F1"]
+    public static let footswitchActions: [String] = Footswitch.Action.allCases.map(\.rawValue)
 
     /// `ACCENTS` (`ModeTabs.kt:261-266`): key → Czech translation key, in order.
     public static let accents: [(key: String, labelKey: String)] = [

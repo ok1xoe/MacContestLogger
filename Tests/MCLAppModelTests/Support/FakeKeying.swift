@@ -55,6 +55,31 @@ final class FakeCwKeyer: RttyKeyer, @unchecked Sendable {
         }
     }
 
+    private var configuredOptions: [CwKeyingOptions] = []
+    private var potReport: (@Sendable (Int) -> Void)?
+
+    /// The options of every `configure` call (kept apart from `events`).
+    var configured: [CwKeyingOptions] {
+        lock.lock()
+        defer { lock.unlock() }
+        return configuredOptions
+    }
+
+    func configure(_ options: CwKeyingOptions, potSpeed: (@Sendable (Int) -> Void)?) throws {
+        lock.lock()
+        configuredOptions.append(options)
+        potReport = potSpeed
+        lock.unlock()
+    }
+
+    /// The keyer's speed pot moves (as a followed Winkeyer pot reports it, on the keyer's reader thread).
+    func turnPot(_ wpm: Int) {
+        lock.lock()
+        let report = potReport
+        lock.unlock()
+        report?(wpm)
+    }
+
     func send(_ message: CwMessage, wpm: Int) throws {
         lock.lock()
         while holding {
@@ -325,6 +350,14 @@ final class FakeKeyingHardware: @unchecked Sendable {
             let keyer = FakeCwKeyer()
             lock.withLock { keyers.append(keyer) }
             return keyer
+        }
+        ports.openKeyLines = { [self] port, key, ptt in
+            record("key lines open \(port) \(key.rawValue) \(ptt.rawValue)")
+            return RecordingKeyLines(self, ptt: ptt != .none)
+        }
+        ports.makeCwSleeper = { InstantCwSleeper() }
+        ports.playMonitor = { [self] bytes, _, device, _ throws(AudioIOError) in
+            record("monitor \(device ?? "-") \(bytes.count) bytes")
         }
         ports.voicePttDelay = { [self] ms, cancelled in
             pttDelay(ms, cancelled)
@@ -618,4 +651,38 @@ struct KeyingApp {
 func winkeyerConfig(_ config: inout AppConfig) {
     config.cwKeyer.method = .winkeyer
     config.cwKeyer.winkeyerPort = "fake-winkeyer"
+}
+
+/// DTR/RTS lines that record into the keying log.
+final class RecordingKeyLines: CwKeyLines, @unchecked Sendable {
+    private let keying: FakeKeyingHardware
+    let hasPtt: Bool
+
+    init(_ keying: FakeKeyingHardware, ptt: Bool) {
+        self.keying = keying
+        hasPtt = ptt
+    }
+
+    func setKey(_ down: Bool) throws {
+        keying.record(down ? "key down" : "key up")
+    }
+
+    func setPtt(_ on: Bool) throws {
+        keying.record(on ? "ptt on" : "ptt off")
+    }
+
+    func close() {
+        keying.record("key lines close")
+    }
+}
+
+/// The element scheduler's clock without waiting.
+final class InstantCwSleeper: CwSleeper, @unchecked Sendable {
+    func begin() {}
+
+    func wait(_ ms: Double, cancelled: @escaping () -> Bool) -> Bool {
+        !cancelled()
+    }
+
+    func wake() {}
 }
