@@ -43,6 +43,10 @@ public enum N1mmContactParser {
         q.serialSent = intOrNull(tag(units, "sntnr")).map { Int($0) }
         q.serialRcvd = intOrNull(rcvNr).map { Int($0) }
         q.timestampUtc = parseTs(tag(units, "timestamp"))
+        // Swift-only: the radio the QSO was logged on (`<radionr>` 1 or 2).
+        if let radio = tag(units, "radionr").flatMap({ Int($0) }), (1...2).contains(radio) {
+            q.radioNr = radio
+        }
 
         var fields = JavaLinkedMap<String>()
         putIfPresent(&fields, "rst_rcvd", rcv)

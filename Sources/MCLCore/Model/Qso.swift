@@ -49,6 +49,9 @@ public struct Qso: Equatable, Sendable {
     public var points: Int = 0
     public var multiplier: Bool = false
     public var runMode: RunMode = .run
+    /// The radio the QSO was logged on (N1MM `RadioNr`: 1 = radio / VFO A window, 2 = radio / VFO B window in SO2R
+    /// and SO2V); 0 = not known (QSOs from older logs, imports and other loggers).
+    public var radioNr: Int = 0
 
     public var `operator`: String = ""
     public var comment: String = ""

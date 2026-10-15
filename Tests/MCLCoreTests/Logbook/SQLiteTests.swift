@@ -95,6 +95,8 @@ import Testing
             ColumnInfo(name: "deleted", type: "INTEGER", notNull: true, defaultValue: "0", primaryKey: false),
             ColumnInfo(name: "contest_id", type: "TEXT", notNull: false, defaultValue: nil, primaryKey: false),
             ColumnInfo(name: "xqso", type: "INTEGER", notNull: true, defaultValue: "0", primaryKey: false),
+            // Swift-only: the radio the QSO was logged on (N1MM RadioNr), after the Java columns.
+            ColumnInfo(name: "radio_nr", type: "INTEGER", notNull: true, defaultValue: "0", primaryKey: false),
         ]
         #expect(actual == expected)
     }
@@ -183,7 +185,7 @@ import Testing
         let migrated = try LogbookDatabase(url: url)
         let names = Set(try columns(of: "qso", in: migrated.database).map(\.name))
         #expect(names.isSuperset(of: [
-            "uuid", "station_id", "version", "updated_at_utc", "deleted", "xqso", "contest_id",
+            "uuid", "station_id", "version", "updated_at_utc", "deleted", "xqso", "contest_id", "radio_nr",
         ]))
 
         let count = try migrated.database.prepare("SELECT COUNT(*) FROM qso")

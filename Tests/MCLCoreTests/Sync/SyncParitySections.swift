@@ -74,7 +74,8 @@ enum SyncParitySections {
 
     static func encode(_ fields: [WireField], _ values: [WireValue]) -> [String] {
         var out: [String] = []
-        for (field, value) in zip(fields, values) {
+        // The Java fixtures know only the v1.1.1 components; Swift-only extensions are left out.
+        for (field, value) in zip(fields, values) where !field.isExtension {
             switch value {
             case .string(let v): out.append(tx(v))
             case .long(let v): out.append(String(v))
@@ -99,6 +100,10 @@ enum SyncParitySections {
     static func decode(_ fields: [WireField], _ input: [String], _ pos: inout Int) -> [WireValue] {
         var values: [WireValue] = []
         for field in fields {
+            if field.isExtension {
+                values.append(.missing(field.kind))
+                continue
+            }
             let f: String = input[pos]
             pos += 1
             switch field.kind {

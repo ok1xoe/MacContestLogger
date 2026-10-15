@@ -35,7 +35,8 @@ public enum WireMapper {
             dxccEntity: q.dxccEntity.map { Int32(truncatingIfNeeded: $0) },
             dxccName: nonEmpty(q.dxccName),
             continent: nonEmpty(q.continent),
-            xqso: q.xqso ? true : nil)
+            xqso: q.xqso ? true : nil,
+            radioNr: q.radioNr > 0 ? Int32(truncatingIfNeeded: q.radioNr) : nil)
     }
 
     /// `Qso` (read model) from a canonical network state. Without a payload (`qso == nil`) only the synchronisation fields.
@@ -63,6 +64,7 @@ public enum WireMapper {
             q.dxccName = w.dxccName ?? ""
             q.continent = w.continent ?? ""
             q.xqso = w.xqso == true
+            q.radioNr = max(0, Int(w.radioNr ?? 0))
         }
         q.uuid = s.uuid ?? ""
         q.stationId = s.stationId ?? ""

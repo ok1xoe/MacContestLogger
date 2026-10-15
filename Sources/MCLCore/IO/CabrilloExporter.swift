@@ -123,6 +123,10 @@ public enum CabrilloExporter {
         let sorted = sortedByTime(input.qsos)
         let multiTwo = JavaChar.equalsIgnoreCase("TWO", getOrDefault(input.category, "TRANSMITTER", ""))
         var transmitterIds = JavaLinkedMap<Int>()
+        // One computer running both transmitters (SO2R-style Multi-Two): N1MM's Run1/Run2 — the radio a QSO was
+        // logged on — is the transmitter number. Several stations keep one number per station.
+        let byRadio: Bool = multiTwo && Set(input.qsos.map(\.stationId)).count == 1
+            && input.qsos.contains { $0.radioNr > 1 }
         let layout = SentLayout(input.definition)
         let engine = ExchangeEngine()
 
@@ -145,7 +149,9 @@ public enum CabrilloExporter {
                                 + ": chybí část přijaté výměny — zapsáno jako X-QSO")
             }
             row.append(contentsOf: received)
-            if multiTwo {
+            if byRadio {
+                row.append(String(max(1, q.radioNr) - 1))
+            } else if multiTwo {
                 let station = q.stationId // Java null ≡ ""
                 let id: Int
                 if let known = transmitterIds[station] {

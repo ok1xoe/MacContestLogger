@@ -646,7 +646,7 @@ public final class EntryModel {
             logged.freqKHz = FrequencyText.formatHz(loggedHz)
         }
         let note: String? = comment ?? pendingNote
-        let copies: [(qth: String?, qso: Qso)]
+        var copies: [(qth: String?, qso: Qso)]
         if contestPath {
             if !contestReady && !force {
                 announce?(.incompleteExchange)
@@ -663,6 +663,12 @@ public final class EntryModel {
             let serial: Int = logbook.reserveSerial()
             let qso = QsoAssembly.free(form: logged, serial: serial, runMode: runMode, note: note, at: at)
             copies = [(qth: nil, qso: qso)]
+        }
+        let radioNr: Int = loggingRadioNr
+        copies = copies.map { copy in
+            var stamped: Qso = copy.qso
+            stamped.radioNr = radioNr
+            return (qth: copy.qth, qso: stamped)
         }
         var work = Submission(copies: copies, call: form.call, band: bandAdif, mode: form.mode,
                               exchange: form.contestExchange, contestPath: contestPath,

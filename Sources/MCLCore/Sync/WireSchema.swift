@@ -23,10 +23,15 @@ public indirect enum WireKind: Sendable {
 public struct WireField: Sendable {
     public let name: String
     public let kind: WireKind
+    /// A Swift-only extension of the v1.1.1 record: written only when it has a value, so a message without it is
+    /// byte-for-byte the v1.1.1 one; older stations skip the unknown key (Jackson `FAIL_ON_UNKNOWN_PROPERTIES` off)
+    /// and a message from them reads it as `null`.
+    public let isExtension: Bool
 
-    init(_ name: String, _ kind: WireKind) {
+    init(_ name: String, _ kind: WireKind, extension isExtension: Bool = false) {
         self.name = name
         self.kind = kind
+        self.isExtension = isExtension
     }
 }
 
@@ -52,6 +57,18 @@ public enum WireValue: Equatable, Sendable {
         case .boolBox: return .boolBox(nil)
         case .instant: return .instant(nil)
         case .record: return .record(nil)
+        }
+    }
+
+    /// A boxed value that is `null` (a primitive never is).
+    var isNull: Bool {
+        switch self {
+        case .string(let v): return v == nil
+        case .intBox(let v): return v == nil
+        case .boolBox(let v): return v == nil
+        case .instant(let v): return v == nil
+        case .record(let v): return v == nil
+        case .long, .int, .bool: return false
         }
     }
 

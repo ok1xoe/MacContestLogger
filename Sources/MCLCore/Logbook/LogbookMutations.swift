@@ -172,6 +172,7 @@ public struct LogbookMutations: Sendable {
         take(\.updatedAtUtc, &out, old, new)
         take(\.deleted, &out, old, new)
         take(\.xqso, &out, old, new)
+        take(\.radioNr, &out, old, new)
         take(\.contestId, &out, old, new)
         take(\.imported, &out, old, new)
         return out

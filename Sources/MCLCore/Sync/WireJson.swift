@@ -64,10 +64,15 @@ struct WireJsonWriter {
 
     mutating func record(_ fields: [WireField], _ values: [WireValue]) {
         bytes.append(0x7B)
+        var first = true
         for (index, field) in fields.enumerated() {
-            if index > 0 {
+            if field.isExtension && values[index].isNull {
+                continue
+            }
+            if !first {
                 bytes.append(0x2C)
             }
+            first = false
             string(field.name)
             bytes.append(0x3A)
             value(field.kind, values[index])

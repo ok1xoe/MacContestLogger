@@ -90,6 +90,14 @@ VFO active for the message and come back once it has been sent when this window'
   substitute for a hardware lockout.
 - **The caret in the inactive window** stays marked (a thin bar), so after `\` you see where typing continues.
 
+## Radio number of a QSO
+
+As in N1MM, every QSO keeps the radio it was logged on (`RadioNr`): in SO2R the radio of its entry window, in SO2V
+the window's VFO (A = 1, B = 2), with one radio 1. QSOs from older logs and from imports without it have none. The
+number goes out with the QSO to the N1MM UDP broadcast (`radionr` / `run1run2` of `contactinfo`), into the ADIF
+export (`APP_N1MM_RADIO_NR`, `APP_N1MM_RUN1RUN2`), to the other stations of a multi-op network, and decides the
+transmitter number of a Multi-Two Cabrillo logged on one computer (see [Import and export](import-export.md#cabrillo)).
+
 ## Nastavení → SO2R (N1MM Config → SO2R)
 
 The options are remembered between runs ("sticky", as in N1MM).

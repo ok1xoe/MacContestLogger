@@ -176,6 +176,8 @@ public struct JournalQso: Codable, Equatable, Sendable {
     public var deleted: Bool
     public var xqso: Bool
     public var contestId: String
+    /// `nil` in journals written before the radio number was stored.
+    public var radioNr: Int?
 
     public init(_ q: Qso) {
         time = q.timestampUtc?.timeIntervalSince1970
@@ -204,6 +206,7 @@ public struct JournalQso: Codable, Equatable, Sendable {
         deleted = q.deleted
         xqso = q.xqso
         contestId = q.contestId
+        radioNr = q.radioNr
     }
 
     /// The QSO back (without its row id).
@@ -237,6 +240,7 @@ public struct JournalQso: Codable, Equatable, Sendable {
         q.deleted = deleted
         q.xqso = xqso
         q.contestId = contestId
+        q.radioNr = radioNr ?? 0
         return q
     }
 }
