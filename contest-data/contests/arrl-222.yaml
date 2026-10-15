@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: arrl-222
+metadata:
+  name: "ARRL 222 MHz and Up Distance Contest"
+  organizer: "ARRL"
+  description: "First full weekend of August, 1800 UTC Saturday to 1759 UTC Sunday. Any mode on 222 MHz through 241 GHz; everybody works everybody. Exchange: 6-character grid locator. Each QSO: distance in km between the grid locator centres (1 km within the same locator) times the band factor: 222 MHz 2, 432 MHz 1, 902 MHz 4, 1296 MHz 2, 2.3 GHz 6, 3.4 and 5.7 GHz 10, 10 GHz 6, 24 GHz and up 20. Score: total QSO points (no multipliers). Simplified: a station may be worked once per band from each 4-character grid, and of several such contacts only the longest counts - the program allows a re-contact when the received 6-character locator changes and counts each one. Distance is measured from my station locator, changes of my own location (rovers) are not followed."
+  officialUrl: "https://www.arrl.org/222-mhz-and-up-distance-contest"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1800" }
+bands: [1.25m, 70cm, 33cm, 23cm, 13cm, 9cm, 6cm, 3cm, 1.25cm, 6mm, 4mm, 2.5mm, 2mm, 1mm]
+modes: [CW, SSB, FM, AM, FT8, FT4, Q65, JT65, DIGITAL]
+
+exchange:
+  sent:
+    - { id: grid, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: grid, type: LOCATOR, required: true, validation: { regex: "^[A-R]{2}[0-9]{2}[A-X]{2}$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # distance in whole km between the locator centres; the same locator counts 1 km
+      - { when: {}, value: { perKm: { field: grid, factor: 1, round: ROUND, min: 1 } } }
+    factors:                                                # band factor
+      - { when: { bandIn: [1.25m, 23cm] }, factor: 2 }
+      - { when: { bandIn: [33cm] }, factor: 4 }
+      - { when: { bandIn: [13cm, 3cm] }, factor: 6 }
+      - { when: { bandIn: [9cm, 6cm] }, factor: 10 }
+      - { when: { bandIn: [1.25cm, 6mm, 4mm, 2.5mm, 2mm, 1mm] }, factor: 20 }
+  total: "qsoPoints"
+
+# once per band from each locator (rovers in a new locator are a new station)
+dupe: { scope: PER_BAND, byField: grid }
+
+cabrillo: { contestName: ARRL-222, sentOrder: [grid], receivedOrder: [grid] }
+ui:
+  entryOrder: [call, grid]
+  logColumns: [time, call, band, mode, grid, points]

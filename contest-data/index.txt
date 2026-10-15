@@ -11,6 +11,7 @@ contests/ari-dx.yaml
 contests/arrl-10ghz.yaml
 contests/arrl-10m.yaml
 contests/arrl-160m.yaml
+contests/arrl-222.yaml
 contests/arrl-dx-cw-wve.yaml
 contests/arrl-dx-cw.yaml
 contests/arrl-dx-ssb-wve.yaml
