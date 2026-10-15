@@ -273,6 +273,16 @@ public struct NetMessageWire: WireMessage {
     /// N1MM Alt+Z: the sender's pass frequency (`freqHz`, 0 = cleared), to all stations. v1.1.1 shows it as a plain
     /// line.
     public static let passFrequency = "PASSFREQ"
+    /// N1MM Call for Help: the receiver hears an alert and sees the sender in the status line.
+    public static let help = "HELP"
+    /// The sender's setup (`StationProfile` as text) for the configuration mismatch warnings; `req=1` asks for the
+    /// receivers' profiles.
+    public static let hello = "HELLO"
+    /// N1MM „reset serial numbers at all stations": `freqHz` carries the highest serial sent in the log.
+    public static let serialReset = "SERIALRESET"
+    /// A request for the master station's time (to the master) and its answer (`text` = `<request id>;<epoch ms>`).
+    public static let timeRequest = "TIMEREQ"
+    public static let time = "TIME"
 
     public var type: String?
     public var id: String?

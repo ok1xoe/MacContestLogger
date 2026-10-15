@@ -209,7 +209,7 @@ public struct NetMessages: Sendable, Equatable {
     public static let passFrequencyNotConnectedStatus: EntryStatus = .tr(NetTexts.passFreqNotConnectedKey)
 
     /// `fromStation` plus ` (operator)` for a non-blank operator.
-    static func sender(_ w: NetMessageWire) -> String {
+    public static func sender(_ w: NetMessageWire) -> String {
         var from: String = NetTexts.text(w.fromStation)
         if let op = w.fromOperator, !KotlinText.isBlank(op) {
             from += " (" + op + ")"

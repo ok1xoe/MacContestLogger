@@ -29,6 +29,45 @@ The state is retained on the broker (`station/status/<stationId>`), so a newly c
 station sees the others immediately. The broker ACL lets a station write only its own state
 (see `docs/cluster-aclfile`).
 
+### Messages tab
+
+**Zprávy** (Messages; N1MM Messages tab) lists every network message this station sent (→) or
+received (←) with its UTC time, station, type and content — a trace for finding network
+problems; **Vymazat** (Clear) empties it.
+
+On connecting, each station sends its **setup** to the others: program version, the open
+contest and the operator/transmitter category of the contest setup (and again whenever it
+changes). When another online station differs, the Messages tab shows a red warning (and the
+tab label a ⚠), and the status line announces each new difference once (N1MM configuration
+mismatch warnings).
+
+### Actions tab
+
+**Akce** (Actions; N1MM Actions tab):
+
+- **Volat o pomoc** (Call for Help): all stations or one station hear an alert sound and see
+  "POMOC: stanice OP1 volá o pomoc" (HELP: station OP1 is calling for help) in the status line.
+- **Pass frekvence** (Pass frequency): the same as Alt+Z (see below).
+- **Resetovat pořadová čísla na všech stanicích** (Reset serial numbers at all stations): every
+  station continues after the highest serial number sent in the log (never lower than its own
+  next number).
+- **Synchronizovat čas z master stanice** (Synchronise the time from the master station), see
+  below.
+
+### Master station and time
+
+N1MM keeps the clocks of all computers in sync from the **master** station. In MCL,
+**Nastavení → Cluster** (Settings → Cluster) has:
+
+- **Master stanice** (Master station): this station answers the others' time requests with its
+  clock (corrected by its own NTP check when *QSO time correction* is on).
+- **Čas QSO podle hodin master stanice** (QSO time from the master station's clock): this
+  station asks the master for its time when it appears and then every 10 minutes, measures the
+  difference NTP-style (half of the round trip) and corrects the time of new QSOs by it, the same
+  way the NTP correction does. The computer's clock itself is not changed (that would need
+  administrator rights); the NTP check keeps measuring but its offset is not applied while the
+  master's time is in use.
+
 ## Chat
 
 ![Chat between stations](img/chat.png)

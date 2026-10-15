@@ -208,6 +208,8 @@ extension ConfigurerDraft {
         cluster.serialServer = serialServer
         cluster.stationType = stationType
         cluster.runNumber = runNumber
+        cluster.master = clusterMaster
+        cluster.timeFromMaster = timeFromMaster
         cluster.ruleEnforcement = ruleEnforcement
     }
 

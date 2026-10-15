@@ -36,11 +36,16 @@ public struct ClusterConfig: Codable, Equatable, Sendable {
     /// The columns of the Network Status station table in order (`NetworkStationColumn` names); empty = the default.
     /// Swift-only key.
     public var statusColumns: [String] = []
+    /// N1MM master station: answers the others' requests for the time. Swift-only key.
+    public var master: Bool = false
+    /// The time of the QSOs is corrected by the master station's clock (N1MM time sync from the master) instead of
+    /// this computer's NTP check. Swift-only key.
+    public var timeFromMaster: Bool = false
 
     enum CodingKeys: String, CodingKey {
         case enabled, brokerHost, port, username, password, stationId, tls, shareSpots
         case interlock, stationType, ruleEnforcement, serialServer
-        case runNumber, statusColumns
+        case runNumber, statusColumns, master, timeFromMaster
     }
 
     /// The station type the other stations see: `RUN1` / `RUN2` for a numbered RUN station (N1MM Multi-two).
@@ -71,5 +76,7 @@ public struct ClusterConfig: Codable, Equatable, Sendable {
         serialServer = c.value(.serialServer, default: d.serialServer)
         runNumber = c.value(.runNumber, default: d.runNumber)
         statusColumns = c.value(.statusColumns, default: d.statusColumns)
+        master = c.value(.master, default: d.master)
+        timeFromMaster = c.value(.timeFromMaster, default: d.timeFromMaster)
     }
 }

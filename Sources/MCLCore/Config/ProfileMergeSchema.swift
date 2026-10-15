@@ -123,6 +123,8 @@ enum ProfileMergeSchema {
         "cz.ok1xoe.maccontestlogger.config.ClusterConfig": [
             Property("runNumber", .int, .fieldDefault),
             Property("statusColumns", .list(.string), .fieldDefault),
+            Property("master", .boolean, .fieldDefault),
+            Property("timeFromMaster", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.RunModeConfig": [
             Property("repeatMaxMinutes", .int, .fieldDefault),

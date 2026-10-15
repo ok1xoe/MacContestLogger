@@ -959,6 +959,15 @@ public final class AppModel {
         let network = NetworkModel(cluster: cluster, status: status, language: language,
                                    spots: spots.dxCluster.spots, config: config, logbook: logbook,
                                    now: environment.now)
+        network.alert = environment.ports.beep
+        let version: String = environment.appVersion ?? ""
+        network.ownProfile = { [weak contest, weak config] in
+            let definition: ContestDefinition? = (contest?.isActive ?? false) ? contest?.definition : nil
+            let name: String = definition?.cabrillo?.contestName ?? definition?.id ?? ""
+            return StationProfile(version: version, contest: name,
+                                  category: StationProfile.categoryText(contest?.activeSetup?.category ?? [:]),
+                                  master: config?.config.cluster.master ?? false)
+        }
         return NetModels(cluster: cluster, network: network)
     }
 

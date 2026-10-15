@@ -6,12 +6,20 @@ import SwiftUI
 /// Kotlin `NetworkStatusWindow` (`netstatus` 760×320, `NetworkStatusWindow.kt:36-106`): the stations of the network
 /// log with operator, type (RUN/RUN1/RUN2/MULT), band, mode, frequency, Run/S&P, pass frequency, QSO count, rates of
 /// the last 10 / 100 QSOs, last QSO and transmit state, and a „Předat" button per station that passes the pending or
-/// typed call to it. The „Sloupce" menu chooses and orders the columns (N1MM: right-click the header). Without a
-/// cluster session only the explanation shows.
+/// typed call to it. The „Sloupce" menu chooses and orders the columns (N1MM: right-click the header). N1MM's
+/// Messages tab shows the configuration mismatches and the trace of the network messages, the Actions tab the call for
+/// help, the pass frequency, the reset of the serial numbers at all stations and the master's time. Without a cluster
+/// session only the explanation shows.
 struct NetworkStatusWindowView: View {
     static let id = "netstatus"
 
+    enum Tab: String, CaseIterable {
+        case stations, messages, actions
+    }
+
     let host: AppHost
+    @State private var tab: Tab = .stations
+    @State private var passText: String = ""
 
     @StateObject private var session = WindowSession(id: NetworkStatusWindowView.id, persistSize: true,
                                                      defaultSize: CGSize(width: 760, height: 320))
@@ -36,10 +44,22 @@ struct NetworkStatusWindowView: View {
         _ = cluster.revision
         return VStack(alignment: .leading, spacing: 6) {
             WindowTopBar(size: $session.fontSize, language: language) {
-                columnsMenu(app)
+                HStack(spacing: 8) {
+                    tabPicker(app)
+                    if tab == .stations {
+                        columnsMenu(app)
+                    }
+                }
             }
             if let stationId = cluster.stationId {
-                stations(app, stationId: stationId)
+                switch tab {
+                case .stations:
+                    stations(app, stationId: stationId)
+                case .messages:
+                    NetworkMessagesTab(app: app)
+                case .actions:
+                    NetworkActionsTab(app: app, passText: $passText)
+                }
             } else {
                 Text(verbatim: language.tr(NetTexts.notConnected))
                     .windowFont(13)
@@ -110,6 +130,23 @@ struct NetworkStatusWindowView: View {
         WindowFont.size(column.width, windowSize: session.fontSize)
     }
 
+    private func tabPicker(_ app: AppModel) -> some View {
+        let language: LanguageModel = app.language
+        let warned: Bool = !app.network.mismatchWarnings.isEmpty
+        return Picker(selection: $tab) {
+            Text(verbatim: language.tr("Stanice")).tag(Tab.stations)
+            Text(verbatim: (warned ? "⚠ " : "") + language.tr("Zprávy")).tag(Tab.messages)
+            Text(verbatim: language.tr("Akce")).tag(Tab.actions)
+        } label: {
+            EmptyView()
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
+        .accessibilityLabel(Text(verbatim: language.tr("Záložka")))
+        .accessibilityIdentifier("netstatus.tab")
+    }
+
     /// N1MM's header right-click: show or hide a column, move it left or right, back to the default.
     private func columnsMenu(_ app: AppModel) -> some View {
         let language: LanguageModel = app.language
@@ -170,5 +207,137 @@ struct NetworkStatusWindowView: View {
             return Color(domain: DomainColors.dupe)
         }
         return .primary
+    }
+}
+
+/// N1MM Network Status → Messages: the configuration mismatch warnings (red) and the trace of the sent (→) and
+/// received (←) network messages, newest at the bottom.
+private struct NetworkMessagesTab: View {
+    let app: AppModel
+
+    var body: some View {
+        let language: LanguageModel = app.language
+        let network: NetworkModel = app.network
+        let warnings: [EntryStatus] = network.mismatchWarnings
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(warnings.enumerated()), id: \.offset) { _, warning in
+                Text(verbatim: "⚠ " + warning.text(language.translator, decimalSeparator: language.decimalSeparator))
+                    .windowFont(13, weight: .medium)
+                    .foregroundStyle(Color(domain: DomainColors.dupe))
+                    .accessibilityIdentifier("netstatus.mismatch")
+            }
+            HStack {
+                Text(verbatim: language.tr("Síťové zprávy (→ odeslané, ← přijaté)"))
+                    .windowFont(12)
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 0)
+                Button(language.tr("Vymazat")) {
+                    network.clearTrace()
+                }
+                .windowFont(12)
+                .accessibilityIdentifier("netstatus.clearTrace")
+            }
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(network.tools.trace.enumerated()), id: \.offset) { index, line in
+                            Text(verbatim: line.row)
+                                .windowFont(12)
+                                .font(.system(.body, design: .monospaced))
+                                .textSelection(.enabled)
+                                .id(index)
+                        }
+                    }
+                }
+                .onChange(of: network.tools.trace.count) { _, count in
+                    proxy.scrollTo(count - 1, anchor: .bottom)
+                }
+            }
+            .accessibilityIdentifier("netstatus.trace")
+        }
+    }
+}
+
+/// N1MM Network Status → Actions: call for help, the pass frequency, the reset of the serial numbers at all stations
+/// and the time from the master station.
+private struct NetworkActionsTab: View {
+    let app: AppModel
+    @Binding var passText: String
+
+    var body: some View {
+        let language: LanguageModel = app.language
+        let network: NetworkModel = app.network
+        let online: [String] = app.cluster.peers.filter(\.online).compactMap { $0.status.stationId }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Menu {
+                    Button(language.tr("Všem stanicím")) { network.callForHelp(to: "") }
+                    ForEach(online, id: \.self) { station in
+                        Button(station) { network.callForHelp(to: station) }
+                    }
+                } label: {
+                    Text(verbatim: language.tr("Volat o pomoc"))
+                }
+                .fixedSize()
+                .accessibilityIdentifier("netstatus.help")
+                Text(verbatim: language.tr("zvukový signál a hlášení na vybrané stanici"))
+                    .windowFont(12)
+                    .foregroundStyle(.secondary)
+            }
+            HStack(spacing: 8) {
+                Text(verbatim: language.tr("Pass frekvence (kHz, prázdné = zrušit):"))
+                    .windowFont(13)
+                TextField("", text: $passText)
+                    .frame(width: 100)
+                    .accessibilityLabel(Text(verbatim: language.tr("Pass frekvence (kHz, prázdné = zrušit):")))
+                    .onSubmit { network.setPassFrequency(passText) }
+                Button(language.tr("Oznámit")) {
+                    network.setPassFrequency(passText)
+                }
+                .accessibilityIdentifier("netstatus.passFreq")
+            }
+            HStack(spacing: 8) {
+                Button(language.tr("Resetovat pořadová čísla na všech stanicích")) {
+                    network.resetSerialsEverywhere()
+                }
+                .accessibilityIdentifier("netstatus.serialReset")
+                Text(verbatim: language.tr("další číslo = nejvyšší odeslané v deníku + 1"))
+                    .windowFont(12)
+                    .foregroundStyle(.secondary)
+            }
+            masterTime(language, network: network)
+            Spacer(minLength: 0)
+        }
+        .windowFont(13)
+    }
+
+    @ViewBuilder private func masterTime(_ language: LanguageModel, network: NetworkModel) -> some View {
+        let cluster: ClusterConfig = app.config.config.cluster
+        if cluster.master {
+            Text(verbatim: language.tr("Tato stanice je master: ostatní si od ní berou čas."))
+                .windowFont(12)
+        } else if cluster.timeFromMaster {
+            HStack(spacing: 8) {
+                Button(language.tr("Synchronizovat čas z master stanice")) {
+                    network.syncTimeFromMaster()
+                }
+                .accessibilityIdentifier("netstatus.masterTime")
+                Text(verbatim: masterText(language, network: network))
+                    .windowFont(12)
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            Text(verbatim: language.tr("Čas z master stanice je vypnutý (Nastavení → Cluster)."))
+                .windowFont(12)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func masterText(_ language: LanguageModel, network: NetworkModel) -> String {
+        guard let offset = network.tools.masterOffsetMs else {
+            return network.masterStation == nil ? language.tr(NetworkTools.masterTimeNoMasterKey) : ""
+        }
+        return language.tr(NetworkTools.masterTimeKey, .string(network.tools.masterStation),
+                           .string(NetworkTools.seconds(offset)))
     }
 }

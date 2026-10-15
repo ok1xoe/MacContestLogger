@@ -22,13 +22,16 @@ public final class NetworkModel {
     /// The pass frequency this station announced last (Alt+Z), 0 = none.
     public private(set) var ownPassFrequencyHz: Int = 0
 
-    @ObservationIgnored private let cluster: ClusterSyncModel
-    @ObservationIgnored private let status: StatusModel
-    @ObservationIgnored private let language: LanguageModel
+    /// The message trace, the stations' setups and the master's time (Network Status Messages / Actions).
+    public internal(set) var tools = NetworkToolsState()
+
+    @ObservationIgnored let cluster: ClusterSyncModel
+    @ObservationIgnored let status: StatusModel
+    @ObservationIgnored let language: LanguageModel
     @ObservationIgnored private let spots: SpotBuffer
-    @ObservationIgnored private let now: @Sendable () -> Date
-    @ObservationIgnored private let config: ConfigModel
-    @ObservationIgnored private let logbook: LogbookModel
+    @ObservationIgnored let now: @Sendable () -> Date
+    @ObservationIgnored let config: ConfigModel
+    @ObservationIgnored let logbook: LogbookModel
     /// Kotlin `prefillCall = …`: the call goes into the active entry window; set by the app.
     @ObservationIgnored var prefillCall: @MainActor (String) -> Void = { _ in }
     /// Kotlin `showNetStatus = true`: the network status window opens; set by the app.
@@ -39,6 +42,12 @@ public final class NetworkModel {
     /// The station's call stack takes a partner's STACK call (set by the app); without it the calls stay in
     /// `chat.stack`.
     @ObservationIgnored var stackReceived: (@MainActor (String) -> Void)?
+    /// This station's setup for the others (version, contest, category, master); set by the app.
+    @ObservationIgnored var ownProfile: @MainActor () -> StationProfile = { StationProfile() }
+    /// The alert of a call for help (the system beep; silent in tests); set by the app.
+    @ObservationIgnored var alert: @MainActor () -> Void = {}
+    /// The offset this station's QSO times are corrected by (ms; the master adds it to the time it hands out).
+    @ObservationIgnored var ownClockOffsetMs: @MainActor () -> Int64 = { 0 }
 
     public init(cluster: ClusterSyncModel, status: StatusModel, language: LanguageModel, spots: SpotBuffer,
                 config: ConfigModel, logbook: LogbookModel, now: @escaping @Sendable () -> Date) {
@@ -52,13 +61,22 @@ public final class NetworkModel {
         cluster.onMessage = { [weak self] message in
             self?.receive(message)
         }
+        cluster.onSent = { [weak self] message in
+            self?.traceSent(message)
+        }
+        cluster.onConnected = { [weak self] in
+            self?.connected()
+        }
+        cluster.onTick = { [weak self] in
+            self?.tick()
+        }
     }
 
     private var instant: JavaInstant {
         JavaInstant(date: now())
     }
 
-    private func show(_ message: EntryStatus) {
+    func show(_ message: EntryStatus) {
         status.showJoined(message.parts, separator: "")
     }
 
@@ -75,6 +93,10 @@ public final class NetworkModel {
     /// `onNetMessage`: CHAT, STACK, PASS and the other types into the lines, the stack and the status; a PASS with a
     /// frequency into the spot buffer.
     func receive(_ message: NetMessageWire) {
+        traceReceived(message)
+        if receiveTool(message) {
+            return
+        }
         let effects: [NetEffect] = chat.receive(message, catFreqHz: cluster.sources.catFreqHz(),
                                                 tunedHz: cluster.sources.tunedFreqHz(), now: instant)
         for effect in effects {

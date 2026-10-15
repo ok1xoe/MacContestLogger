@@ -124,6 +124,14 @@ extension AppModel {
         model.infoStrip.sources.clockOffsetMs = { [weak online] in
             online?.clockOffsetMs
         }
+        // The master hands out its NTP-corrected time; a station synchronised to the master keeps that offset.
+        model.network.ownClockOffsetMs = { [weak online, weak config = model.config] in
+            guard let online, let config, config.config.ntpCorrectQsoTime else { return 0 }
+            return online.clockOffsetMs ?? 0
+        }
+        online.appliesNtpOffset = { [weak network = model.network] in
+            network?.tools.masterOffsetMs == nil
+        }
 
         var services: SettingsServices = model.settings.services
         services.checkClock = chained(services.checkClock) { [weak online] in

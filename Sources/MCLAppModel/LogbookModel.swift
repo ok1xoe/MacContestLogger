@@ -236,6 +236,11 @@ public final class LogbookModel {
         return serial
     }
 
+    /// N1MM „reset serial numbers at all stations": the next local serial is at least `serial` + 1.
+    public func raiseSerialFloor(_ serial: Int) {
+        issuedHighWater = max(issuedHighWater, serial)
+    }
+
     /// A submission with `serial` failed and its units are released: when no later serial was handed out meanwhile,
     /// the number is free again (the restored form re-submits with it); otherwise it stays a gap.
     public func withdrawSerial(_ serial: Int) {

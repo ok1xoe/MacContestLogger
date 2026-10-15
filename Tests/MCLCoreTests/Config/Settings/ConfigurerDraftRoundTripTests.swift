@@ -222,6 +222,8 @@ import Testing
         expected.n1mmRecv.sharePort = false
         expected.adifUdp.sharePort = false
         expected.cluster.runNumber = 0
+        expected.cluster.master = false
+        expected.cluster.timeFromMaster = false
         #expect(decoded == expected)
     }
 
@@ -304,6 +306,8 @@ import Testing
         w.same(\.serialServer, \.cluster.serialServer, true)
         w.same(\.stationType, \.cluster.stationType, .mult)
         w.same(\.runNumber, \.cluster.runNumber, 2)
+        w.same(\.clusterMaster, \.cluster.master, true)
+        w.same(\.timeFromMaster, \.cluster.timeFromMaster, true)
         w.same(\.ruleEnforcement, \.cluster.ruleEnforcement, .block)
     }
 
