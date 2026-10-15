@@ -15,7 +15,7 @@ public enum QsoSearch {
     /// Help for the prefixes (shown in the UI as the field's tooltip).
     public static let prefixHelp =
         "call: volačka, nrtx:/nrrx:/nr: pořadové číslo, ex: exchange, "
-            + "band: pásmo, mode: mód, rsttx:/rstrx:/rst: report, date: čas UTC"
+            + "band: pásmo, mode: mód, rsttx:/rstrx:/rst: report, date: čas UTC, grid: lokátor"
 
     /// Returns the QSOs matching the query; an empty query returns the input unchanged.
     public static func filter(_ qsos: [Qso], _ query: String?) -> [Qso] {
@@ -86,9 +86,34 @@ public enum QsoSearch {
                 || serialMatches(qso.serialRcvd, value: value)
         case "date", "time":
             return contains(timestamp(qso), value)
+        case "grid", "loc":
+            // N1MM „QSOs by grid": a received locator starting with the value (grid:JN79 finds JN79AB).
+            let wanted: String = value.uppercased()
+            return locators(qso).contains { $0.hasPrefix(wanted) }
         default:
             return nil
         }
+    }
+
+    /// The locators in the received exchange (`JN79`, `JN79AB`), upper case, in order.
+    public static func locators(_ qso: Qso) -> [String] {
+        qso.exchangeRcvd.split(whereSeparator: { $0 == " " || $0 == "\t" }).map { String($0).uppercased() }
+            .filter(isLocator)
+    }
+
+    /// `[A-R]{2}[0-9]{2}([A-X]{2})?`
+    public static func isLocator(_ text: String) -> Bool {
+        let chars: [Character] = Array(text)
+        guard chars.count == 4 || chars.count == 6 else { return false }
+        for (index, char) in chars.enumerated() {
+            guard let ascii = char.asciiValue else { return false }
+            switch index {
+            case 0, 1: if !(65...82).contains(ascii) { return false }
+            case 2, 3: if !(48...57).contains(ascii) { return false }
+            default: if !(65...88).contains(ascii) { return false }
+            }
+        }
+        return true
     }
 
     private static func matchesFree(_ qso: Qso, term: String) -> Bool {

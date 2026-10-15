@@ -236,3 +236,12 @@ mode restriction and the pause, but still needs the service's user name and pass
   **Dohledat na HamQTH** and **Dohledat na QRZ.com** (Look up on …). They open the call's page
   in the browser (`https://www.hamqth.com/<CALL>`, `https://www.qrz.com/db/<CALL>`); no
   credentials are needed, and nothing is looked up through the API or written to the log.
+
+## Locator checks (VHF)
+
+- **Big grid:** when nothing else fills the locator (no earlier QSO, call history or callbook) and the call's country
+  transmits from only one grid field according to the grid data (`multipliers/ww_digi_grid.csv`), the field (`JO`) is
+  filled in; type the rest of the locator after it.
+- **Locator against the country:** a typed locator that does not fit the country of the call shows a red chip
+  `JN79 nesedí k zemi DL` (JN79 does not fit DL) in the entry window. The check uses the grid data; for a field
+  without data, the distance from the country's coordinates (3,500 km, as for grids in spots).

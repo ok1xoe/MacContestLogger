@@ -843,6 +843,23 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
     /// QSO party in-state stations (Swift-only key): my ARRL section from the station data is one of `sections`
     /// (N1MM decides in-state / out-of-state the same way). Read by the condition `inState`.
     public var inState: InState?
+    /// Extra ADIF fields of the file export (Swift-only key): ADIF name → received field id, or `=text` for a fixed
+    /// value (`{ SAT_NAME: sat, PROP_MODE: "=SAT" }`, N1MM DXSATELLIT).
+    public var adif: YamlOrderedMap<String>?
+    /// The generic text export (Swift-only key): `export: { text: "{date:10} {time:4} {call:13} {nr:-4}" }`.
+    public var export: Export?
+
+    public struct Export: YamlRecord, Equatable, Sendable {
+        public var text: String?
+
+        public init(text: String?) {
+            self.text = text
+        }
+
+        public init(yaml object: YamlObject) {
+            text = object.string("text")
+        }
+    }
 
     public struct InState: YamlRecord, Equatable, Sendable {
         public var sections: [String?]?
@@ -930,5 +947,7 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         numbering = object.decode("numbering", as: Numbering.self)
         workable = object.decode("workable", as: Condition.self)
         inState = object.decode("inState", as: InState.self)
+        adif = object.map("adif", of: String.self)
+        export = object.decode("export", as: Export.self)
     }
 }

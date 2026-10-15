@@ -1,0 +1,32 @@
+schemaVersion: 1
+id: dx-satellite
+metadata:
+  name: "DXSATELLIT — satellite log"
+  description: "N1MM DXSATELLIT: general logging of satellite QSOs. The satellite (AO-91, RS-44, QO-100…) and the other station's locator are received fields; a station may be worked again on another satellite, band or mode. Points = QSOs, grid squares are counted for information. The ADIF export writes PROP_MODE SAT, SAT_NAME and GRIDSQUARE. Log the frequency of your downlink or uplink consistently (the band follows it)."
+bands: [10m, 6m, 2m, 70cm, 23cm, 13cm, 3cm]
+modes: [SSB, CW, FM, DIGITAL, FT8, FT4]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst, type: RST,     required: true }
+    - { id: sat, type: TEXT,    required: true }
+    - { id: loc, type: LOCATOR, required: false }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints"
+
+multipliers:
+  - { id: grids, set: grid_squares, from: loc, scope: ONCE }
+
+dupe: { scope: PER_BAND_MODE, byField: sat, dupeWorthZero: false }
+
+adif: { PROP_MODE: "=SAT", SAT_NAME: sat, GRIDSQUARE: loc }
+
+cabrillo: { contestName: DXSATELLIT, sentOrder: [rst, loc], receivedOrder: [rst, sat, loc] }
+ui:
+  entryOrder: [call, sat, loc]
+  logColumns: [time, call, band, mode, rst, sat, loc]

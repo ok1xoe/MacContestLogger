@@ -39,6 +39,8 @@ extension ImportExportModel {
         let contestId: String? = allContests ? nil : contest.definition?.cabrillo?.contestName
         let station: Station = config.config.station.toStation()
         let session: ContestSession? = allContests ? nil : contest.runtime.freshSession()
+        let fieldsSession: ContestSession? = allContests ? nil : contest.runtime.freshSession()
+        let definition: ContestDefinition? = allContests ? nil : contest.definition
         do {
             var qsos: [Qso] = allContests ? try await readAllContests() : try await readLog()
             if let range {
@@ -55,6 +57,7 @@ extension ImportExportModel {
                 if let session {
                     writer.multipliers = Self.newMultipliers(session, exported)
                 }
+                writer.extraFields = AdifExtraFields.compute(definition, session: fieldsSession, qsos: exported)
                 try writer.writeToFile(exported, station: station, to: file)
             }
             if range != nil {

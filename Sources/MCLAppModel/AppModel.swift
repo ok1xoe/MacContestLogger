@@ -851,6 +851,9 @@ public final class AppModel {
             panel.suggestions.callbookSource = { [weak callbook = model.callbook] in
                 callbook?.callbookRecord
             }
+            panel.suggestions.bigGridSource = { [weak model] call in
+                model?.bigGrid(call: call)
+            }
             panel.suggestions.lookupSource = { [weak callbook = model.callbook] in
                 callbook?.entryLookup
             }

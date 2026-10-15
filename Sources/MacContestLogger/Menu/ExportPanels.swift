@@ -65,6 +65,10 @@ enum ExportPanels {
             save(message: app.language.tr("Text podle pásma…"), name: name) { file in
                 app.exports.start { await $0.exportTextByBand(to: file) }
             }
+        case .saveFormattedText(let name):
+            save(message: app.language.tr("Text ve formátu závodu…"), name: name) { file in
+                app.exports.start { await $0.exportFormattedText(to: file) }
+            }
         case .chooseDirectory(.other):
             chooseDirectory(message: app.language.tr("Adresář pro CSV, text a souhrn")) { dir in
                 app.exports.start { await $0.exportOther(to: dir) }

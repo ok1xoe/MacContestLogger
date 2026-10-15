@@ -1941,5 +1941,11 @@
  "Obnovit původní": "Original wiederherstellen",
  "Vrátí seznam dodaný s daty závodů": "Stellt die mit den Contestdaten gelieferte Liste wieder her",
  "Jeden okres / sekce na řádek: KÓD,Název.": "Ein Bezirk / eine Sektion pro Zeile: CODE,Name.",
- "Seznam okresů / sekcí": "Liste der Bezirke / Sektionen"
+ "Seznam okresů / sekcí": "Liste der Bezirke / Sektionen",
+ "Text ve formátu závodu…": "Text im Layout des Contests…",
+ "Exportovat ADIF…": "ADIF exportieren…",
+ "Vybraná smazaná QSO (bez výběru všechna) do souboru ADIF": "Die ausgewählten gelöschten QSOs (ohne Auswahl alle) in eine ADIF-Datei",
+ "QSO ve čtverci %s": "QSOs im Planquadrat %s",
+ "%s nesedí k zemi %s": "%s passt nicht zu %s",
+ "Lokátor neodpovídá zemi volačky — zkontroluj ho": "Der Locator passt nicht zum Land des Rufzeichens — bitte prüfen"
 }

@@ -34,6 +34,8 @@ public final class LogTableModel {
         case ratesToHere
         /// N1MM „Copy as ADIF": the row, or the selection it is part of, to the clipboard as ADIF.
         case copyAdif
+        /// N1MM „Show QSOs by grid": the log filtered to the row's grid square (`grid:JN79`).
+        case sameGrid(String)
         /// A bulk action over the selection (the selection bar's actions in the menu).
         case bulk(BulkAction)
         /// „Smazat" of the selection bar: asks „Smazat N QSO?".
@@ -55,6 +57,8 @@ public final class LogTableModel {
                 return ContestMessage("Rate k tomuto QSO v okně Info")
             case .copyAdif:
                 return ContestMessage("Kopírovat jako ADIF")
+            case .sameGrid(let grid):
+                return ContestMessage("QSO ve čtverci %s", .string(grid))
             case .deleteOne:
                 return .verbatim("Smazat QSO")
             case .bulk(let action):
@@ -322,6 +326,17 @@ public final class LogTableModel {
         deletedSelection = []
     }
 
+    /// „Exportovat ADIF…" (N1MM: the DELETEDQS log exported): the chosen deleted QSOs, or all of them without a choice,
+    /// as an ADIF file; `nil` = nothing to export.
+    public var deletedAdif: String? {
+        guard let rows = deleted, !rows.isEmpty else { return nil }
+        let chosen: [LogbookRepository.DeletedQso] = rows.filter { deletedSelection.contains($0.archiveId) }
+        let qsos: [Qso] = (chosen.isEmpty ? rows : chosen).map(\.qso).sorted {
+            ($0.timestampUtc ?? .distantPast) < ($1.timestampUtc ?? .distantPast)
+        }
+        return AdifWriter().toAdif(qsos)
+    }
+
     /// „Obnovit": the chosen deleted QSOs go back into the log; the sheet shows what is left.
     public func restoreDeleted() {
         guard let rows = deleted else { return }
@@ -413,6 +428,9 @@ public final class LogTableModel {
         if qso.timestampUtc != nil {
             items.append(.ratesToHere)
         }
+        if let grid = QsoSearch.locators(qso).first {
+            items.append(.sameGrid(String(grid.prefix(4))))
+        }
         items += [.copyAdif, .deleteOne]
         return items
     }
@@ -466,6 +484,8 @@ public final class LogTableModel {
             actions.ratesTo(id)
         case .copyAdif:
             copyAdif(row: id)
+        case .sameGrid(let grid):
+            logbook.setQuery("grid:" + grid)
         case .deleteOne:
             deleteOne(id: id)
         case .bulk(let action):

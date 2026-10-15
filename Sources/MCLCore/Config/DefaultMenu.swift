@@ -55,6 +55,7 @@ public enum DefaultMenu {
         "settings.profiles": "Profily nastavení…",
         "settings.exportOther": "Export CSV, text a souhrn…",
         "settings.exportByBand": "Text podle pásma…",
+        "settings.exportFormatted": "Text ve formátu závodu…",
         "contest": "Závod",
         "contest.new": "Nový závod…",
         "contest.open": "Otevřít závod…",
@@ -150,6 +151,7 @@ public enum DefaultMenu {
             node("file.export", [
                 leaf("settings.export"), leaf("settings.exportAdifRange"), leaf("settings.exportCabrillo"),
                 leaf("settings.exportEdi"), leaf("settings.exportOther"), leaf("settings.exportByBand"),
+                leaf("settings.exportFormatted"),
                 leaf("callhistory.exportN1mm"),
                 leaf("callhistory.exportCsv"), leaf("fkeys.export"),
             ]),

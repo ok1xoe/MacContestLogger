@@ -134,6 +134,11 @@ struct DeletedQsosSheet: View {
                 Button(language.tr("Zavřít")) {
                     table.closeDeleted()
                 }
+                Button(language.tr("Exportovat ADIF…")) {
+                    StatisticsOutput.save(table.deletedAdif, name: "deleted-qsos.adi")
+                }
+                .disabled(rows.isEmpty)
+                .help(language.tr("Vybraná smazaná QSO (bez výběru všechna) do souboru ADIF"))
                 Button(language.tr("Obnovit")) {
                     table.restoreDeleted()
                 }

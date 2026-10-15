@@ -47,8 +47,10 @@ contests/darc-10m.yaml
 contests/darc-wag.yaml
 contests/darc-xmas.yaml
 contests/ddfm-50.yaml
+contests/dx-satellite.yaml
 contests/dx-serial.yaml
 contests/dx.yaml
+contests/dxpedition.yaml
 contests/ea-psk63.yaml
 contests/ea-qrp-cw.yaml
 contests/ea-rtty.yaml
@@ -151,6 +153,7 @@ contests/ure-municipalities.yaml
 contests/vhf-dx.yaml
 contests/vhf-serial.yaml
 contests/wae-cw.yaml
+contests/wae-rtty.yaml
 contests/wae-ssb.yaml
 contests/winter-field-day.yaml
 contests/ww-digi.yaml

@@ -200,4 +200,37 @@ import Testing
         await table.settle()
         #expect(Set(table.deleted?.map(\.qso.call) ?? []) == ["W1AW", "DL1ABC", "OK1AA"])
     }
+
+    @Test func deletedQsosExportAsAdif() async throws {
+        let (app, table, _) = try await threeQsos()
+        await app.model.logbook.wipeLog()
+        table.openDeleted()
+        await table.settle()
+        let all: String = try #require(table.deletedAdif)
+        #expect(all.components(separatedBy: "<EOR>").count == 4)
+        let dl = try #require(table.deleted?.first { $0.qso.call == "DL1ABC" })
+        table.deletedSelection = [dl.archiveId]
+        let one: String = try #require(table.deletedAdif)
+        #expect(one.contains("<CALL:6>DL1ABC") && !one.contains("W1AW"))
+        table.closeDeleted()
+        #expect(table.deletedAdif == nil)
+    }
+
+    @Test func rowWithALocatorOffersItsGridSquare() async throws {
+        let (app, table, _) = try await threeQsos()
+        var qso = Qso()
+        qso.call = "OK2ABC"
+        qso.exchangeRcvd = "59 JN89AB"
+        qso.freqHz = 144_300_000
+        qso.mode = .ssb
+        qso.timestampUtc = Date(timeIntervalSince1970: 1_790_000_000)
+        let logbook: LogbookModel = app.model.logbook
+        _ = await logbook.importBatch(contestId: logbook.activeContestId) { [qso] _ in LogbookModel.BatchPlan(qsos: [qso], value: ()) }
+        await logbook.settle()
+        let id: Int64 = try self.id(app, "OK2ABC")
+        #expect(table.menuItems(forRow: id).contains(.sameGrid("JN89")))
+        #expect(!table.menuItems(forRow: try self.id(app, "W1AW")).contains { if case .sameGrid = $0 { true } else { false } })
+        table.perform(.sameGrid("JN89"), row: id)
+        #expect(app.model.logbook.query == "grid:JN89")
+    }
 }

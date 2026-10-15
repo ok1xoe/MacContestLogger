@@ -1,0 +1,27 @@
+schemaVersion: 1
+id: dxpedition
+metadata:
+  name: "DXPEDITION — DXpedition log"
+  description: "N1MM DXPEDITION: fast logging for a DXpedition. Only the call and the report are logged; a station counts once per band and mode, a dupe is flagged and can still be logged. Points = QSOs, DXCC entities and continents are counted for information. Use it with call stacking, the bandmap and the split commands of the entry window."
+bands: [160m, 80m, 60m, 40m, 30m, 20m, 17m, 15m, 12m, 10m, 6m, 2m]
+modes: [CW, SSB, RTTY, DIGITAL, FT8, FT4]
+
+exchange:
+  sent:
+    - { id: rst, type: RST, source: AUTO_RST }
+  received:
+    - { id: rst, type: RST, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE }
+
+dupe: { scope: PER_BAND_MODE, dupeWorthZero: false }
+
+cabrillo: { contestName: DXPEDITION, sentOrder: [rst], receivedOrder: [rst] }
+ui:
+  entryOrder: [call]
+  logColumns: [time, call, band, mode, rst]
