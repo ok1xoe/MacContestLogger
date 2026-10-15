@@ -209,7 +209,11 @@ jobs:
           fi
           rm -f "$P8"
           xcrun stapler staple "$DMG"
-          xcrun stapler validate "$DMG"
+          for attempt in 1 2 3 4; do
+            xcrun stapler validate "$DMG" && break
+            [ "$attempt" = 4 ] && exit 1
+            echo "stapler validate failed (attempt $attempt), retrying"; sleep 20
+          done
           # Stapling changes the DMG, so the checksum file is written again (same `shasum -c` format).
           shasum -a 256 "$DMG" > "$DMG.sha256"
       - name: Gatekeeper assessment
@@ -280,7 +284,11 @@ jobs:
           BIN="$MNT/MacContestLogger.app/Contents/MacOS/MacContestLogger"
           codesign --verify --deep --strict "$MNT/MacContestLogger.app"
           if [ "$SIGNED" = "true" ]; then
-            xcrun stapler validate "dist/$DMG"
+            for attempt in 1 2 3 4; do
+              xcrun stapler validate "dist/$DMG" && break
+              [ "$attempt" = 4 ] && exit 1
+              echo "stapler validate failed (attempt $attempt), retrying"; sleep 20
+            done
             spctl --assess --type open --context context:primary-signature -vv "dist/$DMG"
             spctl -a -vv "$MNT/MacContestLogger.app"
           fi
