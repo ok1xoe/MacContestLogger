@@ -255,6 +255,12 @@ public enum CabrilloExporter {
             if JavaText.equals("9CM", value) { return "3.4G" }
             if JavaText.equals("6CM", value) { return "5.7G" }
             if JavaText.equals("3CM", value) { return "10G" }
+            if JavaText.equals("1.25CM", value) { return "24G" }
+            if JavaText.equals("6MM", value) { return "47G" }
+            if JavaText.equals("4MM", value) { return "75G" }
+            if JavaText.equals("2.5MM", value) { return "122G" }
+            if JavaText.equals("2MM", value) { return "134G" }
+            if JavaText.equals("1MM", value) { return "241G" }
         }
         return value
     }
@@ -374,6 +380,12 @@ public enum CabrilloExporter {
         case .cm9: return "3.4G"
         case .cm6: return "5.7G"
         case .cm3: return "10G"
+        case .cm125: return "24G"
+        case .mm6: return "47G"
+        case .mm4: return "75G"
+        case .mm25: return "122G"
+        case .mm2: return "134G"
+        case .mm1: return "241G"
         default:
             let hz = q.freqHz > 0 ? q.freqHz : band.lowHz
             return String(JavaMath.round(Double(hz) / 1000.0))

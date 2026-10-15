@@ -399,7 +399,7 @@ import Testing
     /// `Band.valueOf` and cannot open such a logbook — documented as a deliberate divergence from Java v1.1.1.
     @Test func microwaveBandsAreStoredUnderTheirJavaStyleNames() throws {
         let repo = try LogbookRepository.inMemory()
-        for band in Band.allCases.suffix(5) {
+        for band in Band.allCases.suffix(11) {
             var q = sampleQso("DL1ABC")
             q.freqHz = 0
             q.band = band
@@ -409,7 +409,7 @@ import Testing
         defer { select.finalize() }
         var names: [String] = []
         while try select.step() { names.append(select.columnText(forName: "band") ?? "<null>") }
-        #expect(names == ["CM23", "CM13", "CM9", "CM6", "CM3"])
+        #expect(names == ["CM23", "CM13", "CM9", "CM6", "CM3", "CM125", "MM6", "MM4", "MM25", "MM2", "MM1"])
     }
 
     /// In Swift, `Mode`/`RunMode` have a `rawValue` identical to Java's `Enum.name()`

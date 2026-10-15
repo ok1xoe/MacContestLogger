@@ -41,7 +41,7 @@ public struct SpotFilter: Equatable, Sendable {
             case .hf: [.m160, .m80, .m60, .m40, .m30, .m20, .m17, .m15, .m12, .m10]
             case .vhf: [.m6, .m2]
             case .uhf: [.cm70, .cm23]
-            case .microwave: [.cm13, .cm9, .cm6, .cm3]
+            case .microwave: [.cm13, .cm9, .cm6, .cm3, .cm125, .mm6, .mm4, .mm25, .mm2, .mm1]
             }
         }
     }

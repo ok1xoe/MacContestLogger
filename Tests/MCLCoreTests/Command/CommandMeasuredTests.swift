@@ -98,7 +98,10 @@ import Testing
     }
 
     @Test func fuzzMatchesJava() {
-        Self.check("FUZZ", expectedCount: 1_000)
+        // The frozen Java corpus knows no band above 70 cm (a fuzzed 146.69 GHz is a 2 mm frequency now).
+        Band.$javaV111Table.withValue(true) {
+            Self.check("FUZZ", expectedCount: 1_000)
+        }
     }
 
     @Test func operatorCommandMatchesJava() {

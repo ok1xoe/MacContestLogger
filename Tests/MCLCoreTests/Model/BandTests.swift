@@ -174,7 +174,8 @@ import Testing
         #expect(Band.javaV111Cases.map(\.rawValue) == ["160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m",
                                                       "10m", "6m", "2m", "70cm"])
         #expect(Band.javaV111Cases.allSatisfy { !$0.isMicrowave })
-        #expect(Band.allCases.suffix(5).map(\.rawValue) == ["23cm", "13cm", "9cm", "6cm", "3cm"])
+        #expect(Band.allCases.suffix(11).map(\.rawValue) == ["23cm", "13cm", "9cm", "6cm", "3cm", "1.25cm", "6mm", "4mm",
+                                                              "2.5mm", "2mm", "1mm"])
         // 70 cm keeps its Java range (ADIF has 420-450 MHz, Java 430-440 MHz).
         #expect(Band.cm70.lowHz == 430_000_000 && Band.cm70.highHz == 440_000_000)
         #expect(Band.from(frequencyHz: 440_000_001) == nil)

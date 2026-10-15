@@ -2176,5 +2176,7 @@
  "očekáváno": "expected",
  "Nastavit střed mapy sem": "Set map centre here",
  "Azimut ke středu čtverce": "Beam heading to square centre",
- "Jeden čtverec na řádek (např. JN79).": "One square per line (e.g. JN79)."
+ "Jeden čtverec na řádek (např. JN79).": "One square per line (e.g. JN79).",
+ "Pozastavit posuv": "Pause scrolling",
+ "Pokračovat": "Resume"
 }

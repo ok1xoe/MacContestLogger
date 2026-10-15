@@ -49,6 +49,13 @@ public enum BandRows {
         Row(band: .cm9, label: "9cm", cwKHz: 3400050.0, phKHz: 3400200.0, rttyKHz: nil, diKHz: nil),
         Row(band: .cm6, label: "6cm", cwKHz: 5760050.0, phKHz: 5760200.0, rttyKHz: nil, diKHz: nil),
         Row(band: .cm3, label: "3cm", cwKHz: 10368050.0, phKHz: 10368200.0, rttyKHz: nil, diKHz: nil),
+        // Millimetre bands (narrow-band centres of activity), labelled in GHz like N1MM's band list.
+        Row(band: .cm125, label: "24G", cwKHz: 24048050.0, phKHz: 24048200.0, rttyKHz: nil, diKHz: nil),
+        Row(band: .mm6, label: "47G", cwKHz: 47088050.0, phKHz: 47088200.0, rttyKHz: nil, diKHz: nil),
+        Row(band: .mm4, label: "76G", cwKHz: 76032050.0, phKHz: 76032200.0, rttyKHz: nil, diKHz: nil),
+        Row(band: .mm25, label: "122G", cwKHz: 122250050.0, phKHz: 122250200.0, rttyKHz: nil, diKHz: nil),
+        Row(band: .mm2, label: "134G", cwKHz: 134928050.0, phKHz: 134928200.0, rttyKHz: nil, diKHz: nil),
+        Row(band: .mm1, label: "241G", cwKHz: 241920050.0, phKHz: 241920200.0, rttyKHz: nil, diKHz: nil),
     ]
 
     /// Start of the segment of `band` for `column`; `nil` = none.

@@ -772,7 +772,7 @@ public enum UdcImport {
 
         static func band(_ text: String) -> String? {
             let bands = ["160M", "80M", "60M", "40M", "30M", "20M", "17M", "15M", "12M", "10M", "6M", "2M", "70CM",
-                         "23CM", "13CM", "9CM", "6CM", "3CM"]
+                         "23CM", "13CM", "9CM", "6CM", "3CM", "1.25CM", "6MM", "4MM", "2.5MM", "2MM", "1MM"]
             return bands.contains(text) ? text.lowercased() : nil
         }
 
@@ -781,7 +781,9 @@ public enum UdcImport {
                                          "14": "20m", "18": "17m", "21": "15m", "24": "12m", "28": "10m",
                                          "50": "6m", "144": "2m", "420": "70cm", "432": "70cm", "1240": "23cm",
                                          "1296": "23cm", "2300": "13cm", "3300": "9cm", "5650": "6cm",
-                                         "10000": "3cm"]
+                                         "10000": "3cm", "10368": "3cm", "24000": "1.25cm", "24048": "1.25cm",
+                                         "47000": "6mm", "47088": "6mm", "76000": "4mm", "75500": "4mm",
+                                         "122250": "2.5mm", "134000": "2mm", "241000": "1mm"]
             return map[text]
         }
 

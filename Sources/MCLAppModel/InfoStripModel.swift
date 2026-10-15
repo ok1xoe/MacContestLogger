@@ -38,6 +38,8 @@ public final class InfoStripModel {
         public var bandNote: @MainActor () -> String? = { nil }
         /// The next sked within 10 minutes (SKED); `nil` = none.
         public var sked: @MainActor () -> InfoStripSked? = { nil }
+        /// The tuned frequency (the NCDXF beacon item); `nil` = not wired.
+        public var tunedFreqHz: @MainActor () -> Int64? = { nil }
 
         public init() {}
     }
@@ -64,14 +66,19 @@ public final class InfoStripModel {
         _ = contest.activeSetup
         _ = contest.activeId
         let station: StationConfig = config.config.station
-        return InfoStripInput(
-            tour: contest.runtime.tour, now: now(), countyLine: sources.countyLine(), roverQth: station.roverQth,
+        let date: Date = now()
+        var input = InfoStripInput(
+            tour: contest.runtime.tour, now: date, countyLine: sources.countyLine(), roverQth: station.roverQth,
             usesRoverQth: contest.usesRoverQth, bonusStationCount: contest.runtime.bonusStations.count,
             cqRepeat: sources.cqRepeat(), repeatSeconds: config.config.runMode.repeatSeconds,
             recording: sources.recording(), antennaName: sources.antennaName(),
             clockOffsetMs: sources.clockOffsetMs(), bandNote: sources.bandNote(), ritHz: sources.ritHz(),
             tuning: sources.tuning(), postContest: sources.postContest(), snsWaiting: sources.snsWaiting(),
             stackedCalls: sources.stackedCalls(), sked: sources.sked())
+        if let hz = sources.tunedFreqHz(), let beacon = NcdxfBeacons.transmitting(freqHz: hz, at: date) {
+            input.beacon = NcdxfBeacons.stripText(beacon)
+        }
+        return input
     }
 
     /// The items in Kotlin order.

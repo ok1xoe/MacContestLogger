@@ -210,6 +210,8 @@ Audio → Receive, the same one used for the waterfall).
 - The threshold adapts to signal strength and noise; a weak signal below the noise is not decoded.
 - Callsigns found in the text (newest first, excluding your own) are shown above
   the text as buttons — a click puts the callsign into the callsign field.
+- **Pozastavit posuv** (Pause scrolling, as in N1MM): the shown text stops moving so you can read it or click a
+  call, while decoding goes on in the background; **Pokračovat** (Resume) shows everything decoded meanwhile.
 
 The decoder is simple (a Goertzel filter plus timing measurement). It works well
 on a clean single-tone signal; in a pileup with several stations on the same tone

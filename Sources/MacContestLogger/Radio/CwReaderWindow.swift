@@ -48,16 +48,16 @@ struct CwReaderWindowView: View {
             }
             ScrollViewReader { proxy in
                 ScrollView(.vertical) {
-                    Text(verbatim: model.text.isEmpty
+                    Text(verbatim: model.shownText.isEmpty
                          ? RadioWindowTexts.readerPlaceholder(model.pitchText)
                             .text(language.translator, decimalSeparator: language.decimalSeparator)
-                         : model.text)
+                         : model.shownText)
                         .windowFont(16, design: .monospaced)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Color.clear.frame(height: 1).id(Self.bottom)
                 }
-                .onChange(of: model.text) {
+                .onChange(of: model.shownText) {
                     proxy.scrollTo(Self.bottom, anchor: .bottom)
                 }
             }
@@ -90,6 +90,13 @@ struct CwReaderWindowView: View {
             .frame(width: 120)
             Text(verbatim: RadioWindowTexts.readerWpm(model.wpm))
                 .windowFont(16)
+            Button {
+                model.toggleScrollPause()
+            } label: {
+                Text(verbatim: language.tr(model.scrollPaused ? "Pokračovat" : "Pozastavit posuv")).windowFont(14)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityIdentifier("cwreader.pause")
             Button {
                 model.clear()
             } label: {

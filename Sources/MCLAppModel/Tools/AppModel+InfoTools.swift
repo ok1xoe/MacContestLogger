@@ -204,6 +204,9 @@ extension AppModel {
         model.infoStrip.sources.sked = { [weak skeds] in
             skeds?.stripSked()
         }
+        model.infoStrip.sources.tunedFreqHz = { [weak rig] in
+            rig?.tuning.tunedFreqHz
+        }
         let quitting: () -> Bool = { [weak model] in
             model?.isShuttingDown ?? true
         }

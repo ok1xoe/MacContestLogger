@@ -19,6 +19,13 @@ A right click anywhere in the entry window (outside the text fields) opens N1MM'
 
 The choices are saved with the settings.
 
+## Bands above 10 GHz
+
+Besides 23 cm – 3 cm, MCL knows the millimetre bands up to 241 GHz like N1MM: 24, 47, 76, 122, 134 and 241 GHz
+(ADIF `1.25cm`, `6mm`, `4mm`, `2.5mm`, `2mm`, `1mm`; Cabrillo `24G` … `241G`; EDI `24 GHz` … `248 GHz`). Their band
+buttons (labelled `24G` … `241G`) appear in contests whose definition lists them — add them to a definition in the
+definition editor (`bands: [..., 3cm, 1.25cm, 6mm]`); the shipped definitions are unchanged.
+
 ## Right click on a band button
 
 As in N1MM, a right click (or Control+click) on a band/mode button acts at once:

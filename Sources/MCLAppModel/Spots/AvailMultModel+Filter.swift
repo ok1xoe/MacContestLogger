@@ -21,7 +21,7 @@ extension AvailMultModel {
         BandGroup(title: "VHF", bands: [.m6, .m2], extra: ["222"]),
         BandGroup(title: "UHF", bands: [.cm70, .cm23], extra: ["902"]),
         // Post-port: the microwave bands 13 cm – 3 cm are real bands now (Kotlin listed them as disabled extras).
-        BandGroup(title: "Mw", bands: [.cm13, .cm9, .cm6, .cm3], extra: ["24G"]),
+        BandGroup(title: "Mw", bands: [.cm13, .cm9, .cm6, .cm3, .cm125, .mm6, .mm4, .mm25, .mm2, .mm1], extra: []),
     ]
 
     /// Kotlin `MODE_CHOICES`: the category and its label.
@@ -50,6 +50,12 @@ extension AvailMultModel {
         case .cm9: "3.4G"
         case .cm6: "5.7G"
         case .cm3: "10G"
+        case .cm125: "24G"
+        case .mm6: "47G"
+        case .mm4: "76G"
+        case .mm25: "122G"
+        case .mm2: "134G"
+        case .mm1: "241G"
         }
     }
 
