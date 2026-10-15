@@ -43,6 +43,25 @@ import Testing
         grid.close()
     }
 
+    @Test func theModesShownAreSavedPerKind() async throws {
+        let tool = try await ToolApp.make()
+        try await tool.start("rdxc")
+        let grid: MultGridModel = tool.tools.multGrid(kind: "dxcc")
+        #expect(grid.contestModes == ["CW", "SSB"])
+        #expect(grid.shownModes == ["CW"])
+        grid.setMode("SSB", shown: true)
+        #expect(grid.shownModes == ["CW", "SSB"])
+        #expect(tool.model.config.config.multGridBands["dxcc/modes"] == "CW,SSB")
+        grid.setMode("CW", shown: false)
+        #expect(grid.shownModes == ["SSB"])
+        grid.setMode("SSB", shown: false)        // the last mode stays
+        #expect(grid.shownModes == ["SSB"])
+        grid.setMode("CW", shown: true)
+        grid.setMode("SSB", shown: false)
+        #expect(tool.model.config.config.multGridBands["dxcc/modes"] == nil)
+        #expect(tool.tools.multGrid(kind: "cq").shownModes == ["CW"])
+    }
+
     @Test func zoneCountriesAndTheTurnAntennaItem() async throws {
         let tool = try await ToolApp.make(positions: true) { config, _ in
             config.station.latitude = "50.0"

@@ -41,6 +41,10 @@ squares window the field's heading and distance.
 
 - **Zobrazená pásma** (Bands displayed) — which band columns the window shows, 160 m up to the microwave
   bands (160–10 m by default). Remembered per window.
+- **Zobrazené módy** (Modes displayed) — in a contest with more than one mode, which of its modes the window
+  shows. Where multipliers count per band and mode (Russian DX, for example) a cell is worked when the
+  multiplier was worked in one of the ticked modes, and only spots of those modes (CW, phone, digital) are
+  drawn. By default the contest's first mode, as before. Remembered per window.
 - **Zobrazit všechny možné násobiče** (Show all possible multipliers) — every multiplier of the set; off
   (the default, N1MM *Show only worked & expected*) only the worked, spotted and expected ones.
 - **Očekávané násobiče…** (Expected multipliers) — the list of multipliers you expect to work, one per line

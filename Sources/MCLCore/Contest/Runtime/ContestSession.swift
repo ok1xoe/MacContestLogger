@@ -246,7 +246,7 @@ public final class ContestSession: Sendable {
     /// As in Java: the set is taken from the registry **before** the predicate, so an unknown set throws
     /// (`MultiplierError`); the mode for the scope is the definition's first mode (`CW` without modes); scope
     /// `ONCE` → worked on all bands. A `nil` binding: Java NPE, Swift skips.
-    public func multiplierGrid(bands: [Band],
+    public func multiplierGrid(bands: [Band], modes shown: [String]? = nil,
                                matching: (ContestDefinition.MultiplierBinding, any MultiplierSet) -> Bool)
         throws(ContestSessionError) -> MultiplierGrid {
         guard let multipliers = definition.multipliers else { return .unavailable }
@@ -267,24 +267,32 @@ public final class ContestSession: Sendable {
         let binding = selected.binding
         let set = selected.set
 
-        // scopeKey for each band (PER_BAND → band, ONCE → "*").
+        // scopeKeys for each band (PER_BAND → band, ONCE → "*"), one per mode shown: by default the contest's first
+        // mode (Kotlin); with `shown` (the Multipliers window's „Modes displayed") a band is worked when the key is
+        // worked in any of those modes (PER_BAND_MODE).
         let modes = definition.modes ?? []
-        let mode: String? = modes.isEmpty ? "CW" : modes[0]
-        var scopeKeys: [String] = []
+        let picked: [String?] = (shown?.isEmpty == false ? shown!.map { Optional($0) } : nil)
+            ?? [modes.isEmpty ? "CW" : modes[0]]
+        var scopeKeys: [[String]] = []
         for band in bands {
-            let context: QsoContext
-            do {
-                context = try factory.build(call: "", band: band.adif, mode: mode, receivedRaw: JavaLinkedMap())
-            } catch {
-                throw ContestSessionError(error)
+            var keys: [String] = []
+            for mode in picked {
+                let context: QsoContext
+                do {
+                    context = try factory.build(call: "", band: band.adif, mode: mode, receivedRaw: JavaLinkedMap())
+                } catch {
+                    throw ContestSessionError(error)
+                }
+                keys.append(MultiplierEvaluator.scopeKey(binding.scope, context))
             }
-            scopeKeys.append(MultiplierEvaluator.scopeKey(binding.scope, context))
+            scopeKeys.append(keys)
         }
         let tracker = self.tracker
         func workedBands(_ key: String?) -> [String] {
             var out: [String] = []
             for (index, band) in bands.enumerated()
-            where tracker.isWorked(binding.id, scopeKeys[index], key) && !out.contains(band.adif) {
+            where scopeKeys[index].contains(where: { tracker.isWorked(binding.id, $0, key) })
+                && !out.contains(band.adif) {
                 out.append(band.adif)
             }
             return out
