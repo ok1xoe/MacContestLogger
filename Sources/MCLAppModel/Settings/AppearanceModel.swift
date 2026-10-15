@@ -65,4 +65,30 @@ public final class AppearanceModel {
     public var effectiveAppearance: Appearance {
         isContrast ? .dark : appearance
     }
+
+    /// The colour overrides (`ColorSlot` raw value → `0xRRGGBB`), only valid ones.
+    public var colorOverrides: [String: Int] {
+        var out: [String: Int] = [:]
+        for (key, value) in config.config.colorOverrides {
+            if ColorSlot(rawValue: key) != nil, let rgb = ColorHex.parse(value) {
+                out[key] = rgb
+            }
+        }
+        return out
+    }
+
+    /// The family of the proportional texts (empty = the system font).
+    public var fontFamily: String {
+        config.config.fontFamily
+    }
+
+    /// The family of the monospaced texts and the entry fields (empty = the system monospaced font).
+    public var fixedFontFamily: String {
+        config.config.fixedFontFamily
+    }
+
+    /// N1MM „Tooltips": the spot tooltips are shown.
+    public var spotTooltips: Bool {
+        config.config.spotTooltips
+    }
 }

@@ -310,6 +310,7 @@ import Testing
                                "runNumber", "statusColumns", "master", "timeFromMaster", "interlockLastWins",
                                "ctyEnabled",
                                "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",
+                               "colorOverrides", "fontFamily", "fixedFontFamily", "spotTooltips",
                                "callHistoryFile", "functionKeyFiles", "firstSerial", "scpFile", "goalFile",
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",

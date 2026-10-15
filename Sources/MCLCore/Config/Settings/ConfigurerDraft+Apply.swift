@@ -336,6 +336,10 @@ extension ConfigurerDraft {
         config.ntpServer = Self.trim(ntpServer)
         config.ntpCorrectQsoTime = ntpCorrect
         config.themeAccent = themeAccent
+        config.colorOverrides = ColorHex.sanitized(colorOverrides)
+        config.fontFamily = Self.trim(fontFamily)
+        config.fixedFontFamily = Self.trim(fixedFontFamily)
+        config.spotTooltips = spotTooltips
         config.ritClearAfterLog = ritClearAfterLog
     }
 
