@@ -125,7 +125,7 @@ Equivalent of N1MM **Check for updated contest definitions**. Menu **"Nástroje 
 Aktualizovat definice z internetu"** (Tools → Update definitions from the
 internet):
 
-- downloads `index.txt` and the files listed in it from the published
+- downloads the index (`index-v2.txt`, see below) and the files listed in it from the published
   [`contest-data`](https://github.com/ok1xoe/MacContestLogger/tree/main/contest-data)
   directory (contest definitions, multiplier sets, band plan, digital
   frequencies) into the contest data directory from Settings,
@@ -138,3 +138,21 @@ internet):
 
 To return a modified file to the published version, simply delete it and run the
 update again.
+
+### The two indexes
+
+The published directory carries two lists of files:
+
+- `index-v2.txt` lists **every** published file. The app downloads it first.
+- `index.txt` lists only the files that v0.9.0-rc1 and rc2 can load. Those versions
+  read only `index.txt`, know only the `wpx` multiplier set algorithm, and stop
+  loading the remaining multiplier sets at the first set they cannot load. The
+  sets `last_letters` and `worked_calls` (algorithms `lastLetter`, `callsign`)
+  and the contests that use them (EA QRP CW, OK DX RTTY, OK1WC Memorial,
+  Russian YL-OM) are therefore listed only in `index-v2.txt`.
+
+When `index-v2.txt` cannot be downloaded (for example an older copy of
+`contest-data` served from elsewhere), the app falls back to `index.txt`.
+A new file that every version can load goes into both lists; a file that needs a
+newer app goes only into `index-v2.txt` (the tests check both lists against the
+directory).
