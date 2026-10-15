@@ -298,7 +298,7 @@ import Testing
             }
         }
         #expect(paths.sorted() == [
-            "antennas", "bandNotes", "callHistoryExtraFiles", "checkHiddenPanes", "checkPaneWeights", "checkYankOrder",
+            "antennas", "bandNotes", "builtinModemSetup", "callHistoryExtraFiles", "checkHiddenPanes", "checkPaneWeights", "checkYankOrder",
             "cluster.statusColumns", "colorOverrides",
             "contestSetups", "cwKeyer.runMessages", "cwKeyer.spMessages",
             "digital.diMessages", "digital.runMessages", "digital.spMessages", "dxCluster.availColumnWidths",

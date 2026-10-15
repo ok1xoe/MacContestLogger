@@ -25,9 +25,9 @@ enum ProfileMergeSchema {
     /// (`dxCluster.clusterSoftware`, `autoLogon`, `showButtons`, `showDxCount`, `saveSpots`,
     /// `randomizeSpotFrequencies`), the blacklist switch (`dxCluster.blacklistEnabled`), the spot comment, S&P spotting
     /// and special calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
-    /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
+    /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the built-in RTTY modem (`digital.builtinModem`), the call history
     /// switches and extra
-    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`), the WAE QTC setup (`qtcSetup`), the rotor setup (`rotorSetup`), the spectrum display options (`spectrumSetup`), the SO2R / SO2V options (`so2rSetup`), the antenna table's rotor columns (`antennas.*.rotors`, `offset`, `bidirectional`), the N1MM per-radio options of `rig`/`rig2` (`civAddress`, `pollRate`, `reverseCw`, `muteMicOnVoice`, `subReceiverOn`, `timeoutSeconds`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
+    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`), the WAE QTC setup (`qtcSetup`), the rotor setup (`rotorSetup`), the spectrum display options (`spectrumSetup`), the SO2R / SO2V options (`so2rSetup`), the built-in RTTY modem's options (`builtinModemSetup`), the antenna table's rotor columns (`antennas.*.rotors`, `offset`, `bidirectional`), the N1MM per-radio options of `rig`/`rig2` (`civAddress`, `pollRate`, `reverseCw`, `muteMicOnVoice`, `subReceiverOn`, `timeoutSeconds`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
     /// `contestSetups.*.functionKeyFiles`) its first serial and master.scp (`contestSetups.*.firstSerial`, `contestSetups.*.scpFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
@@ -82,6 +82,7 @@ enum ProfileMergeSchema {
             Property("rotorSetup", .map(.string), .fieldDefault),
             Property("spectrumSetup", .map(.string), .fieldDefault),
             Property("so2rSetup", .map(.string), .fieldDefault),
+            Property("builtinModemSetup", .map(.string), .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.AntennaEntry": [
             Property("rotors", .string, .fieldDefault),
@@ -209,6 +210,7 @@ enum ProfileMergeSchema {
         ],
         "cz.ok1xoe.maccontestlogger.config.DigitalConfig": [
             Property("digitalCallStacking", .boolean, .fieldDefault),
+            Property("builtinModem", .boolean, .fieldDefault),
             Property("autoTrxUpdate", .boolean, .fieldDefault),
             Property("rttyModem", .string, .fieldDefault),
             Property("pskModem", .string, .fieldDefault),

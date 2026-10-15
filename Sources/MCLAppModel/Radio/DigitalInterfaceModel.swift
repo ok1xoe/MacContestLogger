@@ -272,9 +272,11 @@ public final class DigitalInterfaceModel {
         if index == 0 {
             digital.clearRxWindow = nil
         }
+        app?.builtinModem?.detach(index)
     }
 
     private func restart() {
+        attachBuiltin()
         namesRead = false
         extraTexts = Array(repeating: "", count: extraEndpoints.count)
         generation += 1
@@ -282,6 +284,22 @@ public final class DigitalInterfaceModel {
         timer?.cancel()
         timer = nil
         tick(generation)
+    }
+
+    /// The built-in modem's receiver listens to its audio while the window is open and the built-in modem is chosen.
+    private func attachBuiltin() {
+        guard let modem = app?.builtinModem else { return }
+        guard config.config.digital.engine == .builtin else {
+            modem.detach(index)
+            return
+        }
+        digital.syncBuiltin()
+        let side: Int = index
+        Task { [weak self] in
+            // Not after the window closed meanwhile.
+            guard let self, self.isOpen else { return }
+            await modem.attach(side)
+        }
     }
 
     /// Restarts the loop when the engine, host or port changed (any change of the configuration is observed).

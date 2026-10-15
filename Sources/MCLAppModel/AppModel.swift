@@ -237,6 +237,8 @@ public final class AppModel {
     /// The second Available window's model (radio 2 / VFO B).
     public let availMult2: AvailMultModel
     /// The UDP integrations: broadcast, WSJT-X, N1MM and ADIF receive.
+    /// The built-in RTTY modem's receivers (Settings → Digital modes → Built-in).
+    @ObservationIgnored public internal(set) var builtinModem: BuiltinModemModel!
     @ObservationIgnored public internal(set) var integrations: IntegrationsModel!
     /// Club Log, the scoreboard and the clock check.
     @ObservationIgnored public internal(set) var onlineServices: OnlineServicesModel!
@@ -1174,6 +1176,10 @@ public final class AppModel {
         callStack.currentBand = { [weak model] in
             (model?.activeEntry ?? model?.entry)?.band?.adif ?? ""
         }
+        model.builtinModem = BuiltinModemModel(hub: model.keyer.lane.builtin, audio: model.audio, audio2: model.audio2,
+                                               setup: { [weak config = model.config] in
+                                                   config?.config.builtinModem ?? BuiltinModemSetup()
+                                               })
         model.keyer.digital.activeMode = { [weak model] in
             (model?.activeEntry ?? model?.entry)?.form.mode
         }

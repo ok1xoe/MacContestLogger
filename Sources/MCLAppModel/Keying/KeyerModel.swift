@@ -98,6 +98,7 @@ public final class KeyerModel {
         digital = DigitalKeyerModel(config: dependencies.config, status: dependencies.status, lane: lane,
                                     clock: dependencies.clock)
         voice.keyer = self
+        lane.builtin.usePtt(voice.ptt)
         digital.keyer = self
     }
 
@@ -626,7 +627,10 @@ public final class KeyerModel {
         monitor.stop()
         digital.shutdown()
         keyerMayBeOpen = false
+        let builtin: BuiltinModemHub = lane.builtin
         lane.run { devices in
+            // The built-in modem's transmission ends (its output stops, its PTT is released) before the rest.
+            builtin.shutdown()
             if keyerTuning {
                 try? devices.keyer?.tune(false)
             }

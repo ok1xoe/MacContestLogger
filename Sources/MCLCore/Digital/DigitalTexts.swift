@@ -3,6 +3,8 @@ public enum DigitalTexts {
     public static let modemSetKey = "fldigi: mód %s"
     /// The hardware routes' errors (verbatim, technical).
     public static let noSerialPort = "no serial port set (Settings → Digital modes)"
+    /// The built-in modem asked for a mode it does not have (fldigi's PSK, CW…).
+    public static let builtinOnlyRtty = "the built-in modem has only RTTY (Settings → Digital modes)"
     public static let noWinkeyerRtty = "the CW keyer is not a WinKeyer (Settings → CW keyer)"
     /// The Digital Interface's frequency caption: the transmitted frequency and the audio frequency (verbatim units).
     public static func frequencyCaption(transmitHz: Int64, carrierHz: Int?) -> String {

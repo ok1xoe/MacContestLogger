@@ -27,11 +27,14 @@ public final class AudioCapture: @unchecked Sendable {
     private struct State {
         var listeners: [(id: UInt64, run: @Sendable ([Double]) -> Void)] = []
         var rawListeners: [(id: UInt64, run: @Sendable ([UInt8]) -> Void)] = []
+        var stereoListeners: [(id: UInt64, run: @Sendable ([Double], [Double]) -> Void)] = []
         var nextID: UInt64 = 0
         var running = false
         /// Incremented on `close()` — blocks of the old start are discarded.
         var generation: UInt64 = 0
         var pending: [UInt8] = []
+        /// Interleaved left/right PCM not yet in a whole block.
+        var pendingStereo: [UInt8] = []
     }
 
     private let state = OSAllocatedUnfairLock(initialState: State())
@@ -69,6 +72,22 @@ public final class AudioCapture: @unchecked Sendable {
         state.withLock { s in s.rawListeners.removeAll { $0.id == id.raw } }
     }
 
+    /// Both channels of a stereo input (left, right; −1…1), in the same blocks as the sample listeners. The usual
+    /// SO2R setup feeds two receivers into one stereo sound card: left = radio 1, right = radio 2. A mono input
+    /// gives the same samples on both; the sample listeners always get the left (first) channel.
+    public func addStereoListener(_ listener: @escaping @Sendable ([Double], [Double]) -> Void) -> ListenerID {
+        state.withLock { s in
+            let id = s.nextID
+            s.nextID += 1
+            s.stereoListeners.append((id, listener))
+            return ListenerID(raw: id)
+        }
+    }
+
+    public func removeStereoListener(_ id: ListenerID) {
+        state.withLock { s in s.stereoListeners.removeAll { $0.id == id.raw } }
+    }
+
     public var isRunning: Bool {
         state.withLock { $0.running }
     }
@@ -83,13 +102,14 @@ public final class AudioCapture: @unchecked Sendable {
         guard let generation else {
             return
         }
-        let engine = AudioInputEngine(sampleRate: Double(Self.sampleRate), deviceName: deviceName, queue: queue) {
-            [weak self] pcm in
-            self?.accept(pcm, generation: generation)
+        let engine = AudioInputEngine(sampleRate: Double(Self.sampleRate), channels: 2, deviceName: deviceName,
+                                      queue: queue) { [weak self] pcm in
+            self?.acceptStereo(pcm, generation: generation)
         }
         state.withLock { s in
             s.running = true
             s.pending.removeAll()
+            s.pendingStereo.removeAll()
         }
         do {
             try engine.start()
@@ -108,6 +128,7 @@ public final class AudioCapture: @unchecked Sendable {
             s.running = false
             s.generation &+= 1
             s.pending.removeAll()
+            s.pendingStereo.removeAll()
         }
         input?.stop()
         input = nil
@@ -116,10 +137,11 @@ public final class AudioCapture: @unchecked Sendable {
     /// Accepts PCM from the converter (queue `audio-capture`), assembles blocks of `block × 2` bytes and delivers them.
     func accept(_ pcm: [UInt8], generation: UInt64) {
         let size = Self.block * 2
-        typealias Work = (blocks: [[UInt8]], raw: [@Sendable ([UInt8]) -> Void], samples: [@Sendable ([Double]) -> Void])
+        typealias Work = (blocks: [[UInt8]], raw: [@Sendable ([UInt8]) -> Void], samples: [@Sendable ([Double]) -> Void],
+                          stereo: [@Sendable ([Double], [Double]) -> Void])
         let work: Work = state.withLock { s in
             guard s.running, s.generation == generation else {
-                return ([], [], [])
+                return ([], [], [], [])
             }
             s.pending.append(contentsOf: pcm)
             var blocks: [[UInt8]] = []
@@ -129,7 +151,7 @@ public final class AudioCapture: @unchecked Sendable {
                 start += size
             }
             s.pending.removeFirst(start)
-            return (blocks, s.rawListeners.map(\.run), s.listeners.map(\.run))
+            return (blocks, s.rawListeners.map(\.run), s.listeners.map(\.run), s.stereoListeners.map(\.run))
         }
         for block in work.blocks {
             for listener in work.raw {
@@ -137,6 +159,57 @@ public final class AudioCapture: @unchecked Sendable {
             }
             for listener in work.samples {
                 listener(Self.toSamples(block))
+            }
+            if !work.stereo.isEmpty {
+                let samples: [Double] = Self.toSamples(block)
+                for listener in work.stereo {
+                    listener(samples, samples)
+                }
+            }
+        }
+    }
+
+    /// Accepts interleaved left/right PCM (the input's queue): whole blocks of `block` frames; the raw and sample
+    /// listeners get the left channel (as from a mono capture), the stereo listeners both.
+    func acceptStereo(_ pcm: [UInt8], generation: UInt64) {
+        let size = Self.block * 4
+        typealias Work = (blocks: [[UInt8]], raw: [@Sendable ([UInt8]) -> Void], samples: [@Sendable ([Double]) -> Void],
+                          stereo: [@Sendable ([Double], [Double]) -> Void])
+        let work: Work = state.withLock { s in
+            guard s.running, s.generation == generation else {
+                return ([], [], [], [])
+            }
+            s.pendingStereo.append(contentsOf: pcm)
+            var blocks: [[UInt8]] = []
+            var start = 0
+            while s.pendingStereo.count - start >= size {
+                blocks.append(Array(s.pendingStereo[start..<(start + size)]))
+                start += size
+            }
+            s.pendingStereo.removeFirst(start)
+            return (blocks, s.rawListeners.map(\.run), s.listeners.map(\.run), s.stereoListeners.map(\.run))
+        }
+        for block in work.blocks {
+            var left = [UInt8](repeating: 0, count: Self.block * 2)
+            var right = [UInt8](repeating: 0, count: Self.block * 2)
+            for frame in 0..<Self.block {
+                left[2 * frame] = block[4 * frame]
+                left[2 * frame + 1] = block[4 * frame + 1]
+                right[2 * frame] = block[4 * frame + 2]
+                right[2 * frame + 1] = block[4 * frame + 3]
+            }
+            for listener in work.raw {
+                listener(left)
+            }
+            let leftSamples: [Double] = Self.toSamples(left)
+            for listener in work.samples {
+                listener(leftSamples)
+            }
+            if !work.stereo.isEmpty {
+                let rightSamples: [Double] = Self.toSamples(right)
+                for listener in work.stereo {
+                    listener(leftSamples, rightSamples)
+                }
             }
         }
     }

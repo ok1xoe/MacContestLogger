@@ -135,6 +135,61 @@ import Testing
         capture.removeListener(samples)
     }
 
+    /// A stereo input: the raw and sample listeners get the left channel (as the mono capture did), the stereo
+    /// listeners both channels of the same block; a mono feed gives the stereo listeners the same samples twice.
+    @Test func stereoBlocksSplitLeftAndRight() {
+        let capture = AudioCapture()
+        let seen = Collected()
+        _ = capture.addRawListener { seen.add("raw \($0.count) \($0[0]) \($0[1])") }
+        _ = capture.addListener { seen.add("samples \($0.count) \($0[0])") }
+        let stereo = capture.addStereoListener { left, right in seen.add("stereo \(left.count) \(left[0]) \(right[0])") }
+        let generation = capture.startWithoutDevice()
+        // 1,024 frames of left = 0x0100, right = 0x0200, delivered in two pieces.
+        let frames: [UInt8] = (0..<1_024).flatMap { _ in [UInt8(0), 1, 0, 2] }
+        capture.acceptStereo(Array(frames[0..<1_000]), generation: generation)
+        #expect(seen.all.isEmpty)
+        capture.acceptStereo(Array(frames[1_000...]), generation: generation)
+        let left = AudioCapture.toSamples([0, 1])[0]
+        let right = AudioCapture.toSamples([0, 2])[0]
+        #expect(seen.all == ["raw 2048 0 1", "samples 1024 \(left)", "stereo 1024 \(left) \(right)"])
+        capture.accept([UInt8](repeating: 0, count: 2_048), generation: generation)
+        #expect(seen.all.last == "stereo 1024 0.0 0.0")
+        capture.removeStereoListener(stereo)
+        capture.accept([UInt8](repeating: 0, count: 2_048), generation: generation)
+        #expect(seen.all.last?.hasPrefix("samples") == true)
+    }
+
+    /// The stereo converter: left = input channel 0, right = channel 1; a mono input on both.
+    @Test func stereoConverterKeepsTheChannelsApart() throws {
+        let format = try #require(AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 12_000, channels: 2,
+                                                interleaved: false))
+        let buffer = try #require(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4_800))
+        buffer.frameLength = 4_800
+        for i in 0..<4_800 {
+            buffer.floatChannelData![0][i] = 0.25
+            buffer.floatChannelData![1][i] = -0.5
+        }
+        let converter = try PcmStreamConverter(from: format, sampleRate: 12_000, channels: 2)
+        let bytes: [UInt8] = converter.convert(buffer)
+        #expect(bytes.count >= 4_000 * 4)
+        let frame = 2_000 * 4
+        let l = Int16(bitPattern: UInt16(bytes[frame]) | UInt16(bytes[frame + 1]) << 8)
+        let r = Int16(bitPattern: UInt16(bytes[frame + 2]) | UInt16(bytes[frame + 3]) << 8)
+        #expect(abs(Int(l) - 8_192) < 200, "\(l)")
+        #expect(abs(Int(r) + 16_384) < 200, "\(r)")
+        let mono = try #require(AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 12_000, channels: 1,
+                                              interleaved: false))
+        let one = try #require(AVAudioPCMBuffer(pcmFormat: mono, frameCapacity: 4_800))
+        one.frameLength = 4_800
+        for i in 0..<4_800 {
+            one.floatChannelData![0][i] = 0.25
+        }
+        let both: [UInt8] = try PcmStreamConverter(from: mono, sampleRate: 12_000, channels: 2).convert(one)
+        let ml = Int16(bitPattern: UInt16(both[frame]) | UInt16(both[frame + 1]) << 8)
+        let mr = Int16(bitPattern: UInt16(both[frame + 2]) | UInt16(both[frame + 3]) << 8)
+        #expect(ml == mr && abs(Int(ml) - 8_192) < 200, "\(ml) \(mr)")
+    }
+
     @Test func closeDropsPendingAndStaleBlocks() {
         let capture = AudioCapture()
         let seen = Collected()

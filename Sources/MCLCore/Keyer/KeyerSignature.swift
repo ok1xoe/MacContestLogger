@@ -31,6 +31,9 @@ public enum KeyerTexts {
 
     /// A failed fldigi transmit: `"fldigi: ${it.message ?: tr("nedostupné")} (běží fldigi s XML-RPC na host:port?)"`.
     public static func fldigiFailure(_ message: String?, host: String, port: Int) -> EntryStatus {
+        if host == DigitalConfig.builtinHost {
+            return EntryStatus.verbatim("RTTY: ").appending(message.map { EntryStatus.verbatim($0) } ?? .tr("nedostupné"))
+        }
         let head = EntryStatus.verbatim("fldigi: ")
         let reason: EntryStatus = message.map { EntryStatus.verbatim($0) } ?? .tr("nedostupné")
         let tail = EntryStatus.verbatim(" (běží fldigi s XML-RPC na " + host + ":" + String(port) + "?)")

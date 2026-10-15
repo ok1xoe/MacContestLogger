@@ -14,14 +14,19 @@ final class PcmStreamConverter: @unchecked Sendable {
     private let converter: AVAudioConverter
     private let ratio: Double
 
-    init(from input: AVAudioFormat, sampleRate: Double) throws(AudioIOError) {
-        guard let output = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: sampleRate, channels: 1,
-                                         interleaved: true) else {
+    /// `channels` 1 = the first input channel; 2 = the first two as interleaved left/right (a mono input on both).
+    init(from input: AVAudioFormat, sampleRate: Double, channels: Int = 1) throws(AudioIOError) {
+        guard let output = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: sampleRate,
+                                         channels: AVAudioChannelCount(channels == 2 ? 2 : 1), interleaved: true) else {
             throw AudioIOError("nepodporovaný formát " + String(sampleRate) + " Hz")
         }
         guard input.sampleRate > 0, input.channelCount > 0,
               let converter = AVAudioConverter(from: input, to: output) else {
             throw AudioIOError("nelze převést " + input.description)
+        }
+        if channels == 2 {
+            // Left = input channel 0, right = input channel 1 (or 0 again for a mono input): no mixing.
+            converter.channelMap = input.channelCount >= 2 ? [0, 1] : [0, 0]
         }
         self.outputFormat = output
         self.converter = converter
@@ -48,7 +53,7 @@ final class PcmStreamConverter: @unchecked Sendable {
                 return input
             }
             if let samples = buffer.int16ChannelData, buffer.frameLength > 0 {
-                let count = Int(buffer.frameLength)
+                let count = Int(buffer.frameLength) * Int(outputFormat.channelCount)
                 bytes.reserveCapacity(bytes.count + count * 2)
                 for i in 0..<count {
                     let value = UInt16(bitPattern: samples[0][i])
@@ -67,17 +72,19 @@ final class PcmStreamConverter: @unchecked Sendable {
 /// format is silently dropped (a Java read would give zero bytes). Called only from the tap thread.
 final class LazyConverter: @unchecked Sendable {
     private let sampleRate: Double
+    private let channels: Int
     private var converter: PcmStreamConverter?
     private var format: AVAudioFormat?
 
-    init(sampleRate: Double) {
+    init(sampleRate: Double, channels: Int = 1) {
         self.sampleRate = sampleRate
+        self.channels = channels
     }
 
     func convert(_ buffer: AVAudioPCMBuffer) -> [UInt8] {
         if converter == nil || format != buffer.format {
             format = buffer.format
-            converter = try? PcmStreamConverter(from: buffer.format, sampleRate: sampleRate)
+            converter = try? PcmStreamConverter(from: buffer.format, sampleRate: sampleRate, channels: channels)
         }
         return converter?.convert(buffer) ?? []
     }
@@ -92,14 +99,18 @@ final class LazyConverter: @unchecked Sendable {
 final class AudioInputEngine: @unchecked Sendable {
 
     private let sampleRate: Double
+    private let channels: Int
     private let deviceName: String?
     private let queue: DispatchQueue
     private let onPcm: @Sendable ([UInt8]) -> Void
     private let lock = NSLock()
     private var engine: AVAudioEngine?
 
-    init(sampleRate: Double, deviceName: String?, queue: DispatchQueue, onPcm: @escaping @Sendable ([UInt8]) -> Void) {
+    /// `channels` 2 = interleaved left/right PCM (`PcmStreamConverter`).
+    init(sampleRate: Double, channels: Int = 1, deviceName: String?, queue: DispatchQueue,
+         onPcm: @escaping @Sendable ([UInt8]) -> Void) {
         self.sampleRate = sampleRate
+        self.channels = channels
         self.deviceName = deviceName
         self.queue = queue
         self.onPcm = onPcm
@@ -124,7 +135,7 @@ final class AudioInputEngine: @unchecked Sendable {
         guard hardware.sampleRate > 0, hardware.channelCount > 0 else {
             throw AudioIOError("vstup nemá žádný kanál")
         }
-        let converter = LazyConverter(sampleRate: sampleRate)
+        let converter = LazyConverter(sampleRate: sampleRate, channels: channels)
         let queue = self.queue
         let onPcm = self.onPcm
         input.installTap(onBus: 0, bufferSize: 4096, format: nil) { buffer, _ in
