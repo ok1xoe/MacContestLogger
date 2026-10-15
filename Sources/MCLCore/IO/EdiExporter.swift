@@ -38,7 +38,9 @@ public enum EdiExporter {
         switch band {
         case .m6: return "50 MHz"
         case .m2: return "144 MHz"
+        case .m125: return "222 MHz"
         case .cm70: return "432 MHz"
+        case .cm33: return "902 MHz"
         // Post-port microwave bands: the REG1TEST `PBand` spelling (decimal comma, GHz).
         case .cm23: return "1,3 GHz"
         case .cm13: return "2,3 GHz"

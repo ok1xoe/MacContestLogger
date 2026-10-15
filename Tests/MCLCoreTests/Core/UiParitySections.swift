@@ -399,7 +399,7 @@ enum UiParitySections {
     static func frequency(_ path: String, _ f: [String]) throws -> Rows {
         if path == "rows" {
             // The Java table has the 13 bands of v1.1.1; the microwave rows (post-port) are pinned in `BandRowsTests`.
-            let javaRows: [BandRows.Row] = BandRows.all.filter { !$0.band.isMicrowave }
+            let javaRows: [BandRows.Row] = BandRows.all.filter { Band.javaV111Cases.contains($0.band) }
             var out: [String] = [String(javaRows.count)]
             for row in javaRows {
                 out.append(String(describing: row.band).uppercased())

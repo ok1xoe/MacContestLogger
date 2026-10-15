@@ -41,7 +41,10 @@ public enum BandRows {
         Row(band: .m10, label: "10", cwKHz: 28000.0, phKHz: 28300.0, rttyKHz: 28080.0, diKHz: 28074.0),
         Row(band: .m6, label: "6", cwKHz: 50090.0, phKHz: 50150.0, rttyKHz: 50300.0, diKHz: 50313.0),
         Row(band: .m2, label: "2", cwKHz: 144050.0, phKHz: 144300.0, rttyKHz: 144600.0, diKHz: 144174.0),
+        // Post-port Region 2 rows: 222 MHz and 902 MHz (ARRL band plan calling frequencies, FT8 on 222.065).
+        Row(band: .m125, label: "1.25m", cwKHz: 222050.0, phKHz: 222100.0, rttyKHz: nil, diKHz: 222065.0),
         Row(band: .cm70, label: "70cm", cwKHz: 432050.0, phKHz: 432200.0, rttyKHz: 432600.0, diKHz: 432174.0),
+        Row(band: .cm33, label: "33cm", cwKHz: 902050.0, phKHz: 902100.0, rttyKHz: nil, diKHz: nil),
         // Post-port microwave rows (IARU R1 narrow-band centres of activity); no RTTY, only 23 cm has a digital
         // segment, so those cells are not clickable.
         Row(band: .cm23, label: "23cm", cwKHz: 1296050.0, phKHz: 1296200.0, rttyKHz: nil, diKHz: 1296174.0),

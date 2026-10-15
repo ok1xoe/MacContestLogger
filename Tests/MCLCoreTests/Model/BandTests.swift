@@ -170,7 +170,9 @@ import Testing
     }
 
     @Test func javaBandsAndTheirOrdinalsAreUnchanged() {
-        #expect(Array(Band.allCases.prefix(13)) == Band.javaV111Cases)
+        // The Java bands keep their relative order; 222 MHz (after 2 m) and 902 MHz (after 70 cm) sit in between.
+        #expect(Band.allCases.filter { Band.javaV111Cases.contains($0) } == Band.javaV111Cases)
+        #expect(Array(Band.allCases.prefix(12)) == Array(Band.javaV111Cases.prefix(12)))
         #expect(Band.javaV111Cases.map(\.rawValue) == ["160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m",
                                                       "10m", "6m", "2m", "70cm"])
         #expect(Band.javaV111Cases.allSatisfy { !$0.isMicrowave })

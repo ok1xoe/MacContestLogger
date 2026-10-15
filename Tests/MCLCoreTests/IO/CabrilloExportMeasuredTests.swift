@@ -453,6 +453,13 @@ import Testing
     /// (`C`). VHF contests (`iaru-r1-*`, `marconi-memorial`) do **not** pass the check in Java
     /// (`qsoCount 0`, `computed 0` × claimed 882) — a measured Java property, here it is just repeated.
     @Test func roundTripMatchesJavaForAllDefinitions() throws {
+        // The score check reads the VHF designators (`144`, `432`) with the Java table, i.e. as kHz without a band.
+        try Band.$javaV111Table.withValue(true) {
+            try roundTripMatchesJavaForAllDefinitionsInJavaTable()
+        }
+    }
+
+    private func roundTripMatchesJavaForAllDefinitionsInJavaTable() throws {
         let env = try Env()
         let ref = try Self.reference()
         #expect(ref.order.count == 22)

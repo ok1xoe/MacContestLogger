@@ -24,7 +24,7 @@ import Testing
     ]
 
     @Test func tableMatchesKotlinVerbatim() {
-        let javaRows: [BandRows.Row] = BandRows.all.filter { !$0.band.isMicrowave }
+        let javaRows: [BandRows.Row] = BandRows.all.filter { Band.javaV111Cases.contains($0.band) }
         #expect(javaRows.count == Self.measured.count)
         for (row, expected) in zip(javaRows, Self.measured) {
             #expect(row.band == expected.0)

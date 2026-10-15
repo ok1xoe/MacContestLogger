@@ -192,6 +192,11 @@ public enum BroadcastMapping {
 
     /// The band as the online-score breakdown writes it (`ScoreXml`): `20m` → `20`, `70cm` → `70`.
     static func n1mmBandName(_ band: Band) -> String {
-        JavaText.replace(JavaText.replace(band.adif, "m", ""), "c", "")
+        // Post-port bands by their Cabrillo designators: stripping `m`/`c` would make 1.25 m and 1.25 cm both "1.25"
+        // (likewise 6 m/6 cm/6 mm and 2 m/2 mm).
+        if band == .m125 || band == .cm33 || band.isMicrowave, let designator = band.cabrilloDesignator {
+            return designator
+        }
+        return JavaText.replace(JavaText.replace(band.adif, "m", ""), "c", "")
     }
 }
