@@ -83,6 +83,20 @@ public final class Waterfall: Sendable {
         }
     }
 
+    /// The newest `count` rows normalized as `normalizedRows()` (the same noise floor of the last row), for a look at
+    /// what is on the air now without copying the whole history.
+    public func latestRows(_ count: Int) -> [[Float]] {
+        state.withLock { s in
+            guard count > 0, let first = s.history.first, !first.isEmpty else { return [] }
+            let latest = first.sorted(by: Self.javaLess)
+            let floor = latest[latest.count / 2]
+            let span = 40.0
+            return s.history.prefix(count).map { row in
+                row.map { value in Float(JavaMath.max(0, JavaMath.min(1, (value - floor) / span))) }
+            }
+        }
+    }
+
     /// Frequency (Hz) of the strongest signal in the last row within the range lo…hi; `-1` if none.
     public func peakHz(lo loHz: Double, hi hiHz: Double) -> Double {
         state.withLock { s in

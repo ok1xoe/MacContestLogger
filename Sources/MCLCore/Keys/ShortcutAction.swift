@@ -92,6 +92,9 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case toggleStationType
     /// N1MM Alt+Z: set the pass frequency, broadcast to the other stations.
     case passFrequency
+    /// N1MM Alt+A / Shift+Alt+A: the next / previous spot of the Available window into the entry window.
+    case availNext
+    case availPrevious
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -173,12 +176,14 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .jumpLastCq: Spec(name: "JUMP_LAST_CQ", id: "jump_last_cq", label: "Na poslední CQ frekvenci (libovolné pásmo)", defaultKeys: "Ctrl+Alt+Q")
         case .toggleStationType: Spec(name: "TOGGLE_STATION_TYPE", id: "run_mult", label: "Multi-op: stanice Run / Mult", defaultKeys: "Ctrl+Alt+M")
         case .passFrequency: Spec(name: "PASS_FREQUENCY", id: "pass_freq", label: "Multi-op: pass frekvence (všem stanicím)", defaultKeys: "Alt+Z")
+        case .availNext: Spec(name: "AVAIL_NEXT", id: "avail_next", label: "Další spot z okna Dostupné", defaultKeys: "Alt+A")
+        case .availPrevious: Spec(name: "AVAIL_PREVIOUS", id: "avail_previous", label: "Předchozí spot z okna Dostupné", defaultKeys: "Alt+Shift+A")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

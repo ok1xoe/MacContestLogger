@@ -119,6 +119,10 @@ enum ProfileMergeSchema {
             Property("spotAllSpQsos", .boolean, .fieldDefault),
             Property("specialCalls", .list(.string), .fieldDefault),
             Property("specialCallsIncludeBonus", .boolean, .fieldDefault),
+            Property("availColumns", .list(.string), .fieldDefault),
+            Property("availColumnWidths", .map(.integer), .fieldDefault),
+            Property("availSummaryBands", .list(.string), .fieldDefault),
+            Property("availShowSummary", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ClusterConfig": [
             Property("runNumber", .int, .fieldDefault),

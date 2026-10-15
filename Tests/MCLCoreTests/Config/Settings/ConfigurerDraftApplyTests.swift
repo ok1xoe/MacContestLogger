@@ -324,6 +324,7 @@ import Testing
                                "clusterSoftware", "autoLogon", "showButtons", "showDxCount",
                                "saveSpots", "randomizeSpotFrequencies",
                                "spotComment", "spotAllSpQsos", "specialCalls", "specialCallsIncludeBonus",
+                               "availColumns", "availColumnWidths", "availSummaryBands", "availShowSummary",
                                "nextCallKey", "callStackOrder", "keyMap", "sendPartialCalls", "callExchangeSeparator",
                                "repeatMaxMinutes", "stackMessages", "outputDevice2", "outputLevel",
                                "callStackClearOnBandChange", "digitalCallStacking",

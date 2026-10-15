@@ -9,6 +9,11 @@ import Observation
 /// The filter is app state that is not saved (Kotlin `availMultsOnly`, `availBands`, `availModes`); an opening contest
 /// activation resets the bands and modes to the definition's (`setDefaults`, `AS:3605-3610`). The sort is the window's
 /// (Kotlin `remember`): `resetSort()` when the window opens.
+///
+/// Post-port (N1MM Available): every column sorts, the columns, their order and widths and the summary panel's bands
+/// are saved in `config.dxCluster`, the focus-radio filter shows only the active radio's band, Alt+A / Shift+Alt+A
+/// grab the next / previous spot of the list, the rows show the split, skimmer and gray-line marks, the spot's time
+/// and (with the waterfall open) whether its signal is seen.
 @Observable @MainActor
 public final class AvailMultModel {
 
@@ -20,6 +25,16 @@ public final class AvailMultModel {
         public let matrix: [Band?: AvailableMults.Counts]
         /// The filtered rows' counts (the title).
         public let counts: AvailableMults.Counts
+        /// When each row's spot arrived, by the upper-case call (the Time column).
+        public let spottedAt: [String: Date]
+
+        public init(rows: [SpotRow], matrix: [Band?: AvailableMults.Counts], counts: AvailableMults.Counts,
+                    spottedAt: [String: Date] = [:]) {
+            self.rows = rows
+            self.matrix = matrix
+            self.counts = counts
+            self.spottedAt = spottedAt
+        }
 
         public static let empty = Snapshot(rows: [], matrix: [:], counts: .zero)
     }
@@ -32,18 +47,37 @@ public final class AvailMultModel {
     public var modes: Set<String> = []
     /// Kotlin `showAvailFilter`: the bands and modes sheet.
     public var showFilter = false
+    /// N1MM „Focus radio": only the spots on the band of the radio / VFO with the focus.
+    public var focusRadioOnly = false
+    /// The sheet of the columns and the summary panel.
+    public var showColumns = false
+    /// The call Alt+A / Shift+Alt+A took last (the list's cursor; the row is highlighted).
+    public internal(set) var grabbedCall: String?
+    /// The call under the pointer (a middle click deletes its spot).
+    public var hoveredCall: String?
+    /// Column widths while a header divider is dragged (saved when the drag ends).
+    public internal(set) var draggedWidths: [String: Int] = [:]
     /// The sorted column (Kotlin `sortCol`, `FREQ` when the window opens).
-    public private(set) var sortColumn: AvailableMults.SortColumn = .freq
+    public private(set) var sortColumn: AvailableColumn = .freq
     /// Kotlin `sortAsc`.
     public private(set) var ascending = true
 
-    @ObservationIgnored private let feed: SpotFeed
+    @ObservationIgnored let feed: SpotFeed
     @ObservationIgnored private let analysis: SpotAnalysisModel
     @ObservationIgnored let contest: ContestModel
     @ObservationIgnored private let blacklist: BlacklistModel
     @ObservationIgnored private let callbook: CallbookModel
-    @ObservationIgnored private let rig: RigModel
+    @ObservationIgnored let rig: RigModel
+    @ObservationIgnored let config: ConfigModel
+    @ObservationIgnored let status: StatusModel
+    @ObservationIgnored let now: @Sendable () -> Date
     @ObservationIgnored private var cache: (key: CacheKey, snapshot: Snapshot)?
+    /// The bands before a click on the summary narrowed the filter to one band (a second click restores them).
+    @ObservationIgnored var bandsBeforeSummary: Set<Band>?
+    /// The waterfall's newest rows (`nil` while the waterfall window is closed); wired by the app model.
+    @ObservationIgnored public var spectrum: @MainActor () -> SignalHeard.Spectrum? = { nil }
+    /// Turns the rotator to a call (the row menu); wired by the app model.
+    @ObservationIgnored var rotorTurner: @MainActor (String) -> Void = { _ in }
 
     private struct CacheKey: Equatable {
         let feed: Int
@@ -52,7 +86,8 @@ public final class AvailMultModel {
         let multsOnly: Bool
         let bands: Set<Band>
         let modes: Set<String>
-        let column: AvailableMults.SortColumn
+        let focusBand: Band?
+        let column: AvailableColumn
         let ascending: Bool
     }
 
@@ -63,6 +98,9 @@ public final class AvailMultModel {
         let blacklist: BlacklistModel
         let callbook: CallbookModel
         let rig: RigModel
+        let config: ConfigModel
+        let status: StatusModel
+        let now: @Sendable () -> Date
     }
 
     init(_ dependencies: Dependencies) {
@@ -72,6 +110,9 @@ public final class AvailMultModel {
         blacklist = dependencies.blacklist
         callbook = dependencies.callbook
         rig = dependencies.rig
+        config = dependencies.config
+        status = dependencies.status
+        now = dependencies.now
     }
 
     /// Kotlin `!state.contest.isActive` → „Žádný aktivní závod."
@@ -82,22 +123,43 @@ public final class AvailMultModel {
     /// The rows, the matrix and the counts now (recomputed when the spots, the analysis or the filter changed).
     public func snapshot() -> Snapshot {
         let key = CacheKey(feed: feed.revision, analysis: analysis.revision, active: contest.isActive,
-                           multsOnly: multsOnly, bands: bands, modes: modes, column: sortColumn,
+                           multsOnly: multsOnly, bands: bands, modes: modes,
+                           focusBand: focusRadioOnly ? rig.currentBand : nil, column: sortColumn,
                            ascending: ascending)
+        // The speaker column changes with the waterfall, not with the spots: it is never cached.
+        if sortColumn == .heard {
+            return compute(active: key.active, focusBand: key.focusBand)
+        }
         if let cache, cache.key == key {
             return cache.snapshot
         }
-        let computed: Snapshot = compute(active: key.active)
+        let computed: Snapshot = compute(active: key.active, focusBand: key.focusBand)
         cache = (key, computed)
         return computed
     }
 
-    private func compute(active: Bool) -> Snapshot {
+    private func compute(active: Bool, focusBand: Band?) -> Snapshot {
         guard active else { return .empty }
-        let all: [SpotRow] = analysis.current().spotRows(feed.filteredSnapshot())
-        let filtered: [SpotRow] = AvailableMults.filter(rows: all, multsOnly: multsOnly, bands: bands, modes: modes)
-        return Snapshot(rows: AvailableMults.sorted(filtered, by: sortColumn, ascending: ascending),
-                        matrix: AvailableMults.matrix(rows: filtered), counts: AvailableMults.Counts.of(filtered))
+        let spots: [DxSpot] = feed.filteredSnapshot()
+        let all: [SpotRow] = analysis.current().spotRows(spots)
+        var filtered: [SpotRow] = AvailableMults.filter(rows: all, multsOnly: multsOnly, bands: bands, modes: modes)
+        if focusRadioOnly {
+            // No band (no frequency yet) shows nothing: the filter is about the radio's band.
+            filtered = filtered.filter { focusBand != nil && Band.from(frequencyHz: $0.freqHz) == focusBand }
+        }
+        var times: [String: Date] = [:]
+        for row in filtered {
+            if let spotted = feed.buffer.find(row.call) {
+                times[row.call.uppercased()] = spotted.spottedAt
+            }
+        }
+        let heard: SignalHeard.Spectrum? = sortColumn == .heard ? spectrum() : nil
+        let sorted: [SpotRow] = AvailableMults.sorted(filtered, by: sortColumn, ascending: ascending) { row in
+            AvailableRowFacts(spottedAt: times[row.call.uppercased()],
+                              heard: heard?.hears(freqHz: row.freqHz) ?? false)
+        }
+        return Snapshot(rows: sorted, matrix: AvailableMults.matrix(rows: filtered),
+                        counts: AvailableMults.Counts.of(filtered), spottedAt: times)
     }
 
     /// The title `tr("Dostupné — %s Mults, %s Qs z %s spotů", …)`.
@@ -115,7 +177,7 @@ public final class AvailMultModel {
     }
 
     /// Kotlin `onSort(col)`: the same column flips the direction, another one sorts it ascending.
-    public func sort(by column: AvailableMults.SortColumn) {
+    public func sort(by column: AvailableColumn) {
         if sortColumn == column {
             ascending.toggle()
         } else {
@@ -137,8 +199,10 @@ public final class AvailMultModel {
         feed.spotFilter().isPreferred(row.spotter)
     }
 
-    /// A click on a row: tune to the call's spot, or (none left in the buffer) `qsy(freq, call)`.
+    /// A click on a row: tune to the call's spot, or (none left in the buffer) `qsy(freq, call)`. With two radios a
+    /// spot on the other radio's band first takes the focus there (N1MM focus follows spot).
     public func click(_ row: SpotRow) {
+        rig.focusRadio(forSpotHz: row.freqHz)
         if let spot = rig.spotForCall(row.call) {
             rig.tuneToSpot(spot)
         } else {

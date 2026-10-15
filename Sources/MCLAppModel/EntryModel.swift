@@ -145,6 +145,8 @@ public final class EntryModel {
     @ObservationIgnored var selfSpotEffectPending = false
     /// The spot actions (Spot It, Store, Mark, the navigation, the self-spot store); wired by the app.
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
+    /// The Available window's list (Alt+A / Shift+Alt+A).
+    @ObservationIgnored weak var availMult: AvailMultModel?
     /// The band map's rig controls (Wide/Narrow filter, CW reverse) for Alt+' and Ctrl+Alt+R; set by the app.
     @ObservationIgnored weak var bandmapControls: BandmapModel?
     /// N1MM: SH/DX typed in the call field goes to the DX cluster; `false` = not connected. Set by the app.

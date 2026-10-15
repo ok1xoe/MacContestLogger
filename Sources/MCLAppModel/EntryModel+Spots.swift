@@ -146,6 +146,14 @@ extension EntryModel {
             toggleDxClusterWindow()
             return
         }
+        if action == .availNext || action == .availPrevious {
+            guard let availMult else {
+                unavailable()
+                return
+            }
+            availMult.grab(forward: action == .availNext)
+            return
+        }
         guard let spots = spotNavigation else {
             unavailable()
             return

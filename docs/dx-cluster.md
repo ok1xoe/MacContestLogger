@@ -459,5 +459,5 @@ The buffer is never changed by the filter, so unhiding a band brings its spots b
 Store, self-spots) are never hidden. Every station applies its own filter to the spots it receives; a spot shared by
 a master station arrives unfiltered. The world map, the multiplier grids and the callbook prefetch read the whole
 buffer. The spot timeout is the existing *Buffer spotů (min)* setting and a QSY that moves away from a spotted
-frequency uses the existing self-spot threshold; neither has new settings. The Available window's per-radio (SO2R)
-selection is not part of this filter.
+frequency uses the existing self-spot threshold; neither has new settings. The [Available window](available-window.md)'s
+focus-radio filter (SO2R / SO2V) is not part of this filter.
