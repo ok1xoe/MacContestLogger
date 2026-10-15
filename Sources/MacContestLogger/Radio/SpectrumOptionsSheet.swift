@@ -20,6 +20,7 @@ struct SpectrumOptionsSheet: View {
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
+                    sourceAndNetwork
                     display
                     signals
                     behaviour
@@ -43,6 +44,53 @@ struct SpectrumOptionsSheet: View {
             get: { model.setup.flag(key) },
             set: { value in model.updateSetup { $0.set(key, flag: value) } }))
             .accessibilityIdentifier(id)
+    }
+
+    private var sourceAndNetwork: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: language.tr("Zdroj a síť")).windowFont(13, weight: .medium)
+            Picker(language.tr("Zdroj spektra"), selection: Binding(
+                get: { model.setup.source },
+                set: { value in model.updateSetup { $0.source = value } })) {
+                Text(verbatim: language.tr("Audio přijímače")).tag(SpectrumSourceKind.audio)
+                Text(verbatim: language.tr("Externí přes UDP (SDR, CW Skimmer…)")).tag(SpectrumSourceKind.external)
+            }
+            .accessibilityIdentifier("spectrum.source")
+            HStack(spacing: 8) {
+                SpectrumCommitField(label: language.tr("Jméno zdroje (prázdné = první slyšený)"),
+                                    value: model.setup.text(.externalName), width: 200) { text in
+                    model.updateSetup { $0.set(.externalName, text) }
+                }
+                if !model.heardSources.isEmpty {
+                    Menu(language.tr("Slyšené zdroje")) {
+                        ForEach(model.heardSources, id: \.self) { name in
+                            Button(name) {
+                                model.updateSetup { $0.set(.externalName, name) }
+                            }
+                        }
+                    }
+                    .fixedSize()
+                    .accessibilityIdentifier("spectrum.heard")
+                }
+            }
+            flag(.udpReceive, "Přijímat spektrum přes UDP (N1MM, port 13064)", id: "spectrum.udpReceive")
+            SpectrumCommitField(label: language.tr("Adresa příjmu (host:port)"), value: model.setup.text(.udpBind),
+                                width: 200) { text in
+                model.updateSetup { $0.set(.udpBind, text) }
+            }
+            flag(.relayEnabled, "Přeposílat zobrazené spektrum přes UDP", id: "spectrum.relay")
+            HStack(spacing: 8) {
+                SpectrumCommitField(label: language.tr("Cíle (host:port, oddělené čárkou)"),
+                                    value: model.setup.text(.relayTargets), width: 220) { text in
+                    model.updateSetup { $0.set(.relayTargets, text) }
+                }
+                SpectrumCommitField(label: language.tr("Jméno tohoto zdroje"), value: model.setup.text(.relayName),
+                                    width: 120) { text in
+                    model.updateSetup { $0.set(.relayName, text) }
+                }
+            }
+        }
+        .windowFont(12)
     }
 
     private var display: some View {
@@ -134,5 +182,34 @@ struct SpectrumOptionsSheet: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .windowFont(12)
+    }
+}
+
+/// A text option saved when Return is pressed or the field goes (a half-typed address is never applied).
+private struct SpectrumCommitField: View {
+    let label: String
+    let value: String
+    let width: CGFloat
+    let commit: (String) -> Void
+
+    @State private var text: String = ""
+    @State private var loaded = false
+
+    var body: some View {
+        ToolField(label: label) {
+            TextField("", text: $text)
+                .textFieldStyle(.roundedBorder)
+                .windowFont(12, design: .monospaced)
+                .frame(width: width)
+                .accessibilityLabel(Text(verbatim: label))
+                .onSubmit { commit(KotlinStrings.trim(text)) }
+                .onAppear {
+                    if !loaded {
+                        text = value
+                        loaded = true
+                    }
+                }
+                .onDisappear { commit(KotlinStrings.trim(text)) }
+        }
     }
 }

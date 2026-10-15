@@ -61,6 +61,32 @@ The threshold, reference and range are remembered.
   average of the shown range; 500 Hz wide in CW, 3 kHz in phone, 1 kHz in digital modes), numbered 1–5 by how
   quiet they are. While they are shown Shift+arrows jump between them; press the button again (**Zrušit** / Cancel) to remove them.
 
+### Spectrum from an SDR or another station (UDP)
+
+The window can also show a wide spectrum sent by another program in N1MM's spectrum format (UDP, port
+13064) — CW Skimmer ("Send Spectrum via UDP"), Waterfall Bandmap, KE9NS PowerSDR, N1MM SDR Server, or another
+logger relaying its spectrum. In the **options → Source and network**:
+
+- **Spectrum source**: *Receiver audio* (the 0–3 kHz waterfall above) or *External over UDP*.
+- **Source name**: the name the program sends (e.g. `CW Skimmer`); empty = the first source heard. Sources
+  heard so far are offered in **Heard sources**.
+- **Receive spectrum data over UDP** (off by default) and the **receive address** (`0.0.0.0:13064`; the port can
+  be shared with other programs on this Mac). Press Return to apply a changed address.
+- Everything above works the same on an external spectrum: signal markers, Shift+arrows, snapping, the CQ finder,
+  the spots, zoom and the waterfall; the yellow line is then the rig's receive frequency in every mode.
+- **Relay the shown spectrum over UDP** (off by default): five lines a second of what the window shows (the
+  receiver audio or an external source) go to the **targets** (`host:port`, comma separated — another MCL or
+  N1MM+ listens on 13064) under **Name of this source**. A received source with the same name is not sent back.
+
+The socket is bound and the relay sends only while the window is open. Datagrams are only received from and
+sent to the addresses you enter; nothing is transmitted on the air.
+
+Not supported (they need hardware access MCL does not have): the Icom CI-V scope (the rig is controlled through
+`rigctld`, which owns the CAT port; hamlib offers scope data only in its optional UDP multicast snapshots, not
+through the rigctld commands MCL uses), the Flex SmartSDR panadapter protocol and
+SpyServer / ExtIO SDRs directly — use a program that sends N1MM spectrum datagrams instead (for example
+CW Skimmer or SDR Server on another computer).
+
 ### Zoom and options
 
 - **−** / **+** zoom the spectrum and the waterfall (×1 … ×16) around the receive frequency.

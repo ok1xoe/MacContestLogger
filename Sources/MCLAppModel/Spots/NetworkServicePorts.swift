@@ -21,6 +21,7 @@ public protocol WsjtxListening: UdpListening {
 extension WsjtxListener: WsjtxListening {}
 extension N1mmListener: UdpListening {}
 extension AdifUdpListener: UdpListening {}
+extension SpectrumUdpListener: UdpListening {}
 
 /// The UDP services of the integrations: the three receivers and the broadcaster. The factories block
 /// (DNS, bind) — the caller runs them on a lane of its own, never on the main thread or in the cooperative pool. The
@@ -44,6 +45,12 @@ public struct UdpPorts: Sendable {
     /// JTDX's TCP logbook receiver (ADIF over TCP); `nil` result = inert.
     public var makeAdifTcpListener: @Sendable (_ host: String, _ port: Int, _ handler: @escaping @Sendable (String) -> Void)
         throws -> (any UdpListening)? = { _, _, _ in nil }
+    /// The spectrum display's receiver of N1MM spectrum datagrams (UDP 13064); `nil` result = inert.
+    public var makeSpectrumListener: @Sendable (_ host: String, _ port: Int,
+                                                _ handler: @escaping @Sendable (SpectrumPacket) -> Void)
+        throws -> (any UdpListening)? = { _, _, _ in nil }
+    /// One datagram to `host:port` (the spectrum relay); the inert ports send nothing.
+    public var sendDatagram: @Sendable (_ bytes: [UInt8], _ host: String, _ port: Int) throws -> Void = { _, _, _ in }
 
     public init(
         makeWsjtxListener: @escaping @Sendable (String, Int, WsjtxListener.Handler) throws -> (any WsjtxListening)?,
@@ -90,6 +97,24 @@ public struct UdpPorts: Sendable {
             adif: { host, port, handler in
                 try AdifUdpListener(bindHost: host, bindPort: port, sharePort: true, handler: handler)
             })
+        .withSpectrum(
+            listener: { host, port, handler in
+                try SpectrumUdpListener(bindHost: host, bindPort: port, handler: handler)
+            },
+            send: { bytes, host, port in
+                try UdpSender.send(bytes, host: host, port: port)
+            })
+
+    /// These ports with the spectrum display's receiver and relay sender.
+    public func withSpectrum(
+        listener: @escaping @Sendable (String, Int, @escaping @Sendable (SpectrumPacket) -> Void) throws
+            -> (any UdpListening)?,
+        send: @escaping @Sendable ([UInt8], String, Int) throws -> Void) -> UdpPorts {
+        var copy = self
+        copy.makeSpectrumListener = listener
+        copy.sendDatagram = send
+        return copy
+    }
 
     /// These ports with the shared-port receivers.
     public func sharing(

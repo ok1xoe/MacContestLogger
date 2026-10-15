@@ -132,6 +132,8 @@ extension AppModel {
         availMult.spectrum = { [weak model] in
             model?.spectrum()
         }
+        // The UDP receiver and relay (inert without the network).
+        model.network = integrations?.deps.network
         // The spots over the spectrum, the `@frequency` spots of unknown signals and Shift+Up/Down.
         model.spotsProvider = { [weak self] lo, hi in
             self?.spectrumSpots(lowHz: lo, highHz: hi) ?? []

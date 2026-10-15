@@ -35,6 +35,8 @@ public final class WaterfallModel {
     public private(set) var error: String?
     /// The audio frequency under the pointer (`nil` = the pointer is outside).
     public private(set) var hoverHz: Double?
+    /// The frequency on the band under the pointer.
+    public private(set) var hoverRfHz: Int64?
     /// The zoom level (N1MM +/-; not saved).
     public private(set) var zoom: Int = 1
     /// The pane layout follows the window's shape (N1MM „Auto" orientation); reported by the view.
@@ -58,6 +60,23 @@ public final class WaterfallModel {
                                                   rows: Int32(WaterfallPixels.rows))
     /// The receiver audio as a spectrum source.
     @ObservationIgnored let audioSource: AudioSpectrumSource
+    /// The spectrum lines of external programs over UDP (N1MM 13064).
+    @ObservationIgnored let externalSource = ExternalSpectrumSource()
+    /// The network ports (the UDP receiver and the relay); wired by the app model, `nil` = none.
+    @ObservationIgnored var network: NetworkPorts?
+    /// The bound UDP receiver and the address it was bound with.
+    @ObservationIgnored var listener: (any UdpListening)?
+    @ObservationIgnored var listenerBind: String?
+    /// Raised for every bind attempt: a bind that finishes after a newer one (or the close) is dropped.
+    @ObservationIgnored var bindGeneration = 0
+    /// The lane of the blocking socket work (bind, the relay's sends) — never the main thread.
+    @ObservationIgnored let socketQueue = DispatchQueue(label: "spectrum-udp", qos: .utility)
+    /// Refreshes until the next relayed line (5 a second).
+    @ObservationIgnored var relayCountdown = 0
+    /// The UDP receiver could not bind (shown in the info line).
+    public internal(set) var receiveError: String?
+    /// The external source names heard so far (N1MM's source drop-down).
+    public internal(set) var heardSources: [String] = []
     /// The trace, decay and detection shared by every source.
     @ObservationIgnored let pipeline = SpectrumPipeline()
     @ObservationIgnored private let audio: AudioModel
@@ -93,6 +112,7 @@ public final class WaterfallModel {
             _ = waterfall.add(samples)
         }
         schedule()
+        applyNetwork()
         hold.willAcquire()
         let failure: String? = await audio.acquire(Self.audioUser)
         guard isOpen else {
@@ -116,6 +136,7 @@ public final class WaterfallModel {
         generation += 1
         withdrawUnknownSpots()
         cqFrequencies = []
+        stopReceiving()
         timer?.cancel()
         timer = nil
         hold.release()
@@ -156,6 +177,7 @@ public final class WaterfallModel {
         guard edited != config.config.spectrum else { return }
         config.config.spectrum = edited
         config.saveSilently()
+        applyNetwork()
     }
 
     /// The view's shape (N1MM „Auto" orientation follows it).
@@ -178,6 +200,19 @@ public final class WaterfallModel {
 
     /// The line above the panes: the audio error, otherwise the hover frequency, otherwise the mode and pitch.
     public var infoLine: (text: EntryStatus, isError: Bool) {
+        if let receiveError {
+            return (RadioWindowTexts.spectrumReceiveError(receiveError), true)
+        }
+        if setup.source == .external {
+            if let hoverHz = hoverRfHz {
+                return (.verbatim(RadioWindowTexts.spectrumHover(rfHz: hoverHz)), false)
+            }
+            if picture == nil {
+                return (RadioWindowTexts.spectrumWaiting(name: setup.text(.externalName),
+                                                         receiving: setup.flag(.udpReceive)), false)
+            }
+            return (RadioWindowTexts.spectrumExternalInfo(name: externalSource.currentName ?? ""), false)
+        }
         if let error {
             return (RadioWindowTexts.waterfallError(error), true)
         }
@@ -206,6 +241,9 @@ public final class WaterfallModel {
     /// The axis and visible bins now: the last picture's, or (before the first line) the receiver audio's on the
     /// current tuning.
     private var axisAndWindow: (axis: SpectrumFrame, window: Range<Int>) {
+        if setup.source == .external, let picture {
+            return (picture.axis, picture.window)
+        }
         let bins: Int = Int(waterfall.bins)
         let axis: SpectrumFrame = SpectrumFrame.audio(levelsDb: [Double](repeating: 0, count: Swift.max(0, bins)),
                                                       maxHz: waterfall.maxHz, dialHz: tuning.dialHz,
@@ -238,6 +276,10 @@ public final class WaterfallModel {
     /// The yellow RX line (in CW the CW pitch line) as a fraction of the frequency axis, `nil` outside CW (the
     /// receiver audio has no line for the carrier of a sideband).
     public var pitchLine: Double? {
+        if setup.source == .external {
+            // An SDR shows the band: the RX line is the dial frequency in every mode.
+            return dialHz > 0 ? fraction(ofHz: Double(rxHz)) : nil
+        }
         guard RadioWindowTexts.showsPitchLine(rawMode: rawMode) else { return nil }
         guard dialHz > 0 else {
             return fraction(ofHz: Double(pitchHz))
@@ -269,6 +311,7 @@ public final class WaterfallModel {
     /// The pointer moved to a position along the frequency axis (0…1).
     public func hover(fraction: Double) {
         let hz: Double = hz(atFraction: fraction)
+        hoverRfHz = Int64(hz.rounded())
         hoverHz = SignalHeard.audioHz(rfHz: Int64(hz.rounded()), dialHz: dialHz, rawMode: rawMode,
                                       cwPitch: Int32(clamping: pitchHz))
         if dialHz <= 0 {
@@ -279,6 +322,7 @@ public final class WaterfallModel {
     /// The pointer left the image.
     public func hoverEnded() {
         hoverHz = nil
+        hoverRfHz = nil
     }
 
     /// A press on the waterfall image: with a known dial frequency the rig tunes to that audio frequency on the band.
@@ -347,7 +391,10 @@ public final class WaterfallModel {
     func refresh() {
         guard !rendering else { return }
         rendering = true
-        let source: any SpectrumSource = audioSource
+        let source: any SpectrumSource = activeSource
+        if setup.source == .external {
+            externalSource.select(setup.text(.externalName))
+        }
         let pipeline: SpectrumPipeline = self.pipeline
         let tuning: SpectrumTuning = self.tuning
         let setup: SpectrumSetup = self.setup
@@ -374,7 +421,9 @@ public final class WaterfallModel {
                 if self.picture != rendered.picture {
                     self.picture = rendered.picture
                     self.pictureChanged()
+                    self.relayIfDue()
                 }
+                self.noteHeardSources()
             }
         }
     }
