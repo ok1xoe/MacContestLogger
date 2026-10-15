@@ -53,6 +53,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # The universal build plus the DMG need more space than the runner has left once the vendored C++ core is in;
+      # drop what this job never uses (other Xcode versions, simulator images, the Android SDK) before building.
+      - name: Free disk space
+        run: |
+          df -h /
+          sel="$(xcode-select -p | sed 's|/Contents/Developer$||')"
+          for x in /Applications/Xcode_*.app; do
+            [ -d "$x" ] && [ "$x" != "$sel" ] && sudo rm -rf "$x"
+          done
+          sudo rm -rf /Library/Developer/CoreSimulator/Images /Library/Developer/CoreSimulator/Volumes \
+            /Library/Developer/CoreSimulator/Caches "$HOME/Library/Android" "$HOME/Library/Caches" || true
+          df -h /
       - name: File times from git
         run: scripts/restore-mtimes.sh
       # Restore only: release runs never save a cache entry (no entry per tag, no eviction of ci.yml's cache).
