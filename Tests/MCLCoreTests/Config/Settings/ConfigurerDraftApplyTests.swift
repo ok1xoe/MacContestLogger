@@ -315,6 +315,8 @@ import Testing
                                "checkUpdatesAtStart", "accessibilityAnnouncements", "qtcSetup", "rotorSetup",
                                "rotors", "offset", "bidirectional",
                                "callHistoryFile", "functionKeyFiles", "firstSerial", "scpFile", "goalFile",
+                               "civAddress", "pollRate", "reverseCw", "muteMicOnVoice", "subReceiverOn",
+                               "timeoutSeconds",
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",
                                "checkReverseThreshold", "checkReverseFromStart", "showUnmatchedCallMark",
