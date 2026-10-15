@@ -305,6 +305,28 @@ public struct NetMessages: Sendable, Equatable {
         return .choose
     }
 
+    /// N1MM right-click on a band button in a network: the online station working that band — by its announced pass
+    /// frequency (Alt+Z) first, else by its own frequency. `nil` = no station of the network is on the band.
+    public static func peerOnBand(_ band: Band, peers: [StationNetwork.Peer],
+                                  passFrequencies: [String: Int] = [:]) -> String? {
+        let online: [StationNetwork.Peer] = peers.filter(\.online)
+        func id(_ peer: StationNetwork.Peer) -> String? {
+            guard let id = peer.status.stationId, !KotlinText.isBlank(id) else { return nil }
+            return id
+        }
+        for peer in online {
+            if let id = id(peer), let hz = passFrequencies[id], hz > 0, Band.from(frequencyHz: hz) == band {
+                return id
+            }
+        }
+        for peer in online where Band.from(frequencyHz: peer.status.freqHz) == band {
+            if let id = id(peer) {
+                return id
+            }
+        }
+        return nil
+    }
+
     /// Ctrl+Alt+P: the call in the field (trimmed, uppercased), then the network and the number of online peers.
     public static func startPass(typedCall: String, peers: [StationNetwork.Peer]?) -> PassStart {
         let call: String = JavaText.toUpperCase(KotlinText.trim(typedCall))

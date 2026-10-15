@@ -2152,5 +2152,14 @@
  "Split vypnut": "Split aus",
  "Hlášení pro nevidomé (VoiceOver)": "Ansagen für blinde Operatoren (VoiceOver)",
  "Hlášení pro nevidomé zapnuta (VoiceOver)": "Ansagen für blinde Operatoren ein (VoiceOver)",
- "Hlášení pro nevidomé vypnuta": "Ansagen für blinde Operatoren aus"
+ "Hlášení pro nevidomé vypnuta": "Ansagen für blinde Operatoren aus",
+ "VHF: hledat volačku a lokátor v call history": "VHF: Rufzeichen und Locator in der Call History suchen",
+ "VHF: přepínat lokátory z call history": "VHF: Locator aus der Call History durchschalten",
+ "Závod nemá pole lokátoru": "Der Contest hat kein Locatorfeld",
+ "Napiš volačku nebo lokátor, který se má hledat": "Rufzeichen oder Locator für die Suche eingeben",
+ "Zpětné hledání v call history zapnuto (okno Check)": "Rückwärtssuche in der Call History eingeschaltet (Fenster Check)",
+ "Call history nezná pro tuto volačku žádný lokátor": "Die Call History kennt für dieses Rufzeichen keinen Locator",
+ "%s uložen do bandmapy na %s": "%s in der Bandmap auf %s gespeichert",
+ "Pass: na pásmu %s není žádná stanice sítě": "Pass: keine Netzwerkstation auf %s",
+ "Poslední stanici na toto pásmo": "Letzte Station auf dieses Band"
 }

@@ -170,6 +170,21 @@ public final class NetworkModel {
         }
     }
 
+    /// N1MM right-click on a band button with a call typed: the call goes to the network station working that band
+    /// (its pass frequency, else its own frequency). `false` = the network log is not connected — the caller does the
+    /// local action instead.
+    public func passToBand(_ band: Band, call: String) -> Bool {
+        guard isConnected, let peers = peers() else { return false }
+        let upper: String = KotlinStrings.uppercase(KotlinStrings.trim(call))
+        guard !upper.isEmpty else { return false }
+        guard let target = NetMessages.peerOnBand(band, peers: peers, passFrequencies: chat.passFrequencies) else {
+            show(.tr(NetTexts.passNoStationOnBandKey, .string(band.adif)))
+            return true
+        }
+        passCall(to: target, call: upper)
+        return true
+    }
+
     /// Kotlin `passCall(to, call)`: the call goes with the target station's frequency (it is on its own band) and the
     /// own frequency in the text; without a call the pending or the typed one.
     public func passCall(to: String, call: String? = nil) {

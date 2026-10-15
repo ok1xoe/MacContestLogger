@@ -328,6 +328,10 @@ extension EntryModel {
             quickEditStep(-1)
         case .quickEditForward:
             quickEditStep(1)
+        case .gridSearch:
+            gridSearch()
+        case .gridToggle:
+            toggleGrid()
         case .incrementNr:
             incrementNumber()
         case .wipeOther:

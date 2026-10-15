@@ -317,7 +317,13 @@ private struct BandGridView: View {
                         let status: CallBandStatus? = entry.bandStatuses[row.band]
                         BandCellView(label: row.label, cell: cell, status: status,
                                      statusText: status.map { app.language.tr(EntryViewMenu.statusKey($0)) },
-                                     clickable: entry.bandButtonsClick) {
+                                     clickable: entry.bandButtonsClick,
+                                     secondaryLabel: app.language.tr("Poslední stanici na toto pásmo"),
+                                     secondary: {
+                                         guard cell.enabled else { return }
+                                         entry.bandButtonSecondaryClick(band: row.band, mode: EntryGrid.mode(column),
+                                                                        startKHz: cell.kHz)
+                                     }) {
                             if let kHz = cell.kHz {
                                 entry.qsy(toKHz: kHz, mode: EntryGrid.mode(column))
                             }
@@ -337,6 +343,9 @@ private struct BandCellView: View {
     let statusText: String?
     /// N1MM „Band Button Left Click Enabled".
     let clickable: Bool
+    /// N1MM right-click: the last logged station to this band (a local spot), or a pass in a network.
+    let secondaryLabel: String
+    let secondary: @MainActor () -> Void
     let action: () -> Void
     @Environment(\.windowFontSize) private var size
 
@@ -350,6 +359,8 @@ private struct BandCellView: View {
         }
         .buttonStyle(.plain)
         .disabled(!cell.enabled || !clickable)
+        .overlay(SecondaryClickArea(action: secondary))
+        .accessibilityAction(named: Text(verbatim: secondaryLabel), secondary)
         .overlay(RoundedRectangle(cornerRadius: 3)
             .stroke(status.map { Color(nsColor: DomainColors.call($0)) } ?? Color.clear, lineWidth: 2))
         .accessibilityLabel(Text(verbatim: label))

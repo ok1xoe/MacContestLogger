@@ -95,6 +95,10 @@ public enum ShortcutAction: CaseIterable, Sendable {
     /// N1MM Alt+A / Shift+Alt+A: the next / previous spot of the Available window into the entry window.
     case availNext
     case availPrevious
+    /// N1MM Alt+= (VHF and up): the typed call and grid searched in the call history, the results in the Check window.
+    case gridSearch
+    /// N1MM Alt+- (VHF and up): the grid field toggles through the call history's grids and the typed one.
+    case gridToggle
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -178,12 +182,14 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .passFrequency: Spec(name: "PASS_FREQUENCY", id: "pass_freq", label: "Multi-op: pass frekvence (všem stanicím)", defaultKeys: "Alt+Z")
         case .availNext: Spec(name: "AVAIL_NEXT", id: "avail_next", label: "Další spot z okna Dostupné", defaultKeys: "Alt+A")
         case .availPrevious: Spec(name: "AVAIL_PREVIOUS", id: "avail_previous", label: "Předchozí spot z okna Dostupné", defaultKeys: "Alt+Shift+A")
+        case .gridSearch: Spec(name: "GRID_SEARCH", id: "grid_search", label: "VHF: hledat volačku a lokátor v call history", defaultKeys: "Alt+EQUALS")
+        case .gridToggle: Spec(name: "GRID_TOGGLE", id: "grid_toggle", label: "VHF: přepínat lokátory z call history", defaultKeys: "Alt+MINUS")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

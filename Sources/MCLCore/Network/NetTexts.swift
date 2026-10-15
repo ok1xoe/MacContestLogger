@@ -16,6 +16,7 @@ public enum NetTexts {
     static let passNeedCallKey = "Pass: napiš volačku, kterou chceš předat"
     public static let passNeedCallKeyPublic = passNeedCallKey
     static let passNotConnectedKey = "Pass: síťový deník není připojený"
+    public static let passNoStationOnBandKey = "Pass: na pásmu %s není žádná stanice sítě"
     static let passChooseKey = "Pass %s: vyber stanici v okně Stav sítě"
     static let partnerNotConnectedKey = "Partner: síťový deník není připojený"
     static let passNoteKey = "u mě %.1f"
