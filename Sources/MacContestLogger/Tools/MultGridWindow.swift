@@ -118,6 +118,16 @@ private struct MultGridContent: View {
                     }
                 }
             }
+            if model.contestModes.count > 1 {
+                Menu(language.tr("Zobrazené módy")) {
+                    ForEach(model.contestModes, id: \.self) { mode in
+                        Toggle(isOn: Binding(get: { model.shownModes.contains(mode) },
+                                             set: { model.setMode(mode, shown: $0) })) {
+                            Text(verbatim: mode)
+                        }
+                    }
+                }
+            }
             Toggle(isOn: Binding(get: { model.showAll }, set: { model.setShowAll($0) })) {
                 Text(verbatim: language.tr("Zobrazit všechny možné násobiče"))
             }

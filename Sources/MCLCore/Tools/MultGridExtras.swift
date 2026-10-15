@@ -26,6 +26,27 @@ public enum MultGridExtras {
             : ordered.map(\.adif).joined(separator: ",")
     }
 
+    /// The `multGridBands` key of a kind's modes shown (`dxcc/modes`).
+    public static func modesKey(_ kind: String) -> String {
+        kind + "/modes"
+    }
+
+    /// The modes shown (`CW,SSB`), only those of the contest, in its order; `nil` = none saved or none left (the
+    /// default: the contest's first mode).
+    public static func modes(_ saved: String?, of contestModes: [String]) -> [String]? {
+        let picked: Set<String> = Set((saved ?? "").split(separator: ",").map {
+            $0.trimmingCharacters(in: .whitespaces).uppercased()
+        })
+        let out: [String] = contestModes.filter { picked.contains($0.uppercased()) }
+        return out.isEmpty ? nil : out
+    }
+
+    /// The modes as saved (`nil` = the default, the contest's first mode alone).
+    public static func savedModes(_ modes: [String], of contestModes: [String]) -> String? {
+        let ordered: [String] = contestModes.filter { modes.contains($0) }
+        return ordered.isEmpty || ordered == Array(contestModes.prefix(1)) ? nil : ordered.joined(separator: ",")
+    }
+
     /// The header of a band column (`160`, `70cm` → `70c`): the ADIF name without the `m`.
     public static func header(_ band: Band) -> String {
         String(band.adif.dropLast())

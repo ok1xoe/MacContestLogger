@@ -37,6 +37,39 @@ extension MultGridModel {
         saveSettings()
     }
 
+    /// The contest's modes (N1MM „Set bands and modes to be displayed"; the menu shows when there are two or more).
+    public var contestModes: [String] {
+        var out: [String] = []
+        for case let mode? in contest.definition?.modes ?? [] where !out.contains(mode) {
+            out.append(mode)
+        }
+        return out
+    }
+
+    /// The modes shown (saved in `multGridBands` under `<kind>/modes`); `nil` = the default, the contest's first mode.
+    var savedModes: [String]? {
+        _ = settingsRevision
+        return MultGridExtras.modes(config?.config.multGridBands[MultGridExtras.modesKey(kind)], of: contestModes)
+    }
+
+    /// The modes ticked in the menu.
+    public var shownModes: [String] {
+        savedModes ?? Array(contestModes.prefix(1))
+    }
+
+    public func setMode(_ mode: String, shown: Bool) {
+        var picked: [String] = shownModes
+        if shown {
+            picked.append(mode)
+        } else {
+            picked.removeAll { $0 == mode }
+        }
+        guard !picked.isEmpty, let config else { return }
+        config.config.multGridBands[MultGridExtras.modesKey(kind)] = MultGridExtras.savedModes(picked,
+                                                                                            of: contestModes)
+        saveSettings()
+    }
+
     /// The expected multipliers of the kind.
     public var expected: Set<String> {
         _ = settingsRevision

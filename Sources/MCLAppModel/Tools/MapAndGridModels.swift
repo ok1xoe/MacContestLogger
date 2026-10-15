@@ -467,13 +467,15 @@ public final class MultGridModel {
     /// The grid for the current spots (`contest.multiplierGrid(kind, spots)`), cached per analysis revision and spots.
     public var grid: MultGridView {
         let bands: [Band] = self.bands
+        let modes: [String]? = savedModes
         let key: String = [String(analysis.revision), String(feed.revision), String(spots.count),
-                           String(contest.isActive), bands.map(\.adif).joined(separator: ",")].joined(separator: ":")
+                           String(contest.isActive), bands.map(\.adif).joined(separator: ","),
+                           modes?.joined(separator: ",") ?? ""].joined(separator: ":")
         if let cache, cache.key == key {
             return cache.grid
         }
         let computed: MultGridView = contest.isActive
-            ? analysis.current().multiplierGrid(kind: kind, spots: spots, bands: bands) : .unavailable
+            ? analysis.current().multiplierGrid(kind: kind, spots: spots, bands: bands, modes: modes) : .unavailable
         cache = (key, computed)
         return computed
     }
