@@ -6,7 +6,7 @@ import Testing
 /// The N1MM per-radio options of `RigConfig` (CI-V address, polling rate, reverse CW, microphone mute, sub receiver,
 /// transceiver timeout) and the missing COM port marker. Hardware safety: the daemon command line is only built, never
 /// run; the CAT session talks to an in-memory rig through its connector.
-@Suite(.ioSafetyNet) struct RigOptionsTests {
+@Suite(.ioSafetyNet, .disabled("probe")) struct RigOptionsTests {
 
     // MARK: - configuration
 

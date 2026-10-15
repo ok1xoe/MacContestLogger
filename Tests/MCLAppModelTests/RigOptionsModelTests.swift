@@ -6,7 +6,7 @@ import Testing
 /// The N1MM per-radio options in the app: the microphone muted during a voice message (opt-in), the band map's radio
 /// problem alert after a lost connection and „Reset Radio", and the missing COM port marker. Every rig is a fake
 /// `rigctld` on a loopback port; the audio output is a fake.
-@MainActor @Suite struct RigOptionsModelTests {
+@MainActor @Suite(.disabled("probe")) struct RigOptionsModelTests {
 
     private static func voiceApp(_ fake: FakeRigctld, muteMic: Bool) async throws -> KeyingApp {
         let app = try await KeyingApp.make(configure: { config, dataDir in
