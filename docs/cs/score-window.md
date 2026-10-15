@@ -35,7 +35,7 @@ násobič, takže výsledek každého QSO v okně je přesně takový, jaký dá
 nezapisuje. QSO okna jsou ta, která se počítají ve zprávě (a ta, u nichž se doplní chybějící země);
 zobrazené skóre je skóre celého deníku. Když v okně není žádné QSO, nic se neprovede a stavový řádek to oznámí.
 
-**Přepočítat od tohoto QSO** v [nabídce řádku okna deníku](log-window.md#nabídka-řádku),
+**Přepočítat od tohoto QSO** v [nabídce řádku okna deníku](log-window.md#menu-řádku),
 obdoba N1MM **Rescore from this point on**, dělá totéž pro QSO od času zvoleného QSO dál.
 
 Při volném logování (bez závodu) okno jen oznámí, že rozpis není k dispozici.
