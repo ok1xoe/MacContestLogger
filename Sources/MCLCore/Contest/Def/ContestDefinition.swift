@@ -398,6 +398,10 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         /// unlike the country codes of `dxccIn` they tell Alaska, Hawaii or Asiatic Russia apart. Swift-only keys.
         public var entityIn: [Int?]?
         public var ownEntityIn: [Int?]?
+        /// I am an in-state station of the QSO party (`inState.sections` holds my ARRL section). Swift-only key.
+        public var inState: Bool?
+        /// The received field matches the regex (whole value, after trimming and upper-casing). Swift-only key.
+        public var fieldMatches: FieldMatches?
 
         public var not: Condition? {
             get { notBox?.value }
@@ -456,6 +460,8 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             ownDxccIn = object.list("ownDxccIn", of: String.self)
             entityIn = object.list("entityIn", of: Int32.self).map { $0.map { $0.map(Int.init) } }
             ownEntityIn = object.list("ownEntityIn", of: Int32.self).map { $0.map { $0.map(Int.init) } }
+            inState = object.bool("inState")
+            fieldMatches = object.decode("fieldMatches", as: FieldMatches.self)
         }
     }
 
@@ -469,6 +475,21 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
 
         static func == (lhs: ConditionBox, rhs: ConditionBox) -> Bool {
             lhs.value == rhs.value
+        }
+    }
+
+    public struct FieldMatches: YamlRecord, Equatable, Sendable {
+        public var field: String?
+        public var regex: String?
+
+        public init(field: String?, regex: String?) {
+            self.field = field
+            self.regex = regex
+        }
+
+        public init(yaml object: YamlObject) {
+            field = object.string("field")
+            regex = object.string("regex")
         }
     }
 
@@ -819,6 +840,28 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
     /// N1MM `IsWorkable`: who may be worked (`continentIs: EU`, `not: { ownDxcc: true }`…); a QSO outside it is
     /// logged with a warning and scores nothing. Swift-only key.
     public var workable: Condition?
+    /// QSO party in-state stations (Swift-only key): my ARRL section from the station data is one of `sections`
+    /// (N1MM decides in-state / out-of-state the same way). Read by the condition `inState`.
+    public var inState: InState?
+
+    public struct InState: YamlRecord, Equatable, Sendable {
+        public var sections: [String?]?
+
+        public init(sections: [String?]?) {
+            self.sections = sections
+        }
+
+        public init(yaml object: YamlObject) {
+            sections = object.list("sections", of: String.self)
+        }
+
+        /// Is the ARRL section one of `sections`? (trimmed, case-insensitive; blank = no)
+        public func contains(section: String?) -> Bool {
+            let wanted: String = KotlinText.trim(section ?? "").uppercased()
+            guard !wanted.isEmpty, let sections else { return false }
+            return sections.contains { ($0.map { KotlinText.trim($0).uppercased() }) == wanted }
+        }
+    }
 
     /// `numbering`: `perBand` = a sequence of its own on every band; `multiOpOnly` = only in a multi-transmitter
     /// category (N1MM `QsoNumbersByBand 2`).
@@ -886,5 +929,6 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         operating = object.decode("operating", as: Operating.self)
         numbering = object.decode("numbering", as: Numbering.self)
         workable = object.decode("workable", as: Condition.self)
+        inState = object.decode("inState", as: InState.self)
     }
 }

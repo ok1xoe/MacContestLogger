@@ -28,6 +28,7 @@ contests/arrl-vhf-sep.yaml
 contests/baltic-contest.yaml
 contests/bartg-hf-rtty.yaml
 contests/bartg-sprint-rtty.yaml
+contests/california-qso-party.yaml
 contests/cq-160-cw.yaml
 contests/cq-160-ssb.yaml
 contests/cq-m.yaml
@@ -50,6 +51,7 @@ contests/ea-rtty.yaml
 contests/eu-hf-championship.yaml
 contests/eu-sprint-cw.yaml
 contests/eu-sprint-ssb.yaml
+contests/florida-qso-party.yaml
 contests/ft-challenge.yaml
 contests/ha-dx.yaml
 contests/helvetia.yaml
@@ -80,6 +82,7 @@ contests/nac-50.yaml
 contests/naqp-cw.yaml
 contests/naqp-rtty.yaml
 contests/naqp-ssb.yaml
+contests/new-england-qso-party.yaml
 contests/nrau-baltic-cw.yaml
 contests/nrau-baltic-ssb.yaml
 contests/oceania-dx-cw.yaml
@@ -126,6 +129,9 @@ multipliers/arci_spc.yaml
 multipliers/arrl_sections.csv
 multipliers/arrl_sections.yaml
 multipliers/cq_zones.yaml
+multipliers/cqp_counties.csv
+multipliers/cqp_counties.yaml
+multipliers/cqp_qth.yaml
 multipliers/cwt_exchange.yaml
 multipliers/dok.yaml
 multipliers/dok_districts.yaml
@@ -133,6 +139,9 @@ multipliers/dx_flag.yaml
 multipliers/dxcc_entities.yaml
 multipliers/ea_provinces.csv
 multipliers/ea_provinces.yaml
+multipliers/fqp_counties.csv
+multipliers/fqp_counties.yaml
+multipliers/fqp_qth.yaml
 multipliers/grid_fields.yaml
 multipliers/grid_squares.yaml
 multipliers/ha_counties.csv
@@ -157,6 +166,9 @@ multipliers/lz_districts.csv
 multipliers/lz_districts.yaml
 multipliers/na_areas.csv
 multipliers/na_areas.yaml
+multipliers/neqp_counties.csv
+multipliers/neqp_counties.yaml
+multipliers/neqp_qth.yaml
 multipliers/nrau_regions.csv
 multipliers/nrau_regions.yaml
 multipliers/ok_om_districts.csv

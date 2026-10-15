@@ -1,0 +1,50 @@
+schemaVersion: 1
+id: new-england-qso-party
+metadata:
+  name: "New England QSO Party (NEQP)"
+  organizer: "New England QSO Party"
+  description: "first full weekend of May, 2000 UTC Saturday to 0500 UTC Sunday and 1300 to 2400 UTC Sunday. New England stations send RS(T) + 5-letter state+county code (CTCAP, MAMID; Connecticut uses its councils of government), others RS(T) + state/province or DX. New England stations work anyone, others work New England only. Phone 1 point, CW and digital 2 points; a station may be worked once per band and mode (a mobile again from every county). Multipliers once: others count the 68 New England counties; New England stations count states (a New England county counts as its state, DC as MD), provinces and DXCC countries other than the USA and Canada. In-state / out-of-state follows the ARRL section in the station data. Simplifications: the break on Sunday morning is not checked, VO1/VO2 count as one NL; set ROVERQTH to your 5-letter county (New England) or state/province (elsewhere) — it is what is sent. A county line QSO is logged as MAMID/WOR (one QSO per county)."
+  officialUrl: "https://www.neqp.org/rules"
+period: { durationHours: 28, startWeekday: SAT, startTime: "2000" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB, DIGITAL]
+
+inState:
+  sections: [CT, EMA, ME, NH, RI, VT, WMA]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: qth, type: TEXT, source: ROVER_QTH }      # my county (in New England) or state/province
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: qth, type: TEXT, required: true, split: true }
+
+# New England stations work anyone, others work New England stations only
+workable:
+  anyOf:
+    - { inState: true }
+    - { fieldMatches: { field: qth, regex: "^(CT|MA|ME|NH|RI|VT)[A-Z]{3}$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2
+    rules:
+      - { when: { mode: SSB }, value: { fixed: 1 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # W/VE stations only (DX stations send DX or a prefix)
+  - { id: states,    set: neqp_qth,       from: qth,      scope: ONCE,
+      when: { allOf: [ { inState: true }, { entityIn: [291, 1, 6, 110] } ] } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: ONCE,
+      when: { allOf: [ { inState: true }, { not: { entityIn: [291, 1, 6, 110] } } ] } }
+  - { id: counties,  set: neqp_counties, from: qth,      scope: ONCE, when: { inState: false } }
+
+dupe: { scope: PER_BAND_MODE, byField: qth }
+
+cabrillo: { contestName: NEQP, sentOrder: [rst, qth], receivedOrder: [rst, qth] }
+ui:
+  entryOrder: [call, qth]
+  logColumns: [time, call, band, mode, rst, qth, points, mult]

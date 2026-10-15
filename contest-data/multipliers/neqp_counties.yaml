@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: neqp_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "New England counties (NEQP, CT councils of government)" }
+valuesFile: neqp_counties.csv

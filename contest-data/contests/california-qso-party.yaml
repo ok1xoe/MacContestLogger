@@ -1,0 +1,44 @@
+schemaVersion: 1
+id: california-qso-party
+metadata:
+  name: "California QSO Party (CQP)"
+  organizer: "Northern California Contest Club"
+  description: "first full weekend of October, 1600 UTC Saturday to 2200 UTC Sunday. California stations send serial number + 4-letter county (CQP abbreviations), others serial + state/province or DX. California stations work everyone, others work California only. 3 points per CW or phone QSO; a station may be worked once per band and mode (a mobile again from every county). Multipliers: California stations count states and provinces (the first California county counts as CA, DC as MD), others the 58 California counties. In-state / out-of-state follows the ARRL section in the station data. Simplifications: the cap of 58 counted multipliers for California stations is not applied; set ROVERQTH to your county (California) or state/province (elsewhere) — it is what is sent. A county line QSO is logged as ALAM/CCOS (one QSO per county)."
+  officialUrl: "https://www.cqp.org/Rules.html"
+period: { durationHours: 30, startWeekday: SAT, startTime: "1600" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+inState:
+  sections: [EB, LAX, ORG, SB, SCV, SDG, SF, SJV, SV]
+
+exchange:
+  sent:
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+    - { id: qth, type: TEXT,   source: ROVER_QTH }      # my county (in California) or state/province
+  received:
+    - { id: nr,  type: SERIAL, required: true }
+    - { id: qth, type: TEXT,   required: true, split: true }
+
+# California stations work everyone, others work California stations only
+workable:
+  anyOf:
+    - { inState: true }
+    - { fieldMatches: { field: qth, regex: "^(ALAM|ALPI|AMAD|BUTT|CALA|COLU|CCOS|DELN|ELDO|FRES|GLEN|HUMB|IMPE|INYO|KERN|KING|LAKE|LASS|LANG|MADE|MARN|MARP|MEND|MERC|MODO|MONO|MONT|NAPA|NEVA|ORAN|PLAC|PLUM|RIVE|SACR|SBEN|SBER|SDIE|SFRA|SJOA|SLUI|SMAT|SBAR|SCLA|SCRU|SHAS|SIER|SISK|SOLA|SONO|STAN|SUTT|TEHA|TRIN|TULA|TUOL|VENT|YOLO|YUBA)$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 3 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # W/VE stations only (DX stations send DX or a prefix)
+  - { id: states,    set: cqp_qth,       from: qth,      scope: ONCE,
+      when: { allOf: [ { inState: true }, { entityIn: [291, 1, 6, 110] } ] } }
+  - { id: counties, set: cqp_counties, from: qth, scope: ONCE, when: { inState: false } }
+
+dupe: { scope: PER_BAND_MODE, byField: qth }
+
+cabrillo: { contestName: CA-QSO-PARTY, sentOrder: [nr, qth], receivedOrder: [nr, qth] }
+ui:
+  entryOrder: [call, nr, qth]
+  logColumns: [time, call, band, mode, nr, qth, points, mult]

@@ -1,0 +1,131 @@
+schemaVersion: 1
+id: cqp_qth
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "CQP: states and provinces (California counties count as CA)"
+  description: "The multipliers of a California station: 50 states and 13 provinces/territories; a California county counts as CA. DC counts as MD."
+values:
+  - { key: AL, label: "Alabama" }
+  - { key: AK, label: "Alaska" }
+  - { key: AZ, label: "Arizona" }
+  - { key: AR, label: "Arkansas" }
+  - { key: CA, label: "California" }
+  - { key: CO, label: "Colorado" }
+  - { key: CT, label: "Connecticut" }
+  - { key: DE, label: "Delaware" }
+  - { key: FL, label: "Florida" }
+  - { key: GA, label: "Georgia" }
+  - { key: HI, label: "Hawaii" }
+  - { key: ID, label: "Idaho" }
+  - { key: IL, label: "Illinois" }
+  - { key: IN, label: "Indiana" }
+  - { key: IA, label: "Iowa" }
+  - { key: KS, label: "Kansas" }
+  - { key: KY, label: "Kentucky" }
+  - { key: LA, label: "Louisiana" }
+  - { key: ME, label: "Maine" }
+  - { key: MD, label: "Maryland" }
+  - { key: MA, label: "Massachusetts" }
+  - { key: MI, label: "Michigan" }
+  - { key: MN, label: "Minnesota" }
+  - { key: MS, label: "Mississippi" }
+  - { key: MO, label: "Missouri" }
+  - { key: MT, label: "Montana" }
+  - { key: NE, label: "Nebraska" }
+  - { key: NV, label: "Nevada" }
+  - { key: NH, label: "New Hampshire" }
+  - { key: NJ, label: "New Jersey" }
+  - { key: NM, label: "New Mexico" }
+  - { key: NY, label: "New York" }
+  - { key: NC, label: "North Carolina" }
+  - { key: ND, label: "North Dakota" }
+  - { key: OH, label: "Ohio" }
+  - { key: OK, label: "Oklahoma" }
+  - { key: OR, label: "Oregon" }
+  - { key: PA, label: "Pennsylvania" }
+  - { key: RI, label: "Rhode Island" }
+  - { key: SC, label: "South Carolina" }
+  - { key: SD, label: "South Dakota" }
+  - { key: TN, label: "Tennessee" }
+  - { key: TX, label: "Texas" }
+  - { key: UT, label: "Utah" }
+  - { key: VT, label: "Vermont" }
+  - { key: VA, label: "Virginia" }
+  - { key: WA, label: "Washington" }
+  - { key: WV, label: "West Virginia" }
+  - { key: WI, label: "Wisconsin" }
+  - { key: WY, label: "Wyoming" }
+  - { key: NS, label: "Nova Scotia" }
+  - { key: QC, label: "Quebec" }
+  - { key: ON, label: "Ontario" }
+  - { key: MB, label: "Manitoba" }
+  - { key: SK, label: "Saskatchewan" }
+  - { key: AB, label: "Alberta" }
+  - { key: BC, label: "British Columbia" }
+  - { key: NB, label: "New Brunswick" }
+  - { key: NL, label: "Newfoundland and Labrador" }
+  - { key: PE, label: "Prince Edward Island" }
+  - { key: NT, label: "Northwest Territories" }
+  - { key: YT, label: "Yukon" }
+  - { key: NU, label: "Nunavut" }
+  - { key: ALAM, label: "Alameda", attributes: { countsAs: CA } }
+  - { key: ALPI, label: "Alpine", attributes: { countsAs: CA } }
+  - { key: AMAD, label: "Amador", attributes: { countsAs: CA } }
+  - { key: BUTT, label: "Butte", attributes: { countsAs: CA } }
+  - { key: CALA, label: "Calaveras", attributes: { countsAs: CA } }
+  - { key: COLU, label: "Colusa", attributes: { countsAs: CA } }
+  - { key: CCOS, label: "Contra Costa", attributes: { countsAs: CA } }
+  - { key: DELN, label: "Del Norte", attributes: { countsAs: CA } }
+  - { key: ELDO, label: "El Dorado", attributes: { countsAs: CA } }
+  - { key: FRES, label: "Fresno", attributes: { countsAs: CA } }
+  - { key: GLEN, label: "Glenn", attributes: { countsAs: CA } }
+  - { key: HUMB, label: "Humboldt", attributes: { countsAs: CA } }
+  - { key: IMPE, label: "Imperial", attributes: { countsAs: CA } }
+  - { key: INYO, label: "Inyo", attributes: { countsAs: CA } }
+  - { key: KERN, label: "Kern", attributes: { countsAs: CA } }
+  - { key: KING, label: "Kings", attributes: { countsAs: CA } }
+  - { key: LAKE, label: "Lake", attributes: { countsAs: CA } }
+  - { key: LASS, label: "Lassen", attributes: { countsAs: CA } }
+  - { key: LANG, label: "Los Angeles", attributes: { countsAs: CA } }
+  - { key: MADE, label: "Madera", attributes: { countsAs: CA } }
+  - { key: MARN, label: "Marin", attributes: { countsAs: CA } }
+  - { key: MARP, label: "Mariposa", attributes: { countsAs: CA } }
+  - { key: MEND, label: "Mendocino", attributes: { countsAs: CA } }
+  - { key: MERC, label: "Merced", attributes: { countsAs: CA } }
+  - { key: MODO, label: "Modoc", attributes: { countsAs: CA } }
+  - { key: MONO, label: "Mono", attributes: { countsAs: CA } }
+  - { key: MONT, label: "Monterey", attributes: { countsAs: CA } }
+  - { key: NAPA, label: "Napa", attributes: { countsAs: CA } }
+  - { key: NEVA, label: "Nevada", attributes: { countsAs: CA } }
+  - { key: ORAN, label: "Orange", attributes: { countsAs: CA } }
+  - { key: PLAC, label: "Placer", attributes: { countsAs: CA } }
+  - { key: PLUM, label: "Plumas", attributes: { countsAs: CA } }
+  - { key: RIVE, label: "Riverside", attributes: { countsAs: CA } }
+  - { key: SACR, label: "Sacramento", attributes: { countsAs: CA } }
+  - { key: SBEN, label: "San Benito", attributes: { countsAs: CA } }
+  - { key: SBER, label: "San Bernardino", attributes: { countsAs: CA } }
+  - { key: SDIE, label: "San Diego", attributes: { countsAs: CA } }
+  - { key: SFRA, label: "San Francisco", attributes: { countsAs: CA } }
+  - { key: SJOA, label: "San Joaquin", attributes: { countsAs: CA } }
+  - { key: SLUI, label: "San Luis Obispo", attributes: { countsAs: CA } }
+  - { key: SMAT, label: "San Mateo", attributes: { countsAs: CA } }
+  - { key: SBAR, label: "Santa Barbara", attributes: { countsAs: CA } }
+  - { key: SCLA, label: "Santa Clara", attributes: { countsAs: CA } }
+  - { key: SCRU, label: "Santa Cruz", attributes: { countsAs: CA } }
+  - { key: SHAS, label: "Shasta", attributes: { countsAs: CA } }
+  - { key: SIER, label: "Sierra", attributes: { countsAs: CA } }
+  - { key: SISK, label: "Siskiyou", attributes: { countsAs: CA } }
+  - { key: SOLA, label: "Solano", attributes: { countsAs: CA } }
+  - { key: SONO, label: "Sonoma", attributes: { countsAs: CA } }
+  - { key: STAN, label: "Stanislaus", attributes: { countsAs: CA } }
+  - { key: SUTT, label: "Sutter", attributes: { countsAs: CA } }
+  - { key: TEHA, label: "Tehama", attributes: { countsAs: CA } }
+  - { key: TRIN, label: "Trinity", attributes: { countsAs: CA } }
+  - { key: TULA, label: "Tulare", attributes: { countsAs: CA } }
+  - { key: TUOL, label: "Tuolumne", attributes: { countsAs: CA } }
+  - { key: VENT, label: "Ventura", attributes: { countsAs: CA } }
+  - { key: YOLO, label: "Yolo", attributes: { countsAs: CA } }
+  - { key: YUBA, label: "Yuba", attributes: { countsAs: CA } }
+  - { key: DC, label: "District of Columbia", attributes: { countsAs: MD } }

@@ -25,6 +25,16 @@ public final class NewContestModel {
     public var lastSetup: ContestSetup?
     /// The operators of the edited log's QSOs (N1MM „Update Ops from Log"); wired for the edit mode.
     @ObservationIgnored var logOperators: (@MainActor () -> [String])?
+    /// The contest data's `multipliers` directory (section lists); `nil` = not known.
+    @ObservationIgnored public var multipliersDir: URL?
+    /// Called after a section list was saved or restored (the contest data reloaded).
+    @ObservationIgnored var sectionsChanged: (@MainActor () async -> Void)?
+    /// The section list in the editor sheet, `nil` = closed.
+    public var sectionEditor: SectionEditor?
+    /// The result of the last section list action.
+    public var sectionMessage: ContestMessage?
+    /// Bumped after a save / restore (the views re-read the edited marks).
+    var sectionRevision: Int = 0
 
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let now: @Sendable () -> Date

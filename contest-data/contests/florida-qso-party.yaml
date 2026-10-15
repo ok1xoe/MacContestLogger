@@ -1,0 +1,51 @@
+schemaVersion: 1
+id: florida-qso-party
+metadata:
+  name: "Florida QSO Party (FQP)"
+  organizer: "Florida Contest Group"
+  description: "last full weekend of April, 1600-0159 UTC and 1200-2159 UTC (two 10-hour periods). Florida stations send RS(T) + county (3-letter FQP code), US stations RS(T) + state, Canadians province, DX the DXCC prefix. Florida stations work everyone, others work Florida only. Phone 1 point, CW 2 points; a station may be worked once per band and mode (a mobile or expedition again from every county). Multipliers once per mode: Florida stations count 50 states (a Florida county counts as FL), DC, 13 provinces and DXCC countries outside W/VE; others the 67 Florida counties. Power multiplier: QRP x3, LOW x2, HIGH x1. In-state / out-of-state follows the ARRL section in the station data. Simplifications: the break between the periods is not checked, maritime mobile regions are not multipliers; set ROVERQTH to your county (Florida) or state/province/prefix (elsewhere) — it is what is sent. A county line QSO is logged as ALC/BAK (one QSO per county)."
+  officialUrl: "https://floridaqsoparty.org/rules/"
+period: { durationHours: 30, startWeekday: SAT, startTime: "1600" }
+bands: [40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+inState:
+  sections: [NFL, SFL, WCF]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: qth, type: TEXT, source: ROVER_QTH }      # my county (in Florida) or state/province/prefix
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: qth, type: TEXT, required: true, split: true }
+
+# Florida stations work everyone, others work Florida stations only
+workable:
+  anyOf:
+    - { inState: true }
+    - { fieldMatches: { field: qth, regex: "^(ALC|BAK|BAY|BRA|BRE|BRO|CAH|CHA|CIT|CLA|CLR|CLM|DAD|DES|DIX|DUV|ESC|FLG|FRA|GAD|GIL|GLA|GUL|HAM|HAR|HEN|HER|HIG|HIL|HOL|IDR|JAC|JEF|LAF|LAK|LEE|LEO|LEV|LIB|MAD|MTE|MAO|MRT|MON|NAS|OKA|OKE|ORA|OSC|PAL|PAS|PIN|POL|PUT|STJ|STL|SAN|SAR|SEM|SUM|SUW|TAY|UNI|VOL|WAK|WAL|WAG)$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: { mode: CW }, value: { fixed: 2 } }
+  powerFactor: { QRP: 3, LOW: 2, HIGH: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # W/VE stations only (DX stations send DX or a prefix)
+  - { id: states,    set: fqp_qth,       from: qth,      scope: PER_MODE,
+      when: { allOf: [ { inState: true }, { entityIn: [291, 1, 6, 110] } ] } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_MODE,
+      when: { allOf: [ { inState: true }, { not: { entityIn: [291, 1, 6, 110] } } ] } }
+  - { id: counties,  set: fqp_counties,  from: qth,      scope: PER_MODE, when: { inState: false } }
+
+dupe: { scope: PER_BAND_MODE, byField: qth }
+
+cabrillo: { contestName: FL-QSO-PARTY, sentOrder: [rst, qth], receivedOrder: [rst, qth] }
+ui:
+  entryOrder: [call, qth]
+  logColumns: [time, call, band, mode, rst, qth, points, mult]

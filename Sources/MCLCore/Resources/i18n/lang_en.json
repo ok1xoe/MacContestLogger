@@ -1925,5 +1925,21 @@
  "Po exportu Cabrilla připravit e-mail s kopií na logs@supercheckpartial.com (pro master.scp)": "After a Cabrillo export, prepare an e-mail with a copy to logs@supercheckpartial.com (for master.scp)",
  "Text podle pásma…": "Text sorted by band…",
  "Výklad výměny: %s": "Exchange interpretation: %s",
- "Části výměny v libovolném pořadí; volačka ve výměně opraví zapsanou volačku": "Exchange parts in any order; a call in the exchange corrects the logged call"
+ "Části výměny v libovolném pořadí; volačka ve výměně opraví zapsanou volačku": "Exchange parts in any order; a call in the exchange corrects the logged call",
+ "QSO party: stanice mimo USA a Kanadu má v datech stanice ARRL sekci „DX“, ne „%s“ — oprav ji": "QSO party: a station outside the USA and Canada has the ARRL section “DX” in the station data, not “%s” — correct it",
+ "QSO party: v datech stanice chybí ARRL sekce — počítám tě jako stanici mimo stát": "QSO party: the station data have no ARRL section — you are counted as out-of-state",
+ "QSO party: stanice ve státě (sekce %s)": "QSO party: in-state station (section %s)",
+ "QSO party: stanice mimo stát (sekce %s)": "QSO party: out-of-state station (section %s)",
+ "Seznam %s nelze načíst": "The list %s cannot be read",
+ "Seznam %s uložen: %s položek": "List %s saved: %s entries",
+ "Seznam %s nelze uložit (prázdný nebo chyba zápisu)": "The list %s cannot be saved (empty or a write error)",
+ "Seznam %s obnoven": "List %s restored",
+ "Seznam %s nelze obnovit": "The list %s cannot be restored",
+ "Seznam %s": "List %s",
+ "Upravit seznam…": "Edit list…",
+ "Úprava kódů a názvů okresů / sekcí tohoto seznamu": "Edit the codes and names of the counties / sections of this list",
+ "Obnovit původní": "Restore original",
+ "Vrátí seznam dodaný s daty závodů": "Puts back the list shipped with the contest data",
+ "Jeden okres / sekce na řádek: KÓD,Název.": "One county / section per line: CODE,Name.",
+ "Seznam okresů / sekcí": "List of counties / sections"
 }

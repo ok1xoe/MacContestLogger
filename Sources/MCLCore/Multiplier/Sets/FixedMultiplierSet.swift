@@ -23,6 +23,9 @@ public final class FixedMultiplierSet: MultiplierSet {
     /// (a pattern with `\b` costs ~12 ms).
     private let keyPattern: JavaRegex?
     private let keyLength: Int
+    /// Values with the attribute `countsAs: <key>` (Swift-only): another spelling of that key, not a value of its
+    /// own (CQP: a California county counts as the multiplier CA).
+    private let aliases: [String: String]
 
     /// - Parameters:
     ///   - keyType: `nil` → `TEXT`.
@@ -47,10 +50,16 @@ public final class FixedMultiplierSet: MultiplierSet {
         }
         self.keyLength = keyLength ?? 0
         var byKey = JavaLinkedMap<MultiplierValue>()
+        var aliases: [String: String] = [:]
         for value in values {
+            if let key = value.key, let target = value.attributes["countsAs"], !JavaText.isBlank(target) {
+                aliases[key.uppercased()] = JavaText.trim(target).uppercased()
+                continue
+            }
             byKey.put(value.key, value)
         }
         self.byKey = byKey
+        self.aliases = aliases
     }
 
     public var enumerable: Bool { true }
@@ -93,7 +102,8 @@ public final class FixedMultiplierSet: MultiplierSet {
             return JavaInteger.parseInt(trimmed).map { String($0) } ?? trimmed
         }
         // port convention: `uppercased()` = Java `toUpperCase(Locale.ROOT)`
-        return trimmed.uppercased()
+        let upper: String = trimmed.uppercased()
+        return aliases[upper] ?? upper
     }
 
     /// Java `matches("\\d+")`: at least one digit, ASCII `0`–`9` only
