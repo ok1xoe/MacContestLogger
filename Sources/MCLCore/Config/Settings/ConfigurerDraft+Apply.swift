@@ -349,6 +349,7 @@ extension ConfigurerDraft {
         let entries: [AntennaEntry] = antennas.map { $0.toEntry() }
         config.antennas = entries.filter { !KotlinText.isBlank($0.name) }
         config.antennaViaRig = antennaViaRig
+        config.rotor.autoAntenna = antennaAutoByAzimuth
         config.transverters = transverters.compactMap { $0.toEntry() }
         config.footswitchPort = footswitchPort
         config.footswitchPin = footswitchPin

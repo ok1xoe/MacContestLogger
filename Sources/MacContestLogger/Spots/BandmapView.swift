@@ -508,6 +508,8 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
             }
             // N1MM's cluster queries about the station (View menu) and its Telnet history.
             menu.addItem(queryItem(model: model, language: language, call: spot.dxCall))
+            // N1MM „Turn Rotor": the rotator to the spotted station (the spot's grid when known).
+            addItem(menu, language.tr("Natočit rotátor na %s", .string(spot.dxCall))) { model.turnRotor(spot) }
             addItem(menu, language.tr("Historie spotů %s", .string(spot.dxCall))) { model.showHistory(of: spot.dxCall) }
             menu.addItem(.separator())
         }
