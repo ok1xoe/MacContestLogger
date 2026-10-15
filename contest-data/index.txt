@@ -1,5 +1,11 @@
-# Soubory dat závodů pro aktualizaci z internetu (Závod → Aktualizovat definice).
-# Udržuje se ručně; test ContestDataIndexTest hlídá, že odpovídá obsahu adresáře.
+# Contest data files for the in-app update of v0.9.0-rc1/rc2 (Tools -> Update definitions from the internet).
+# Newer apps read index-v2.txt (the complete list) and use this file only when index-v2.txt is missing.
+# Lists only the files the released v0.9.0-rc1 can load: it knows only the multiplier set algorithm 'wpx',
+# and a set it cannot load stops every set after it from loading. Left out (newer apps only):
+#   multipliers/last_letters.yaml, multipliers/worked_calls.yaml (algorithms lastLetter, callsign) and the
+#   contests that use them: contests/ea-qrp-cw.yaml, contests/ok-dx-rtty.yaml, contests/ok1wc-memorial.yaml,
+#   contests/russian-yl-om.yaml.
+# Never add a file here that needs a newer app; PublishedContestDataTests checks this list.
 bandplan.yaml
 contests/9a-dx.yaml
 contests/agcw-happy-new-year.yaml
@@ -53,7 +59,6 @@ contests/dx-serial.yaml
 contests/dx.yaml
 contests/dxpedition.yaml
 contests/ea-psk63.yaml
-contests/ea-qrp-cw.yaml
 contests/ea-rtty.yaml
 contests/eu-hf-championship.yaml
 contests/eu-psk-dx.yaml
@@ -101,13 +106,11 @@ contests/nrau-baltic-cw.yaml
 contests/nrau-baltic-ssb.yaml
 contests/oceania-dx-cw.yaml
 contests/oceania-dx-ssb.yaml
-contests/ok-dx-rtty.yaml
 contests/ok-kvpa.yaml
 contests/ok-om-dx-cw.yaml
 contests/ok-om-dx-ssb.yaml
 contests/ok-polni-den.yaml
 contests/ok-vhf-activity.yaml
-contests/ok1wc-memorial.yaml
 contests/pa-beker.yaml
 contests/pacc.yaml
 contests/portugal-day.yaml
@@ -130,7 +133,6 @@ contests/rsgb-commonwealth.yaml
 contests/rsgb-low-power.yaml
 contests/russian-160.yaml
 contests/russian-ww-rtty.yaml
-contests/russian-yl-om.yaml
 contests/sac-cw.yaml
 contests/sac-ssb.yaml
 contests/scc-rtty.yaml
@@ -199,7 +201,6 @@ multipliers/itu_zones.yaml
 multipliers/ja_prefectures.csv
 multipliers/ja_prefectures.yaml
 multipliers/kda_districts.yaml
-multipliers/last_letters.yaml
 multipliers/licence_years.yaml
 multipliers/licence_years_2d.yaml
 multipliers/lz_districts.csv
@@ -234,7 +235,6 @@ multipliers/ukei_districts.yaml
 multipliers/uksmg_members.yaml
 multipliers/ur_oblasts.csv
 multipliers/ur_oblasts.yaml
-multipliers/worked_calls.yaml
 multipliers/wpx_prefixes.yaml
 multipliers/ww_digi_grid.csv
 multipliers/xe_call_areas.csv
