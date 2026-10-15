@@ -110,6 +110,7 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Cmd+↓ / Cmd+↑** | next spot **higher / lower** on the band (dupes are skipped) |
 | **Ctrl+Alt+↓ / ↑** | next spot that is a **new multiplier** |
 | **Shift+Alt+↓ / ↑** | next **own** spot (Store / self-spot) |
+| **Shift+↓ / Shift+↑** (fixed) | with the waterfall / spectrum window open: next **signal** in the spectrum higher / lower (dupes and marked frequencies skipped; with the CQ markers shown, the next CQ frequency); otherwise tunes like ↓ / ↑ — see [Waterfall](waterfall.md#signals-spots-and-the-cq-finder) |
 | **Alt+D** | removes the spot of the callsign in the field (or the spot on the frequency); in the Bandmap window the spot under the mouse. With an empty callsign field and a non-empty call stack it deletes the next stacked call |
 | **Alt+Shift+D** | the same and puts the callsign on the **blacklist** (also in the Bandmap window) |
 | **Alt+P** / **Spot It** button | spot to the DX cluster (needs a frequency, as above) |

@@ -12,6 +12,10 @@ struct SpectrumPaneView: View {
     let setup: SpectrumSetup
     let axis: SpectrumAxisLayout
     let lines: [SpectrumLine]
+    /// The red signal markers along the frequency axis.
+    var markers: [Double] = []
+    /// The CQ frequencies with their rank.
+    var cqMarkers: [(rank: Int, fraction: Double)] = []
 
     var body: some View {
         Canvas { context, size in
@@ -112,6 +116,27 @@ struct SpectrumPaneView: View {
         threshold.addLine(to: point(1, thresholdFraction, size))
         context.stroke(threshold, with: .color(palette.threshold), style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
         drawLines(&context, size)
+        drawMarkers(&context, size)
+    }
+
+    /// N1MM's red signal markers at the bottom (left in the bar chart) and the numbered green CQ frequencies.
+    private func drawMarkers(_ context: inout GraphicsContext, _ size: CGSize) {
+        var dots = Path()
+        for along in markers {
+            let p: CGPoint = point(along, 0, size)
+            let c = CGPoint(x: axis.vertical ? p.x + 5 : p.x, y: axis.vertical ? p.y : p.y - 5)
+            dots.addEllipse(in: CGRect(x: c.x - 3.5, y: c.y - 3.5, width: 7, height: 7))
+        }
+        context.fill(dots, with: .color(.red))
+        for marker in cqMarkers {
+            let p: CGPoint = point(marker.fraction, 0.5, size)
+            var line = Path()
+            line.move(to: point(marker.fraction, 0, size))
+            line.addLine(to: point(marker.fraction, 1, size))
+            context.stroke(line, with: .color(.green), style: StrokeStyle(lineWidth: 1, dash: [2, 3]))
+            let label = Text(verbatim: String(marker.rank)).font(.system(size: 12, weight: .bold)).foregroundColor(.green)
+            context.draw(label, at: CGPoint(x: p.x + 7, y: p.y))
+        }
     }
 
     private func drawLines(_ context: inout GraphicsContext, _ size: CGSize) {

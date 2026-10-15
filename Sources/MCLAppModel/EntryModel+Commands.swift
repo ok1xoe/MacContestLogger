@@ -119,6 +119,11 @@ extension EntryModel {
             }
         case .tune(let direction):
             tuneStep(direction)
+        case .spectrumJump(let direction):
+            // Without a spectrum (window closed, no line yet) the keys tune like the plain arrows.
+            if spectrumJump?(direction, form.freqHz) != true {
+                tuneStep(direction)
+            }
         case .enter(_, let step):
             enter(step)
         case .escape(let step):

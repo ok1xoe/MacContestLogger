@@ -37,6 +37,30 @@ SDR, from the **receiver audio**. Open via **Okno → Vodopád** (Window → Wat
 
 The threshold, reference and range are remembered.
 
+### Signals, spots and the CQ finder
+
+- **Signal detection**: every run of bins above the threshold line is a signal; a **red dot** marks it at the
+  bottom of the spectrum and the box shows how many there are. Move the threshold with the mouse wheel until
+  the dots sit on the real signals.
+- **Static crash rejection** (Static sensitivity, 0 = off … 100): a line whose whole noise floor jumps up at
+  once is shown but not taken into the decaying line, the signal detection or the CQ average — **Static**
+  lights up in the window while that happens.
+- **Shift+↓ / Shift+↑** (in the entry window) tune to the next detected signal higher / lower, skipping signals
+  within the tuning tolerance of a dupe spot or a marked frequency (Alt+M). At the edge of the spectrum they
+  stop. With the window closed they tune by a step like ↓ / ↑.
+- **Spots over the spectrum**: telnet and local spots in the shown range are drawn at their frequency (grey =
+  dupe, red = new multiplier); the spot you are tuned to is framed; a click on a call goes to the spot (with its
+  split). Options: hide the spots, or show **only spots you can hear** (a signal within the tuning tolerance).
+- **Marker filter**: mark all signals, all **except dupes and non-workable**, **only unknown** signals (no spot
+  within the tuning tolerance — heard before the RBN spots them), or **only multipliers**. Shift+arrows follow
+  the same filter.
+- **Unknown signals as @frequency spots** (off by default): every 2 s the unknown signals go into the band map
+  and the Available window as local spots called `@14025.3` (kHz); they expire after 90 s without the signal and
+  disappear when the option is turned off or the window is closed. They are never sent anywhere.
+- **CQ** finds up to five frequencies with no signal above the threshold in the last minute (a 60-second
+  average of the shown range; 500 Hz wide in CW, 3 kHz in phone, 1 kHz in digital modes), numbered 1–5 by how
+  quiet they are. While they are shown Shift+arrows jump between them; press the button again (**Zrušit** / Cancel) to remove them.
+
 ### Zoom and options
 
 - **−** / **+** zoom the spectrum and the waterfall (×1 … ×16) around the receive frequency.
@@ -50,7 +74,8 @@ The threshold, reference and range are remembered.
   - **Show instantaneous levels below the threshold** (off = only what rises above the threshold);
   - **Signal decay speed** (slow / medium / fast — fast for SSB and crowded bands, slow for quiet bands);
   - **Background** (black, gray, white);
-  - **Snap to signal** and **Clear the spectrum while tuning** (reduces smearing when the frequency changes).
+  - **Snap to signal** and **Clear the spectrum while tuning** (reduces smearing when the frequency changes);
+  - the signal markers, the marker filter, the spots, the static sensitivity and the @frequency spots (above).
 
 The input is opened only while the window is open (and for other users of the audio — CW decoder,
 contest recording) and is released after it is closed. Nothing in the window transmits; it only tunes the rig.

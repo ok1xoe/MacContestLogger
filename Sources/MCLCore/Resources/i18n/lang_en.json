@@ -2222,5 +2222,20 @@
  "Chování": "Behaviour",
  "Klik přichytí na signál (±2 kHz)": "Snap to signal on click (±2 kHz)",
  "Při ladění vymazat spektrum (bez rozmazání)": "Clear the spectrum while tuning (reduce smearing)",
- "Kolečko nad spektrem: práh signálu; Cmd+kolečko: referenční úroveň; Cmd+Shift+kolečko: rozsah dB. Kolečko nad vodopádem ladí (Shift/Cmd = větší krok).": "Wheel over the spectrum: signal threshold; Cmd+wheel: reference level; Cmd+Shift+wheel: dB range. The wheel over the waterfall tunes (Shift/Cmd = larger step)."
+ "Kolečko nad spektrem: práh signálu; Cmd+kolečko: referenční úroveň; Cmd+Shift+kolečko: rozsah dB. Kolečko nad vodopádem ladí (Shift/Cmd = větší krok).": "Wheel over the spectrum: signal threshold; Cmd+wheel: reference level; Cmd+Shift+wheel: dB range. The wheel over the waterfall tunes (Shift/Cmd = larger step).",
+ "Statika": "Static",
+ "Statika potlačena": "Static rejected",
+ "Nejtišší frekvence pro CQ (průměr 60 s); Shift+šipky mezi nimi skáčou": "Quietest frequencies for CQ (60 s average); Shift+arrows jump between them",
+ "Nejtišší frekvence pro CQ": "Quietest frequencies for CQ",
+ "Spot": "Spot",
+ "Signály a spoty": "Signals and spots",
+ "Červené značky signálů": "Red signal markers",
+ "Značit signály": "Mark signals",
+ "Všechny": "All",
+ "Kromě dupů a neplatných": "Except dupes and non-workable",
+ "Jen neznámé (bez spotu)": "Only unknown (not spotted)",
+ "Zobrazit spoty nad spektrem": "Show spots over the spectrum",
+ "Jen spoty, které je slyšet": "Only spots that can be heard",
+ "Neznámé signály jako spoty @frekvence (bandmapa, Dostupné)": "Unknown signals as @frequency spots (band map, Available)",
+ "Citlivost na statiku": "Static sensitivity"
 }

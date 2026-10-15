@@ -140,6 +140,10 @@ import Testing
         #expect(Self.route(Self.down(upKey, Self.meta), context(-1, 3)) == .action(.nextSpotDown))
         #expect(Self.route(Self.down(downKey, Self.ctrl), context(-1, 3)) != .action(.nextSpotUp))
         #expect(Self.route(Self.down(downKey, Self.alt | Self.shift), context(-1, 3)) == .action(.nextSelfUp))
+        // Shift+↓ / Shift+↑: the spectrum display's next signal higher / lower (N1MM Shift+Up/Down).
+        #expect(Self.route(Self.down(downKey, Self.shift), context(-1, 0)) == .spectrumJump(1))
+        #expect(Self.route(Self.down(upKey, Self.shift), context(-1, 3)) == .spectrumJump(-1))
+        #expect(Self.route(Self.up(upKey, Self.shift), context(-1, 3)) == .passThrough)
     }
 
     @Test func fieldKeysComeBeforeShortcuts() {

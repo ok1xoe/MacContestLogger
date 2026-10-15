@@ -2222,5 +2222,20 @@
  "Chování": "Verhalten",
  "Klik přichytí na signál (±2 kHz)": "Klick rastet auf Signal ein (±2 kHz)",
  "Při ladění vymazat spektrum (bez rozmazání)": "Spektrum beim Abstimmen löschen (kein Verschmieren)",
- "Kolečko nad spektrem: práh signálu; Cmd+kolečko: referenční úroveň; Cmd+Shift+kolečko: rozsah dB. Kolečko nad vodopádem ladí (Shift/Cmd = větší krok).": "Mausrad über dem Spektrum: Signalschwelle; Cmd+Mausrad: Referenzpegel; Cmd+Shift+Mausrad: dB-Bereich. Das Mausrad über dem Wasserfall stimmt ab (Shift/Cmd = größerer Schritt)."
+ "Kolečko nad spektrem: práh signálu; Cmd+kolečko: referenční úroveň; Cmd+Shift+kolečko: rozsah dB. Kolečko nad vodopádem ladí (Shift/Cmd = větší krok).": "Mausrad über dem Spektrum: Signalschwelle; Cmd+Mausrad: Referenzpegel; Cmd+Shift+Mausrad: dB-Bereich. Das Mausrad über dem Wasserfall stimmt ab (Shift/Cmd = größerer Schritt).",
+ "Statika": "Statik",
+ "Statika potlačena": "Statik unterdrückt",
+ "Nejtišší frekvence pro CQ (průměr 60 s); Shift+šipky mezi nimi skáčou": "Ruhigste Frequenzen für CQ (60-s-Mittel); Shift+Pfeile springen zwischen ihnen",
+ "Nejtišší frekvence pro CQ": "Ruhigste Frequenzen für CQ",
+ "Spot": "Spot",
+ "Signály a spoty": "Signale und Spots",
+ "Červené značky signálů": "Rote Signalmarkierungen",
+ "Značit signály": "Signale markieren",
+ "Všechny": "Alle",
+ "Kromě dupů a neplatných": "Außer Dupes und nicht arbeitbaren",
+ "Jen neznámé (bez spotu)": "Nur unbekannte (ohne Spot)",
+ "Zobrazit spoty nad spektrem": "Spots über dem Spektrum anzeigen",
+ "Jen spoty, které je slyšet": "Nur hörbare Spots",
+ "Neznámé signály jako spoty @frekvence (bandmapa, Dostupné)": "Unbekannte Signale als @Frequenz-Spots (Bandmap, Verfügbar)",
+ "Citlivost na statiku": "Statikempfindlichkeit"
 }

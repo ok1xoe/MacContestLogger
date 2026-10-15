@@ -156,6 +156,16 @@ public final class SpectrumPipeline: Sendable {
         }
     }
 
+    /// N1MM's CQ button: up to five quietest frequencies of the visible bins over the last minute (the trace's
+    /// 60-second average), best first; empty before a line or when the view is narrower than `widthHz`.
+    public func cqFrequencies(settings: Settings, widthHz: Double) -> [Double] {
+        state.withLock { s in
+            guard let picture = Self.picture(s.trace, settings: settings), let axis = s.trace.axis else { return [] }
+            return CqFrequencyFinder.find(average: s.trace.average, axis: axis, window: picture.window,
+                                          thresholdDb: picture.thresholdLevelDb, widthHz: widthHz)
+        }
+    }
+
     /// Clears the trace (a new source).
     public func reset() {
         state.withLock { $0 = State() }

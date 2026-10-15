@@ -132,7 +132,48 @@ extension AppModel {
         availMult.spectrum = { [weak model] in
             model?.spectrum()
         }
+        // The spots over the spectrum, the `@frequency` spots of unknown signals and Shift+Up/Down.
+        model.spotsProvider = { [weak self] lo, hi in
+            self?.spectrumSpots(lowHz: lo, highHz: hi) ?? []
+        }
+        let buffer: SpotBuffer = dxCluster.spots
+        let now: @Sendable () -> Date = dxCluster.now
+        model.publishUnknown = { spots in
+            Self.publishUnknownSpots(spots, buffer: buffer, now: now())
+        }
+        for panel in [panel(vfo: 0), vfoB] {
+            panel.entry.spectrumJump = { [weak model] direction, fromHz in
+                model?.jump(direction: direction, fromHz: fromHz) ?? false
+            }
+        }
         return model
+    }
+
+    /// The band map's spots between `lowHz` and `highHz` with their dupe and new-multiplier state (outside a
+    /// contest neither) and the marks (Alt+M) as non-workable.
+    func spectrumSpots(lowHz: Double, highHz: Double) -> [SpectrumSpot] {
+        let inRange: [DxSpot] = bandmap.spots().filter { Double($0.freqHz) >= lowHz && Double($0.freqHz) <= highHz }
+        guard !inRange.isEmpty else { return [] }
+        let analyzer: SpotAnalyzer = bandmap.analyzer()
+        let scored: Bool = contest.isActive
+        return inRange.map { spot in
+            let status: SpotStatus? = scored ? analyzer.spotStatus(spot) : nil
+            return SpectrumSpot(call: spot.dxCall, freqHz: Double(spot.freqHz), dupe: status?.dupe ?? false,
+                                mult: status?.newMult ?? false, nonWorkable: spot.spotter == SpotActions.markSpotter,
+                                generated: spot.spotter == SpectrumSignals.unknownSpotter)
+        }
+    }
+
+    /// The `@frequency` spots of the spectrum replace the previous ones in the buffer; each stays
+    /// `SpectrumSignals.unknownSpotSeconds` unless seen again.
+    nonisolated static func publishUnknownSpots(_ spots: [(call: String, freqHz: Int)], buffer: SpotBuffer, now: Date) {
+        let calls: Set<String> = Set(spots.map(\.call))
+        _ = buffer.removeAll { $0.spotter == SpectrumSignals.unknownSpotter && !calls.contains($0.dxCall) }
+        for spot in spots {
+            buffer.addUntil(DxSpot(spotter: SpectrumSignals.unknownSpotter, freqHz: spot.freqHz, dxCall: spot.call,
+                                   comment: "", selfSpotted: true),
+                            until: now.addingTimeInterval(SpectrumSignals.unknownSpotSeconds))
+        }
     }
 
     /// The Digital Interface window's model (`digitalinterface`).

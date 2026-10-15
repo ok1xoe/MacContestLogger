@@ -153,6 +153,9 @@ public final class EntryModel {
     @ObservationIgnored weak var spotNavigation: SpotNavigation?
     /// The Available window's list (Alt+A / Shift+Alt+A).
     @ObservationIgnored weak var availMult: AvailMultModel?
+    /// N1MM Shift+Up/Down: the open spectrum display jumps to the next signal from this window's frequency
+    /// (`true` = it tuned); wired by `AppModel`.
+    @ObservationIgnored var spectrumJump: (@MainActor (_ direction: Int, _ fromHz: Int64) -> Bool)?
     /// The band map's rig controls (Wide/Narrow filter, CW reverse) for Alt+' and Ctrl+Alt+R; set by the app.
     @ObservationIgnored weak var bandmapControls: BandmapModel?
     /// N1MM: SH/DX typed in the call field goes to the DX cluster; `false` = not connected. Set by the app.

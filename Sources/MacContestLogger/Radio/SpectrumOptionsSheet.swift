@@ -21,6 +21,7 @@ struct SpectrumOptionsSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     display
+                    signals
                     behaviour
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -84,6 +85,38 @@ struct SpectrumOptionsSheet: View {
                     .accessibilityLabel(Text(verbatim: language.tr("Velikost spektra")))
                     .accessibilityIdentifier("spectrum.size")
                 Text(verbatim: String(model.setup.sizeFactor) + " %").windowFont(12, design: .monospaced)
+            }
+        }
+        .windowFont(12)
+    }
+
+    private var signals: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: language.tr("Signály a spoty")).windowFont(13, weight: .medium)
+            flag(.showMarkers, "Červené značky signálů", id: "spectrum.markers")
+            Picker(language.tr("Značit signály"), selection: Binding(
+                get: { model.setup.markerFilter },
+                set: { value in model.updateSetup { $0.markerFilter = value } })) {
+                Text(verbatim: language.tr("Všechny")).tag(SpectrumMarkerFilter.all)
+                Text(verbatim: language.tr("Kromě dupů a neplatných")).tag(SpectrumMarkerFilter.nonDupes)
+                Text(verbatim: language.tr("Jen neznámé (bez spotu)")).tag(SpectrumMarkerFilter.unknown)
+                Text(verbatim: language.tr("Jen násobiče")).tag(SpectrumMarkerFilter.mults)
+            }
+            .accessibilityIdentifier("spectrum.markerFilter")
+            flag(.showSpots, "Zobrazit spoty nad spektrem", id: "spectrum.spots")
+            flag(.onlyHeardSpots, "Jen spoty, které je slyšet", id: "spectrum.onlyHeard")
+            flag(.unknownAsSpots, "Neznámé signály jako spoty @frekvence (bandmapa, Dostupné)",
+                 id: "spectrum.unknownSpots")
+            HStack(spacing: 8) {
+                Text(verbatim: language.tr("Citlivost na statiku")).windowFont(12)
+                Slider(value: Binding(
+                    get: { Double(model.setup.staticSensitivity) },
+                    set: { value in model.updateSetup { $0.staticSensitivity = Int(value.rounded()) } }),
+                       in: 0...100, step: 5)
+                    .frame(width: 180)
+                    .accessibilityLabel(Text(verbatim: language.tr("Citlivost na statiku")))
+                    .accessibilityIdentifier("spectrum.static")
+                Text(verbatim: String(model.setup.staticSensitivity)).windowFont(12, design: .monospaced)
             }
         }
         .windowFont(12)
