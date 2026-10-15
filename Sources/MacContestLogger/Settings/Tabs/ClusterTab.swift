@@ -100,5 +100,14 @@ struct ClusterTab: View {
                 draft.interlock = .sameBand
             }
         }
+        HStack(spacing: 12) {
+            SettingsRadio(label: language.tr("První vyhrává (blokovat mé vysílání)"), selected: !draft.interlockLastWins) {
+                draft.interlockLastWins = false
+            }
+            SettingsRadio(label: language.tr("Poslední vyhrává (zastavit ostatní stanice)"),
+                          selected: draft.interlockLastWins) {
+                draft.interlockLastWins = true
+            }
+        }
     }
 }

@@ -170,6 +170,21 @@ private struct ModemGroup: View {
                 SettingsCaption(language.tr(
                     "Okno → Digitální rozhraní 2 patří k VFO B / rigu 2; Cmd+Alt+←/→ přepíná rozhraní (N1MM Ctrl+←/→)."))
             }
+            HStack(alignment: .center, spacing: 8) {
+                Text(verbatim: language.tr("TX lockout mezi DI1 a DI2:"))
+                    .windowFont(13)
+                Picker(selection: $draft.so2rTxLockout) {
+                    Text(verbatim: language.tr("Vypnuto")).tag(DigitalTxLockout.off.rawValue)
+                    Text(verbatim: language.tr("První vyhrává")).tag(DigitalTxLockout.firstWins.rawValue)
+                    Text(verbatim: language.tr("Poslední vyhrává")).tag(DigitalTxLockout.lastWins.rawValue)
+                } label: {
+                    EmptyView()
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
+                .accessibilityLabel(Text(verbatim: language.tr("TX lockout mezi DI1 a DI2:")))
+            }
             HStack(alignment: .bottom, spacing: 8) {
                 SettingsField(caption: language.tr("Další příjmová okna (host:port, mezerou, max. 4)")) {
                     SettingsTextField(text: $draft.extraRx)

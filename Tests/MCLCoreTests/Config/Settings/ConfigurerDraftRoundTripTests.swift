@@ -154,6 +154,7 @@ import Testing
         expected.esm.callStackClearOnBandChange = true
         expected.digital.digitalCallStacking = false
         expected.digital.rttyInterface = RttyInterface.fldigi.rawValue
+        expected.digital.so2rTxLockout = DigitalTxLockout.off.rawValue
         expected.digital.tncType = TncType.pk232.rawValue
         expected.digital.tncPort = ""
         expected.digital.tncBaud = 9600
@@ -224,6 +225,7 @@ import Testing
         expected.cluster.runNumber = 0
         expected.cluster.master = false
         expected.cluster.timeFromMaster = false
+        expected.cluster.interlockLastWins = false
         #expect(decoded == expected)
     }
 
@@ -308,6 +310,7 @@ import Testing
         w.same(\.runNumber, \.cluster.runNumber, 2)
         w.same(\.clusterMaster, \.cluster.master, true)
         w.same(\.timeFromMaster, \.cluster.timeFromMaster, true)
+        w.same(\.interlockLastWins, \.cluster.interlockLastWins, true)
         w.same(\.ruleEnforcement, \.cluster.ruleEnforcement, .block)
     }
 
@@ -491,6 +494,7 @@ import Testing
         w.same(\.callStackClearOnBandChange, \.esm.callStackClearOnBandChange, false)
         w.same(\.digitalCallStacking, \.digital.digitalCallStacking, true)
         w.same(\.rttyInterface, \.digital.rttyInterface, "TINYFSK")
+        w.same(\.so2rTxLockout, \.digital.so2rTxLockout, "LAST")
         w.same(\.tncType, \.digital.tncType, "KAM")
         w.same(\.tncPort, \.digital.tncPort, "/dev/cu.tnc")
         w.same(\.tncBaud, \.digital.tncBaud, 4800)

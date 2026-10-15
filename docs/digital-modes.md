@@ -241,6 +241,11 @@ belongs to VFO A / rig 1, **Okno → Digitální rozhraní 2** (DI2) to VFO B / 
 - **Cmd+Alt+←** / **Cmd+Alt+→** (N1MM Ctrl+←/→, which macOS uses for Spaces) activates VFO A / rig 1
   or VFO B / rig 2 and brings its Digital Interface up.
 - Both windows share one Grab window and one call stack.
+- **TX lockout mezi DI1 a DI2** (TX lockout between DI1 and DI2; N1MM Config → SO2R *TX lockout
+  (digital)*), in Settings → Digital modes: *Vypnuto* (Off, the default — both fldigis may transmit),
+  *První vyhrává* (First wins — while one interface transmits, the other one is refused with
+  "TX LOCKOUT: DI1 vysílá — nevysílám"), *Poslední vyhrává* (Last wins — the transmitting interface's
+  fldigi is aborted and the new transmission goes out).
 
 ### Additional RX windows
 

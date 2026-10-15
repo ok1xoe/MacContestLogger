@@ -131,6 +131,10 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// N1MM „RX Windows add to Grab window". Swift-only key.
     public var extraRxToGrab: Bool = true
 
+    /// N1MM Config → SO2R „TX lockout (digital)": what happens when one Digital Interface transmits and the other one
+    /// starts — `OFF` (both may transmit), `FIRST` (first wins: the second is refused), `LAST` (last wins: the first
+    /// is stopped). Swift-only key.
+    public var so2rTxLockout: String = DigitalTxLockout.off.rawValue
     /// N1MM „Default RTTY Interface": FLDIGI, TNC, TINYFSK or WINKEYER (PSK always fldigi). Swift-only key.
     public var rttyInterface: String = RttyInterface.fldigi.rawValue
     /// The TU/TNC (PK232, KAM, DXP38, OTHER) — the presets of its commands. Swift-only key.
@@ -168,6 +172,7 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         case cwIdEnabled, cwIdText, diButtonCount, rxOutputToFile, diMessages
         case alignRttyHz, alignOtherHz, afcOnCq, netWithRunChange, shiftCompEnabled, shiftCompHz
         case fldigi2Host, fldigi2Port, extraRx, extraRxToGrab
+        case so2rTxLockout
         case rttyInterface, tncType, tncPort, tncBaud, tncTx, tncRx, tncEsc, tinyFskPort, wkRttyBaud, wkRttyReverse, wkRttyFskOnKey, diFontName, diTextColor, diBackgroundColor
     }
 
@@ -222,6 +227,7 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
         extraRx = c.value(.extraRx, default: d.extraRx)
         extraRxToGrab = c.value(.extraRxToGrab, default: d.extraRxToGrab)
         rttyInterface = RttyInterface.from(c.value(.rttyInterface, default: d.rttyInterface)).rawValue
+        so2rTxLockout = DigitalTxLockout.from(c.value(.so2rTxLockout, default: d.so2rTxLockout)).rawValue
         tncType = TncType.from(c.value(.tncType, default: d.tncType)).rawValue
         tncPort = c.value(.tncPort, default: d.tncPort)
         tncBaud = c.value(.tncBaud, default: d.tncBaud) > 0 ? c.value(.tncBaud, default: d.tncBaud) : d.tncBaud
@@ -362,5 +368,17 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
             FunctionKeyMessage(label: "Empty", text: ""),
             FunctionKeyMessage(label: "Wipe", text: "{WIPE}"),
         ]
+    }
+}
+
+/// N1MM Config → SO2R „TX lockout (digital)" between the two Digital Interfaces.
+public enum DigitalTxLockout: String, CaseIterable, Sendable {
+    case off = "OFF"
+    case firstWins = "FIRST"
+    case lastWins = "LAST"
+
+    /// A stored value; anything unknown is `off`.
+    public static func from(_ text: String) -> DigitalTxLockout {
+        DigitalTxLockout(rawValue: text.uppercased()) ?? .off
     }
 }

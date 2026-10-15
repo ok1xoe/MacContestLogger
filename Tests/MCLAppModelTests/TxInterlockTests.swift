@@ -249,4 +249,71 @@ import Testing
         #expect(!a.model.keyer.digitalSending)
         #expect(a.model.keyer.sendFailures == 1)
     }
+
+    // MARK: - last one wins, the footswitch
+
+    /// N1MM „Force other station to stop": this station may transmit while another one does; another station that
+    /// starts afterwards stops it (only a start seen while this one transmits).
+    @Test func lastOneWinsStopsThisStationWhenAnotherStarts() async throws {
+        let hub = InMemorySyncTransport()
+        let a = try await Self.station(.all, hub: hub)
+        a.model.config.config.cluster.interlockLastWins = true
+        try hub.publishStatus(Self.peer())
+        await eventually("peer transmits") { a.cluster.peers.first?.status.transmitting == true }
+        // Already transmitting before this one starts: no lockout, and it does not stop this one.
+        #expect(Self.gate(a) == nil)
+        a.model.keyer.setTune(true)
+        await a.keying.settle()
+        #expect(a.model.keyer.isTuning)
+        a.clusterClock.advance(by: 1_000)
+        await a.settle()
+        #expect(a.model.keyer.isTuning)
+
+        // It goes quiet and starts again: this station stops.
+        try hub.publishStatus(Self.peer(transmitting: false))
+        await eventually("peer quiet") { a.cluster.peers.first?.status.transmitting == false }
+        #expect(a.model.keyer.isTuning)
+        try hub.publishStatus(Self.peer())
+        await eventually("stopped") { !a.model.keyer.isTuning }
+        #expect(a.status == "TX LOCKOUT: vysílá OP2 — zastaveno")
+
+        // First one wins (the default) never stops a running transmission.
+        a.model.config.config.cluster.interlockLastWins = false
+        a.model.config.config.cluster.interlock = .none
+        a.model.keyer.setTune(true)
+        await a.keying.settle()
+        a.model.config.config.cluster.interlock = .all
+        try hub.publishStatus(Self.peer(transmitting: false))
+        await eventually("peer quiet again") { a.cluster.peers.first?.status.transmitting == false }
+        try hub.publishStatus(Self.peer())
+        await eventually("peer transmits again") { a.cluster.peers.first?.status.transmitting == true }
+        await a.settle()
+        #expect(a.model.keyer.isTuning)
+        a.model.keyer.setTune(false)
+        await a.keying.settle()
+    }
+
+    /// The footswitch PTT is refused under the lockout like every transmission, and a keyed footswitch counts as
+    /// transmitting in this station's status.
+    @Test func theFootswitchGoesThroughTheInterlock() async throws {
+        let hub = InMemorySyncTransport()
+        let a = try await NetStation.make(id: "OP1", hub: hub, configure: {
+            $0.cluster.interlock = .all
+            $0.footswitchAction = "PTT"
+        })
+        try await a.activate()
+        a.model.rig.footswitch(true)
+        #expect(a.model.rig.footswitchPttRig != nil)
+        #expect(a.cluster.ownStatus().transmitting)
+        a.model.rig.footswitch(false)
+        #expect(a.model.rig.footswitchPttRig == nil)
+        #expect(!a.cluster.ownStatus().transmitting)
+
+        try hub.publishStatus(Self.peer())
+        await eventually("peer transmits") { a.cluster.peers.first?.status.transmitting == true }
+        a.model.rig.footswitch(true)
+        #expect(a.model.rig.footswitchPttRig == nil)
+        #expect(a.status == Self.lockout)
+        await a.model.rig.settle()
+    }
 }

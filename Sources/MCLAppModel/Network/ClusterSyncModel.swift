@@ -134,6 +134,8 @@ public final class ClusterSyncModel {
     @ObservationIgnored var onConnected: (@MainActor () -> Void)?
     /// Every round of the state loop (the network model's periodic work: the setup, the master's time).
     @ObservationIgnored var onTick: (@MainActor () -> Void)?
+    /// The other stations' overview changed (old, new): the interlock's „last one wins".
+    @ObservationIgnored var onPeersUpdated: (@MainActor ([StationNetwork.Peer], [StationNetwork.Peer]) -> Void)?
     /// A message this station sent (the network model's trace).
     @ObservationIgnored var onSent: (@MainActor (NetMessageWire) -> Void)?
 
@@ -303,7 +305,9 @@ public final class ClusterSyncModel {
         guard opened.id == generation, session === opened else { return }
         offerStatus(opened)
         ensureReservation()
+        let previous: [StationNetwork.Peer] = peers
         peers = opened.network.peers()
+        onPeersUpdated?(previous, peers)
         revision += 1
         onTick?()
         loopTimer = clock.schedule(afterMilliseconds: Self.stateIntervalMs) { [weak self] in
@@ -570,7 +574,9 @@ public final class ClusterSyncModel {
 
     private func peersChanged(_ id: Int) {
         guard id == generation, let opened = session else { return }
+        let previous: [StationNetwork.Peer] = peers
         peers = opened.network.peers()
+        onPeersUpdated?(previous, peers)
         revision += 1
     }
 

@@ -1022,10 +1022,29 @@ public final class AppModel {
         cluster.sources.typedCall = { [weak model] in
             model?.typedCall ?? ""
         }
-        cluster.sources.isSending = { [weak keyer] in
-            keyer?.isSending ?? false
+        cluster.sources.isSending = { [weak keyer, weak rig] in
+            (keyer?.isSending ?? false) || rig?.footswitchPttRig != nil
         }
         let interlock = TxInterlock(cluster: cluster, config: model.config)
+        interlock.isSending = { [weak keyer, weak rig] in
+            (keyer?.isSending ?? false) || (keyer?.isTuning ?? false) || rig?.footswitchPttRig != nil
+        }
+        interlock.stop = { [weak keyer, weak operating, weak rig, weak status = model.status] message in
+            operating?.setCqRepeat(false)
+            _ = keyer?.stopSending()
+            rig?.releaseFootswitchPtt()
+            status?.showJoined(message.parts, separator: "")
+        }
+        cluster.onPeersUpdated = { old, new in
+            interlock.peersUpdated(old: old, new: new)
+        }
+        // The footswitch PTT goes through the interlock like every transmission and is announced to the others.
+        rig.keyingGate = {
+            interlock.gate()
+        }
+        rig.footswitchKeyed = {
+            interlock.announce()
+        }
         keyer.tx.txGate = {
             interlock.gate()
         }
