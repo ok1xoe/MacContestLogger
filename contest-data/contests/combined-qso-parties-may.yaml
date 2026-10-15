@@ -1,0 +1,79 @@
+schemaVersion: 1
+id: combined-qso-parties-may
+metadata:
+  name: "7QP + Indiana + New England + Delaware QSO Parties (combined, IN7QPNE)"
+  organizer: "7QP, INQP, NEQP and DEQP sponsors"
+  description: "one log for a station outside all four areas during the first weekend of May (N1MM IN7QPNE): 7QP 1300 UTC Saturday to 0700 Sunday, Indiana 1500 to 0259, New England 2000 to 0500 and 1300 to 2400 Sunday, Delaware 1700 Saturday to 2359 Sunday. Send RS(T) + your state/province or DX (set ROVERQTH). Log the received county exactly: a 7th-area code (ORDES), an Indiana code (INMRN), a New England code (MAMID) or a Delaware county (NDE, KDE, SDE) — the party and its multiplier follow from it; a county line is logged as ORDES/JEF or IDFRA/UTCAC (one QSO per county). Each party is scored by its own rules and the score is their sum: 7QP phone 2, CW 3, digital 4 points x 259 counties once; Indiana 2 points (CW and phone) x 92 counties once per mode; New England phone 1, CW and digital 2 points x 68 counties once (80-10 m); Delaware phone 10, CW and digital 20 points x 3 counties per band x the power factor (QRP x3, LOW x2, HIGH x1). A station may be worked once per band and mode (a mobile again from every county). The same Cabrillo file goes to all four sponsors, who score their part. Stations inside one of the areas use that party's own definition."
+  officialUrl: "https://n1mmwp.hamdocs.com/manual-supported/contests-setup/setup-qsop-contests/"
+period: { durationHours: 35, startWeekday: SAT, startTime: "1300" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB, DIGITAL]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: qth, type: TEXT, source: ROVER_QTH }      # my state/province or DX
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: qth, type: TEXT, required: true, split: true }
+
+# only stations of the four parties count
+workable:
+  anyOf:
+    - { fieldMatches: { field: qth, regex: "^(AZ|ID|MT|NV|OR|UT|WA|WY)[A-Z]{3}$" } }
+    - { fieldMatches: { field: qth, regex: "^IN[A-Z]{3}$" } }
+    - { fieldMatches: { field: qth, regex: "^(CT|MA|ME|NH|RI|VT)[A-Z]{3}$" } }
+    - { fieldMatches: { field: qth, regex: "^(NDE|KDE|SDE)$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2                                         # New England CW and digital
+    rules:
+      # Delaware: phone 10, CW and digital 20
+      - { when: { allOf: [ { fieldMatches: { field: qth, regex: "^(NDE|KDE|SDE)$" } },
+                           { anyOf: [ { mode: SSB }, { mode: AM }, { mode: FM } ] } ] }, value: { fixed: 10 } }
+      - { when: { fieldMatches: { field: qth, regex: "^(NDE|KDE|SDE)$" } }, value: { fixed: 20 } }
+      # 7QP: CW 3, phone 2, digital 4
+      - { when: { allOf: [ { fieldMatches: { field: qth, regex: "^(AZ|ID|MT|NV|OR|UT|WA|WY)[A-Z]{3}$" } },
+                           { mode: CW } ] }, value: { fixed: 3 } }
+      - { when: { allOf: [ { fieldMatches: { field: qth, regex: "^(AZ|ID|MT|NV|OR|UT|WA|WY)[A-Z]{3}$" } },
+                           { anyOf: [ { mode: SSB }, { mode: AM }, { mode: FM } ] } ] }, value: { fixed: 2 } }
+      - { when: { fieldMatches: { field: qth, regex: "^(AZ|ID|MT|NV|OR|UT|WA|WY)[A-Z]{3}$" } }, value: { fixed: 4 } }
+      # Indiana: CW and phone 2, no digital
+      - { when: { allOf: [ { fieldMatches: { field: qth, regex: "^IN[A-Z]{3}$" } },
+                           { anyOf: [ { mode: CW }, { mode: SSB }, { mode: AM }, { mode: FM } ] } ] }, value: { fixed: 2 } }
+      - { when: { fieldMatches: { field: qth, regex: "^IN[A-Z]{3}$" } }, value: { fixed: 0 } }
+      # New England: phone 1, no 160 m
+      - { when: { bandIn: [160m] }, value: { fixed: 0 } }
+      - { when: { anyOf: [ { mode: SSB }, { mode: AM }, { mode: FM } ] }, value: { fixed: 1 } }
+  # versions without scoring.parts: all points times all counties
+  total: "qsoPoints * multTotal"
+  parts:
+    - { id: 7qp,  label: "7QP", multipliers: [counties7qp],
+        when: { fieldMatches: { field: qth, regex: "^(AZ|ID|MT|NV|OR|UT|WA|WY)[A-Z]{3}$" } } }
+    - { id: inqp, label: "Indiana", multipliers: [countiesIn],
+        when: { fieldMatches: { field: qth, regex: "^IN[A-Z]{3}$" } } }
+    - { id: neqp, label: "New England", multipliers: [countiesNe],
+        when: { fieldMatches: { field: qth, regex: "^(CT|MA|ME|NH|RI|VT)[A-Z]{3}$" } } }
+    - { id: deqp, label: "Delaware", multipliers: [countiesDe], powerFactor: { QRP: 3, LOW: 2, HIGH: 1 },
+        when: { fieldMatches: { field: qth, regex: "^(NDE|KDE|SDE)$" } } }
+
+multipliers:
+  - { id: counties7qp, label: "7QP", set: sevenqp_counties, from: qth, scope: ONCE,
+      when: { fieldMatches: { field: qth, regex: "^(AZ|ID|MT|NV|OR|UT|WA|WY)[A-Z]{3}$" } } }
+  - { id: countiesIn,  label: "IN",  set: inqp_counties,    from: qth, scope: PER_MODE,
+      when: { allOf: [ { fieldMatches: { field: qth, regex: "^IN[A-Z]{3}$" } },
+                       { anyOf: [ { mode: CW }, { mode: SSB }, { mode: AM }, { mode: FM } ] } ] } }
+  - { id: countiesNe,  label: "NE",  set: neqp_counties,    from: qth, scope: ONCE,
+      when: { allOf: [ { fieldMatches: { field: qth, regex: "^(CT|MA|ME|NH|RI|VT)[A-Z]{3}$" } },
+                       { not: { bandIn: [160m] } } ] } }
+  - { id: countiesDe,  label: "DE",  set: deqp_counties,    from: qth, scope: PER_BAND,
+      when: { fieldMatches: { field: qth, regex: "^(NDE|KDE|SDE)$" } } }
+
+dupe: { scope: PER_BAND_MODE, byField: qth }
+
+cabrillo: { contestName: IN7QPNE, sentOrder: [rst, qth], receivedOrder: [rst, qth] }
+ui:
+  entryOrder: [call, qth]
+  logColumns: [time, call, band, mode, rst, qth, points, mult]

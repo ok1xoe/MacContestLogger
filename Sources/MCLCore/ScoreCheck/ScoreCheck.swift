@@ -253,7 +253,7 @@ public enum ScoreCheck {
         let sent = cabrillo.sentOrder?.count ?? 0
         let myGrid = try usesPerKm(def) ? text.detectOwnGrid(sent: sent) : nil
         let session = ContestSession(definition: def, dxcc: dxcc, registry: registry, myCall: myCall, myGrid: myGrid)
-        if def.scoring?.powerFactor != nil {
+        if def.scoring?.usesPowerCategory == true {
             // Swift-only scoring.powerFactor: the CATEGORY-POWER of the header (other definitions never read it).
             session.setPowerCategory(try text.header("CATEGORY-POWER"))
         }

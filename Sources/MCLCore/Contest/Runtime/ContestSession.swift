@@ -123,6 +123,8 @@ public final class ContestSession: Sendable {
         var bonusCalls: [String] = []
         /// The Cabrillo power category of the contest setup (`scoring.powerFactor`).
         var powerCategory: String?
+        /// Points and QSO counts of `scoring.parts`, in definition order.
+        var partTallies: [ScoreEngine.PartTally] = []
     }
 
     public let definition: ContestDefinition
@@ -539,10 +541,28 @@ public final class ContestSession: Sendable {
                 return .failure(.expression(error))
             }
         }
+        do {
+            try tallyParts(definition, context, points, &state)
+        } catch {
+            return .failure(.expression(error))
+        }
         state.dupe.add(context, atEpochSecond: at)
         state.qsoPoints = JavaMath.addLong(state.qsoPoints, Int64(points))
         state.qsoCount = JavaMath.addInt(state.qsoCount, 1)
         return .success(LogResult(context: context, points: points, dupe: isDupe, multipliers: multipliers))
+    }
+
+    /// Adds the QSO's points to every `scoring.parts` entry whose `when` holds (a combined contest).
+    private static func tallyParts(_ definition: ContestDefinition, _ context: QsoContext, _ points: Int32,
+                                   _ state: inout State) throws(ExpressionError) {
+        guard let parts = definition.scoring?.scoredParts, !parts.isEmpty else { return }
+        if state.partTallies.count != parts.count {
+            state.partTallies = Array(repeating: ScoreEngine.PartTally(), count: parts.count)
+        }
+        for (index, part) in parts.enumerated() where try ConditionEvaluator.eval(part.when, context) {
+            state.partTallies[index].qsoPoints = JavaMath.addLong(state.partTallies[index].qsoPoints, Int64(points))
+            state.partTallies[index].qsoCount = JavaMath.addInt(state.partTallies[index].qsoCount, 1)
+        }
     }
 
     /// Bonuses from the definition (`scoring.bonuses`): condition met → points once per `id|scopeKey`.
@@ -621,15 +641,16 @@ public final class ContestSession: Sendable {
     /// zero). A formula expression error propagates (also nesting above 12 — never a silent zero).
     public func score() throws(ExpressionError) -> ScoreState {
         let snapshot = state.withLock {
-            ($0.qsoPoints, $0.bonusPoints, $0.qtcCount, $0.qsoCount, $0.evaluator.tracker, $0.powerCategory)
+            ($0.qsoPoints, $0.bonusPoints, $0.qtcCount, $0.qsoCount, $0.evaluator.tracker, $0.powerCategory,
+             $0.partTallies)
         }
-        let (qsoPoints, bonusPoints, qtcCount, qsoCount, tracker, power) = snapshot
+        let (qsoPoints, bonusPoints, qtcCount, qsoCount, tracker, power, tallies) = snapshot
         var qtcPoints: Int64 = 0
         if let qtc = definition.scoring?.qtc {
             qtcPoints = JavaMath.multiplyLong(Int64(qtcCount), Int64(qtc.pointsOrDefault))
         }
         return try ScoreEngine.compute(definition, qsoPoints: qsoPoints, bonusPoints: bonusPoints,
                                        qtcPoints: qtcPoints, qsoCount: qsoCount, powerCategory: power,
-                                       tracker: tracker)
+                                       partTallies: tallies, tracker: tracker)
     }
 }

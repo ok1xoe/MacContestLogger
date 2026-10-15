@@ -198,11 +198,12 @@ import Testing
         // 1 key of 2BSIQ and
         // 6 keys of grabbing the focus and snapping windows and
         // 20 keys of two keyboards and
+        // 2 keys of the combined contest's part scores and
         // 13 keys of the PDF manual download and
         // 5 keys of the Tailscale cluster search.
-        #expect(map.count == 2_530)
+        #expect(map.count == 2_532)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_530)
+        #expect(german.count == 2_532)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

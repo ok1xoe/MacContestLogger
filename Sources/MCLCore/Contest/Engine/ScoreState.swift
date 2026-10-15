@@ -11,9 +11,31 @@ public struct ScoreState: Equatable, Sendable {
     public let bonusPoints: Int64
     public let qtcPoints: Int64
     public let total: Int64
+    /// The scores of `scoring.parts` in definition order (Swift only); empty when the contest has no parts.
+    public let parts: [PartScore]
+
+    /// The score of one part of a combined contest (`scoring.parts`).
+    public struct PartScore: Equatable, Sendable {
+        public let id: String?
+        /// The part's label, else its id.
+        public let label: String
+        public let qsoCount: Int32
+        public let qsoPoints: Int64
+        public let multTotal: Int32
+        public let total: Int64
+
+        public init(id: String?, label: String, qsoCount: Int32, qsoPoints: Int64, multTotal: Int32, total: Int64) {
+            self.id = id
+            self.label = label
+            self.qsoCount = qsoCount
+            self.qsoPoints = qsoPoints
+            self.multTotal = multTotal
+            self.total = total
+        }
+    }
 
     public init(qsoCount: Int32, qsoPoints: Int64, multTotal: Int32, multByGroup: JavaLinkedMap<Int32>,
-                bonusPoints: Int64, qtcPoints: Int64, total: Int64) {
+                bonusPoints: Int64, qtcPoints: Int64, total: Int64, parts: [PartScore] = []) {
         self.qsoCount = qsoCount
         self.qsoPoints = qsoPoints
         self.multTotal = multTotal
@@ -21,5 +43,6 @@ public struct ScoreState: Equatable, Sendable {
         self.bonusPoints = bonusPoints
         self.qtcPoints = qtcPoints
         self.total = total
+        self.parts = parts
     }
 }

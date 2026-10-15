@@ -540,14 +540,19 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         /// N1MM `PowerMult`: the final score multiplied by the factor of the Cabrillo power category chosen in the
         /// contest setup (`HIGH: 1, LOW: 2, QRP: 4`); a category that is not listed = ×1. Swift-only key.
         public var powerFactor: YamlOrderedMap<Int>?
+        /// Several contests scored from one log (Swift-only key, N1MM's combined same-weekend QSO parties): each part
+        /// takes the QSOs matching its `when`, its own multiplier bindings and formula, and the score is the sum of
+        /// the parts. Older versions ignore the key and use `total`, so `total` stays a valid fallback formula.
+        public var parts: [ScorePart?]?
 
         public init(qsoPoints: QsoPoints?, bonuses: [Bonus?]?, total: String?, qtc: Qtc? = nil,
-                    powerFactor: YamlOrderedMap<Int>? = nil) {
+                    powerFactor: YamlOrderedMap<Int>? = nil, parts: [ScorePart?]? = nil) {
             self.qsoPoints = qsoPoints
             self.bonuses = bonuses
             self.total = total
             self.qtc = qtc
             self.powerFactor = powerFactor
+            self.parts = parts
         }
 
         public init(yaml object: YamlObject) {
@@ -556,6 +561,17 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             total = object.string("total")
             qtc = object.decode("qtc", as: Qtc.self)
             powerFactor = Self.intMap(object.map("powerFactor", of: Int32.self))
+            parts = object.list("parts", of: ScorePart.self)
+        }
+
+        /// The non-`nil` parts; empty = the contest is scored by `total` alone.
+        public var scoredParts: [ScorePart] {
+            (parts ?? []).compactMap { $0 }
+        }
+
+        /// Does the score depend on the power category of the contest setup (`powerFactor` here or in a part)?
+        public var usesPowerCategory: Bool {
+            powerFactor != nil || scoredParts.contains { $0.powerFactor != nil }
         }
 
         static func intMap(_ map: YamlOrderedMap<Int32>?) -> YamlOrderedMap<Int>? {
@@ -570,6 +586,11 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
 
         /// The factor of a power category (`HIGH`, `LOW`, `QRP`; N1MM `HP`/`LP` are accepted as keys too).
         public func powerFactorFor(_ category: String?) -> Int {
+            Self.factor(powerFactor, category)
+        }
+
+        /// The factor of `category` in a `powerFactor` map; no map, no category or a category not listed = ×1.
+        static func factor(_ powerFactor: YamlOrderedMap<Int>?, _ category: String?) -> Int {
             guard let powerFactor, let category else { return 1 }
             let wanted: String = KotlinText.trim(category).uppercased()
             let aliases: [String: String] = ["HP": "HIGH", "LP": "LOW"]
@@ -580,6 +601,44 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
                 }
             }
             return 1
+        }
+    }
+
+    /// One part of `scoring.parts`: `{ id: in, label: "Indiana", when: <condition>, multipliers: [inCounties],
+    /// total: "qsoPoints * multTotal", powerFactor: { QRP: 3, LOW: 2, HIGH: 1 } }`. The part's formula sees the
+    /// points and count of the QSOs matching `when` (`qsoPoints`, `qsoCount`), the sum of its `multipliers` bindings
+    /// (`multTotal`) and every `mult.<id>`; a missing `total` is `qsoPoints * multTotal`.
+    public struct ScorePart: YamlRecord, Equatable, Sendable {
+        public var id: String?
+        public var label: String?
+        public var when: Condition?
+        public var multipliers: [String?]?
+        public var total: String?
+        public var powerFactor: YamlOrderedMap<Int>?
+
+        public init(id: String?, label: String? = nil, when: Condition?, multipliers: [String?]?,
+                    total: String? = nil, powerFactor: YamlOrderedMap<Int>? = nil) {
+            self.id = id
+            self.label = label
+            self.when = when
+            self.multipliers = multipliers
+            self.total = total
+            self.powerFactor = powerFactor
+        }
+
+        public init(yaml object: YamlObject) {
+            id = object.string("id")
+            label = object.string("label")
+            when = object.decode("when", as: Condition.self)
+            multipliers = object.list("multipliers", of: String.self)
+            total = object.string("total")
+            powerFactor = Scoring.intMap(object.map("powerFactor", of: Int32.self))
+        }
+
+        /// The formula, `qsoPoints * multTotal` when the part has none.
+        public var formula: String {
+            guard let total, !JavaText.isBlank(total) else { return "qsoPoints * multTotal" }
+            return total
         }
     }
 
