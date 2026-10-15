@@ -28,7 +28,8 @@ extension EntryModel {
         if sent == nil {
             autoSentCall = nil
         }
-        guard isRunHere, form.mode == .cw, isActivePanel, !operating.postContest,
+        // 2BSIQ: typing here never interrupts the other radio's transmission.
+        guard isRunHere, form.mode == .cw, isActivePanel, !operating.postContest, !otherRadioSending,
               config.config.cwKeyer.method != .none,
               let chunk = AutoSend.next(call: call, sent: sent, threshold: threshold) else { return }
         let message: CwMessage = CwMessageBuilder.build(chunk, functionKeyContext().cwBase)
@@ -36,6 +37,7 @@ extension EntryModel {
         autoSentCall = call
         esmProgress = EsmProgress(exchangeSent: esmProgress.exchangeSent, myCallSent: esmProgress.myCallSent,
                                   sentCall: call)
+        endCqRepeatOfOtherWindow()
         rig?.claimTx(vfo)
         if let status = ports.keyer.send(.cw(message, index: -1), settings: keyerSettings(opposite: false)) {
             show(status)
