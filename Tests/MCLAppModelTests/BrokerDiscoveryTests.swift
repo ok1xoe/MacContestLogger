@@ -3,8 +3,9 @@ import Foundation
 @testable import MCLCore
 import Testing
 
-/// The Bonjour search for an MQTT broker (Settings → Cluster): only on request, never under the inert network, and
-/// the found brokers are offered. The discoverer is a fake; nothing is browsed.
+/// The Bonjour search for an MQTT broker and the search for the cluster among the Tailscale peers (Settings →
+/// Cluster): only on request, never under the inert network, and the found brokers are offered. The discoverers are
+/// fakes; nothing is browsed, run or probed.
 @MainActor @Suite struct BrokerDiscoveryTests {
 
     final class Calls: @unchecked Sendable {
@@ -62,5 +63,79 @@ import Testing
         let again = DiscoveredBroker(name: "a", host: "fe80::1", port: 1883, tls: false)
         #expect(DiscoveredBroker.unique([a, b, again]) == [b, a])
         #expect(a.label == "b — 10.0.0.2:8883 (TLS)")
+    }
+
+    // MARK: - Tailscale
+
+    final class Asked: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value: [[TailscaleProbePort]] = []
+        var ports: [[TailscaleProbePort]] { lock.withLock { value } }
+        func add(_ ports: [TailscaleProbePort]) { lock.withLock { value.append(ports) } }
+    }
+
+    static func tailscaleApp(_ asked: Asked, answer: TailscaleClusterSearch.Outcome) async throws -> TestApp {
+        try await TestApp.make(adjust: { environment in
+            var ports: NetworkPorts = NetworkPorts.inert
+            ports.isInert = false
+            ports.discoverTailscale = { probePorts, done in
+                asked.add(probePorts)
+                done(answer)
+            }
+            environment.network = ports
+        })
+    }
+
+    @Test func theClusterFoundInTheTailnetIsOffered() async throws {
+        let asked = Asked()
+        let found = [DiscoveredBroker(name: "hub", host: "100.64.0.2", port: 1883, tls: false),
+                     DiscoveredBroker(name: "hub", host: "hub.tail1234.ts.net", port: 8883, tls: true)]
+        let app = try await Self.tailscaleApp(asked, answer: .found(found, probed: 3))
+        #expect(asked.ports.isEmpty, "nothing runs before the click")
+        app.model.cluster.discoverTailscaleCluster(port: "8883", tls: true)
+        await eventually("found") { app.model.cluster.discoveredBrokers == found }
+        #expect(!app.model.cluster.discovering)
+        #expect(asked.ports == [[TailscaleProbePort(port: 1883, tls: false), TailscaleProbePort(port: 8883, tls: true)]])
+        #expect(app.model.status.message == "Nalezené MQTT brokery v tailnetu: 2")
+    }
+
+    @Test func tailscaleProblemsAreExplained() async throws {
+        let missing = try await Self.tailscaleApp(Asked(), answer: .notInstalled)
+        missing.model.cluster.discoverTailscaleCluster(port: "", tls: false)
+        await eventually("missing") { !missing.model.cluster.discovering }
+        #expect(missing.model.status.message
+                == "Tailscale není nainstalovaný (aplikace Tailscale ani příkaz tailscale nenalezeny)")
+        let stopped = try await Self.tailscaleApp(Asked(), answer: .notRunning("Stopped"))
+        stopped.model.cluster.discoverTailscaleCluster(port: "1883", tls: false)
+        await eventually("stopped") { !stopped.model.cluster.discovering }
+        #expect(stopped.model.status.message == "Tailscale není připojený (Stopped) — spusťte a přihlaste Tailscale")
+        let none = try await Self.tailscaleApp(Asked(), answer: .found([], probed: 4))
+        none.model.cluster.discoverTailscaleCluster(port: "1883", tls: false)
+        await eventually("none") { !none.model.cluster.discovering }
+        #expect(none.model.cluster.discoveredBrokers.isEmpty)
+        #expect(none.model.status.message == "Žádná z 4 stanic tailnetu online neodpovídá jako MQTT broker")
+    }
+
+    @Test func theInertNetworkRunsNoTailscaleSearch() async throws {
+        let asked = Asked()
+        let app = try await TestApp.make(adjust: { environment in
+            var ports: NetworkPorts = NetworkPorts.inert
+            ports.discoverTailscale = { probePorts, done in
+                asked.add(probePorts)
+                done(.notInstalled)
+            }
+            environment.network = ports
+        })
+        app.model.cluster.discoverTailscaleCluster(port: "1883", tls: false)
+        await runMainQueue()
+        #expect(asked.ports.isEmpty)
+        #expect(app.model.status.message == "Síť je vypnutá (MCL_INERT_NETWORK)")
+        let inertAsked = Asked()
+        NetworkPorts.inert.discoverTailscale([TailscaleProbePort(port: 1883, tls: false)]) { outcome in
+            if outcome == .notInstalled {
+                inertAsked.add([])
+            }
+        }
+        #expect(inertAsked.ports == [[]])
     }
 }

@@ -483,6 +483,43 @@ public final class ClusterSyncModel {
         }
     }
 
+    /// The cluster in the tailnet: the online Tailscale peers probed on the MQTT port 1883 and on the port of the
+    /// settings (`port`, as typed; with `tls`). Only on the operator's request; under `MCL_INERT_NETWORK` nothing is
+    /// run or contacted.
+    public func discoverTailscaleCluster(port: String, tls: Bool) {
+        guard !discovering, !closed else { return }
+        if network.isInert {
+            appLog.notice("Tailscale cluster search: \(NetworkPorts.disabledMessage, privacy: .public)")
+            discoveredBrokers = []
+            status.show("Síť je vypnutá (MCL_INERT_NETWORK)")
+            return
+        }
+        discovering = true
+        let ports: [TailscaleProbePort] = TailscaleProbePort.list(configuredPort: Int(port), tls: tls)
+        network.discoverTailscale(ports) { [weak self] outcome in
+            MainHop.post { self?.discoveredInTailnet(outcome) }
+        }
+    }
+
+    private func discoveredInTailnet(_ outcome: TailscaleClusterSearch.Outcome) {
+        discovering = false
+        switch outcome {
+        case .notInstalled:
+            discoveredBrokers = []
+            status.show(BrokerTexts.tailscaleMissingKey)
+        case .notRunning(let state):
+            discoveredBrokers = []
+            status.show(BrokerTexts.tailscaleDownKey, .string(state))
+        case .found(let found, let probed):
+            discoveredBrokers = found
+            if found.isEmpty {
+                status.show(BrokerTexts.tailscaleNoneKey, .int(probed))
+            } else {
+                status.show(BrokerTexts.tailscaleFoundKey, .int(found.count))
+            }
+        }
+    }
+
     // MARK: - NETON and NETOFF
 
     /// Kotlin `networkOn()`.

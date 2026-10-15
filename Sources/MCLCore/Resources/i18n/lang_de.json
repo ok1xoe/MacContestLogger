@@ -2523,5 +2523,10 @@
  "PDF manuál nejde stáhnout: %s": "Das PDF-Handbuch kann nicht heruntergeladen werden: %s",
  "Otevřít dokumentaci online": "Online-Dokumentation öffnen",
  "PDF manuál": "PDF-Handbuch",
- "Dokumentace je k dispozici online: %s": "Die Dokumentation ist online verfügbar: %s"
+ "Dokumentace je k dispozici online: %s": "Die Dokumentation ist online verfügbar: %s",
+ "Najít cluster přes Tailscale": "Cluster über Tailscale finden",
+ "Tailscale není nainstalovaný (aplikace Tailscale ani příkaz tailscale nenalezeny)": "Tailscale ist nicht installiert (weder die Tailscale-App noch der Befehl tailscale gefunden)",
+ "Tailscale není připojený (%s) — spusťte a přihlaste Tailscale": "Tailscale ist nicht verbunden (%s) — Tailscale starten und anmelden",
+ "Žádná z %s stanic tailnetu online neodpovídá jako MQTT broker": "Keiner der %s Online-Rechner im Tailnet antwortet als MQTT-Broker",
+ "Nalezené MQTT brokery v tailnetu: %s": "Gefundene MQTT-Broker im Tailnet: %s"
 }

@@ -113,8 +113,21 @@ At **every** position in MacContestLogger:
    - **Broker**: the IP or hostname of the **hub** (for example `192.168.1.10`). If the hub
      announces itself (section 4, step 3), **Najít broker v LAN (Bonjour)** (Find a broker in
      the LAN) lists it after a few seconds; a click fills the broker, port and TLS. The search
-     runs only when you press the button. Bonjour does not cross VPNs such as Tailscale: for a
-     remote station type the hub's VPN address or name (e.g. its MagicDNS name).
+     runs only when you press the button. Bonjour does not cross VPNs such as Tailscale; for a
+     remote station on Tailscale use **Najít cluster přes Tailscale** (Find the cluster over
+     Tailscale) instead, see below, or type the hub's tailnet address or MagicDNS name.
+   - **Najít cluster přes Tailscale**: for stations connected over [Tailscale](https://tailscale.com/).
+     It asks the Tailscale client on this Mac for the machines of your tailnet
+     (`tailscale status --json`; the Tailscale app from the App Store or the website, or the `tailscale`
+     command from Homebrew). Then it tries each machine that is **online** on the MQTT port `1883`
+     and on the port typed in the **Port** field (with the **TLS** setting). The test is an MQTT
+     connection request with a throwaway client ID, no user name and no data, closed again at once.
+     The machines whose broker answers are listed (`hub — 100.64.0.2:1883`); a click fills the
+     broker, port and TLS. For TLS the machine's MagicDNS name is used, so the broker's certificate
+     must be issued for that name (for example by `tailscale cert`). Only the machines in your tailnet's
+     list are contacted, never any other address, and only when you press the button. If Tailscale
+     is not installed, not running or not logged in, the status line says so.
+     With `MCL_INERT_NETWORK` nothing is run or contacted.
    - **Port**: `1883` (or `8883` if you use TLS; see section 7).
    - **ID stanice** (Station ID): a short unique name of the position, for example `OP1`,
      `OP2`, `RUN`, `MULT`. **Every position must have a different ID!**
