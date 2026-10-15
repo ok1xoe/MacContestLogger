@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: indiana-qso-party
+metadata:
+  name: "Indiana QSO Party (INQP)"
+  organizer: "Hoosier DX and Contest Club"
+  description: "first full weekend of May, 1500 UTC Saturday to 0259 UTC Sunday. Indiana stations send RS(T) + 5-letter INQP county code (INMRN), US and Canadian stations RS(T) + state/province, others RS(T) + DX. Indiana stations work everyone, others work Indiana stations only. 2 points per CW or phone QSO; a station may be worked once per band and mode (a mobile again from every county). Multipliers once per mode: everyone counts the 92 Indiana counties; Indiana stations also count the other 49 states (DC as MD; a county of 7QP, the New England or Delaware QSO party counts as its state) and 13 provinces, no DX multipliers. In-state / out-of-state follows the ARRL section in the station data. Set ROVERQTH to your county (Indiana) or state/province (elsewhere) — it is what is sent. A county line QSO is logged as INMRN/HAM (one QSO per county). For one log of all four same-weekend QSO parties outside their areas use the combined definition (IN7QPNE)."
+  officialUrl: "https://www.hdxcc.org/inqp/rules.html"
+period: { durationHours: 12, startWeekday: SAT, startTime: "1500" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+inState:
+  sections: [IN]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: qth, type: TEXT, source: ROVER_QTH }      # my county (Indiana) or state/province
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: qth, type: TEXT, required: true, split: true }
+
+# Indiana stations work anyone, others work Indiana stations only
+workable:
+  anyOf:
+    - { inState: true }
+    - { fieldMatches: { field: qth, regex: "^IN[A-Z]{3}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 2 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: counties, set: inqp_counties,  from: qth, scope: PER_MODE,
+      when: { fieldMatches: { field: qth, regex: "^IN[A-Z]{3}$" } } }
+  # Indiana stations: the other states and the provinces (W/VE only, no DX multipliers)
+  - { id: states,   set: qp_weekend_qth, from: qth, scope: PER_MODE,
+      when: { allOf: [ { inState: true }, { entityIn: [291, 1, 6, 110] },
+                       { not: { fieldMatches: { field: qth, regex: "^(IN|IN[A-Z]{3})$" } } } ] } }
+
+dupe: { scope: PER_BAND_MODE, byField: qth }
+
+cabrillo: { contestName: IN-QSO-PARTY, sentOrder: [rst, qth], receivedOrder: [rst, qth] }
+ui:
+  entryOrder: [call, qth]
+  logColumns: [time, call, band, mode, rst, qth, points, mult]

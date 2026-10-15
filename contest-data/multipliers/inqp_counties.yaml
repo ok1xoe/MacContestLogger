@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: inqp_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Indiana counties (INQP)", description: "The 92 Indiana counties as INQP codes: IN and the county abbreviation (INMRN)." }
+valuesFile: inqp_counties.csv

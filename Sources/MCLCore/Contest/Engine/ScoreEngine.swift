@@ -23,8 +23,20 @@ public protocol MultiplierCounts {
 /// in the score").
 public enum ScoreEngine {
 
+    /// The points and QSO count of one `scoring.parts` entry (same order as the definition's parts).
+    public struct PartTally: Equatable, Sendable {
+        public var qsoPoints: Int64 = 0
+        public var qsoCount: Int32 = 0
+
+        public init(qsoPoints: Int64 = 0, qsoCount: Int32 = 0) {
+            self.qsoPoints = qsoPoints
+            self.qsoCount = qsoCount
+        }
+    }
+
     public static func compute(_ definition: ContestDefinition, qsoPoints: Int64, bonusPoints: Int64,
                                qtcPoints: Int64, qsoCount: Int32, powerCategory: String? = nil,
+                               partTallies: [PartTally] = [],
                                tracker: some MultiplierCounts) throws(ExpressionError) -> ScoreState {
         var byGroup = JavaLinkedMap<Int32>()
         var weighted = false
@@ -60,12 +72,47 @@ public enum ScoreEngine {
             variables.put("mult." + (entry.key ?? "null"), .number(Double(entry.value ?? 0)))
         }
 
-        var total = JavaMath.d2l(try Expression.eval(definition.scoring?.total, variables))
+        let parts: [ScoreState.PartScore] = try partScores(definition, variables, byGroup, partTallies, powerCategory)
+        var total: Int64
+        if parts.isEmpty {
+            total = JavaMath.d2l(try Expression.eval(definition.scoring?.total, variables))
+        } else {
+            // A combined contest (scoring.parts): the sum of the parts, `total` is only the older versions' fallback.
+            total = parts.reduce(Int64(0)) { JavaMath.addLong($0, $1.total) }
+        }
         if let scoring = definition.scoring, scoring.powerFactor != nil {
             // N1MM PowerMult: the score times the factor of the chosen power category.
             total = total.multipliedReportingOverflow(by: Int64(scoring.powerFactorFor(powerCategory))).partialValue
         }
         return ScoreState(qsoCount: qsoCount, qsoPoints: qsoPoints, multTotal: multTotal, multByGroup: byGroup,
-                          bonusPoints: bonusPoints, qtcPoints: qtcPoints, total: total)
+                          bonusPoints: bonusPoints, qtcPoints: qtcPoints, total: total, parts: parts)
+    }
+
+    /// The scores of `scoring.parts`: each part's formula over its own points, QSO count and multipliers.
+    private static func partScores(_ definition: ContestDefinition, _ shared: JavaLinkedMap<ExpressionValue>,
+                                   _ byGroup: JavaLinkedMap<Int32>, _ tallies: [PartTally],
+                                   _ powerCategory: String?) throws(ExpressionError) -> [ScoreState.PartScore] {
+        guard let scoring = definition.scoring else { return [] }
+        var out: [ScoreState.PartScore] = []
+        for (index, part) in scoring.scoredParts.enumerated() {
+            let tally: PartTally = index < tallies.count ? tallies[index] : PartTally()
+            var mults: Int32 = 0
+            for case let id? in part.multipliers ?? [] {
+                mults = JavaMath.addInt(mults, byGroup[id] ?? 0)
+            }
+            var variables = shared
+            variables.put("qsoPoints", .number(Double(tally.qsoPoints)))
+            variables.put("qsoCount", .number(Double(tally.qsoCount)))
+            variables.put("multTotal", .number(Double(mults)))
+            var total = JavaMath.d2l(try Expression.eval(part.formula, variables))
+            if part.powerFactor != nil {
+                let factor = Int64(ContestDefinition.Scoring.factor(part.powerFactor, powerCategory))
+                total = total.multipliedReportingOverflow(by: factor).partialValue
+            }
+            let label: String = part.label.flatMap { JavaText.isBlank($0) ? nil : $0 } ?? part.id ?? "?"
+            out.append(ScoreState.PartScore(id: part.id, label: label, qsoCount: tally.qsoCount,
+                                            qsoPoints: tally.qsoPoints, multTotal: mults, total: total))
+        }
+        return out
     }
 }

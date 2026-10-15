@@ -67,7 +67,8 @@ public struct ScoreTable: Equatable, Sendable {
     /// `Po módech` and the per-mode rows when there is more than one mode (only in the band × mode view).
     public let modesTitle: String?
     public let modeRows: [[String]]
-    /// `Body X × násobiče Y  =  skóre Z`, with `  ·  bonus N` when the bonus is not zero.
+    /// `Body X × násobiče Y  =  skóre Z`, with `  ·  bonus N` when the bonus is not zero; a combined contest
+    /// (`scoring.parts`) lists the parts: `7QP: body X × násobiče Y = Z  ·  …  =  skóre S`.
     public let footer: String
     /// `N QSO se nedalo započítat …` when some QSOs could not be replayed.
     public let skippedNote: String?
@@ -238,9 +239,19 @@ public enum StatsViews {
         }
         let sc: ScoreState = b.score
         let bonus: String = sc.bonusPoints != 0 ? "  ·  bonus " + String(sc.bonusPoints) : ""
-        let footer: String = translate.translate("Body %s × násobiče %s%s  =  skóre %s",
+        var footer: String = translate.translate("Body %s × násobiče %s%s  =  skóre %s",
                                                  [.int(Int(sc.qsoPoints)), .int(Int(sc.multTotal)), .string(bonus),
                                                   .int(Int(sc.total))])
+        if !sc.parts.isEmpty {
+            // A combined contest (scoring.parts): each part's own points × multipliers, then the sum.
+            let parts: [String] = sc.parts.map { part in
+                translate.translate("%s: body %s × násobiče %s = %s",
+                                    [.string(part.label), .int(Int(part.qsoPoints)), .int(Int(part.multTotal)),
+                                     .int(Int(part.total))])
+            }
+            footer = translate.translate("%s  =  skóre %s", [.string(parts.joined(separator: "  ·  ")),
+                                                              .int(Int(sc.total))])
+        }
         var skipped: String?
         if b.skipped > 0 {
             skipped = translate.translate("%s QSO se nedalo započítat (chybí pásmo nebo volačka).",

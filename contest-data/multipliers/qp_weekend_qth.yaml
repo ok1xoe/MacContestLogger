@@ -1,0 +1,495 @@
+schemaVersion: 1
+id: qp_weekend_qth
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "QSO party weekend: states and provinces (party counties count as their state)"
+  description: "The state/province multipliers of the in-state stations of 7QP, the Indiana and the Delaware QSO parties: 50 states, DC as MD and 13 provinces/territories; a county of the 7QP, Indiana, New England or Delaware QSO party (ORDES, INMRN, MAMID, NDE) counts as its state."
+values:
+  - { key: AL, label: "Alabama" }
+  - { key: AK, label: "Alaska" }
+  - { key: AZ, label: "Arizona" }
+  - { key: AR, label: "Arkansas" }
+  - { key: CA, label: "California" }
+  - { key: CO, label: "Colorado" }
+  - { key: CT, label: "Connecticut" }
+  - { key: DE, label: "Delaware" }
+  - { key: FL, label: "Florida" }
+  - { key: GA, label: "Georgia" }
+  - { key: HI, label: "Hawaii" }
+  - { key: ID, label: "Idaho" }
+  - { key: IL, label: "Illinois" }
+  - { key: IN, label: "Indiana" }
+  - { key: IA, label: "Iowa" }
+  - { key: KS, label: "Kansas" }
+  - { key: KY, label: "Kentucky" }
+  - { key: LA, label: "Louisiana" }
+  - { key: ME, label: "Maine" }
+  - { key: MD, label: "Maryland" }
+  - { key: MA, label: "Massachusetts" }
+  - { key: MI, label: "Michigan" }
+  - { key: MN, label: "Minnesota" }
+  - { key: MS, label: "Mississippi" }
+  - { key: MO, label: "Missouri" }
+  - { key: MT, label: "Montana" }
+  - { key: NE, label: "Nebraska" }
+  - { key: NV, label: "Nevada" }
+  - { key: NH, label: "New Hampshire" }
+  - { key: NJ, label: "New Jersey" }
+  - { key: NM, label: "New Mexico" }
+  - { key: NY, label: "New York" }
+  - { key: NC, label: "North Carolina" }
+  - { key: ND, label: "North Dakota" }
+  - { key: OH, label: "Ohio" }
+  - { key: OK, label: "Oklahoma" }
+  - { key: OR, label: "Oregon" }
+  - { key: PA, label: "Pennsylvania" }
+  - { key: RI, label: "Rhode Island" }
+  - { key: SC, label: "South Carolina" }
+  - { key: SD, label: "South Dakota" }
+  - { key: TN, label: "Tennessee" }
+  - { key: TX, label: "Texas" }
+  - { key: UT, label: "Utah" }
+  - { key: VT, label: "Vermont" }
+  - { key: VA, label: "Virginia" }
+  - { key: WA, label: "Washington" }
+  - { key: WV, label: "West Virginia" }
+  - { key: WI, label: "Wisconsin" }
+  - { key: WY, label: "Wyoming" }
+  - { key: NS, label: "Nova Scotia" }
+  - { key: QC, label: "Quebec" }
+  - { key: ON, label: "Ontario" }
+  - { key: MB, label: "Manitoba" }
+  - { key: SK, label: "Saskatchewan" }
+  - { key: AB, label: "Alberta" }
+  - { key: BC, label: "British Columbia" }
+  - { key: NB, label: "New Brunswick" }
+  - { key: NL, label: "Newfoundland and Labrador" }
+  - { key: PE, label: "Prince Edward Island" }
+  - { key: NT, label: "Northwest Territories" }
+  - { key: YT, label: "Yukon" }
+  - { key: NU, label: "Nunavut" }
+  - { key: DC, label: "District of Columbia", attributes: { countsAs: MD } }
+  - { key: AZAPH, label: "Apache", attributes: { countsAs: AZ } }
+  - { key: AZGLA, label: "Gila", attributes: { countsAs: AZ } }
+  - { key: AZLPZ, label: "La Paz", attributes: { countsAs: AZ } }
+  - { key: AZNVO, label: "Navajo", attributes: { countsAs: AZ } }
+  - { key: AZSCZ, label: "Santa Cruz", attributes: { countsAs: AZ } }
+  - { key: AZCHS, label: "Cochise", attributes: { countsAs: AZ } }
+  - { key: AZGHM, label: "Graham", attributes: { countsAs: AZ } }
+  - { key: AZMCP, label: "Maricopa", attributes: { countsAs: AZ } }
+  - { key: AZPMA, label: "Pima", attributes: { countsAs: AZ } }
+  - { key: AZYVP, label: "Yavapai", attributes: { countsAs: AZ } }
+  - { key: AZCNO, label: "Coconino", attributes: { countsAs: AZ } }
+  - { key: AZGLE, label: "Greenlee", attributes: { countsAs: AZ } }
+  - { key: AZMHV, label: "Mohave", attributes: { countsAs: AZ } }
+  - { key: AZPNL, label: "Pinal", attributes: { countsAs: AZ } }
+  - { key: AZYMA, label: "Yuma", attributes: { countsAs: AZ } }
+  - { key: IDADA, label: "Ada", attributes: { countsAs: ID } }
+  - { key: IDBNV, label: "Bonneville", attributes: { countsAs: ID } }
+  - { key: IDCUS, label: "Custer", attributes: { countsAs: ID } }
+  - { key: IDKOO, label: "Kootenai", attributes: { countsAs: ID } }
+  - { key: IDOWY, label: "Owyhee", attributes: { countsAs: ID } }
+  - { key: IDADM, label: "Adams", attributes: { countsAs: ID } }
+  - { key: IDBOU, label: "Boundary", attributes: { countsAs: ID } }
+  - { key: IDELM, label: "Elmore", attributes: { countsAs: ID } }
+  - { key: IDLAT, label: "Latah", attributes: { countsAs: ID } }
+  - { key: IDPAY, label: "Payette", attributes: { countsAs: ID } }
+  - { key: IDBAN, label: "Bannock", attributes: { countsAs: ID } }
+  - { key: IDBUT, label: "Butte", attributes: { countsAs: ID } }
+  - { key: IDFRA, label: "Franklin", attributes: { countsAs: ID } }
+  - { key: IDLEM, label: "Lemhi", attributes: { countsAs: ID } }
+  - { key: IDPOW, label: "Power", attributes: { countsAs: ID } }
+  - { key: IDBEA, label: "Bear Lake", attributes: { countsAs: ID } }
+  - { key: IDCAM, label: "Camas", attributes: { countsAs: ID } }
+  - { key: IDFRE, label: "Fremont", attributes: { countsAs: ID } }
+  - { key: IDLEW, label: "Lewis", attributes: { countsAs: ID } }
+  - { key: IDSHO, label: "Shoshone", attributes: { countsAs: ID } }
+  - { key: IDBEN, label: "Benewah", attributes: { countsAs: ID } }
+  - { key: IDCAN, label: "Canyon", attributes: { countsAs: ID } }
+  - { key: IDGEM, label: "Gem", attributes: { countsAs: ID } }
+  - { key: IDLIN, label: "Lincoln", attributes: { countsAs: ID } }
+  - { key: IDTET, label: "Teton", attributes: { countsAs: ID } }
+  - { key: IDBIN, label: "Bingham", attributes: { countsAs: ID } }
+  - { key: IDCAR, label: "Caribou", attributes: { countsAs: ID } }
+  - { key: IDGOO, label: "Gooding", attributes: { countsAs: ID } }
+  - { key: IDMAD, label: "Madison", attributes: { countsAs: ID } }
+  - { key: IDTWI, label: "Twin Falls", attributes: { countsAs: ID } }
+  - { key: IDBLA, label: "Blaine", attributes: { countsAs: ID } }
+  - { key: IDCAS, label: "Cassia", attributes: { countsAs: ID } }
+  - { key: IDIDA, label: "Idaho", attributes: { countsAs: ID } }
+  - { key: IDMIN, label: "Minidoka", attributes: { countsAs: ID } }
+  - { key: IDVAL, label: "Valley", attributes: { countsAs: ID } }
+  - { key: IDBOI, label: "Boise", attributes: { countsAs: ID } }
+  - { key: IDCLA, label: "Clark", attributes: { countsAs: ID } }
+  - { key: IDJEF, label: "Jefferson", attributes: { countsAs: ID } }
+  - { key: IDNEZ, label: "Nez Perce", attributes: { countsAs: ID } }
+  - { key: IDWAS, label: "Washington", attributes: { countsAs: ID } }
+  - { key: IDBNR, label: "Bonner", attributes: { countsAs: ID } }
+  - { key: IDCLE, label: "Clearwater", attributes: { countsAs: ID } }
+  - { key: IDJER, label: "Jerome", attributes: { countsAs: ID } }
+  - { key: IDONE, label: "Oneida", attributes: { countsAs: ID } }
+  - { key: MTBEA, label: "Beaverhead", attributes: { countsAs: MT } }
+  - { key: MTFAL, label: "Fallon", attributes: { countsAs: MT } }
+  - { key: MTLAK, label: "Lake", attributes: { countsAs: MT } }
+  - { key: MTPET, label: "Petroleum", attributes: { countsAs: MT } }
+  - { key: MTSHE, label: "Sheridan", attributes: { countsAs: MT } }
+  - { key: MTBIG, label: "Big Horn", attributes: { countsAs: MT } }
+  - { key: MTFER, label: "Fergus", attributes: { countsAs: MT } }
+  - { key: MTLEW, label: "Lewis & Clark", attributes: { countsAs: MT } }
+  - { key: MTPHI, label: "Phillips", attributes: { countsAs: MT } }
+  - { key: MTSIL, label: "Silver Bow", attributes: { countsAs: MT } }
+  - { key: MTBLA, label: "Blaine", attributes: { countsAs: MT } }
+  - { key: MTFLA, label: "Flathead", attributes: { countsAs: MT } }
+  - { key: MTLIB, label: "Liberty", attributes: { countsAs: MT } }
+  - { key: MTPON, label: "Pondera", attributes: { countsAs: MT } }
+  - { key: MTSTI, label: "Stillwater", attributes: { countsAs: MT } }
+  - { key: MTBRO, label: "Broadwater", attributes: { countsAs: MT } }
+  - { key: MTGAL, label: "Gallatin", attributes: { countsAs: MT } }
+  - { key: MTLIN, label: "Lincoln", attributes: { countsAs: MT } }
+  - { key: MTPWD, label: "Powder River", attributes: { countsAs: MT } }
+  - { key: MTSWE, label: "Sweet Grass", attributes: { countsAs: MT } }
+  - { key: MTCRB, label: "Carbon", attributes: { countsAs: MT } }
+  - { key: MTGAR, label: "Garfield", attributes: { countsAs: MT } }
+  - { key: MTMAD, label: "Madison", attributes: { countsAs: MT } }
+  - { key: MTPWL, label: "Powell", attributes: { countsAs: MT } }
+  - { key: MTTET, label: "Teton", attributes: { countsAs: MT } }
+  - { key: MTCRT, label: "Carter", attributes: { countsAs: MT } }
+  - { key: MTGLA, label: "Glacier", attributes: { countsAs: MT } }
+  - { key: MTMCC, label: "McCone", attributes: { countsAs: MT } }
+  - { key: MTPRA, label: "Prairie", attributes: { countsAs: MT } }
+  - { key: MTTOO, label: "Toole", attributes: { countsAs: MT } }
+  - { key: MTCAS, label: "Cascade", attributes: { countsAs: MT } }
+  - { key: MTGOL, label: "Golden Valley", attributes: { countsAs: MT } }
+  - { key: MTMEA, label: "Meagher", attributes: { countsAs: MT } }
+  - { key: MTRAV, label: "Ravalli", attributes: { countsAs: MT } }
+  - { key: MTTRE, label: "Treasure", attributes: { countsAs: MT } }
+  - { key: MTCHO, label: "Chouteau", attributes: { countsAs: MT } }
+  - { key: MTGRA, label: "Granite", attributes: { countsAs: MT } }
+  - { key: MTMIN, label: "Mineral", attributes: { countsAs: MT } }
+  - { key: MTRIC, label: "Richland", attributes: { countsAs: MT } }
+  - { key: MTVAL, label: "Valley", attributes: { countsAs: MT } }
+  - { key: MTCUS, label: "Custer", attributes: { countsAs: MT } }
+  - { key: MTHIL, label: "Hill", attributes: { countsAs: MT } }
+  - { key: MTMIS, label: "Missoula", attributes: { countsAs: MT } }
+  - { key: MTROO, label: "Roosevelt", attributes: { countsAs: MT } }
+  - { key: MTWHE, label: "Wheatland", attributes: { countsAs: MT } }
+  - { key: MTDAN, label: "Daniels", attributes: { countsAs: MT } }
+  - { key: MTJEF, label: "Jefferson", attributes: { countsAs: MT } }
+  - { key: MTMUS, label: "Musselshell", attributes: { countsAs: MT } }
+  - { key: MTROS, label: "Rosebud", attributes: { countsAs: MT } }
+  - { key: MTWIB, label: "Wibaux", attributes: { countsAs: MT } }
+  - { key: MTDAW, label: "Dawson", attributes: { countsAs: MT } }
+  - { key: MTJUD, label: "Judith Basin", attributes: { countsAs: MT } }
+  - { key: MTPAR, label: "Park", attributes: { countsAs: MT } }
+  - { key: MTSAN, label: "Sanders", attributes: { countsAs: MT } }
+  - { key: MTYEL, label: "Yellowstone", attributes: { countsAs: MT } }
+  - { key: MTDEE, label: "Deer Lodge", attributes: { countsAs: MT } }
+  - { key: NVCAR, label: "Carson City", attributes: { countsAs: NV } }
+  - { key: NVELK, label: "Elko", attributes: { countsAs: NV } }
+  - { key: NVLAN, label: "Lander", attributes: { countsAs: NV } }
+  - { key: NVMIN, label: "Mineral", attributes: { countsAs: NV } }
+  - { key: NVSTO, label: "Storey", attributes: { countsAs: NV } }
+  - { key: NVCHU, label: "Churchill", attributes: { countsAs: NV } }
+  - { key: NVESM, label: "Esmeralda", attributes: { countsAs: NV } }
+  - { key: NVLIN, label: "Lincoln", attributes: { countsAs: NV } }
+  - { key: NVNYE, label: "Nye", attributes: { countsAs: NV } }
+  - { key: NVWAS, label: "Washoe", attributes: { countsAs: NV } }
+  - { key: NVCLA, label: "Clark", attributes: { countsAs: NV } }
+  - { key: NVEUR, label: "Eureka", attributes: { countsAs: NV } }
+  - { key: NVLYO, label: "Lyon", attributes: { countsAs: NV } }
+  - { key: NVPER, label: "Pershing", attributes: { countsAs: NV } }
+  - { key: NVWHI, label: "White Pine", attributes: { countsAs: NV } }
+  - { key: NVDOU, label: "Douglas", attributes: { countsAs: NV } }
+  - { key: NVHUM, label: "Humboldt", attributes: { countsAs: NV } }
+  - { key: ORBAK, label: "Baker", attributes: { countsAs: OR } }
+  - { key: ORDES, label: "Deschutes", attributes: { countsAs: OR } }
+  - { key: ORJEF, label: "Jefferson", attributes: { countsAs: OR } }
+  - { key: ORMAL, label: "Malheur", attributes: { countsAs: OR } }
+  - { key: ORUMA, label: "Umatilla", attributes: { countsAs: OR } }
+  - { key: ORBEN, label: "Benton", attributes: { countsAs: OR } }
+  - { key: ORDOU, label: "Douglas", attributes: { countsAs: OR } }
+  - { key: ORJOS, label: "Josephine", attributes: { countsAs: OR } }
+  - { key: ORMAR, label: "Marion", attributes: { countsAs: OR } }
+  - { key: ORUNI, label: "Union", attributes: { countsAs: OR } }
+  - { key: ORCLK, label: "Clackamas", attributes: { countsAs: OR } }
+  - { key: ORGIL, label: "Gilliam", attributes: { countsAs: OR } }
+  - { key: ORKLA, label: "Klamath", attributes: { countsAs: OR } }
+  - { key: ORMOR, label: "Morrow", attributes: { countsAs: OR } }
+  - { key: ORWAL, label: "Wallowa", attributes: { countsAs: OR } }
+  - { key: ORCLT, label: "Clatsop", attributes: { countsAs: OR } }
+  - { key: ORGRA, label: "Grant", attributes: { countsAs: OR } }
+  - { key: ORLAK, label: "Lake", attributes: { countsAs: OR } }
+  - { key: ORMUL, label: "Multnomah", attributes: { countsAs: OR } }
+  - { key: ORWCO, label: "Wasco", attributes: { countsAs: OR } }
+  - { key: ORCOL, label: "Columbia", attributes: { countsAs: OR } }
+  - { key: ORHAR, label: "Harney", attributes: { countsAs: OR } }
+  - { key: ORLAN, label: "Lane", attributes: { countsAs: OR } }
+  - { key: ORPOL, label: "Polk", attributes: { countsAs: OR } }
+  - { key: ORWSH, label: "Washington", attributes: { countsAs: OR } }
+  - { key: ORCOO, label: "Coos", attributes: { countsAs: OR } }
+  - { key: ORHOO, label: "Hood River", attributes: { countsAs: OR } }
+  - { key: ORLCN, label: "Lincoln", attributes: { countsAs: OR } }
+  - { key: ORSHE, label: "Sherman", attributes: { countsAs: OR } }
+  - { key: ORWHE, label: "Wheeler", attributes: { countsAs: OR } }
+  - { key: ORCRO, label: "Crook", attributes: { countsAs: OR } }
+  - { key: ORJAC, label: "Jackson", attributes: { countsAs: OR } }
+  - { key: ORLNN, label: "Linn", attributes: { countsAs: OR } }
+  - { key: ORTIL, label: "Tillamook", attributes: { countsAs: OR } }
+  - { key: ORYAM, label: "Yamhill", attributes: { countsAs: OR } }
+  - { key: ORCUR, label: "Curry", attributes: { countsAs: OR } }
+  - { key: UTBEA, label: "Beaver", attributes: { countsAs: UT } }
+  - { key: UTDUC, label: "Duchesne", attributes: { countsAs: UT } }
+  - { key: UTKAN, label: "Kane", attributes: { countsAs: UT } }
+  - { key: UTSNJ, label: "San Juan", attributes: { countsAs: UT } }
+  - { key: UTUTA, label: "Utah", attributes: { countsAs: UT } }
+  - { key: UTBOX, label: "Box Elder", attributes: { countsAs: UT } }
+  - { key: UTEME, label: "Emery", attributes: { countsAs: UT } }
+  - { key: UTMIL, label: "Millard", attributes: { countsAs: UT } }
+  - { key: UTSNP, label: "Sanpete", attributes: { countsAs: UT } }
+  - { key: UTWST, label: "Wasatch", attributes: { countsAs: UT } }
+  - { key: UTCAC, label: "Cache", attributes: { countsAs: UT } }
+  - { key: UTGAR, label: "Garfield", attributes: { countsAs: UT } }
+  - { key: UTMOR, label: "Morgan", attributes: { countsAs: UT } }
+  - { key: UTSEV, label: "Sevier", attributes: { countsAs: UT } }
+  - { key: UTWSH, label: "Washington", attributes: { countsAs: UT } }
+  - { key: UTCAR, label: "Carbon", attributes: { countsAs: UT } }
+  - { key: UTGRA, label: "Grand", attributes: { countsAs: UT } }
+  - { key: UTPIU, label: "Piute", attributes: { countsAs: UT } }
+  - { key: UTSUM, label: "Summit", attributes: { countsAs: UT } }
+  - { key: UTWAY, label: "Wayne", attributes: { countsAs: UT } }
+  - { key: UTDAG, label: "Daggett", attributes: { countsAs: UT } }
+  - { key: UTIRO, label: "Iron", attributes: { countsAs: UT } }
+  - { key: UTRIC, label: "Rich", attributes: { countsAs: UT } }
+  - { key: UTTOO, label: "Tooele", attributes: { countsAs: UT } }
+  - { key: UTWEB, label: "Weber", attributes: { countsAs: UT } }
+  - { key: UTDAV, label: "Davis", attributes: { countsAs: UT } }
+  - { key: UTJUA, label: "Juab", attributes: { countsAs: UT } }
+  - { key: UTSAL, label: "Salt Lake", attributes: { countsAs: UT } }
+  - { key: UTUIN, label: "Uintah", attributes: { countsAs: UT } }
+  - { key: WAADA, label: "Adams", attributes: { countsAs: WA } }
+  - { key: WADOU, label: "Douglas", attributes: { countsAs: WA } }
+  - { key: WAKLI, label: "Klickitat", attributes: { countsAs: WA } }
+  - { key: WAPAC, label: "Pacific", attributes: { countsAs: WA } }
+  - { key: WASTE, label: "Stevens", attributes: { countsAs: WA } }
+  - { key: WAASO, label: "Asotin", attributes: { countsAs: WA } }
+  - { key: WAFER, label: "Ferry", attributes: { countsAs: WA } }
+  - { key: WAKNG, label: "King", attributes: { countsAs: WA } }
+  - { key: WAPEN, label: "Pend Oreille", attributes: { countsAs: WA } }
+  - { key: WATHU, label: "Thurston", attributes: { countsAs: WA } }
+  - { key: WABEN, label: "Benton", attributes: { countsAs: WA } }
+  - { key: WAFRA, label: "Franklin", attributes: { countsAs: WA } }
+  - { key: WAKTP, label: "Kitsap", attributes: { countsAs: WA } }
+  - { key: WAPIE, label: "Pierce", attributes: { countsAs: WA } }
+  - { key: WAWAH, label: "Wahkiakum", attributes: { countsAs: WA } }
+  - { key: WACHE, label: "Chelan", attributes: { countsAs: WA } }
+  - { key: WAGAR, label: "Garfield", attributes: { countsAs: WA } }
+  - { key: WAKTT, label: "Kittitas", attributes: { countsAs: WA } }
+  - { key: WASAN, label: "San Juan", attributes: { countsAs: WA } }
+  - { key: WAWAL, label: "Walla Walla", attributes: { countsAs: WA } }
+  - { key: WACLL, label: "Clallam", attributes: { countsAs: WA } }
+  - { key: WAGRN, label: "Grant", attributes: { countsAs: WA } }
+  - { key: WALEW, label: "Lewis", attributes: { countsAs: WA } }
+  - { key: WASKG, label: "Skagit", attributes: { countsAs: WA } }
+  - { key: WAWHA, label: "Whatcom", attributes: { countsAs: WA } }
+  - { key: WACLR, label: "Clark", attributes: { countsAs: WA } }
+  - { key: WAGRY, label: "Grays Harbor", attributes: { countsAs: WA } }
+  - { key: WALIN, label: "Lincoln", attributes: { countsAs: WA } }
+  - { key: WASKM, label: "Skamania", attributes: { countsAs: WA } }
+  - { key: WAWHI, label: "Whitman", attributes: { countsAs: WA } }
+  - { key: WACOL, label: "Columbia", attributes: { countsAs: WA } }
+  - { key: WAISL, label: "Island", attributes: { countsAs: WA } }
+  - { key: WAMAS, label: "Mason", attributes: { countsAs: WA } }
+  - { key: WASNO, label: "Snohomish", attributes: { countsAs: WA } }
+  - { key: WAYAK, label: "Yakima", attributes: { countsAs: WA } }
+  - { key: WACOW, label: "Cowlitz", attributes: { countsAs: WA } }
+  - { key: WAJEF, label: "Jefferson", attributes: { countsAs: WA } }
+  - { key: WAOKA, label: "Okanogan", attributes: { countsAs: WA } }
+  - { key: WASPO, label: "Spokane", attributes: { countsAs: WA } }
+  - { key: WYALB, label: "Albany", attributes: { countsAs: WY } }
+  - { key: WYCRO, label: "Crook", attributes: { countsAs: WY } }
+  - { key: WYLAR, label: "Laramie", attributes: { countsAs: WY } }
+  - { key: WYPLA, label: "Platte", attributes: { countsAs: WY } }
+  - { key: WYTET, label: "Teton", attributes: { countsAs: WY } }
+  - { key: WYBIG, label: "Big Horn", attributes: { countsAs: WY } }
+  - { key: WYFRE, label: "Fremont", attributes: { countsAs: WY } }
+  - { key: WYLIN, label: "Lincoln", attributes: { countsAs: WY } }
+  - { key: WYSHE, label: "Sheridan", attributes: { countsAs: WY } }
+  - { key: WYUIN, label: "Uinta", attributes: { countsAs: WY } }
+  - { key: WYCAM, label: "Campbell", attributes: { countsAs: WY } }
+  - { key: WYGOS, label: "Goshen", attributes: { countsAs: WY } }
+  - { key: WYNAT, label: "Natrona", attributes: { countsAs: WY } }
+  - { key: WYSUB, label: "Sublette", attributes: { countsAs: WY } }
+  - { key: WYWAS, label: "Washakie", attributes: { countsAs: WY } }
+  - { key: WYCAR, label: "Carbon", attributes: { countsAs: WY } }
+  - { key: WYHOT, label: "Hot Springs", attributes: { countsAs: WY } }
+  - { key: WYNIO, label: "Niobrara", attributes: { countsAs: WY } }
+  - { key: WYSWE, label: "Sweetwater", attributes: { countsAs: WY } }
+  - { key: WYWES, label: "Weston", attributes: { countsAs: WY } }
+  - { key: WYCON, label: "Converse", attributes: { countsAs: WY } }
+  - { key: WYJOH, label: "Johnson", attributes: { countsAs: WY } }
+  - { key: WYPAR, label: "Park", attributes: { countsAs: WY } }
+  - { key: INADA, label: "Adams", attributes: { countsAs: IN } }
+  - { key: INALL, label: "Allen", attributes: { countsAs: IN } }
+  - { key: INBAR, label: "Bartholomew", attributes: { countsAs: IN } }
+  - { key: INBEN, label: "Benton", attributes: { countsAs: IN } }
+  - { key: INBLA, label: "Blackford", attributes: { countsAs: IN } }
+  - { key: INBOO, label: "Boone", attributes: { countsAs: IN } }
+  - { key: INBRO, label: "Brown", attributes: { countsAs: IN } }
+  - { key: INCAR, label: "Carroll", attributes: { countsAs: IN } }
+  - { key: INCAS, label: "Cass", attributes: { countsAs: IN } }
+  - { key: INCLR, label: "Clark", attributes: { countsAs: IN } }
+  - { key: INCLY, label: "Clay", attributes: { countsAs: IN } }
+  - { key: INCLI, label: "Clinton", attributes: { countsAs: IN } }
+  - { key: INCRA, label: "Crawford", attributes: { countsAs: IN } }
+  - { key: INDAV, label: "Daviess", attributes: { countsAs: IN } }
+  - { key: INDEA, label: "Dearborn", attributes: { countsAs: IN } }
+  - { key: INDEC, label: "Decatur", attributes: { countsAs: IN } }
+  - { key: INDEK, label: "DeKalb", attributes: { countsAs: IN } }
+  - { key: INDEL, label: "Delaware", attributes: { countsAs: IN } }
+  - { key: INDUB, label: "Dubois", attributes: { countsAs: IN } }
+  - { key: INELK, label: "Elkhart", attributes: { countsAs: IN } }
+  - { key: INFAY, label: "Fayette", attributes: { countsAs: IN } }
+  - { key: INFLO, label: "Floyd", attributes: { countsAs: IN } }
+  - { key: INFOU, label: "Fountain", attributes: { countsAs: IN } }
+  - { key: INFRA, label: "Franklin", attributes: { countsAs: IN } }
+  - { key: INFUL, label: "Fulton", attributes: { countsAs: IN } }
+  - { key: INGIB, label: "Gibson", attributes: { countsAs: IN } }
+  - { key: INGRA, label: "Grant", attributes: { countsAs: IN } }
+  - { key: INGRE, label: "Greene", attributes: { countsAs: IN } }
+  - { key: INHAM, label: "Hamilton", attributes: { countsAs: IN } }
+  - { key: INHAN, label: "Hancock", attributes: { countsAs: IN } }
+  - { key: INHAR, label: "Harrison", attributes: { countsAs: IN } }
+  - { key: INHND, label: "Hendricks", attributes: { countsAs: IN } }
+  - { key: INHNR, label: "Henry", attributes: { countsAs: IN } }
+  - { key: INHOW, label: "Howard", attributes: { countsAs: IN } }
+  - { key: INHUN, label: "Huntington", attributes: { countsAs: IN } }
+  - { key: INJAC, label: "Jackson", attributes: { countsAs: IN } }
+  - { key: INJAS, label: "Jasper", attributes: { countsAs: IN } }
+  - { key: INJAY, label: "Jay", attributes: { countsAs: IN } }
+  - { key: INJEF, label: "Jefferson", attributes: { countsAs: IN } }
+  - { key: INJEN, label: "Jennings", attributes: { countsAs: IN } }
+  - { key: INJOH, label: "Johnson", attributes: { countsAs: IN } }
+  - { key: INKNO, label: "Knox", attributes: { countsAs: IN } }
+  - { key: INKOS, label: "Kosciusko", attributes: { countsAs: IN } }
+  - { key: INLAG, label: "Lagrange", attributes: { countsAs: IN } }
+  - { key: INLAK, label: "Lake", attributes: { countsAs: IN } }
+  - { key: INLAP, label: "LaPorte", attributes: { countsAs: IN } }
+  - { key: INLAW, label: "Lawrence", attributes: { countsAs: IN } }
+  - { key: INMAD, label: "Madison", attributes: { countsAs: IN } }
+  - { key: INMRN, label: "Marion", attributes: { countsAs: IN } }
+  - { key: INMRS, label: "Marshall", attributes: { countsAs: IN } }
+  - { key: INMRT, label: "Martin", attributes: { countsAs: IN } }
+  - { key: INMIA, label: "Miami", attributes: { countsAs: IN } }
+  - { key: INMNR, label: "Monroe", attributes: { countsAs: IN } }
+  - { key: INMNT, label: "Montgomery", attributes: { countsAs: IN } }
+  - { key: INMOR, label: "Morgan", attributes: { countsAs: IN } }
+  - { key: INNEW, label: "Newton", attributes: { countsAs: IN } }
+  - { key: INNOB, label: "Noble", attributes: { countsAs: IN } }
+  - { key: INOHI, label: "Ohio", attributes: { countsAs: IN } }
+  - { key: INORA, label: "Orange", attributes: { countsAs: IN } }
+  - { key: INOWE, label: "Owen", attributes: { countsAs: IN } }
+  - { key: INPAR, label: "Parke", attributes: { countsAs: IN } }
+  - { key: INPER, label: "Perry", attributes: { countsAs: IN } }
+  - { key: INPIK, label: "Pike", attributes: { countsAs: IN } }
+  - { key: INPOR, label: "Porter", attributes: { countsAs: IN } }
+  - { key: INPOS, label: "Posey", attributes: { countsAs: IN } }
+  - { key: INPUL, label: "Pulaski", attributes: { countsAs: IN } }
+  - { key: INPUT, label: "Putnam", attributes: { countsAs: IN } }
+  - { key: INRAN, label: "Randolph", attributes: { countsAs: IN } }
+  - { key: INRIP, label: "Ripley", attributes: { countsAs: IN } }
+  - { key: INRUS, label: "Rush", attributes: { countsAs: IN } }
+  - { key: INSCO, label: "Scott", attributes: { countsAs: IN } }
+  - { key: INSHE, label: "Shelby", attributes: { countsAs: IN } }
+  - { key: INSPE, label: "Spencer", attributes: { countsAs: IN } }
+  - { key: INSTA, label: "Starke", attributes: { countsAs: IN } }
+  - { key: INSTE, label: "Steuben", attributes: { countsAs: IN } }
+  - { key: INSTJ, label: "St. Joseph", attributes: { countsAs: IN } }
+  - { key: INSUL, label: "Sullivan", attributes: { countsAs: IN } }
+  - { key: INSWI, label: "Switzerland", attributes: { countsAs: IN } }
+  - { key: INTPP, label: "Tippecanoe", attributes: { countsAs: IN } }
+  - { key: INTPT, label: "Tipton", attributes: { countsAs: IN } }
+  - { key: INUNI, label: "Union", attributes: { countsAs: IN } }
+  - { key: INVAN, label: "Vanderburgh", attributes: { countsAs: IN } }
+  - { key: INVER, label: "Vermillion", attributes: { countsAs: IN } }
+  - { key: INVIG, label: "Vigo", attributes: { countsAs: IN } }
+  - { key: INWAB, label: "Wabash", attributes: { countsAs: IN } }
+  - { key: INWRN, label: "Warren", attributes: { countsAs: IN } }
+  - { key: INWRK, label: "Warrick", attributes: { countsAs: IN } }
+  - { key: INWAS, label: "Washington", attributes: { countsAs: IN } }
+  - { key: INWAY, label: "Wayne", attributes: { countsAs: IN } }
+  - { key: INWEL, label: "Wells", attributes: { countsAs: IN } }
+  - { key: INWHT, label: "White", attributes: { countsAs: IN } }
+  - { key: INWHL, label: "Whitley", attributes: { countsAs: IN } }
+  - { key: CTCAP, label: "Capital Region", attributes: { countsAs: CT } }
+  - { key: CTGBR, label: "Greater Bridgeport", attributes: { countsAs: CT } }
+  - { key: CTLCR, label: "Lower CT River", attributes: { countsAs: CT } }
+  - { key: CTNAU, label: "Naugatuck Valley", attributes: { countsAs: CT } }
+  - { key: CTNOE, label: "Northeastern", attributes: { countsAs: CT } }
+  - { key: CTNOW, label: "Northwest Hills", attributes: { countsAs: CT } }
+  - { key: CTSOE, label: "Southeastern", attributes: { countsAs: CT } }
+  - { key: CTSOC, label: "South Central", attributes: { countsAs: CT } }
+  - { key: CTWES, label: "Western", attributes: { countsAs: CT } }
+  - { key: MEAND, label: "Androscoggin", attributes: { countsAs: ME } }
+  - { key: MEARO, label: "Aroostook", attributes: { countsAs: ME } }
+  - { key: MECUM, label: "Cumberland", attributes: { countsAs: ME } }
+  - { key: MEFRA, label: "Franklin", attributes: { countsAs: ME } }
+  - { key: MEHAN, label: "Hancock", attributes: { countsAs: ME } }
+  - { key: MEKEN, label: "Kennebec", attributes: { countsAs: ME } }
+  - { key: MEKNO, label: "Knox", attributes: { countsAs: ME } }
+  - { key: MELIN, label: "Lincoln", attributes: { countsAs: ME } }
+  - { key: MEOXF, label: "Oxford", attributes: { countsAs: ME } }
+  - { key: MEPEN, label: "Penobscot", attributes: { countsAs: ME } }
+  - { key: MEPIS, label: "Piscataquis", attributes: { countsAs: ME } }
+  - { key: MESAG, label: "Sagadahoc", attributes: { countsAs: ME } }
+  - { key: MESOM, label: "Somerset", attributes: { countsAs: ME } }
+  - { key: MEWAL, label: "Waldo", attributes: { countsAs: ME } }
+  - { key: MEWAS, label: "Washington", attributes: { countsAs: ME } }
+  - { key: MEYOR, label: "York", attributes: { countsAs: ME } }
+  - { key: MABAR, label: "Barnstable", attributes: { countsAs: MA } }
+  - { key: MABER, label: "Berkshire", attributes: { countsAs: MA } }
+  - { key: MABRI, label: "Bristol", attributes: { countsAs: MA } }
+  - { key: MADUK, label: "Dukes", attributes: { countsAs: MA } }
+  - { key: MAESS, label: "Essex", attributes: { countsAs: MA } }
+  - { key: MAFRA, label: "Franklin", attributes: { countsAs: MA } }
+  - { key: MAHMD, label: "Hampden", attributes: { countsAs: MA } }
+  - { key: MAHMP, label: "Hampshire", attributes: { countsAs: MA } }
+  - { key: MAMID, label: "Middlesex", attributes: { countsAs: MA } }
+  - { key: MANAN, label: "Nantucket", attributes: { countsAs: MA } }
+  - { key: MANOR, label: "Norfolk", attributes: { countsAs: MA } }
+  - { key: MAPLY, label: "Plymouth", attributes: { countsAs: MA } }
+  - { key: MASUF, label: "Suffolk", attributes: { countsAs: MA } }
+  - { key: MAWOR, label: "Worcester", attributes: { countsAs: MA } }
+  - { key: NHBEL, label: "Belknap", attributes: { countsAs: NH } }
+  - { key: NHCAR, label: "Carroll", attributes: { countsAs: NH } }
+  - { key: NHCHE, label: "Cheshire", attributes: { countsAs: NH } }
+  - { key: NHCOO, label: "Coos", attributes: { countsAs: NH } }
+  - { key: NHGRA, label: "Grafton", attributes: { countsAs: NH } }
+  - { key: NHHIL, label: "Hillsborough", attributes: { countsAs: NH } }
+  - { key: NHMER, label: "Merrimack", attributes: { countsAs: NH } }
+  - { key: NHROC, label: "Rockingham", attributes: { countsAs: NH } }
+  - { key: NHSTR, label: "Strafford", attributes: { countsAs: NH } }
+  - { key: NHSUL, label: "Sullivan", attributes: { countsAs: NH } }
+  - { key: RIBRI, label: "Bristol", attributes: { countsAs: RI } }
+  - { key: RIKEN, label: "Kent", attributes: { countsAs: RI } }
+  - { key: RINEW, label: "Newport", attributes: { countsAs: RI } }
+  - { key: RIPRO, label: "Providence", attributes: { countsAs: RI } }
+  - { key: RIWAS, label: "Washington", attributes: { countsAs: RI } }
+  - { key: VTADD, label: "Addison", attributes: { countsAs: VT } }
+  - { key: VTBEN, label: "Bennington", attributes: { countsAs: VT } }
+  - { key: VTCAL, label: "Caledonia", attributes: { countsAs: VT } }
+  - { key: VTCHI, label: "Chittenden", attributes: { countsAs: VT } }
+  - { key: VTESS, label: "Essex", attributes: { countsAs: VT } }
+  - { key: VTFRA, label: "Franklin", attributes: { countsAs: VT } }
+  - { key: VTGRA, label: "Grand Isle", attributes: { countsAs: VT } }
+  - { key: VTLAM, label: "Lamoille", attributes: { countsAs: VT } }
+  - { key: VTORA, label: "Orange", attributes: { countsAs: VT } }
+  - { key: VTORL, label: "Orleans", attributes: { countsAs: VT } }
+  - { key: VTRUT, label: "Rutland", attributes: { countsAs: VT } }
+  - { key: VTWAS, label: "Washington", attributes: { countsAs: VT } }
+  - { key: VTWNH, label: "Windham", attributes: { countsAs: VT } }
+  - { key: VTWND, label: "Windsor", attributes: { countsAs: VT } }
+  - { key: NDE, label: "New Castle", attributes: { countsAs: DE } }
+  - { key: KDE, label: "Kent", attributes: { countsAs: DE } }
+  - { key: SDE, label: "Sussex", attributes: { countsAs: DE } }

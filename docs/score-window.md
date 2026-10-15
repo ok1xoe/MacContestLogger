@@ -12,7 +12,9 @@ An equivalent of N1MM+ **Score Summary**
 - A multiplier is credited to the band and mode where it was made **first** — so for multipliers
   counted once per contest (scope `ONCE`) only to one band.
 - A **Celkem** (Total) row, and for multi-mode contests also totals **by mode**.
-- At the bottom the result: `Points × multipliers (+ bonus) = score`.
+- At the bottom the result: `Points × multipliers (+ bonus) = score`. A combined contest scored as several parts
+  (the same-weekend QSO parties, see [qso-party.md](qso-party.md)) lists each part's points × multipliers and the
+  sum: `7QP: points 30 × multipliers 4 = 120  ·  Indiana: … =  score 1520`.
 - It is computed by replaying the whole log (like Rescore), so it is correct after editing QSOs
   or importing; X-QSOs and deleted QSOs are not counted. It refreshes itself after every
   change to the log.
