@@ -1947,5 +1947,17 @@
  "Vybraná smazaná QSO (bez výběru všechna) do souboru ADIF": "The selected deleted QSOs (all without a selection) to an ADIF file",
  "QSO ve čtverci %s": "QSOs in grid %s",
  "%s nesedí k zemi %s": "%s does not fit %s",
- "Lokátor neodpovídá zemi volačky — zkontroluj ho": "The locator does not fit the call's country — check it"
+ "Lokátor neodpovídá zemi volačky — zkontroluj ho": "The locator does not fit the call's country — check it",
+ "Typ": "Type",
+ "Pass kHz": "Pass kHz",
+ "Rate 10": "Rate 10",
+ "Rate 100": "Rate 100",
+ "Posl. QSO": "Last QSO",
+ "Sloupce": "Columns",
+ "Pořadí sloupců": "Column order",
+ "Posunout doleva": "Move left",
+ "Posunout doprava": "Move right",
+ "Výchozí sloupce": "Default columns",
+ "RUN stanice v Multi-two (ostatní ji vidí jako RUN1 / RUN2):": "RUN station in Multi-two (the others see it as RUN1 / RUN2):",
+ "Bez čísla": "No number"
 }

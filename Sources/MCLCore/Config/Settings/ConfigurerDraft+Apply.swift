@@ -207,6 +207,7 @@ extension ConfigurerDraft {
         cluster.interlock = interlock
         cluster.serialServer = serialServer
         cluster.stationType = stationType
+        cluster.runNumber = runNumber
         cluster.ruleEnforcement = ruleEnforcement
     }
 

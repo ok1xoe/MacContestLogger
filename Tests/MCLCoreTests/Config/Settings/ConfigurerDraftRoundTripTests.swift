@@ -221,6 +221,7 @@ import Testing
         expected.broadcast.allQsosEnabled = false
         expected.n1mmRecv.sharePort = false
         expected.adifUdp.sharePort = false
+        expected.cluster.runNumber = 0
         #expect(decoded == expected)
     }
 
@@ -302,6 +303,7 @@ import Testing
         w.same(\.interlock, \.cluster.interlock, .sameBand)
         w.same(\.serialServer, \.cluster.serialServer, true)
         w.same(\.stationType, \.cluster.stationType, .mult)
+        w.same(\.runNumber, \.cluster.runNumber, 2)
         w.same(\.ruleEnforcement, \.cluster.ruleEnforcement, .block)
     }
 

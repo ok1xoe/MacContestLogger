@@ -9,7 +9,16 @@ stations in addition to QSOs.
 ![Network status: stations, their bands and contacts](img/network-status.png)
 
 **Okna → Stav sítě** (Windows → Network Status) shows all stations of the network logbook:
-station ID, operator, band, mode, frequency, Run/S&P, QSO count and state:
+station ID, operator, station type (RUN, RUN1, RUN2, MULT), band, mode, frequency, Run/S&P,
+pass frequency (Alt+Z), QSO count, the rate of the last 10 and last 100 QSOs, the last QSO
+(call and UTC time) and state. The rates and the last QSO are computed from the shared log
+(every QSO carries the ID of the station that logged it).
+
+**Sloupce** (Columns) at the top of the window shows or hides columns, moves them left or right
+(*Pořadí sloupců*, Column order) and returns to the default set (N1MM: right-click on the
+header). The choice is saved.
+
+The state column says:
 
 - **online**: the station reports in (a heartbeat every 30 s, immediately on a change),
 - **vysílá** (transmitting): the station is transmitting right now (shown in red),
@@ -106,6 +115,8 @@ logged number.
 
 - **Typ stanice** (Station type; DXLog Station type): *RUN* or *MULT*. A MULT station may only
   log a QSO that brings a new multiplier. The others see the type in Network Status.
+  In Multi-two a RUN station can be numbered **Run1** or **Run2** (N1MM Run1/Run2); the others
+  then see *RUN1* / *RUN2*.
   **Ctrl+Alt+M** switches between RUN and MULT from the keyboard (N1MM Run/Mult). The Info window shows the type
   below its timers (N1MM's MULT/RUN indicator).
 - **Pravidla provozu při zápisu** (Operating rules on write): *Nehlídat* (Do not check) /

@@ -63,6 +63,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var interlock: Interlock.Scope = .none
     public var serialServer: Bool = false
     public var stationType: OperatingGuard.StationType = .none
+    /// N1MM Multi-two Run1/Run2 (`cluster.runNumber`).
+    public var runNumber: Int = 0
     public var ruleEnforcement: OperatingGuard.Enforcement = .warn
 
     // MARK: DX Cluster — `CD:78-103`
@@ -422,6 +424,7 @@ extension ConfigurerDraft {
         interlock = cluster.interlock
         serialServer = cluster.serialServer
         stationType = cluster.stationType
+        runNumber = cluster.runNumber
         ruleEnforcement = cluster.ruleEnforcement
     }
 

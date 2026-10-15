@@ -274,7 +274,7 @@ extension EntryModel {
         let next: OperatingGuard.StationType = config.config.cluster.stationType == .run ? .mult : .run
         config.config.cluster.stationType = next
         config.saveSilently()
-        status.show("Typ stanice: %s", .string(next.rawValue))
+        status.show("Typ stanice: %s", .string(config.config.cluster.announcedStationType))
     }
 
     /// N1MM Alt+Z: the pass frequency (kHz, the current one offered; empty = clear) for the other stations.

@@ -957,7 +957,8 @@ public final class AppModel {
             cluster?.startIfIdle()
         }
         let network = NetworkModel(cluster: cluster, status: status, language: language,
-                                   spots: spots.dxCluster.spots, now: environment.now)
+                                   spots: spots.dxCluster.spots, config: config, logbook: logbook,
+                                   now: environment.now)
         return NetModels(cluster: cluster, network: network)
     }
 
