@@ -114,6 +114,15 @@ public enum ConditionEvaluator {
         if let list = c.ownEntityIn {
             guard let code = ctx.ownEntity?.adifDxcc, list.contains(Int(code)) else { return false }
         }
+        if let wanted = c.inState, wanted != ctx.ownInState {
+            return false
+        }
+        if let matches = c.fieldMatches {
+            guard let regex = matches.regex, let pattern = try? JavaRegexCache.shared.regex(regex),
+                  let value = ctx.fieldCanonical(matches.field), pattern.matches(JavaText.trim(value).uppercased()) else {
+                return false
+            }
+        }
         return true
     }
 

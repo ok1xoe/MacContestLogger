@@ -42,6 +42,8 @@ public final class QsoContextFactory: Sendable {
     private let ownEntity: DxccEntity?
     private let myGrid: String?
     private let ownItuZone: String
+    /// `inState.sections` holds my ARRL section.
+    private let ownInState: Bool
     /// The predicate wrapped in a struct. **Not** a bare function as the lock state: a generic
     /// `OSAllocatedUnfairLock<function>` re-abstracts it on every `withLock` (an `inout` parameter)
     /// and writes it back two thunks deeper, so after ~10,000 `build` calls
@@ -55,8 +57,9 @@ public final class QsoContextFactory: Sendable {
     private let bonus = OSAllocatedUnfairLock(initialState: BonusPredicate { _ in false })
 
     public init(definition: ContestDefinition, dxcc: any DxccLookup, exchange: ExchangeEngine,
-                myCall: String?, myGrid: String? = nil, myItuZone: String? = nil) {
+                myCall: String?, myGrid: String? = nil, myItuZone: String? = nil, mySection: String? = nil) {
         self.definition = definition
+        self.ownInState = definition.inState?.contains(section: mySection) ?? false
         self.dxcc = dxcc
         self.exchange = exchange
         let ownEntity = myCall.flatMap { dxcc.resolve($0) }
@@ -109,8 +112,11 @@ public final class QsoContextFactory: Sendable {
         }
         let isBonus = bonus.withLock { $0 }.test
         let qth: String? = ownQth.flatMap { JavaText.isBlank($0) ? nil : JavaText.trim($0).uppercased() }
-        return QsoContext(call: call, band: band, mode: mode, received: received, workedEntity: worked,
-                          ownEntity: ownEntity, workedClass: workedClass, ownGrid: myGrid, ownItuZone: ownItuZone,
-                          ownQth: qth, bonusStation: call.map { isBonus($0) } ?? false, date: date)
+        var context = QsoContext(call: call, band: band, mode: mode, received: received, workedEntity: worked,
+                                 ownEntity: ownEntity, workedClass: workedClass, ownGrid: myGrid,
+                                 ownItuZone: ownItuZone, ownQth: qth, bonusStation: call.map { isBonus($0) } ?? false,
+                                 date: date)
+        context.ownInState = ownInState
+        return context
     }
 }

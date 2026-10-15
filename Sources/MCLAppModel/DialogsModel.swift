@@ -190,6 +190,7 @@ public final class DialogsModel {
                 newContest = nil
             } else if newContest == nil {
                 let model = NewContestModel(contests: contest.runtime.available, config: config, now: now)
+                wireSections(model)
                 newContest = model
                 loadLastSetup(model)
             }
@@ -317,7 +318,16 @@ public final class DialogsModel {
         model.logOperators = { [weak logbook] in
             logbook?.rows.filter { !$0.deleted }.map(\.operator) ?? []
         }
+        wireSections(model)
         newContest = model
+    }
+
+    /// The contest dialog's section lists: the data's `multipliers` directory and a reload after a change.
+    private func wireSections(_ model: NewContestModel) {
+        model.multipliersDir = contest.environment.dataRoot.appendingPathComponent("multipliers")
+        model.sectionsChanged = { [weak contest] in
+            await contest?.reloadContestData()
+        }
     }
 
     /// N1MM „Delete" in the contest list (after the window's confirmation): the contest is removed, the list re-read.

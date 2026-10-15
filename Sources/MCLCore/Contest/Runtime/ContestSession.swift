@@ -132,10 +132,10 @@ public final class ContestSession: Sendable {
     private let state: OSAllocatedUnfairLock<State>
 
     public init(definition: ContestDefinition, dxcc: any DxccLookup, registry: MultiplierSetRegistry,
-                myCall: String?, myGrid: String? = nil, myItuZone: String? = nil) {
+                myCall: String?, myGrid: String? = nil, myItuZone: String? = nil, mySection: String? = nil) {
         self.definition = definition
         self.factory = QsoContextFactory(definition: definition, dxcc: dxcc, exchange: exchange, myCall: myCall,
-                                         myGrid: myGrid, myItuZone: myItuZone)
+                                         myGrid: myGrid, myItuZone: myItuZone, mySection: mySection)
         self.registry = registry
         self.state = OSAllocatedUnfairLock(initialState: State(evaluator: MultiplierEvaluator(registry: registry),
                                                                dupe: ContestDupeChecker(definition: definition)))

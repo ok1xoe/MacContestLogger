@@ -98,6 +98,8 @@ public final class ContestRuntime {
     private let myCall: () -> String
     private let myGrid: () -> String
     private let myItuZone: () -> String
+    /// My ARRL section (station data), for `inState` of QSO parties.
+    private let mySection: () -> String
 
     /// Contest definitions from the contests directory (Kotlin `available`).
     public let available: [ContestDefinition]
@@ -127,7 +129,8 @@ public final class ContestRuntime {
     /// Kotlin constructor with an already loaded catalog.
     public init(dxcc: (any DxccLookup)?, registry: MultiplierSetRegistry?, available: [ContestDefinition],
                 contestsDir: URL?, myCall: @escaping () -> String, myGrid: @escaping () -> String = { "" },
-                myItuZone: @escaping () -> String = { "" }) {
+                myItuZone: @escaping () -> String = { "" }, mySection: @escaping () -> String = { "" }) {
+        self.mySection = mySection
         self.dxcc = dxcc
         self.registry = registry
         self.available = available
@@ -149,9 +152,11 @@ public final class ContestRuntime {
 
     /// The runtime over a loaded environment (Kotlin `buildContestController`).
     public convenience init(environment: ContestEnvironment, myCall: @escaping () -> String,
-                            myGrid: @escaping () -> String = { "" }, myItuZone: @escaping () -> String = { "" }) {
+                            myGrid: @escaping () -> String = { "" }, myItuZone: @escaping () -> String = { "" },
+                            mySection: @escaping () -> String = { "" }) {
         self.init(dxcc: environment.dxcc, registry: environment.registry, available: environment.catalog,
-                  contestsDir: environment.contestsDir, myCall: myCall, myGrid: myGrid, myItuZone: myItuZone)
+                  contestsDir: environment.contestsDir, myCall: myCall, myGrid: myGrid, myItuZone: myItuZone,
+                  mySection: mySection)
     }
 
     // MARK: - state
@@ -317,7 +322,7 @@ public final class ContestRuntime {
         guard let dxcc, let registry else { return nil }
         let created = ContestSession(definition: definition, dxcc: dxcc, registry: registry,
                                      myCall: myCall(), myGrid: Self.nilIfBlank(myGrid()),
-                                     myItuZone: Self.nilIfBlank(myItuZone()))
+                                     myItuZone: Self.nilIfBlank(myItuZone()), mySection: Self.nilIfBlank(mySection()))
         applyExtras(created)
         return created
     }

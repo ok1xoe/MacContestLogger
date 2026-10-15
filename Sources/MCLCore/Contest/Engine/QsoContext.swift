@@ -29,6 +29,8 @@ public struct QsoContext: Sendable {
     /// The QSO time the DXCC data were evaluated at (`nil` = now). Only Club Log's `cty.xml` has date-ranged
     /// records; the multiplier sets derive from the callsign as of this date.
     public let date: Date?
+    /// I am an in-state station of the QSO party (`inState.sections` holds my ARRL section).
+    public var ownInState: Bool = false
 
     /// Map of expression variables, built only on the first read (`expressionVariables`).
     private let variablesCache = VariablesCache()

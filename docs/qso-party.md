@@ -154,3 +154,32 @@ With a loaded set, counties are checked: `ROVERQTH` and `COUNTYLINE` warn about 
 county that is not in the list, the **"Okresy"** (Counties) window shows worked /
 missing counties, and a received county outside the list is a warning in the log
 table.
+
+## Built-in QSO parties
+
+The California (CQP), Florida (FQP) and New England (NEQP) QSO parties are built in, with their county lists.
+
+- **In-state or out-of-state** follows the **ARRL section** in the station data (like N1MM): a section of the
+  party's state makes you an in-state station (for CQP the California sections EB, LAX, ORG, SB, SCV, SDG, SF, SJV,
+  SV). When the log is created, the status line says which one you are; a station outside the USA and Canada
+  should have the section `DX`, otherwise it is warned to correct it.
+- In-state stations work everyone and count states / provinces (a county of the party's state counts as that
+  state) and, where the rules say so, DXCC countries; out-of-state stations may only work the party's state and count
+  its counties. A QSO with an out-of-state station from outside is logged with a warning and scores nothing.
+- Set **ROVERQTH** to your county (in-state) or your state / province (out-of-state): that is what is sent.
+- A mobile in another county is a new station (`dupe.byField`); a station on a county line is logged as `ALC/BAK`.
+
+The combined same-weekend log of N1MM (7QP, Indiana, New England and Delaware, "IN7QPNEDE") is not built in: the 7QP
+and Indiana county lists could not be taken from their organizers. A combined party can be put together from the
+template with the county lists imported.
+
+## Section lists in the contest dialog
+
+Like N1MM's **Edit Section List** and **Import Section List**, the contest dialog (File → New contest, File →
+Contest setup) lists the county / section lists of the chosen contest:
+
+- **Upravit seznam…** (Edit list...) opens the list as `CODE,Name` lines; **Uložit** writes it and reloads the
+  contest data. The first save keeps the list shipped with the contest data.
+- **Obnovit původní** (Restore original) puts the shipped list back.
+
+An edited list is not overwritten by a definition update ("Nástroje → Aktualizovat definice").

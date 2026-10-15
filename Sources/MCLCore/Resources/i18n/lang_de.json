@@ -1925,5 +1925,21 @@
  "Po exportu Cabrilla připravit e-mail s kopií na logs@supercheckpartial.com (pro master.scp)": "Nach dem Cabrillo-Export eine E-Mail mit einer Kopie an logs@supercheckpartial.com vorbereiten (für master.scp)",
  "Text podle pásma…": "Text nach Band sortiert…",
  "Výklad výměny: %s": "Auswertung des Austauschs: %s",
- "Části výměny v libovolném pořadí; volačka ve výměně opraví zapsanou volačku": "Teile des Austauschs in beliebiger Reihenfolge; ein Rufzeichen im Austausch korrigiert das geloggte Rufzeichen"
+ "Části výměny v libovolném pořadí; volačka ve výměně opraví zapsanou volačku": "Teile des Austauschs in beliebiger Reihenfolge; ein Rufzeichen im Austausch korrigiert das geloggte Rufzeichen",
+ "QSO party: stanice mimo USA a Kanadu má v datech stanice ARRL sekci „DX“, ne „%s“ — oprav ji": "QSO-Party: Eine Station außerhalb der USA und Kanadas hat in den Stationsdaten die ARRL-Sektion „DX“, nicht „%s“ — bitte korrigieren",
+ "QSO party: v datech stanice chybí ARRL sekce — počítám tě jako stanici mimo stát": "QSO-Party: In den Stationsdaten fehlt die ARRL-Sektion — Sie zählen als Station außerhalb des Staates",
+ "QSO party: stanice ve státě (sekce %s)": "QSO-Party: Station im Staat (Sektion %s)",
+ "QSO party: stanice mimo stát (sekce %s)": "QSO-Party: Station außerhalb des Staates (Sektion %s)",
+ "Seznam %s nelze načíst": "Die Liste %s kann nicht gelesen werden",
+ "Seznam %s uložen: %s položek": "Liste %s gespeichert: %s Einträge",
+ "Seznam %s nelze uložit (prázdný nebo chyba zápisu)": "Die Liste %s kann nicht gespeichert werden (leer oder Schreibfehler)",
+ "Seznam %s obnoven": "Liste %s wiederhergestellt",
+ "Seznam %s nelze obnovit": "Die Liste %s kann nicht wiederhergestellt werden",
+ "Seznam %s": "Liste %s",
+ "Upravit seznam…": "Liste bearbeiten…",
+ "Úprava kódů a názvů okresů / sekcí tohoto seznamu": "Codes und Namen der Bezirke / Sektionen dieser Liste bearbeiten",
+ "Obnovit původní": "Original wiederherstellen",
+ "Vrátí seznam dodaný s daty závodů": "Stellt die mit den Contestdaten gelieferte Liste wieder her",
+ "Jeden okres / sekce na řádek: KÓD,Název.": "Ein Bezirk / eine Sektion pro Zeile: CODE,Name.",
+ "Seznam okresů / sekcí": "Liste der Bezirke / Sektionen"
 }

@@ -112,6 +112,37 @@ private struct NewContestContent: View {
                     .help(language.tr("Kategorie a operátoři podle naposledy otevřeného závodu"))
                 }
             }
+            sectionLists
+        }
+        .sheet(isPresented: Binding(get: { form.sectionEditor != nil }, set: { if !$0 { form.sectionEditor = nil } })) {
+            SectionListSheet(form: form, language: language)
+        }
+    }
+
+    /// N1MM „Edit Section List" / „Import Section List": the county / section lists of the contest.
+    @ViewBuilder private var sectionLists: some View {
+        let sets: [String] = form.sectionSets
+        if !sets.isEmpty {
+            ForEach(sets, id: \.self) { setId in
+                HStack(spacing: 8) {
+                    Text(verbatim: language.tr("Seznam %s", .string(setId)))
+                        .windowFont(12)
+                    Button(language.tr("Upravit seznam…")) {
+                        form.editSections(setId)
+                    }
+                    .help(language.tr("Úprava kódů a názvů okresů / sekcí tohoto seznamu"))
+                    Button(language.tr("Obnovit původní")) {
+                        Task { await form.restoreSections(setId) }
+                    }
+                    .disabled(!form.sectionsEdited(setId))
+                    .help(language.tr("Vrátí seznam dodaný s daty závodů"))
+                }
+            }
+            if let message = form.sectionMessage {
+                Text(verbatim: language.text(message))
+                    .windowFont(11)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -386,6 +417,51 @@ private struct DateTimeField: View {
             }
             .textFieldStyle(.roundedBorder)
             .frame(width: 80)
+        }
+    }
+}
+
+/// The section list editor (N1MM „Edit Section List"): `CODE,Name` per line.
+private struct SectionListSheet: View {
+    let form: NewContestModel
+    let language: LanguageModel
+
+    @StateObject private var state = DialogFormState()
+    @State private var loaded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            WindowTopBar(size: $state.fontSize, language: language) {
+                Text(verbatim: language.tr("Seznam %s", .string(form.sectionEditor?.setId ?? "")))
+                    .windowFont(15, weight: .semibold)
+            }
+            Text(verbatim: language.tr("Jeden okres / sekce na řádek: KÓD,Název."))
+                .windowFont(12)
+                .foregroundStyle(.secondary)
+            TextEditor(text: $state.text)
+                .windowFont(13, design: .monospaced)
+                .frame(minHeight: 260)
+                .accessibilityLabel(Text(verbatim: language.tr("Seznam okresů / sekcí")))
+            DialogButtonRow {
+                Button(language.tr("Zrušit")) {
+                    form.sectionEditor = nil
+                }
+                .keyboardShortcut(.cancelAction)
+                Button(language.tr("Uložit")) {
+                    form.sectionEditor?.text = state.text
+                    Task { await form.saveSections() }
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(16)
+        .frame(minWidth: 460, minHeight: 420)
+        .environment(\.windowFontSize, state.fontSize)
+        .onAppear {
+            if !loaded {
+                loaded = true
+                state.text = form.sectionEditor?.text ?? ""
+            }
         }
     }
 }

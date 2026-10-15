@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: cqp_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "California counties (CQP)" }
+valuesFile: cqp_counties.csv

@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: fqp_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Florida counties (FQP)" }
+valuesFile: fqp_counties.csv

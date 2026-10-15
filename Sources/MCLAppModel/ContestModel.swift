@@ -110,7 +110,8 @@ public final class ContestModel {
             environment: environment,
             myCall: { MainActor.assumeIsolated { config.config.station.call } },
             myGrid: { MainActor.assumeIsolated { config.config.station.gridSquare } },
-            myItuZone: { MainActor.assumeIsolated { config.config.station.ituZone } })
+            myItuZone: { MainActor.assumeIsolated { config.config.station.ituZone } },
+            mySection: { MainActor.assumeIsolated { config.config.station.arrlSection } })
     }
 
     /// Loads the contest environment off the main thread (`contestDataDir`, fallback `dataDir/contest-data`;
@@ -296,7 +297,15 @@ public final class ContestModel {
             status.showVerbatim(ErrorText.message(error))
             return false
         }
-        return await activateAndAnnounce(created)
+        guard await activateAndAnnounce(created) else { return false }
+        // N1MM: a new QSO party log tells whether the station counts as in-state or out-of-state.
+        if case .success(let opening) = created {
+            let entity: Int? = runtime.dxccLookup?.resolve(station.call)?.adifDxcc.map { Int($0) }
+            if let party = QsoPartyStatus.message(opening.definition, section: station.arrlSection, ownEntity: entity) {
+                status.show(party)
+            }
+        }
+        return true
     }
 
     /// Kotlin `continueLastContest()`: `false` when there is no readable last contest (no message).
