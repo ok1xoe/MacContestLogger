@@ -56,7 +56,6 @@ struct CwKeyboardWindowView: View {
         let language: LanguageModel = app.language
         let text = Binding<String>(get: { model.text }, set: { model.textChanged($0) })
         return VStack(alignment: .leading, spacing: 6) {
-            WindowTopBar(size: $session.fontSize, language: language)
             HStack(spacing: 6) {
                 SettingsChip(label: "Po slovech", selected: model.wordByWord) { model.wordByWord = true }
                 SettingsChip(label: "Po Enteru", selected: !model.wordByWord) { model.wordByWord = false }
@@ -67,6 +66,7 @@ struct CwKeyboardWindowView: View {
                 }
                 .buttonStyle(.borderless)
             }
+            .trailingFontStepper(size: $session.fontSize, language: language)
             TextField(text: text, axis: .vertical) {
                 Text(verbatim: language.tr("Piš text — makra jako v F-klávesách (* = moje volačka, ! = jeho)"))
             }

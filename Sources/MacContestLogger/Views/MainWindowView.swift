@@ -122,10 +122,8 @@ struct MainWindowView: View {
 
     private func loaded(_ app: AppModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            WindowTopBar(size: $session.fontSize, language: app.language)
-                .padding(.horizontal, 8)
-                .padding(.top, 4)
             EntryPanelView(app: app, panel: app.panel(vfo: 0), focus: focus, wheel: wheel)
+                .environment(\.windowFontControl, WindowFontControl(size: $session.fontSize, language: app.language))
             PluginTransmitIndicator(app: app)
             PluginDockArea(app: app)
             Spacer(minLength: 0)

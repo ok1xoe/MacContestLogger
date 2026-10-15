@@ -61,11 +61,9 @@ struct EntryVfoBWindowView: View {
     private func content(_ app: AppModel) -> some View {
         let panel: EntryPanel = app.vfoB
         return VStack(alignment: .leading, spacing: 0) {
-            WindowTopBar(size: $session.fontSize, language: app.language)
-                .padding(.horizontal, 8)
-                .padding(.top, 4)
             // Kotlin's column does not scroll: what does not fit the window is cut off.
             EntryPanelView(app: app, panel: panel, focus: focus, wheel: wheel)
+                .environment(\.windowFontControl, WindowFontControl(size: $session.fontSize, language: app.language))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .clipped()

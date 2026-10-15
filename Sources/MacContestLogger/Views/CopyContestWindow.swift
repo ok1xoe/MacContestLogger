@@ -8,7 +8,7 @@ struct CopyContestWindowView: View {
     let host: AppHost
 
     var body: some View {
-        DialogWindowView(host: host, dialog: .copyContest, padding: 10, title: { app in
+        DialogWindowView(host: host, dialog: .copyContest, padding: 10, stepperInContent: true, title: { app in
             app.language.tr("Zkopírovat závod do jiné databáze")
         }) { app in
             CopyContestContent(app: app)
@@ -22,6 +22,8 @@ private struct CopyContestContent: View {
     var body: some View {
         if let model = app.dialogs.copyContest {
             CopyContestForm(app: app, model: model)
+        } else {
+            WindowFontStepperRow()
         }
     }
 }
@@ -35,6 +37,7 @@ private struct CopyContestForm: View {
         let databases: [String] = model.databases ?? []
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: language.tr("Závod:"))
+                .trailingFontStepper()
             Picker(selection: Binding(get: { model.selectedContest }, set: { model.selectedContest = $0 })) {
                 Text(verbatim: language.tr("Všechny závody")).tag(String?.none)
                 ForEach(model.contests ?? [], id: \.contestId) { row in

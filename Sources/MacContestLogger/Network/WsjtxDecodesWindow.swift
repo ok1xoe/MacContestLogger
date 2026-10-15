@@ -46,7 +46,6 @@ struct WsjtxDecodesWindowView: View {
             sort: state.sort)
         let instances: Bool = integrations.wsjtxStatuses.count > 1
         return VStack(alignment: .leading, spacing: 6) {
-            WindowTopBar(size: $session.fontSize, language: language)
             HStack(spacing: 6) {
                 NetworkChip(label: "Jen CQ", selected: state.onlyCq, identifier: "wsjtx.onlyCq") {
                     state.onlyCq.toggle()
@@ -72,6 +71,7 @@ struct WsjtxDecodesWindowView: View {
                 .frame(width: 110)
                 .accessibilityLabel(Text(verbatim: language.tr("Řazení")))
             }
+            .trailingFontStepper(size: $session.fontSize, language: language)
             Text(verbatim: language.text(WsjtxDecodes.statusText(status: integrations.wsjtxStatus)))
                 .windowFont(14, weight: .medium)
                 .accessibilityIdentifier("wsjtx.status")

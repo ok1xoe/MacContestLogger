@@ -154,9 +154,9 @@ private struct PluginConsentSheet: View {
         let selection: Set<String> = chosen.value
             ?? Set(permissions.filter { !PluginManifest.offByDefault.contains($0) })
         VStack(alignment: .leading, spacing: 10) {
-            WindowTopBar(size: $fontSize.value, language: language)
             Text(verbatim: language.tr("Plugin %s žádá o oprávnění", .string(manifest.name)))
                 .windowFont(15, weight: .bold)
+                .trailingFontStepper(size: $fontSize.value, language: language)
             ForEach(permissions, id: \.self) { permission in
                 SettingsCheckbox(label: PluginPermissionText.label(permission, language: language),
                                  isOn: Binding(get: { selection.contains(permission) }, set: { on in

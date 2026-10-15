@@ -15,6 +15,7 @@ struct StatisticsWindowView: View {
         ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("Statistiky") },
                         size: CGSize(width: 820, height: 560), minSize: CGSize(width: 520, height: 300),
                         appeared: { $0.statistics.open() }, disappeared: { $0.statistics.close() },
+                        stepperInContent: true,
                         content: { app, windowSize in
             StatisticsContent(app: app, windowSize: windowSize)
         })
@@ -37,6 +38,7 @@ private struct StatisticsContent: View {
                 ToolChips.Choice(label: language.tr("Rate, přestávky, běhy"), selected: model.showReports,
                                  identifier: "statistics.reports", action: { model.setShowReports(true) }),
             ])
+            .trailingFontStepper()
             if model.showReports {
                 reports(model)
             } else {
@@ -322,6 +324,7 @@ struct ScoreWindowView: View {
         ToolWindowShell(host: host, id: Self.id, title: { $0.scoreWindow.windowTitle },
                         size: CGSize(width: 620, height: 420), minSize: CGSize(width: 420, height: 240),
                         appeared: { $0.scoreWindow.open() }, disappeared: { $0.scoreWindow.close() },
+                        stepperInContent: true,
                         content: { app, windowSize in
             ScoreContent(app: app, windowSize: windowSize)
         })
@@ -341,6 +344,7 @@ private struct ScoreContent: View {
                     Text(verbatim: name)
                         .windowFont(14, weight: .bold)
                         .accessibilityIdentifier("score.contestName")
+                        .trailingFontStepper()
                 }
                 HStack(spacing: 8) {
                     ToolChips(choices: [
@@ -352,6 +356,7 @@ private struct ScoreContent: View {
                     Spacer(minLength: 0)
                     outputButtons(model, language: language)
                 }
+                .trailingFontStepper(shown: model.contestName == nil)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         scoreRow(table.headers, lead: table.lead, header: true)
@@ -399,6 +404,7 @@ private struct ScoreContent: View {
                 .windowFont(13)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("score.status")
+                .trailingFontStepper()
             Spacer(minLength: 0)
         }
     }
@@ -458,6 +464,7 @@ struct DupesheetWindowView: View {
                         size: CGSize(width: 900, height: 420), minSize: CGSize(width: 420, height: 240),
                         appeared: { (second ? $0.dupesheet2 : $0.dupesheet).open() },
                         disappeared: { (second ? $0.dupesheet2 : $0.dupesheet).close() },
+                        stepperInContent: true,
                         content: { app, windowSize in
             DupesheetContent(app: app, sheet: second ? app.dupesheet2 : app.dupesheet, windowSize: windowSize)
         })
@@ -474,6 +481,7 @@ private struct DupesheetContent: View {
             Text(verbatim: view.title)
                 .windowFont(13, weight: .medium)
                 .accessibilityIdentifier("dupesheet.title")
+                .trailingFontStepper()
             Divider()
             ScrollView([.horizontal, .vertical]) {
                 HStack(alignment: .top, spacing: 6) {
@@ -483,6 +491,7 @@ private struct DupesheetContent: View {
                 }
             }
         } else {
+            WindowFontStepperRow()
             Spacer(minLength: 0)
         }
     }

@@ -9,7 +9,7 @@ struct DxccOverridesWindowView: View {
     let host: AppHost
 
     var body: some View {
-        DialogWindowView(host: host, dialog: .dxccOverrides, padding: 10, title: { app in
+        DialogWindowView(host: host, dialog: .dxccOverrides, padding: 10, stepperInContent: true, title: { app in
             app.language.tr("Přiřadit volačku k zemi")
         }) { app in
             DxccOverridesContent(app: app)
@@ -23,6 +23,8 @@ private struct DxccOverridesContent: View {
     var body: some View {
         if let model = app.dialogs.dxccOverrides {
             DxccOverridesForm(app: app, model: model)
+        } else {
+            WindowFontStepperRow()
         }
     }
 }
@@ -37,8 +39,10 @@ private struct DxccOverridesForm: View {
             if !model.hasEngine {
                 Text(verbatim: language.tr("Chybí data o zemích (~/dxcc-json)."))
                     .foregroundStyle(Color(domain: DomainColors.dupe))
+                    .trailingFontStepper()
             }
             Text(verbatim: language.tr("Volačka:"))
+                .trailingFontStepper(shown: model.hasEngine)
             TextField(text: Binding(get: { model.call }, set: { model.call = $0.uppercased() })) {
                 Text(verbatim: language.tr("Volačka:"))
             }

@@ -6,7 +6,7 @@ struct StartupWindowView: View {
     let host: AppHost
 
     var body: some View {
-        DialogWindowView(host: host, dialog: .startup, padding: 12, title: { app in
+        DialogWindowView(host: host, dialog: .startup, padding: 12, stepperInContent: true, title: { app in
             app.language.tr("Databáze: %s", .string(app.database.currentName))
         }) { app in
             StartupContent(app: app)
@@ -22,6 +22,7 @@ private struct StartupContent: View {
         let language: LanguageModel = app.language
         VStack(alignment: .leading, spacing: 0) {
             Text(verbatim: language.tr("Vyber, jak pokračovat:"))
+                .trailingFontStepper()
             VStack(spacing: 8) {
                 // Continuing is the usual choice, so it is the prominent button.
                 if let label = dialogs.startupLabel {

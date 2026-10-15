@@ -10,7 +10,7 @@ struct Score3830WindowView: View {
     let host: AppHost
 
     var body: some View {
-        DialogWindowView(host: host, dialog: .score3830, padding: 10, title: { app in
+        DialogWindowView(host: host, dialog: .score3830, padding: 10, stepperInContent: true, title: { app in
             app.language.tr("Odeslat výsledek na 3830")
         }) { app in
             Score3830Content(app: app)
@@ -24,6 +24,8 @@ private struct Score3830Content: View {
     var body: some View {
         if let model = app.dialogs.score3830 {
             Score3830Form(app: app, model: model)
+        } else {
+            WindowFontStepperRow()
         }
     }
 }
@@ -36,6 +38,7 @@ private struct Score3830Form: View {
         let language: LanguageModel = app.language
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: language.tr("Údaje pro formulář 3830scores.com:"))
+                .trailingFontStepper()
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(Array(model.submission.lines.enumerated()), id: \.offset) { _, line in

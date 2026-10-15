@@ -38,7 +38,6 @@ struct PartnerWindowView: View {
         let language: LanguageModel = app.language
         _ = app.cluster.revision
         return VStack(alignment: .leading, spacing: 8) {
-            WindowTopBar(size: $session.fontSize, language: language)
             if app.cluster.isRunning {
                 runner(app)
             } else {
@@ -46,6 +45,7 @@ struct PartnerWindowView: View {
                     .windowFont(13)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("partner.notConnected")
+                    .trailingFontStepper(size: $session.fontSize, language: language)
                 Spacer(minLength: 0)
             }
         }
@@ -58,6 +58,7 @@ struct PartnerWindowView: View {
         let peers: [StationNetwork.Peer] = app.cluster.peers.filter { $0.online }
         Text(verbatim: language.tr(NetTexts.partnerRunnerLabel))
             .windowFont(14, weight: .medium)
+            .trailingFontStepper(size: $session.fontSize, language: language)
         HStack(spacing: 6) {
             if peers.isEmpty {
                 Text(verbatim: language.tr(NetTexts.partnerNoOnline))

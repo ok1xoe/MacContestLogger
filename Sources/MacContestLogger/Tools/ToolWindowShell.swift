@@ -4,7 +4,8 @@ import SwiftUI
 
 /// The frame every info and tool window shares (Kotlin `Window(title = tr(…), state =
 /// rememberPersistentWindowState(state, id, size))` with `WindowTopBar`): the translated title, the geometry kept in
-/// `config.windowGeometry[geometryId]`, the font stepper top-right with the window's own content on its left, the
+/// `config.windowGeometry[geometryId]`, the font stepper top-right with the window's own content on its left (or on
+/// the content's first row with `stepperInContent`), the
 /// model's `open()` when the window appears and its `close()` when it goes, and the window's id leaving
 /// `config.openWindows` when the user closes it.
 ///
@@ -24,6 +25,8 @@ struct ToolWindowShell<Leading: View, Content: View>: View {
     let disappeared: (AppModel) -> Void
     /// The user closed the window: the model flag or the id that keeps it open is cleared.
     let closedByUser: (AppModel) -> Void
+    /// The content puts the stepper on its first row (`.trailingFontStepper()`), so the shell draws no top row.
+    let stepperInContent: Bool
     @ViewBuilder let leading: (AppModel) -> Leading
     @ViewBuilder let content: (AppModel, Int) -> Content
 
@@ -34,6 +37,7 @@ struct ToolWindowShell<Leading: View, Content: View>: View {
          appeared: @escaping (AppModel) -> Void = { _ in },
          disappeared: @escaping (AppModel) -> Void = { _ in },
          closedByUser: ((AppModel) -> Void)? = nil,
+         stepperInContent: Bool = false,
          @ViewBuilder leading: @escaping (AppModel) -> Leading,
          @ViewBuilder content: @escaping (AppModel, Int) -> Content) {
         self.host = host
@@ -45,6 +49,7 @@ struct ToolWindowShell<Leading: View, Content: View>: View {
         self.appeared = appeared
         self.disappeared = disappeared
         self.closedByUser = closedByUser ?? { app in app.windows.setOpen(id, false) }
+        self.stepperInContent = stepperInContent
         self.leading = leading
         self.content = content
         _session = StateObject(wrappedValue: WindowSession(id: geometryId ?? id, persistSize: true, defaultSize: size))
@@ -64,10 +69,14 @@ struct ToolWindowShell<Leading: View, Content: View>: View {
     private func loaded(_ app: AppModel) -> some View {
         let binder: WindowGeometryBinder = session.binder
         return VStack(alignment: .leading, spacing: 6) {
-            WindowTopBar(size: $session.fontSize, language: app.language) {
-                leading(app)
+            if !stepperInContent {
+                WindowTopBar(size: $session.fontSize, language: app.language) {
+                    leading(app)
+                }
             }
             content(app, session.fontSize)
+                .environment(\.windowFontControl,
+                             WindowFontControl(size: $session.fontSize, language: app.language))
         }
         .padding(8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -92,10 +101,11 @@ extension ToolWindowShell where Leading == EmptyView {
          appeared: @escaping (AppModel) -> Void = { _ in },
          disappeared: @escaping (AppModel) -> Void = { _ in },
          closedByUser: ((AppModel) -> Void)? = nil,
+         stepperInContent: Bool = false,
          @ViewBuilder content: @escaping (AppModel, Int) -> Content) {
         self.init(host: host, id: id, geometryId: geometryId, title: title, size: size, minSize: minSize,
                   appeared: appeared, disappeared: disappeared, closedByUser: closedByUser,
-                  leading: { _ in EmptyView() }, content: content)
+                  stepperInContent: stepperInContent, leading: { _ in EmptyView() }, content: content)
     }
 }
 

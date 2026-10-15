@@ -18,7 +18,8 @@ Rules
   A5  A custom-drawn `NSView` (it overrides `draw`) has an accessibility role or children.
   A6  `IconButton` is never given an empty label.
   A7  Every window of `WindowsModel.kotlinOrder` (and the multiplier grids, the main window, the dialogs, Settings)
-      is built from a view that has the font stepper (`WindowTopBar` / `ToolWindowShell`), and the stepper itself
+      is built from a view that has the font stepper (`WindowTopBar` / `ToolWindowShell` /
+      `.trailingFontStepper`), and the stepper itself
       labels both buttons and the group with `tr(…)`.
   A8  Every `tr("…")` literal of a spoken text (`AccessibilityText.swift`, an accessibility label, a `help`, an
       `IconButton` label) exists in `lang_en.json` and `lang_de.json`.
@@ -164,7 +165,8 @@ def audit_steppers(root):
     for path in swift_files(root):
         rel = os.path.relpath(path, base)
         text = "\n".join(read_lines(path))
-        stepper[rel] = "WindowTopBar(" in text or "ToolWindowShell(" in text or "WindowFontStepper(" in text
+        stepper[rel] = "WindowTopBar(" in text or "ToolWindowShell(" in text or "WindowFontStepper(" in text \
+            or ".trailingFontStepper(" in text or "WindowFontControl(" in text
         for match in re.finditer(r'static let id = "([^"]+)"', text):
             ids[match.group(1)] = rel
         if "struct MultGridWindowView" in text:

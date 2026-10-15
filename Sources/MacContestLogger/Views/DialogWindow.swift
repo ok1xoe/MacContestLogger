@@ -3,7 +3,8 @@ import MCLAppModel
 import MCLCore
 import SwiftUI
 
-/// The frame of a dialog window of the slice (Kotlin `Window` + `WindowTopBar`): the font stepper on top, the title
+/// The frame of a dialog window of the slice (Kotlin `Window` + `WindowTopBar`): the font stepper on top (or on the
+/// content's first row with `stepperInContent`, `.trailingFontStepper()`), the title
 /// in the current language, the geometry under the dialog's id, and the window's close button closes
 /// the dialog in the model.
 struct DialogWindowView<Content: View>: View {
@@ -11,17 +12,19 @@ struct DialogWindowView<Content: View>: View {
     let dialog: DialogsModel.Window
     let padding: CGFloat
     let title: @MainActor (AppModel) -> String
+    let stepperInContent: Bool
     @ViewBuilder let content: @MainActor (AppModel) -> Content
 
     @StateObject private var session: WindowSession
 
-    init(host: AppHost, dialog: DialogsModel.Window, padding: CGFloat,
+    init(host: AppHost, dialog: DialogsModel.Window, padding: CGFloat, stepperInContent: Bool = false,
          title: @escaping @MainActor (AppModel) -> String,
          @ViewBuilder content: @escaping @MainActor (AppModel) -> Content) {
         self.host = host
         self.dialog = dialog
         self.padding = padding
         self.title = title
+        self.stepperInContent = stepperInContent
         self.content = content
         _session = StateObject(wrappedValue: WindowSession(id: dialog.rawValue, persistSize: true,
                                                            defaultSize: dialog.defaultSize,
@@ -34,8 +37,12 @@ struct DialogWindowView<Content: View>: View {
         Group {
             if let app = host.model {
                 VStack(alignment: .leading, spacing: 0) {
-                    WindowTopBar(size: $session.fontSize, language: app.language)
+                    if !stepperInContent {
+                        WindowTopBar(size: $session.fontSize, language: app.language)
+                    }
                     content(app)
+                        .environment(\.windowFontControl,
+                                     WindowFontControl(size: $session.fontSize, language: app.language))
                 }
                 .windowFont(13)
                 .padding(padding)
