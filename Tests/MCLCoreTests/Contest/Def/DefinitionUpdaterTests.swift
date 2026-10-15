@@ -204,7 +204,8 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
         var report = try await Self.run(fetcher, dir)
         #expect(Self.lines(report) == ["contests/abc.yaml | NEW | ", "multipliers/dxcc_entities.yaml | NEW | "])
         #expect(report.summary() == "nové 2, aktualizované 0, beze změny 0, ponechané lokální úpravy 0, chyby 0")
-        #expect(fetcher.requests == [Self.host + "/data/index.txt", Self.host + "/data/contests/abc.yaml",
+        #expect(fetcher.requests == [Self.host + "/data/index-v2.txt", Self.host + "/data/index.txt",
+                                     Self.host + "/data/contests/abc.yaml",
                                      Self.host + "/data/multipliers/dxcc_entities.yaml"])
         #expect(try Self.manifestEntries(dir) == ["contests/abc.yaml=" + Self.abcHash,
                                                   "multipliers/dxcc_entities.yaml=" + Self.dxccHash])
@@ -365,7 +366,7 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
         let dir = try Self.tempDir()
         defer { try? FileManager.default.removeItem(at: dir) }
         #expect(await Self.updateError(fetcher, dir) == "HTTP 404 pro " + Self.host + "/data/index.txt")
-        #expect(fetcher.requests == [Self.host + "/data/index.txt"])
+        #expect(fetcher.requests == [Self.host + "/data/index-v2.txt", Self.host + "/data/index.txt"])
         #expect(!Self.exists(dir, ".update-manifest.properties"))
 
         try Data("k=\\u12G4\n".utf8).write(to: dir.appendingPathComponent(".update-manifest.properties"))
@@ -374,7 +375,7 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
         fetcher["bandplan.yaml"] = "b"
         fetcher.requests = []
         #expect(await Self.updateError(fetcher, dir) == "Malformed \\uxxxx encoding.")
-        #expect(fetcher.requests == [Self.host + "/data/index.txt"])
+        #expect(fetcher.requests == [Self.host + "/data/index-v2.txt", Self.host + "/data/index.txt"])
         #expect(!Self.exists(dir, "bandplan.yaml"))
     }
 
@@ -409,7 +410,8 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
             let dir = try Self.tempDir()
             defer { try? FileManager.default.removeItem(at: dir) }
             #expect(await Self.updateError(fetcher, dir) == message, "\(path)")
-            #expect(fetcher.requests == [Self.host + "/data/index.txt", Self.host + "/data/multipliers/dxcc_entities.yaml"])
+            #expect(fetcher.requests == [Self.host + "/data/index-v2.txt", Self.host + "/data/index.txt",
+                                         Self.host + "/data/multipliers/dxcc_entities.yaml"])
             #expect(!Self.exists(dir, "multipliers") && !Self.exists(dir, ".update-manifest.properties"))
         }
     }
@@ -441,7 +443,7 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
             let dir = try Self.tempDir()
             defer { try? FileManager.default.removeItem(at: dir) }
             let report = try await Self.run(fetcher, dir)
-            #expect(fetcher.requests.count == 3)
+            #expect(fetcher.requests.count == 4)
             #expect(fetcher.requests.last == Self.host + request, "\(path)")
             #expect(Self.lines(report).contains(line), "\(Self.lines(report))")
         }
@@ -468,7 +470,7 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
         #expect(report.files.map(\.path).map { Array($0.utf16) } == [Array("multipliers/\u{E9}.yaml".utf16),
                                                                       Array("multipliers/e\u{301}.yaml".utf16)])
         #expect(report.files.map(\.status) == [.new, .unchanged])
-        #expect(fetcher.requests.dropFirst() == [Self.host + "/data/multipliers/%C3%A9.yaml",
+        #expect(fetcher.requests.dropFirst(2) == [Self.host + "/data/multipliers/%C3%A9.yaml",
                                                  Self.host + "/data/multipliers/%C3%A9.yaml"])
         #expect(try Self.manifestEntries(dir).count == 2)
     }
@@ -490,7 +492,7 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
             "x | FAILED | HTTP 404 pro \(Self.host)/data/x",
             "contests/abc.yaml | NEW | ",
         ])
-        #expect(fetcher.requests[1] == Self.host + "/data/%EF%BB%BFmultipliers/dxcc_entities.yaml")
+        #expect(fetcher.requests[2] == Self.host + "/data/%EF%BB%BFmultipliers/dxcc_entities.yaml")
     }
 
     /// A duplicate index line is downloaded twice, appears once in the report
@@ -501,7 +503,7 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
         let dir = try Self.tempDir()
         defer { try? FileManager.default.removeItem(at: dir) }
         #expect(Self.lines(try await Self.run(fetcher, dir)) == ["contests/abc.yaml | NEW | ", "multipliers/dxcc_entities.yaml | NEW | "])
-        #expect(fetcher.requests.count == 4)
+        #expect(fetcher.requests.count == 5)
     }
 
     /// I: `bandplan.yaml` and nested paths outside `contests/*.yaml` are not validated;
@@ -585,11 +587,60 @@ final class FakeFetcher: DataFetcher, @unchecked Sendable {
         defer { try? FileManager.default.removeItem(at: dir) }
         let fetcher = Self.server()
         _ = try await Self.run(fetcher, dir, base: URL(string: Self.host + "/data")!)
-        #expect(fetcher.requests.first == Self.host + "/data/index.txt")
+        #expect(fetcher.requests.first == Self.host + "/data/index-v2.txt")
+        #expect(fetcher.requests[1] == Self.host + "/data/index.txt")
         let attributes = try FileManager.default.attributesOfItem(atPath: dir.appendingPathComponent("contests/abc.yaml").path)
         #expect((attributes[.posixPermissions] as? Int) == 0o600)
         let leftovers = try FileManager.default.contentsOfDirectory(atPath: dir.appendingPathComponent("contests").path)
         #expect(leftovers == ["abc.yaml"])
+    }
+
+    // MARK: - two indexes (index-v2.txt first, index.txt as the fallback)
+
+    /// `index-v2.txt` is preferred: when it is published, `index.txt` is not even requested.
+    @Test func indexV2IsPreferred() async throws {
+        let fetcher = Self.server()
+        fetcher["index-v2.txt"] = "contests/abc.yaml\nmultipliers/dxcc_entities.yaml\nmultipliers/v2_only.yaml\n"
+        fetcher["multipliers/v2_only.yaml"] = "schemaVersion: 1\nid: v2_only\nkind: ALGORITHM\nalgorithm: { type: wpx }\n"
+        let dir = try Self.tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let report = try await Self.run(fetcher, dir)
+        #expect(Self.lines(report) == ["contests/abc.yaml | NEW | ", "multipliers/dxcc_entities.yaml | NEW | ",
+                                       "multipliers/v2_only.yaml | NEW | "])
+        #expect(fetcher.requests == [Self.host + "/data/index-v2.txt", Self.host + "/data/contests/abc.yaml",
+                                     Self.host + "/data/multipliers/dxcc_entities.yaml",
+                                     Self.host + "/data/multipliers/v2_only.yaml"])
+        #expect(Self.exists(dir, "multipliers/v2_only.yaml"))
+        #expect(!Self.exists(dir, "index-v2.txt"))
+    }
+
+    /// Without `index-v2.txt` (HTTP 404, an older or self-hosted `contest-data`) the update reads `index.txt` and
+    /// reports nothing about the missing `index-v2.txt`.
+    @Test func missingIndexV2FallsBackToIndex() async throws {
+        let fetcher = Self.server()
+        let dir = try Self.tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let report = try await DefinitionUpdater(fetcher: fetcher).update(Self.base, dataDir: dir)
+        #expect(Self.lines(report) == ["contests/abc.yaml | NEW | ", "multipliers/dxcc_entities.yaml | NEW | "])
+        #expect(Array(fetcher.requests.prefix(2)) == [Self.host + "/data/index-v2.txt", Self.host + "/data/index.txt"])
+    }
+
+    /// Any failure to download `index-v2.txt` (here a transfer error) falls back to `index.txt`.
+    @Test func failingIndexV2FallsBackToIndex() async throws {
+        final class BrokenV2: DataFetcher, @unchecked Sendable {
+            let inner: FakeFetcher
+            init(_ inner: FakeFetcher) { self.inner = inner }
+            func fetch(_ url: URL) async throws -> (status: Int, data: Data) {
+                if url.lastPathComponent == "index-v2.txt" { throw URLError(.networkConnectionLost) }
+                return try await inner.fetch(url)
+            }
+        }
+        let fetcher = Self.server()
+        fetcher["index-v2.txt"] = "contests/abc.yaml\n"
+        let dir = try Self.tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let index = try await DefinitionUpdater(fetcher: BrokenV2(fetcher)).fetchIndex(Self.base)
+        #expect(index.paths == ["contests/abc.yaml", "multipliers/dxcc_entities.yaml"])
     }
 
     @Test func isSafeRejectsEscapes() {
