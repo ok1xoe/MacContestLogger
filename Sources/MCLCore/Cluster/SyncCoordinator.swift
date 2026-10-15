@@ -71,7 +71,24 @@ public final class SyncCoordinator: @unchecked Sendable {
             if state.qso?.call == nil {
                 try rejectNullCall(qso, logbook)
             }
+            try keepLocalFields(&qso, state.qso, logbook)
             try logbook.upsertByUuid(qso)
+        }
+    }
+
+    /// A state replaces the whole stored QSO, including the fields the network does not carry. Run / S&P is not on
+    /// the wire (v1.1.1), and the authority (the v1.1.1 cluster-app) re-reads every command into its own record, so a
+    /// Swift extension such as the radio number does not come back through it either: without this a station's own
+    /// QSO lost both when its own insert or edit came back as the canonical state. A QSO already in the replica keeps
+    /// its run mode (which only the logging station knows); the echo of this station's own command also keeps the
+    /// radio number it does not carry — the row already holds this station's write, so nothing older survives. A
+    /// state from another station takes its radio number as sent (none = not known), and a new QSO the defaults.
+    /// (Deliberate divergence from Java v1.1.1, which overwrote both.)
+    func keepLocalFields(_ qso: inout Qso, _ wire: QsoWire?, _ logbook: LogbookService) throws {
+        guard !JavaText.isBlank(qso.uuid), let existing = try logbook.repository.findByUuid(qso.uuid) else { return }
+        qso.runMode = existing.runMode
+        if wire?.radioNr == nil, JavaText.equals(qso.stationId, stationId) {
+            qso.radioNr = existing.radioNr
         }
     }
 
