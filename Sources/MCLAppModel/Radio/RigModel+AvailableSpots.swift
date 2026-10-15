@@ -29,7 +29,7 @@ extension RigModel {
         guard let other = otherVfoIndex, let otherHz = otherVfoFreqHz,
               let spotBand = Band.from(frequencyHz: freqHz),
               Band.from(frequencyHz: Int(clamping: otherHz)) == spotBand, currentBand != spotBand else { return false }
-        requestFocusVfo(other)
+        requestFocusVfo(other, rxOnly: true)
         return true
     }
 

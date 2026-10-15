@@ -40,6 +40,10 @@ public final class RigModel {
     @ObservationIgnored var macroAntenna: [Int: MacroAntennaState] = [:]
     /// N1MM `{ACTIVEAUDIO…}` / `{INACTIVEAUDIO…}`: the AF mute last set per rig index.
     @ObservationIgnored var macroMuted: [Int: Bool] = [:]
+    /// The pause before the next keying after the transmit focus moved (N1MM radio swap lead + tail time, SO2R).
+    @ObservationIgnored var pendingSwapDelayMs: Int = 0
+    /// The tail part of it: OTRSP `TX` waits this long after an interrupted transmission.
+    @ObservationIgnored var pendingSwapTailMs: Int = 0
     /// Kotlin `focusVfoRequest`: the entry window `vfo` takes the focus (the view clears it).
     public var focusVfoRequest: Int?
     /// With `focusVfoRequest`: the caret goes after the call's text instead of selecting it (typing that came from

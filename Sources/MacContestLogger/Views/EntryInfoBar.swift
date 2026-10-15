@@ -3,9 +3,9 @@ import MCLAppModel
 import MCLCore
 import SwiftUI
 
-/// The header of an entry window with two entry windows (SO2V/SO2R, `EP:1045-1051`): `tr("Rig %s")` in SO2R,
-/// otherwise „VFO A"/„VFO B", then „ — " and `tr("aktivní (vysílá)")` in the primary colour or
-/// `tr("klikni do okna pro přepnutí")` muted.
+/// The header of an entry window with two entry windows (SO2V/SO2R, `EP:1045-1051`): N1MM's focus LEDs — green =
+/// the entry (RX, keyboard) focus, red = the transmit focus, orange while it transmits — then `tr("Rig %s")` in SO2R,
+/// otherwise „VFO A"/„VFO B", „ — " and the state in the primary colour or muted.
 struct EntryWindowHeader: View {
     let app: AppModel
     let vfo: Int
@@ -14,20 +14,42 @@ struct EntryWindowHeader: View {
         let rig: MCLAppModel.RigModel = app.rig
         if rig.vfo.twoEntryWindows {
             let active: Bool = rig.vfo.activeVfo == vfo
-            Text(verbatim: Self.text(so2r: rig.vfo.so2r, vfo: vfo, active: active, language: app.language))
-                .windowFont(12, weight: .medium)
-                .foregroundStyle(active ? AnyShapeStyle(.mclPrimary) : AnyShapeStyle(Color.secondary))
+            let transmitFocus: Bool = rig.vfo.txVfo == vfo
+            let keying: Bool = transmitFocus && (app.keyer.isSending || app.keyer.isTuning)
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(active ? Color.green : Color.secondary.opacity(0.25))
+                    .frame(width: 9, height: 9)
+                Circle()
+                    .fill(keying ? Color.orange : transmitFocus ? Color.red : Color.secondary.opacity(0.25))
+                    .frame(width: 9, height: 9)
+                Text(verbatim: Self.text(so2r: rig.vfo.so2r, vfo: vfo, active: active, transmitFocus: transmitFocus,
+                                         language: app.language))
+                    .windowFont(12, weight: .medium)
+                    .foregroundStyle(active ? AnyShapeStyle(.mclPrimary) : AnyShapeStyle(Color.secondary))
+            }
+            .accessibilityElement(children: .combine)
         }
     }
 
-    static func text(so2r: Bool, vfo: Int, active: Bool, language: LanguageModel) -> String {
+    static func text(so2r: Bool, vfo: Int, active: Bool, transmitFocus: Bool = true,
+                     language: LanguageModel) -> String {
         let name: String
         if so2r {
             name = language.tr("Rig %s", .int(vfo + 1))
         } else {
             name = vfo == 0 ? "VFO A" : "VFO B"
         }
-        let state: String = active ? language.tr("aktivní (vysílá)") : language.tr("klikni do okna pro přepnutí")
+        let state: String
+        if active && transmitFocus {
+            state = language.tr("aktivní (vysílá)")
+        } else if active {
+            state = language.tr("příjem (fokus RX)")
+        } else if transmitFocus {
+            state = language.tr("vysílá (fokus TX)")
+        } else {
+            state = language.tr("klikni do okna pro přepnutí")
+        }
         return name + " — " + state
     }
 }

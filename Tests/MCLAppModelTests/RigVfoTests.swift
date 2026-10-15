@@ -200,10 +200,12 @@ import Testing
         await eventually("rig 2") { rig.cat2.state != nil }
         #expect(rig.status(vfo: 1) == "TRX: 7010.0 kHz  CW")
         #expect(rig.rigConfig(vfo: 1).modelLabel == "Rig 2")
+        // N1MM `\` moves only the entry (RX) focus; the transmit focus stays on rig 1.
         rigApp.entry.runShortcut(.switchRadio)
         #expect(rig.vfo.activeVfo == 1)
+        #expect(rig.vfo.txVfo == 0)
         #expect(rig.focusVfoRequest == 1)
-        #expect(rigApp.status == "Aktivní rig 2")
+        #expect(rigApp.status == "Příjem: rig 2 (vysílá rig 1)")
         rigApp.entry.runShortcut(.so2rStereo)
         #expect(rigApp.status == "SO2R: stereo (oba rigy)")
         rigApp.entry.runShortcut(.so2rStereo)
@@ -214,7 +216,7 @@ import Testing
         #expect(fake2.writes == ["F 7012000"])
         #expect(fake1.writes.isEmpty)
         #expect(rigApp.hardware.events == [
-            "otrsp open /dev/fake-otrsp", "otrsp TX2", "otrsp RX2", "otrsp RX2S", "otrsp RX2",
+            "otrsp open /dev/fake-otrsp", "otrsp RX2", "otrsp RX2S", "otrsp RX2",
         ])
         // Settings → SO1V: OTRSP closes, VFO A (rig 1) is active again.
         rigApp.model.config.config.radioMode = "SO1V"

@@ -18,6 +18,7 @@ import Testing
         "STACK_CALL", "GRAB_STACK", "INSERT_GRAB", "TOGGLE_TX", "DIGITAL_LEFT", "DIGITAL_RIGHT", "EDIT_LAST", "QUICK_EDIT_BACK", "QUICK_EDIT_FORWARD", "RESET_RX",
         "TOGGLE_FILTER", "CW_REVERSE", "WIPE_OTHER", "JUMP_LAST_CQ", "TOGGLE_STATION_TYPE", "PASS_FREQUENCY",
         "AVAIL_NEXT", "AVAIL_PREVIOUS", "GRID_SEARCH", "GRID_TOGGLE", "QTC_MODE",
+        "FOCUS_SWAP", "SWAP_RADIOS", "SWAP_RADIOS_KEEP_FOCUS",
     ]
 
     private static let expected: [String: EntryArea] = [
@@ -37,12 +38,13 @@ import Testing
         "TOGGLE_FILTER": .radio, "CW_REVERSE": .radio, "WIPE_OTHER": .local, "JUMP_LAST_CQ": .radio,
         "TOGGLE_STATION_TYPE": .network, "PASS_FREQUENCY": .network,
         "AVAIL_NEXT": .spots, "AVAIL_PREVIOUS": .spots, "GRID_SEARCH": .local, "GRID_TOGGLE": .local, "QTC_MODE": .local,
+        "FOCUS_SWAP": .radio, "SWAP_RADIOS": .radio, "SWAP_RADIOS_KEEP_FOCUS": .radio,
     ]
 
     @Test func everyShortcutActionHasAnArea() {
-        #expect(ShortcutAction.allCases.count == 76)
+        #expect(ShortcutAction.allCases.count == 79)
         #expect(Set(ShortcutAction.allCases.map(\.name)) == Set(Self.runShortcutOrder))
-        #expect(Self.runShortcutOrder.count == 76)
+        #expect(Self.runShortcutOrder.count == 79)
         for action in ShortcutAction.allCases {
             #expect(EntryActionAvailability.area(of: action) == Self.expected[action.name], "\(action.name)")
         }

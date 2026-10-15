@@ -85,6 +85,10 @@ public enum MenuActions {
         if miscIds.contains(id) {
             return performMisc(id, app: app)
         }
+        if so2rIds.contains(id) {
+            performSo2r(id, app: app)
+            return nil
+        }
         if id == "beacons.load" {
             return .openBeacons
         }
@@ -326,7 +330,7 @@ public enum MenuActions {
         case "view.unmatchedMark":
             return app.check.showsUnmatchedMark
         default:
-            return isMiscChecked(id, app: app)
+            return so2rIds.contains(id) ? isSo2rChecked(id, app: app) : isMiscChecked(id, app: app)
         }
     }
 

@@ -78,7 +78,7 @@ public enum EntryActionAvailability {
             return .windows
         case .jumpCq, .tune, .splitOn, .splitToggle, .splitPrompt, .previousFrequency, .swapVfo, .copyToVfoB, .ritUp,
              .ritDown, .ritClear, .resetRx, .switchRadio, .so2rStereo, .rotorTurn, .rotorLong, .rotorStop, .nextAntenna, .bandUp,
-             .bandDown, .toggleFilter, .cwReverse, .jumpLastCq:
+             .bandDown, .toggleFilter, .cwReverse, .jumpLastCq, .focusSwap, .swapRadios, .swapRadiosKeepFocus:
             return .radio
         case .cwKeyboard:
             return .keyer

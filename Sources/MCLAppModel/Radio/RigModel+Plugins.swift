@@ -46,7 +46,7 @@ extension RigModel {
             status.showJoined(locked.parts, separator: "")
             return locked.czech
         }
-        let index: Int = vfo.activeCatIndex
+        let index: Int = vfo.txCatIndex
         if let keyed = pluginPttRig, keyed != index {
             releasePluginPtt(onRig: keyed)
             return "the PTT moved to another rig; key again"

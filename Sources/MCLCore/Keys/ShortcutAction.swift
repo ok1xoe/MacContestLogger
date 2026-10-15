@@ -101,6 +101,14 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case gridToggle
     /// N1MM Ctrl+Z (WAE): QTC mode on / off — the QTC window opens to receive (Europe) or send (elsewhere).
     case qtcMode
+    /// N1MM Pause (SO2R / SO2V): both foci to the other window, or the transmit focus to the entry focus when they
+    /// are split. A Mac has no Pause key; a PC keyboard's Pause arrives as F15.
+    case focusSwap
+    /// N1MM Alt+F5: frequency, mode and call swapped between the radios (SO2R) or VFOs (SO2V); the entry focus moves
+    /// to the other window.
+    case swapRadios
+    /// N1MM Alt+F6 (SO2R): like Alt+F5 without moving the focus.
+    case swapRadiosKeepFocus
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -170,8 +178,8 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .stackCall: Spec(name: "STACK_CALL", id: "stack_call", label: "Volačku do zásobníku", defaultKeys: "Ctrl+Alt+G")
         case .grabStack: Spec(name: "GRAB_STACK", id: "grab_stack", label: "Další volačka ze zásobníku", defaultKeys: "Alt+G")
         case .toggleTx: Spec(name: "TOGGLE_TX", id: "toggle_tx", label: "Digi: vysílání zap / vyp (TX okno)", defaultKeys: "Alt+T")
-        case .digitalLeft: Spec(name: "DIGITAL_LEFT", id: "digital_left", label: "Digi: rozhraní 1 (VFO A / rig 1)", defaultKeys: "Cmd+Alt+LEFT")
-        case .digitalRight: Spec(name: "DIGITAL_RIGHT", id: "digital_right", label: "Digi: rozhraní 2 (VFO B / rig 2)", defaultKeys: "Cmd+Alt+RIGHT")
+        case .digitalLeft: Spec(name: "DIGITAL_LEFT", id: "digital_left", label: "VFO A / rig 1: oba fokusy (digi: rozhraní 1)", defaultKeys: "Cmd+Alt+LEFT")
+        case .digitalRight: Spec(name: "DIGITAL_RIGHT", id: "digital_right", label: "VFO B / rig 2: oba fokusy (digi: rozhraní 2)", defaultKeys: "Cmd+Alt+RIGHT")
         case .editLast: Spec(name: "EDIT_LAST", id: "edit_last", label: "Upravit poslední spojení", defaultKeys: "Ctrl+Y")
         case .quickEditBack: Spec(name: "QUICK_EDIT_BACK", id: "quick_edit_back", label: "QuickEdit: o QSO zpět", defaultKeys: "Ctrl+Q")
         case .quickEditForward: Spec(name: "QUICK_EDIT_FORWARD", id: "quick_edit_forward", label: "QuickEdit: o QSO vpřed", defaultKeys: "Ctrl+A")
@@ -187,12 +195,15 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .gridSearch: Spec(name: "GRID_SEARCH", id: "grid_search", label: "VHF: hledat volačku a lokátor v call history", defaultKeys: "Alt+EQUALS")
         case .gridToggle: Spec(name: "GRID_TOGGLE", id: "grid_toggle", label: "VHF: přepínat lokátory z call history", defaultKeys: "Alt+MINUS")
         case .qtcMode: Spec(name: "QTC_MODE", id: "qtc_mode", label: "WAE: QTC režim zap / vyp", defaultKeys: "Ctrl+Z")
+        case .focusSwap: Spec(name: "FOCUS_SWAP", id: "focus_swap", label: "SO2V/SO2R: oba fokusy (RX i TX) na druhé okno (Pause)", defaultKeys: "F15")
+        case .swapRadios: Spec(name: "SWAP_RADIOS", id: "swap_radios", label: "SO2V/SO2R: prohodit rádia (frekvence, mód, volačka) a fokus", defaultKeys: "Alt+F5")
+        case .swapRadiosKeepFocus: Spec(name: "SWAP_RADIOS_KEEP_FOCUS", id: "swap_radios_keep", label: "SO2R: prohodit rádia bez změny fokusu", defaultKeys: "Alt+F6")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode, .focusSwap, .swapRadios, .swapRadiosKeepFocus]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

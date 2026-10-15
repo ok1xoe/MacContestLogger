@@ -119,12 +119,29 @@ public final class PeripheralsModel {
         let message: String?
     }
 
-    /// `o.focus(rig, stereo)` on the lane (errors ignored, Kotlin `runCatching`).
-    func otrspFocus(rig: Int, stereo: Bool) {
+    /// `o.focus(rig, stereo)` on the lane (errors ignored, Kotlin `runCatching`). `afterMs` (N1MM radio swap tail
+    /// time): the lane waits that long first, so an interrupted transmission ends before the box switches.
+    func otrspFocus(rig: Int, stereo: Bool, afterMs: Int = 0) {
         let handles: Handles = self.handles
         lane.submit {
+            Self.pause(afterMs, handles: handles)
             try? handles.otrsp?.focus(Int32(truncatingIfNeeded: rig), stereo: stereo)
         }
+    }
+
+    /// `o.tx(rig)`: only the transmit focus moves (SO2R, a message sent from the other window); `afterMs` as above.
+    func otrspTx(rig: Int, afterMs: Int = 0) {
+        let handles: Handles = self.handles
+        lane.submit {
+            Self.pause(afterMs, handles: handles)
+            try? handles.otrsp?.tx(Int32(truncatingIfNeeded: rig))
+        }
+    }
+
+    /// The swap pause on the lane, only when a controller is open (nothing waits for an absent box).
+    nonisolated private static func pause(_ ms: Int, handles: Handles) {
+        guard ms > 0, handles.otrsp != nil else { return }
+        Thread.sleep(forTimeInterval: Double(ms) / 1_000)
     }
 
     /// `otrsp?.rx(rig, stereo)` (Kotlin on the UI thread; here on the lane).

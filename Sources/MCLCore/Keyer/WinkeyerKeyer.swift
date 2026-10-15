@@ -275,6 +275,14 @@ public final class WinkeyerKeyer: CwKeyer, @unchecked Sendable {
         try write([Self.keyImmediate, on ? 1 : 0])
     }
 
+    /// N1MM SO2R „Use 2nd Output": the pin configuration (`09 nn`) that keys KEY OUT 1 or KEY OUT 2
+    /// (`CwKeyingOptions.winkeyerPinConfig(output:)`).
+    public func setPinConfig(_ pins: UInt8) throws {
+        monitor.lock()
+        defer { monitor.unlock() }
+        try write([CwKeyingOptions.pinConfigCommand, pins])
+    }
+
     public func setSpeed(_ wpm: Int) throws {
         monitor.lock()
         defer { monitor.unlock() }

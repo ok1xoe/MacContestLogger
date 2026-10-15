@@ -136,6 +136,7 @@ import Testing
             "filter_width Alt+QUOTE", "cw_reverse Ctrl+Alt+R", "wipe_other Ctrl+Shift+W", "jump_last_cq Ctrl+Alt+Q",
             "run_mult Ctrl+Alt+M", "pass_freq Alt+Z", "avail_next Alt+A", "avail_previous Alt+Shift+A",
             "grid_search Alt+EQUALS", "grid_toggle Alt+MINUS", "qtc_mode Ctrl+Z",
+            "focus_swap F15", "swap_radios Alt+F5", "swap_radios_keep Alt+F6",
         ]
         let actual: [String] = ShortcutAction.allCases.map { "\($0.id) \($0.defaultCombo().format())" }
         #expect(actual == expected)
