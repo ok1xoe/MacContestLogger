@@ -29,6 +29,7 @@ extension RigModel {
             }
         }
         guard let rigHz = effect.rig else { return }
+        noteAppTune(rig: vfo.activeCatIndex, freqHz: freqHz)
         activeLane.run { cat in
             try? cat.tune(rigHz)
         }
@@ -43,6 +44,7 @@ extension RigModel {
         guard let effect = next.tuneTo(freqHz) else { return }
         setTuning(next)
         if let rigHz = effect.rig {
+            noteAppTune(rig: vfo.activeCatIndex, freqHz: freqHz)
             activeLane.run { cat in
                 try? cat.tune(rigHz)
             }
@@ -60,6 +62,7 @@ extension RigModel {
 
     /// Kotlin `cat.setMode(mode, freqHz)` on the active rig.
     public func setMode(_ mode: Mode, freqHz: Int64) {
+        noteAppChange(rig: vfo.activeCatIndex)
         activeLane.run { cat in
             try? cat.setMode(mode, freqHz: freqHz)
         }

@@ -33,9 +33,9 @@ public final class MenuModel {
         "view.qrz", "view.google", "tools.importCountryFile", "tools.removeCountryFile", "tools.programLogging",
         "tools.diagnosticsFolder", "tools.checkVersion", "tools.checkVersionAtStart", "help.checkUpdates",
         "help.contestRules", "help.contestCalendar", "help.errorLog", "settings.announcements", "tools.tuneBeacon",
-        "settings.autoSend", "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2",
+        "settings.autoSend", "settings.grabFocus", "settings.snapWindows", "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2",
         "so2r.dueling", "so2r.duelingTime", "so2r.focusOther", "so2r.focusOtherAlways", "so2r.ctrlFx", "so2r.stereoMacros",
-        "so2r.so2vRepeat", "so2r.voice1.both", "so2r.voice1.left", "so2r.voice1.right", "so2r.voice2.both",
+        "so2r.so2vRepeat", "so2r.twoKeyboards", "so2r.keyboards", "so2r.voice1.both", "so2r.voice1.left", "so2r.voice1.right", "so2r.voice2.both",
         "so2r.voice2.left", "so2r.voice2.right",
     ]
 

@@ -55,6 +55,12 @@ public final class RigModel {
     /// With `focusVfoRequest`: the caret goes after the call's text instead of selecting it (typing that came from
     /// another window continues there).
     @ObservationIgnored public var focusCaretAtEnd: Bool = false
+    /// N1MM „Grab Focus From Other Apps When Radio Is Tuned": the entry window that brings the app to the front
+    /// after its radio was tuned by the operator (the view acts and clears it); `nil` = none.
+    public var focusGrabRequest: FocusGrabRequest?
+    /// Tells the operator's tuning from the app's (`RadioTuneDetector`).
+    @ObservationIgnored var tuneDetector = RadioTuneDetector()
+    @ObservationIgnored var focusGrabCounter = 0
 
     /// The shared live mode mapping of both rigs.
     @ObservationIgnored public let modeStore = HamlibModeStore()
@@ -274,6 +280,7 @@ public final class RigModel {
         }
         pluginPttConnectionChanged(index, connected: snapshot.connected)
         radioContact(index, snapshot)
+        radioTuned(index, previous: previous?.freqHz, now: snapshot.state?.freqHz)
         // Kotlin `LaunchedEffect(state.cat.state, …)`: only a different state of the active rig is followed.
         if index == vfo.activeCatIndex && previous != snapshot.state {
             notifyEntries { $0.followRig() }

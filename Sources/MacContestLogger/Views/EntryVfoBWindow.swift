@@ -75,6 +75,7 @@ struct EntryVfoBWindowView: View {
         }
         .modifier(EntryFocusFollower(app: app, entry: panel.entry, focus: focus))
         .modifier(EntryVfoFocus(app: app, vfo: panel.vfo, focus: focus, activator: activator))
+        .modifier(EntryFocusGrab(app: app, vfo: panel.vfo, activator: activator))
     }
 }
 
@@ -134,6 +135,15 @@ final class EntryWindowActivator: ObservableObject {
     func makeKey() {
         window?.makeKeyAndOrderFront(nil)
     }
+
+    /// N1MM „Grab Focus From Other Apps When Radio Is Tuned": the app comes to the front with this window — only
+    /// when another app has the focus and no modal dialog or sheet is open (typing there is never interrupted).
+    func grabFocus() {
+        guard let window, !NSApp.isActive, NSApp.modalWindow == nil, window.attachedSheet == nil,
+              !window.isMiniaturized else { return }
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+    }
 }
 
 /// The `focusVfoRequest` of the window's VFO: key window, call field, request cleared.
@@ -152,6 +162,22 @@ struct EntryVfoFocus: ViewModifier {
                 app.rig.focusCaretAtEnd = false
                 activator.makeKey()
                 focus.focus(.call, caretAtEnd: caretAtEnd)
+            }
+    }
+}
+
+/// The `focusGrabRequest` of the window's VFO / radio: the app to the front with this window, request cleared.
+struct EntryFocusGrab: ViewModifier {
+    let app: AppModel
+    let vfo: Int
+    let activator: EntryWindowActivator
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: app.rig.focusGrabRequest) {
+                guard let request = app.rig.focusGrabRequest, request.vfo == vfo else { return }
+                app.rig.focusGrabRequest = nil
+                activator.grabFocus()
             }
     }
 }
