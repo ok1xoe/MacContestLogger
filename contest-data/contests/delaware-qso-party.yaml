@@ -1,0 +1,54 @@
+schemaVersion: 1
+id: delaware-qso-party
+metadata:
+  name: "Delaware QSO Party (DEQP)"
+  organizer: "First State Amateur Radio Club"
+  description: "first full weekend of May, 1700 UTC Saturday to 2359 UTC Sunday. Delaware stations send RS(T) + county (NDE New Castle, KDE Kent, SDE Sussex), others RS(T) + state/province or DX. Delaware stations work everyone, others work Delaware only. Delaware stations: phone 1 point, CW and digital 2; others: phone 10 points, CW and digital 20. A station may be worked once per band and mode (a mobile again from every county). Multipliers per band: others count the 3 Delaware counties; Delaware stations count states (DC as MD; a county of 7QP, the Indiana or New England QSO party counts as its state), provinces and DXCC countries outside W/VE — a QSO between two Delaware stations scores points only. Power multiplier: QRP x3, LOW x2, HIGH x1. In-state / out-of-state follows the ARRL section in the station data. Simplifications: the 50-point electronic log bonus and the in-state 6 m-and-up contacts are not counted, FT8/FT4 (a separate log with the Field Day exchange) is not covered. Set ROVERQTH to your county (Delaware) or state/province (elsewhere) — it is what is sent. A county line QSO is logged as NDE/KDE (one QSO per county). For one log of all four same-weekend QSO parties outside their areas use the combined definition (IN7QPNE)."
+  officialUrl: "https://www.fsarc.org/qsoparty/rules-2024.html"
+period: { durationHours: 31, startWeekday: SAT, startTime: "1700" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB, DIGITAL]
+
+inState:
+  sections: [DE]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: qth, type: TEXT, source: ROVER_QTH }      # my county (Delaware) or state/province
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: qth, type: TEXT, required: true, split: true }
+
+# Delaware stations work anyone, others work Delaware stations only
+workable:
+  anyOf:
+    - { inState: true }
+    - { fieldMatches: { field: qth, regex: "^(NDE|KDE|SDE)$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 20
+    rules:
+      - { when: { allOf: [ { inState: true }, { anyOf: [ { mode: SSB }, { mode: AM }, { mode: FM } ] } ] }, value: { fixed: 1 } }
+      - { when: { inState: true }, value: { fixed: 2 } }
+      - { when: { anyOf: [ { mode: SSB }, { mode: AM }, { mode: FM } ] }, value: { fixed: 10 } }
+  powerFactor: { QRP: 3, LOW: 2, HIGH: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # W/VE stations only (DX stations send DX); another Delaware station is no multiplier
+  - { id: states,    set: qp_weekend_qth, from: qth,      scope: PER_BAND,
+      when: { allOf: [ { inState: true }, { entityIn: [291, 1, 6, 110] },
+                       { not: { fieldMatches: { field: qth, regex: "^(DE|NDE|KDE|SDE)$" } } } ] } }
+  - { id: countries, set: dxcc_entities,  from: callsign, scope: PER_BAND,
+      when: { allOf: [ { inState: true }, { not: { entityIn: [291, 1, 6, 110] } } ] } }
+  - { id: counties,  set: deqp_counties,  from: qth,      scope: PER_BAND, when: { inState: false } }
+
+dupe: { scope: PER_BAND_MODE, byField: qth }
+
+cabrillo: { contestName: DE-QSO-PARTY, sentOrder: [rst, qth], receivedOrder: [rst, qth] }
+ui:
+  entryOrder: [call, qth]
+  logColumns: [time, call, band, mode, rst, qth, points, mult]
