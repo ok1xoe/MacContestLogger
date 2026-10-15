@@ -26,22 +26,14 @@ jobs:
             build-${{ runner.os }}-${{ runner.arch }}-xcode16-
       - name: Release version rules
         run: scripts/release-version.sh --self-test
-      - name: Tests
+      - name: Frame sizes
         run: |
-          ulimit -s; ulimit -c
-          set +e
-          scripts/test.sh
-          rc=$?
-          sleep 30
-          for d in ~/Library/Logs/DiagnosticReports /Library/Logs/DiagnosticReports; do
-            ls -la "$d" 2>/dev/null
-            find "$d" -newer Package.swift \( -name '*.ips' -o -name '*.crash' \) 2>/dev/null | while read -r f; do
-              echo "=== CRASH REPORT $f"; python3 scripts/ips-dump.py "$f"
-            done
-          done
-          exit $rc
-      # Static accessibility audit of the views (reads sources only, starts nothing): icon and glyph controls,
-      # canvases and AppKit islands carry a label, every window has the font stepper, the spoken texts are translated.
+          PLUGIN=/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing/libTestingMacros.dylib
+          ARGS=()
+          if [ -f "$PLUGIN" ]; then ARGS=(-Xswiftc -load-plugin-library -Xswiftc "$PLUGIN"); fi
+          swift build --build-tests "${ARGS[@]}" 2>&1 | tail -3
+          TOP=150 python3 scripts/frames.py .build/debug/MCLCore.build/*.o .build/debug/MCLCoreTests.build/*.o .build/debug/MCLAppModel.build/*.o .build/debug/MCLAppModelTests.build/*.o
+          exit 1
       - name: Accessibility audit
         run: |
           scripts/a11y-audit.py --self-test
