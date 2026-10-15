@@ -72,7 +72,8 @@ import Testing
                                           "tools.checkVersion", "tools.checkVersionAtStart"])
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
                                              "settings.callHistoryLookup", "settings.exchangeAbbreviations",
-                                             "settings.announcements", "settings.autoSend"])
+                                             "settings.announcements", "settings.autoSend", "settings.so2r"])
+        #expect(try children("settings.so2r") == ["so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.contestRules",
                                          "help.contestCalendar", "help.report", "help.errorLog", "help.dataFolder",

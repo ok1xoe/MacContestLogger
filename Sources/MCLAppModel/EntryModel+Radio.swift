@@ -111,6 +111,7 @@ extension EntryModel {
     /// The rig shortcuts of `runShortcut` (`EP:898-923`); TUNE (Ctrl+T) goes to the keyer (`state.toggleTune()`).
     func runRadioShortcut(_ action: ShortcutAction) {
         if action == .tune {
+            rig?.claimTx(vfo)
             if let message = ports.keyer.toggleTune() {
                 show(message)
             }
@@ -136,9 +137,14 @@ extension EntryModel {
         case .ritDown: rig.stepRit(-1, mode: form.mode)
         case .ritClear: rig.setRit(0)
         case .switchRadio:
+            // N1MM `\`: the entry (RX) focus to the other window; in SO2R the transmit focus stays.
             if rig.vfo.twoEntryWindows {
-                rig.requestFocusVfo(1 - vfo)
+                rig.requestFocusVfo(1 - vfo, rxOnly: true)
             }
+        case .focusSwap:
+            rig.swapFocus()
+        case .swapRadios, .swapRadiosKeepFocus:
+            swapRadios(moveFocus: action == .swapRadios)
         case .so2rStereo:
             if rig.vfo.so2r {
                 rig.toggleSo2rStereo()
@@ -159,6 +165,49 @@ extension EntryModel {
             controls.toggleCwReverse()
         default:
             unavailable()
+        }
+    }
+
+    /// N1MM Alt+F5 / Alt+F6: the frequency, mode and call of the two windows swapped — the two rigs retuned (SO2R) or
+    /// the rig's VFOs exchanged over CAT (SO2V). Alt+F5 moves the entry focus to the other window, Alt+F6 (SO2R only)
+    /// keeps it. Only frequencies change — nothing transmits.
+    func swapRadios(moveFocus: Bool) {
+        guard let rig, let other = rig.otherEntry(than: self) else {
+            status.show("Druhé okno není otevřené (SO2V / SO2R)")
+            return
+        }
+        guard rig.vfo.so2r || moveFocus else {
+            show(.tr("Alt+F6: jen v SO2R (dvě rádia)"))
+            return
+        }
+        let mine: (freq: String, hz: Int64, mode: Mode, call: String) = (form.freqKHz, form.freqHz, form.mode, form.call)
+        let theirs: (freq: String, hz: Int64, mode: Mode, call: String) =
+            (other.form.freqKHz, other.form.freqHz, other.form.mode, other.form.call)
+        if rig.vfo.so2r {
+            rig.tuneRadio(vfo, freqHz: theirs.hz, mode: theirs.mode)
+            rig.tuneRadio(other.vfo, freqHz: mine.hz, mode: mine.mode)
+        } else {
+            guard rig.active.connected else {
+                // The rig's VFO exchange needs CAT (`swapVfo` says so).
+                rig.swapVfo()
+                return
+            }
+            rig.swapVfo()
+            rig.rememberInactiveFrequency(mine.hz, vfo: other.vfo)
+        }
+        for (entry, take) in [(self, theirs), (other, mine)] {
+            entry.setFrequencyText(take.freq)
+            if !entry.modeLocked && entry.form.mode != take.mode {
+                entry.setMode(take.mode)
+            }
+            // The call moved with its station: retuning is no reason to store it in the band map and clear it.
+            entry.selfSpot.prefilledFromSpot()
+            entry.setCallText(take.call)
+        }
+        fieldFrequencyChanged()
+        show(.tr("Rádia prohozena (frekvence, mód, volačka)"))
+        if moveFocus {
+            rig.requestFocusVfo(other.vfo, rxOnly: true)
         }
     }
 

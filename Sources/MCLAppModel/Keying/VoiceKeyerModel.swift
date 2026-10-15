@@ -133,7 +133,7 @@ public final class VoiceKeyerModel {
             return nil
         }
         keyer.tx.announceTx()
-        let radio: Int = keyer.rig.map { $0.vfo.twoEntryWindows && $0.vfo.activeVfo == 1 ? 2 : 1 } ?? 1
+        let radio: Int = keyer.rig.map { $0.vfo.twoEntryWindows && $0.vfo.txVfo == 1 ? 2 : 1 } ?? 1
         let set: [String] = messages(opposite: opposite).map { RadioMessageMacro.select($0.text, radio: radio) }
         let texts: [String] = indices.compactMap { index in
             guard index >= 0, index < set.count, !KotlinStrings.isBlank(set[index]) else { return nil }
@@ -187,13 +187,20 @@ public final class VoiceKeyerModel {
             ttsVoice: app.ttsVoice, synthesize: hardware.synthesize)
         settings.update(outputDevice: outputDevice(app), pttDelayMs: app.voiceKeyer.pttDelayMs,
                         gain: Double(app.voiceKeyer.outputLevel) / 100)
-        let rigIndex: Int = keyer.rig?.vfo.activeCatIndex ?? 0
+        let rigIndex: Int = keyer.rig?.vfo.txCatIndex ?? 0
         ptt.arm(target: keyer.activeRigLane(), viaCat: app.voiceKeyer.pttViaCat,
                 muteMic: (rigIndex == 1 ? app.rig2 : app.rig).muteMicOnVoice)
         generation &+= 1
         let planGeneration: Int64 = generation
         planning = true
-        lane.submit({ request.run() }, then: { [weak self] outcome in
+        // SO2R: the radio swap pause (lead + tail time) after the transmit focus moved, before the message plays.
+        let swapDelayMs: Int = keyer.rig.map { $0.vfo.so2r ? $0.takeTxSwapDelay() : 0 } ?? 0
+        lane.submit({ () -> PlanOutcome in
+            if swapDelayMs > 0 {
+                Thread.sleep(forTimeInterval: Double(swapDelayMs) / 1_000)
+            }
+            return request.run()
+        }, then: { [weak self] outcome in
             guard let self, planGeneration == self.generation, !self.closed else { return }
             self.planning = false
             self.planned(outcome, indices: indices, key: last)
@@ -218,7 +225,7 @@ public final class VoiceKeyerModel {
     /// N1MM SO2R sound: radio 2's messages go to its own output when one is set.
     private func outputDevice(_ app: AppConfig) -> String {
         let second: String = KotlinStrings.trim(app.voiceKeyer.outputDevice2)
-        if let rig = keyer?.rig, rig.vfo.so2r, rig.vfo.activeVfo == 1, !second.isEmpty {
+        if let rig = keyer?.rig, rig.vfo.so2r, rig.vfo.txVfo == 1, !second.isEmpty {
             return second
         }
         return app.voiceKeyer.outputDevice

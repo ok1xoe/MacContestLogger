@@ -60,6 +60,10 @@ public enum DefaultMenu {
         "settings.announcements": "Hlášení pro nevidomé (VoiceOver)",
         "settings.keys": "Klávesy…",
         "settings.autoSend": "Práh AutoSend (CW)…",
+        "settings.so2r": "SO2R",
+        "so2r.swapTail": "Čas po vysílání při přepnutí rádia (ms)…",
+        "so2r.swapLead": "Předstih při přepnutí rádia (ms)…",
+        "so2r.winkeyer2": "Winkeyer: rádio 2 na druhém výstupu (KEY OUT 2)",
         "settings": "Nastavení",
         "settings.open": "Nastavení…",
         "settings.import": "Import QSO (ADIF/Cabrillo)…",
@@ -195,6 +199,7 @@ public enum DefaultMenu {
             settingsOpen, leaf("settings.keys"), leaf("settings.profiles"), leaf("sep.settings.1"),
             leaf("settings.callHistoryLookup"), leaf("settings.exchangeAbbreviations"), leaf("settings.announcements"),
             leaf("settings.autoSend"),
+            node("settings.so2r", [leaf("so2r.swapTail"), leaf("so2r.swapLead"), leaf("so2r.winkeyer2")]),
         ])
         let help = node("help", [
             leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("help.contestRules"),

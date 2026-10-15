@@ -22,9 +22,11 @@ public enum VfoActivation {
     /// `activateVfo(index, force)`: `nil` when `index` is already active and not forced (nothing changes). Otherwise
     /// the tuned frequency is stored for the VFO being left, the new VFO becomes active and its own frequency (> 0)
     /// is restored into `tuning` through `tuneTo`. `hasOtrsp` = an OTRSP controller is open (Kotlin `otrsp != null`).
+    /// `rxOnly`: SO2R moves only the entry focus (`VfoState.activate`).
     public static func apply(_ vfo: inout VfoState, _ tuning: inout TuningState, index: Int, force: Bool,
-                             hasOtrsp: Bool) -> Outcome? {
-        guard let change = vfo.activate(index, force: force, tunedFreqHz: tuning.tunedFreqHz) else { return nil }
+                             hasOtrsp: Bool, rxOnly: Bool = false) -> Outcome? {
+        guard let change = vfo.activate(index, force: force, tunedFreqHz: tuning.tunedFreqHz,
+                                        rxOnly: rxOnly) else { return nil }
         if let restored = change.tunedFreqHz {
             _ = tuning.tuneTo(restored)
         }
@@ -32,6 +34,8 @@ public enum VfoActivation {
         switch change.hardware {
         case .otrspFocus(let rig, _):
             status = RigTexts.activeRig(rig, hasOtrsp: hasOtrsp)
+        case .otrspRx(let rig, _):
+            status = RigTexts.rxFocus(rig, txRig: vfo.txVfo + 1)
         case .selectVfo:
             status = nil
         }

@@ -104,7 +104,7 @@ port, line and action:
 | **F1** | sends CQ (F1) |
 | **F2**, **F3**, **F4**, **F11**, **F12** | sends that function key's message |
 | **ESC** | stops sending, like Esc (the CQ repeat goes off too) |
-| **SWITCH_RADIOS** | SO2V / SO2R: moves to the other entry window, like `\` (N1MM "Typing Focus" and "Switch Radios" — one action in MCL, where the focus and the rig switch together) |
+| **SWITCH_RADIOS** | SO2V / SO2R: moves the entry (RX) focus to the other entry window, like `\` (N1MM "Typing Focus"; in SO2R the transmit focus follows with the next message sent from that window) |
 
 The input is read every 20 ms with debouncing. In a multi-op network the footswitch PTT obeys
 the [interlock](multi-op.md) like every other transmission, which covers N1MM's "First One Wins"

@@ -329,6 +329,16 @@ public struct AppConfig: Codable, Equatable, Sendable {
         set { rotorSetup = newValue.values }
     }
 
+    /// N1MM Config → SO2R / SO2V: the swap and dueling CQ times, FocusOther, the macro switches and Winkeyer's second
+    /// output (`So2rSetup.Key` → value; only non-default values are kept). Swift-only key.
+    public var so2rSetup: [String: String] = [:]
+
+    /// The SO2R / SO2V options.
+    public var so2r: So2rSetup {
+        get { So2rSetup(so2rSetup) }
+        set { so2rSetup = newValue.values }
+    }
+
     public var databasesDir = ""
     public var lastDatabase = ""
     public var windowGeometry: [String: WindowGeometry] = [:]
@@ -376,7 +386,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
-        case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup, rotorSetup, spectrumSetup
+        case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup, rotorSetup, spectrumSetup, so2rSetup
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -528,6 +538,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         qtcSetup = QtcSetup(c.value(.qtcSetup, default: d.qtcSetup)).values
         rotorSetup = RotorSetup(c.value(.rotorSetup, default: d.rotorSetup)).values
         spectrumSetup = SpectrumSetup(c.value(.spectrumSetup, default: d.spectrumSetup)).values
+        so2rSetup = So2rSetup(c.value(.so2rSetup, default: d.so2rSetup)).values
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

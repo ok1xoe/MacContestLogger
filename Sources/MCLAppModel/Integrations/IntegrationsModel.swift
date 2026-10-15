@@ -215,6 +215,7 @@ public final class IntegrationsModel {
         let vfo: VfoState = deps.rig.vfo
         s.so2r = vfo.so2r
         s.activeRadioNr = vfo.so2r ? vfo.activeCatIndex + 1 : 1
+        s.txRadioNr = vfo.so2r ? vfo.txCatIndex + 1 : 1
         s.stereo = vfo.stereo
         if vfo.so2r {
             // Radio 1 is always the first rig in SO2R, whichever entry window is active.

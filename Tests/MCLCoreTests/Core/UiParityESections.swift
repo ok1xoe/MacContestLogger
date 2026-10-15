@@ -253,7 +253,7 @@ enum UiParityESections {
             guard let outcome = VfoActivation.apply(&vfo, &tuning, index: index, force: force,
                                                     hasOtrsp: false) else { return }
             switch outcome.hardware {
-            case .otrspFocus:
+            case .otrspFocus, .otrspRx:
                 status = outcome.status
             case .selectVfo(let b):
                 guard connected[activeRig] else { return }

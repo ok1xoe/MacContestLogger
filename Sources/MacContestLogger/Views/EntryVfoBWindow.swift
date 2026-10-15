@@ -105,7 +105,8 @@ final class EntryWindowActivator: ObservableObject {
                                             queue: .main) { [weak app] _ in
             MainActor.assumeIsolated {
                 guard let app, app.rig.vfo.twoEntryWindows else { return }
-                app.rig.activateVfo(vfo)
+                // N1MM: a click into the window moves the entry (RX) focus; the transmit focus stays (SO2R).
+                app.rig.activateVfo(vfo, rxOnly: true)
             }
         })
         observers.append(center.addObserver(forName: NSWindow.willCloseNotification, object: window,

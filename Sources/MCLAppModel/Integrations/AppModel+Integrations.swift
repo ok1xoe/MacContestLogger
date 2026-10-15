@@ -359,7 +359,7 @@ extension AppModel {
             if model.keyer.voice.ptt.isKeyed(model.rig.lanes[index]) {
                 return true
             }
-            return (model.keyer.isSending || model.keyer.isTuning) && index == model.rig.vfo.activeCatIndex
+            return (model.keyer.isSending || model.keyer.isTuning) && index == model.rig.vfo.txCatIndex
         }
         actions.pttHeld = { [weak model] in
             model?.rig.pluginPttRig != nil

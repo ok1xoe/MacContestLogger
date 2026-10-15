@@ -36,6 +36,7 @@ extension EntryModel {
         autoSentCall = call
         esmProgress = EsmProgress(exchangeSent: esmProgress.exchangeSent, myCallSent: esmProgress.myCallSent,
                                   sentCall: call)
+        rig?.claimTx(vfo)
         if let status = ports.keyer.send(.cw(message, index: -1), settings: keyerSettings(opposite: false)) {
             show(status)
         }

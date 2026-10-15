@@ -95,6 +95,16 @@ public enum RigTexts {
         return hasOtrsp ? text : text.appending(.verbatim(" (bez OTRSP kontroléru)"))
     }
 
+    /// SO2R `\` / a click: only the entry (RX) focus moved; the transmit focus stays on `txRig`.
+    public static func rxFocus(_ rig: Int, txRig: Int) -> EntryStatus {
+        rig == txRig ? .tr("Aktivní rig %s", .int(rig)) : .tr("Příjem: rig %s (vysílá rig %s)", .int(rig), .int(txRig))
+    }
+
+    /// SO2R: the transmit focus moved to `rig` (an F-key or ESM sent from its window, Ctrl+F1–F12).
+    public static func txFocus(_ rig: Int) -> EntryStatus {
+        .tr("Vysílá rig %s", .int(rig))
+    }
+
     /// SO2V `activateVfo` success: `tr("Aktivní VFO %s", if (vfo == 0) "A" else "B")`.
     public static func activeVfo(b: Bool) -> EntryStatus {
         .tr("Aktivní VFO %s", .string(b ? "B" : "A"))

@@ -24,6 +24,8 @@ struct BroadcastSnapshot: Sendable {
     var rig2: RigState?
     var so2r: Bool = false
     var activeRadioNr: Int = 1
+    /// The radio with the transmit focus (N1MM `ActiveRadioNr`; `activeRadioNr` is the entry focus, `FocusRadioNr`).
+    var txRadioNr: Int = 1
     var stereo: Bool = false
     var transmitting: Bool = false
     var antennaCode: Int?
@@ -67,8 +69,8 @@ final class BroadcastSnapshotBox: Sendable {
             runMode: s.runMode, auxAntenna: isActive ? s.auxAntenna : nil), let rig else { return nil }
         data.extras = BroadcastMapping.radioExtras(
             radioNr: nr, rig: rig, stationCall: s.stationCall, antenna: isActive ? s.antennaCode : nil,
-            focusRadioNr: s.activeRadioNr, activeRadioNr: s.activeRadioNr, isStereo: s.stereo,
-            isTransmitting: isActive && s.transmitting, radioName: s.radioNames[nr == 2 ? 1 : 0])
+            focusRadioNr: s.activeRadioNr, activeRadioNr: s.txRadioNr, isStereo: s.stereo,
+            isTransmitting: nr == s.txRadioNr && s.transmitting, radioName: s.radioNames[nr == 2 ? 1 : 0])
         return data
     }
 

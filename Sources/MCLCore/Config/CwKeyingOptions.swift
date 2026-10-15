@@ -222,6 +222,13 @@ extension CwKeyingOptions {
         return pins
     }
 
+    /// The pin configuration with the key output of radio `output` (1 = KEY OUT 1, 2 = KEY OUT 2; N1MM SO2R „Use
+    /// 2nd Output"): bit 2 / bit 3, the rest as `winkeyerPinConfig`.
+    public func winkeyerPinConfig(output: Int) -> UInt8 {
+        let pins: UInt8 = winkeyerPinConfig & ~UInt8(0x0C)
+        return pins | (output == 2 ? 0x08 : 0x04)
+    }
+
     /// Sidetone byte: bit 7 = paddle-only sidetone, bits 3–0 = 4000 / frequency.
     public var winkeyerSidetone: UInt8 {
         let hz: Int = Self.nearestSidetone(wkSidetoneHz)

@@ -146,6 +146,7 @@ public final class KeyerModel {
         let begin: SendLamp.Begin = lamp.begin(key: key)
         let wpm: Int = cwSpeed
         let request: KeyerLane.OpenRequest = openRequest()
+        let swap: So2rKeying = so2rKeying()
         prepareKeyer()
         let lane: KeyerLane = self.lane
         lane.run({ devices -> String?? in
@@ -154,6 +155,7 @@ public final class KeyerModel {
                 if begin.wasSending {
                     try keyer.abort()
                 }
+                try swap.apply(to: keyer)
                 try keyer.send(message, wpm: wpm)
                 return .none
             } catch {
@@ -182,9 +184,11 @@ public final class KeyerModel {
         let request: KeyerLane.OpenRequest = openRequest()
         let lane: KeyerLane = self.lane
         let millis: Int64 = SendLamp.estimateMillis(message, wpm: wpm)
+        let swap: So2rKeying = so2rKeying()
         lane.run({ devices -> String?? in
             do {
                 let keyer: any CwKeyer = try lane.keyerOrOpen(devices, request)
+                try swap.apply(to: keyer)
                 try keyer.send(message, wpm: wpm)
                 return .none
             } catch {
@@ -222,8 +226,39 @@ public final class KeyerModel {
         }
     }
 
+    /// What an SO2R transmission does on the keyer lane before its message: Winkeyer's key output of the transmitting
+    /// radio (N1MM „Use 2nd Output") and the radio swap pause (lead + tail time) after the transmit focus moved.
+    struct So2rKeying: Sendable {
+        var winkeyerPins: UInt8?
+        var delayMs: Int = 0
+
+        func apply(to keyer: any CwKeyer) throws {
+            if let winkeyerPins, let winkeyer = keyer as? WinkeyerKeyer {
+                try winkeyer.setPinConfig(winkeyerPins)
+            }
+            if delayMs > 0 {
+                Thread.sleep(forTimeInterval: Double(delayMs) / 1_000)
+            }
+        }
+    }
+
+    /// The SO2R part of the next transmission (taking the pending swap pause); nothing outside SO2R.
+    func so2rKeying() -> So2rKeying {
+        guard let rig, rig.vfo.so2r else { return So2rKeying() }
+        let app: AppConfig = config.config
+        var keying = So2rKeying(delayMs: rig.takeTxSwapDelay())
+        if app.cwKeyer.method == .winkeyer && app.so2r.flag(.winkeyerSecondOutput) {
+            keying.winkeyerPins = app.cwKeyer.options.winkeyerPinConfig(output: rig.vfo.txVfo + 1)
+        }
+        return keying
+    }
+
     /// Kotlin `sendCwText(text, hisCall)` (`AS:1620-1624`): free CW text with the F-key macros (`-1` lights nothing).
+    /// It goes out on the radio of the entry focus (N1MM: typed CW moves the transmit focus there).
     public func sendCwText(_ text: String, call: String = "") {
+        if let rig {
+            rig.claimTx(rig.vfo.activeVfo)
+        }
         guard var context = messageContext() else { return }
         context.hisCall = call
         context.rst = "599"
@@ -316,7 +351,7 @@ public final class KeyerModel {
         if on {
             prepareKeyer()
             let catKeyer: Bool = config.config.cwKeyer.method == .cat && !config.config.cwKeyer.options.serialKeying
-            if catKeyer || viaPtt, let index = rig?.vfo.activeCatIndex {
+            if catKeyer || viaPtt, let index = rig?.vfo.txCatIndex {
                 tunedRig = index
             }
         }
@@ -652,13 +687,14 @@ public final class KeyerModel {
         lamp.abortDigital()
     }
 
-    /// The active rig's CAT session (Kotlin `cat`), read when a transmission starts.
+    /// The transmitting rig's CAT session (Kotlin `cat`; in SO2R the rig with the transmit focus), read when a
+    /// transmission starts.
     func activeRigLane() -> RigLane? {
-        rig?.activeLane
+        rig.map { $0.lanes[$0.vfo.txCatIndex] }
     }
 
     func activeRigCat() -> (any CatPort)? {
-        rig?.activeLane.cat
+        activeRigLane()?.cat
     }
 
     var isClosed: Bool {

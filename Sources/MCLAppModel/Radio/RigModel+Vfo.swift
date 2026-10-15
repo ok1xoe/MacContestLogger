@@ -203,23 +203,37 @@ extension RigModel {
     }
 
     /// Kotlin `activateVfo(vfo, force)`: the left VFO keeps its frequency, the new one restores its own; SO2R
-    /// switches the OTRSP focus (`tr("Aktivní rig %s")`), SO1V/SO2V selects the rig's VFO over CAT.
-    public func activateVfo(_ index: Int, force: Bool = false) {
+    /// switches the OTRSP focus (`tr("Aktivní rig %s")`), SO1V/SO2V selects the rig's VFO over CAT. `rxOnly` (SO2R,
+    /// N1MM `\` and a click into the window): only the entry focus moves (OTRSP `RX`), the transmit focus stays.
+    public func activateVfo(_ index: Int, force: Bool = false, rxOnly: Bool = false) {
         var nextVfo: VfoState = vfo
         var nextTuning: TuningState = tuning
+        let moving: Bool = index != vfo.activeVfo
         guard let outcome = VfoActivation.apply(&nextVfo, &nextTuning, index: index, force: force,
-                                                hasOtrsp: peripherals.otrspOpen) else { return }
+                                                hasOtrsp: peripherals.otrspOpen, rxOnly: rxOnly) else { return }
+        let txBefore: Int = vfo.txCatIndex
+        let txMoved: Bool = nextVfo.txVfo != vfo.txVfo
         vfo = nextVfo
         if outcome.restoredFreqHz != nil {
             // Kotlin `tunedFreqHz = it` — no QSY, no previous frequency, no rig.
             setTuning(nextTuning)
         }
         // Kotlin `LaunchedEffect(…, active)`: the newly active window follows the rig.
-        notifyEntries { $0.followRig() }
+        if moving || force {
+            notifyEntries { $0.followRig() }
+        }
         switch outcome.hardware {
         case .otrspFocus(let rig, let stereo):
             // The lane holds the controller: without one the focus does nothing (Kotlin `o?.let`).
-            peripherals.otrspFocus(rig: rig, stereo: stereo)
+            if txMoved {
+                noteTxSwap(from: txBefore)
+            }
+            peripherals.otrspFocus(rig: rig, stereo: stereo, afterMs: txMoved ? pendingSwapTailMs : 0)
+            if let status = outcome.status {
+                show(status)
+            }
+        case .otrspRx(let rig, let stereo):
+            peripherals.otrspRx(rig: rig, stereo: stereo)
             if let status = outcome.status {
                 show(status)
             }
@@ -241,10 +255,80 @@ extension RigModel {
         }
     }
 
-    /// Kotlin `requestFocusVfo(vfo)` (`\`): activate and move the focus there.
-    public func requestFocusVfo(_ index: Int) {
-        activateVfo(index)
+    /// Kotlin `requestFocusVfo(vfo)` (`\`): activate and move the focus there. In SO2R `\` moves only the entry
+    /// focus (N1MM); `rxOnly: false` moves both (Pause, Ctrl+←/→).
+    public func requestFocusVfo(_ index: Int, rxOnly: Bool = false) {
+        activateVfo(index, rxOnly: rxOnly)
         focusVfoRequest = index
+    }
+
+    /// N1MM: a message sent from the window of `index` (an F-key, ESM, a typed CW text, Ctrl+T) moves the transmit
+    /// focus there first (SO2R; OTRSP `TX`, the Winkeyer output). The swap times delay the keying that follows
+    /// (`takeTxSwapDelay`). Outside SO2R the transmit focus is the entry focus and nothing happens.
+    public func claimTx(_ index: Int) {
+        let before: Int = vfo.txCatIndex
+        guard vfo.claimTx(index) else { return }
+        noteTxSwap(from: before)
+        peripherals.otrspTx(rig: index + 1, afterMs: pendingSwapTailMs)
+        show(RigTexts.txFocus(index + 1))
+    }
+
+    /// The transmit focus moved away from rig `before`: N1MM's tail time when that rig was transmitting (an
+    /// interrupted CQ) and the lead time always; the next keying waits for both.
+    private func noteTxSwap(from before: Int) {
+        let setup: So2rSetup = config.config.so2r
+        let tail: Int = operatorKeying(before) ? setup.millis(.swapTailMs) : 0
+        pendingSwapTailMs = tail
+        pendingSwapDelayMs = tail + setup.millis(.swapLeadMs)
+    }
+
+    /// The pause the keyer waits before the next transmission after a swap of the transmit focus (once).
+    public func takeTxSwapDelay() -> Int {
+        let delay: Int = pendingSwapDelayMs
+        pendingSwapDelayMs = 0
+        pendingSwapTailMs = 0
+        return delay
+    }
+
+    /// N1MM Alt+F5 / Alt+F6 (SO2R): the rig of window `index` to `freqHz` and `mode` without moving any focus — the
+    /// active one through `qsy`, the other one on its own lane (and remembered for its return).
+    func tuneRadio(_ index: Int, freqHz: Int64, mode: Mode?) {
+        guard freqHz > 0 else { return }
+        if index == vfo.activeVfo {
+            qsy(freqHz, mode: mode)
+            return
+        }
+        vfo.setInactiveFrequency(freqHz, vfo: index)
+        guard snapshot(vfo: index).connected else { return }
+        lanes[vfo.catIndex(for: index)].run { cat in
+            try? cat.tune(freqHz)
+            if let mode {
+                try? cat.setMode(mode, freqHz: freqHz)
+            }
+        }
+    }
+
+    /// The frequency the inactive VFO / radio gets back when it is activated (a swap of the VFOs).
+    func rememberInactiveFrequency(_ freqHz: Int64, vfo index: Int) {
+        vfo.setInactiveFrequency(freqHz, vfo: index)
+    }
+
+    /// N1MM Pause: with both foci in one window both move to the other window; with the foci split the transmit
+    /// focus joins the entry focus (SO2R). With one rig (SO2V) Pause moves to the other window like `\`.
+    public func swapFocus() {
+        guard vfo.twoEntryWindows else { return }
+        if vfo.so2r && vfo.fociSplit {
+            activateVfo(vfo.activeVfo)
+            focusVfoRequest = vfo.activeVfo
+            return
+        }
+        requestFocusVfo(1 - vfo.activeVfo)
+    }
+
+    /// N1MM Ctrl+←/→: both foci to VFO A / rig 1 (`index` 0) or VFO B / rig 2 (1).
+    public func focusBoth(_ index: Int) {
+        guard vfo.twoEntryWindows else { return }
+        requestFocusVfo(index)
     }
 
     /// Kotlin `toggleSo2rStereo()`: OTRSP `RXnS` / `RXn`.
@@ -350,7 +434,7 @@ extension RigModel {
             status.showJoined(locked.parts, separator: "")
             return
         }
-        let index: Int = vfo.activeCatIndex
+        let index: Int = vfo.txCatIndex
         if pressed, let keyed = footswitchPttRig, keyed != index {
             // A second press while another rig is still keyed (an SO2R switch between two press edges): that rig is
             // released first, so it never stays keyed until a disconnect or the quit.

@@ -141,7 +141,15 @@
         { "id": "settings.callHistoryLookup", "label": "Zapnout dohledávání v call history", "state": "enable" },
         { "id": "settings.exchangeAbbreviations", "label": "Zkratky výměny…", "state": "enable" },
         { "id": "settings.announcements", "label": "Hlášení pro nevidomé (VoiceOver)", "state": "enable" },
-        { "id": "settings.autoSend", "label": "Práh AutoSend (CW)…", "state": "enable" }
+        { "id": "settings.autoSend", "label": "Práh AutoSend (CW)…", "state": "enable" },
+        {
+          "id": "settings.so2r", "label": "SO2R", "state": "enable",
+          "children": [
+            { "id": "so2r.swapTail", "label": "Čas po vysílání při přepnutí rádia (ms)…", "state": "enable" },
+            { "id": "so2r.swapLead", "label": "Předstih při přepnutí rádia (ms)…", "state": "enable" },
+            { "id": "so2r.winkeyer2", "label": "Winkeyer: rádio 2 na druhém výstupu (KEY OUT 2)", "state": "enable" }
+          ]
+        }
       ]
     },
     {

@@ -81,7 +81,8 @@ extension EntryModel {
         EntryKeyContext(bindings: KeyBindings(config.config.keyBindings), field: field, callText: form.call,
                         isCw: form.mode == .cw, esmActive: esmActive, hasLastSent: !operating.lastSentKeys.isEmpty,
                         isSending: ports.keyer.isSending || operating.cqRepeat, scpPick: scpPick,
-                        suggestionCount: suggestions().count, hasCommand: hasCommand)
+                        suggestionCount: suggestions().count, hasCommand: hasCommand,
+                        twoRadios: rig?.otherEntry(than: self) != nil)
     }
 
     // MARK: - key decisions
@@ -124,8 +125,15 @@ extension EntryModel {
             if spectrumJump?(direction, form.freqHz) != true {
                 tuneStep(direction)
             }
-        case .enter(_, let step):
-            enter(step)
+        case .enter(let ctrl, let step):
+            if ctrl, step == .esm, rig?.otherEntry(than: self) != nil {
+                // N1MM Ctrl+Enter (SO2R / SO2V): the next ESM step on the alternate radio.
+                esmOnOtherRadio()
+            } else {
+                enter(step)
+            }
+        case .alternateFunctionKey(let index):
+            sendOnOtherRadio(index)
         case .escape(let step):
             escape(step)
         case .resendLast:
@@ -365,11 +373,15 @@ extension EntryModel {
         case .toggleTx:
             toggleDigitalTx()
         case .digitalLeft, .digitalRight:
+            // N1MM Ctrl+←/→: both foci to VFO A / rig 1 or VFO B / rig 2; in a digital mode with its Digital
+            // Interface.
             let side: Int = action == .digitalLeft ? 0 : 1
             if let rig, rig.vfo.twoEntryWindows {
-                rig.requestFocusVfo(side)
+                rig.focusBoth(side)
             }
-            windows.setOpen(side == 0 ? "digitalinterface" : "digitalinterface2", true)
+            if form.mode.isDigital || rig?.vfo.twoEntryWindows != true {
+                windows.setOpen(side == 0 ? "digitalinterface" : "digitalinterface2", true)
+            }
         default:
             runOperatingShortcut(action)
         }
@@ -416,6 +428,7 @@ extension EntryModel {
         case .toggleRun:
             operating.toggleRun(freqHz: form.freqHz)
         case .cqRepeat:
+            operating.cqRepeatWindow = vfo
             operating.setCqRepeat(!operating.cqRepeat)
         case .cqRepeatTime:
             promptRepeatTime()
@@ -648,9 +661,11 @@ extension EntryModel {
         }
         var keyerStatus: EntryStatus?
         if let transmission = outcome.transmission {
-            if config.config.showSentCw, case .cw(let message, _) = transmission {
-                // N1MM „Display Sent CW": what goes out, in the status line.
-                show(.verbatim("CW: " + EntryAssist.sentText(message)))
+            // N1MM: the transmit focus moves to the window the message is sent from (SO2R).
+            rig?.claimTx(vfo)
+            if config.config.showSentCw || rig?.vfo.so2r == true, case .cw(let message, _) = transmission {
+                // N1MM „Display Sent CW" (always on in SO2R): what goes out, in the status line.
+                show(.verbatim(sentCwPrefix + EntryAssist.sentText(message)))
             }
             keyerStatus = ports.keyer.send(transmission, settings: keyerSettings(opposite: opposite))
             afcWithCq(transmission)
@@ -725,6 +740,7 @@ extension EntryModel {
             grabList?.removeSelected()
         case .resumeCq:
             if operating.isRun {
+                operating.cqRepeatWindow = vfo
                 operating.applyCqRepeat(true)
             }
         case .digitalTx:
@@ -789,7 +805,7 @@ extension EntryModel {
                 show(message)
             }
         case .jumpRx, .jumpRxTx:
-            jumpToOtherWindow()
+            jumpToOtherWindow(withTx: action == .jumpRxTx)
         case .condJump:
             if rig?.activeState?.split != true {
                 jumpToOtherWindow()
@@ -811,20 +827,50 @@ extension EntryModel {
 
     // MARK: - two radios
 
-    /// `{JUMPRX}` / `{JUMPRXTX}`: the other entry window becomes the active one with the focus (SO2R / SO2V).
-    func jumpToOtherWindow() {
+    /// The prefix of the sent CW echo: in SO2R the radio it goes out on (N1MM echoes it in that radio's window).
+    var sentCwPrefix: String {
+        rig?.vfo.so2r == true ? "CW R" + String(vfo + 1) + ": " : "CW: "
+    }
+
+    /// `{JUMPRX}` / `{JUMPRXTX}`: the other entry window becomes the active one with the focus (SO2R / SO2V);
+    /// `{JUMPRX}` moves only the entry focus in SO2R (N1MM), `{JUMPRXTX}` the transmit focus too.
+    func jumpToOtherWindow(withTx: Bool = true) {
         guard let rig, let other = rig.otherEntry(than: self) else {
             status.show("Druhé okno není otevřené (SO2V / SO2R)")
             return
         }
-        rig.requestFocusVfo(other.vfo)
+        rig.requestFocusVfo(other.vfo, rxOnly: !withTx)
     }
 
-    /// `{CTRLFn}` (N1MM): the key's message of the other entry window, sent on its radio. The focus goes there when
-    /// this window's call field is empty; otherwise it comes back here once the message has been sent.
+    /// `{CTRLFn}` and Ctrl+F1–F12 (N1MM): the key's message of the other entry window, sent on its radio.
     func sendOnOtherRadio(_ index: Int) {
+        alternateRadio { other in
+            other.handle(.functionKey(index, shift: false, ctrlShift: false))
+        }
+    }
+
+    /// N1MM Ctrl+Enter (SO2R / SO2V): the next ESM step of the other entry window, on its radio.
+    func esmOnOtherRadio() {
+        alternateRadio { other in
+            guard other.esmActive else {
+                other.status.show("ESM není zapnutý")
+                return
+            }
+            other.esmEnter()
+        }
+    }
+
+    /// N1MM „send on the alternate radio": in SO2R the other window sends on its rig and only the transmit focus
+    /// moves there (the entry focus stays here, the transmit focus stays there afterwards). One rig (SO2V) has one
+    /// transmitter: the other VFO becomes active for the message — with the focus when this window's call field is
+    /// empty, otherwise it comes back here once the message has been sent.
+    private func alternateRadio(_ send: (EntryModel) -> Void) {
         guard let rig, let other = rig.otherEntry(than: self) else {
             status.show("Druhé okno není otevřené (SO2V / SO2R)")
+            return
+        }
+        if rig.vfo.so2r {
+            send(other)
             return
         }
         let stay: Bool = !KotlinStrings.isBlank(form.call)
@@ -833,7 +879,7 @@ extension EntryModel {
         } else {
             rig.requestFocusVfo(other.vfo)
         }
-        other.handle(.functionKey(index, shift: false, ctrlShift: false))
+        send(other)
         guard stay else { return }
         returnGeneration &+= 1
         let generation: Int = returnGeneration
@@ -1651,6 +1697,7 @@ extension EntryModel {
     private func toggle(_ setting: CallFieldCommand.Setting, _ on: Bool) {
         switch setting {
         case .cqRepeat:
+            operating.cqRepeatWindow = vfo
             operating.applyCqRepeat(on)
         case .workDupes:
             operating.applyWorkDupes(on)

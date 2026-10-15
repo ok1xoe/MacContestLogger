@@ -29,6 +29,8 @@ public struct EntryKeyContext: Sendable {
     public var suggestionCount: Int
     /// `parseCommand() != null`: the call field holds a command.
     public var hasCommand: Bool
+    /// Two entry windows (SO2V / SO2R): Ctrl+F1–F12 send on the alternate radio (N1MM).
+    public var twoRadios: Bool
 
     public init(
         bindings: KeyBindings,
@@ -40,8 +42,10 @@ public struct EntryKeyContext: Sendable {
         isSending: Bool = false,
         scpPick: Int = -1,
         suggestionCount: Int = 0,
-        hasCommand: Bool = false
+        hasCommand: Bool = false,
+        twoRadios: Bool = false
     ) {
+        self.twoRadios = twoRadios
         self.bindings = bindings
         self.field = field
         self.callText = callText
@@ -88,6 +92,8 @@ public indirect enum EntryKeyDecision: Equatable, Sendable {
     case action(ShortcutAction)
     /// F1–F12 pressed: index 0–11; `shift` = message from the opposite set, `ctrlShift` = record (phone).
     case functionKey(Int, shift: Bool, ctrlShift: Bool)
+    /// Ctrl+F1–F12 with two entry windows (N1MM SO2R / SO2V): the other window's key, sent on its radio.
+    case alternateFunctionKey(Int)
     /// `PgUp`/`PgDn` in CW: `+1`/`-1` steps of `cwSpeedStep`.
     case cwSpeed(Int)
     /// `Shift+PgUp`/`Shift+PgDn` in CW (N1MM): `+1`/`-1` steps of the secondary `cwSpeedStepSecondary`.
@@ -197,6 +203,9 @@ public enum EntryKeyRouter {
                 return .consume
             }
             let ctrlShift: Bool = stroke.isControlDown && stroke.isShiftDown
+            if context.twoRadios && stroke.isControlDown && !stroke.isShiftDown && !stroke.isAltDown {
+                return .alternateFunctionKey(index)
+            }
             return .functionKey(index, shift: stroke.isShiftDown, ctrlShift: ctrlShift)
         }
         let released: Bool = !pressed

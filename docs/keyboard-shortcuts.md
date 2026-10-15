@@ -79,7 +79,10 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Alt+A** / **Shift+Alt+A** | the next / previous spot of the [Available window](available-window.md) list is tuned and taken (the list wraps around) |
 | **Ctrl+Alt+G** | the callsign from the field onto the [call stack](call-stacking.md); the fields are wiped for the next call |
 | **Alt+G** / **Ctrl+Alt+K** | the next callsign from the [call stack](call-stacking.md) (own and partner's) into a wiped entry window; Alt+G in a digital mode takes the Digital Interface's [Grab window](digital-modes.md#the-grab-window) callsign first |
-| **Cmd+Alt+← / →** | digital SO2V/SO2R: VFO A / rig 1 with Digital Interface 1, VFO B / rig 2 with Digital Interface 2 (N1MM Ctrl+←/→) |
+| **Cmd+Alt+← / →** | SO2V/SO2R: both foci (RX and TX) to VFO A / rig 1 or VFO B / rig 2; in a digital mode with Digital Interface 1 / 2 (N1MM Ctrl+←/→) |
+| **Pause** (**F15**) | SO2V/SO2R: both foci to the other window, or the transmit focus to the entry focus when they are split (N1MM Pause) |
+| **Alt+F5** / **Alt+F6** | SO2V/SO2R: swap frequency, mode and call between the radios / VFOs, with / without moving the focus |
+| **Ctrl+F1 … F12**, **Ctrl+Enter** | SO2V/SO2R: the other window's F-key / next ESM step on its radio — see [SO2R](so2v.md#so2r--two-rigs) |
 | **Alt+T** | digital: transmit on / back to receive; the Digital Interface's TX window takes the typing |
 | **Insert** (Help) | digital: the Grab window's callsign into an empty field, then F5+F2 (N1MM Insert table) |
 
@@ -181,7 +184,7 @@ turned the Mission Control shortcuts off.
 
 ## Unsupported N1MM shortcuts
 
-SO2R/SO2V (**\\**, Pause, Ctrl+←/→, Alt+F5/F6, Ctrl+Alt+D), filters **Alt+'**, callsign stack
+SO2V **Ctrl+Alt+D**, filters **Alt+'**, callsign stack
 **Alt+G / Ctrl+Alt+G**, multi-op **Ctrl+Alt+M / Alt+Z**, autosend **Ctrl+Shift+M** (the AutoSend threshold itself is
 set in Nastavení → Práh AutoSend (CW)…, see [ESM](esm.md#autosend-cw)).
 

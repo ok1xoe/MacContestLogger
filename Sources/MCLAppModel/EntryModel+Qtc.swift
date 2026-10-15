@@ -66,6 +66,7 @@ extension EntryModel {
                     show(.tr("Dodatečné zadání — nic se nevysílá (NOPOSTCONTEST ukončí)"))
                     return
                 }
+                rig?.claimTx(vfo)
                 if let message = ports.keyer.playVoiceText(text, hisCall: KotlinStrings.trim(form.call),
                                                            freqHz: form.freqHz) {
                     show(message)
