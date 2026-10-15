@@ -1999,5 +1999,9 @@
  "První vyhrává": "Erster gewinnt",
  "Poslední vyhrává": "Letzter gewinnt",
  "První vyhrává (blokovat mé vysílání)": "Erster gewinnt (meinen Sender sperren)",
- "Poslední vyhrává (zastavit ostatní stanice)": "Letzter gewinnt (andere Stationen stoppen)"
+ "Poslední vyhrává (zastavit ostatní stanice)": "Letzter gewinnt (andere Stationen stoppen)",
+ "V místní síti není žádný MQTT broker ohlášený přes Bonjour": "Kein per Bonjour angekündigter MQTT-Broker im lokalen Netz",
+ "Nalezené MQTT brokery v místní síti: %s": "Gefundene MQTT-Broker im lokalen Netz: %s",
+ "Najít broker v LAN (Bonjour)": "Broker im LAN suchen (Bonjour)",
+ "Hledám…": "Suche…"
 }

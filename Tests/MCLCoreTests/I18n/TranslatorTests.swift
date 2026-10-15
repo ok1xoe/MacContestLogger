@@ -174,10 +174,11 @@ import Testing
         // 12 keys of the multi-op station table and
         // 27 keys of the network tools and
         // 5 keys of the multi-user macros and the log's multi-op columns and
-        // 8 keys of the TX lockouts.
-        #expect(map.count == 2_001)
+        // 8 keys of the TX lockouts and
+        // 4 keys of the broker discovery.
+        #expect(map.count == 2_005)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_001)
+        #expect(german.count == 2_005)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)
