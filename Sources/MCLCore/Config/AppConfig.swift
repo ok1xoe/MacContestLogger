@@ -294,6 +294,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// N1MM „Check for New Program Version" at start: one request to GitHub's release API per start, only when the
     /// user switched it on (off by default — no outward call without consent). Swift-only key.
     public var checkUpdatesAtStart = false
+    /// N1MM „Program announcements for blind operators": VoiceOver announcements of a dupe, a new multiplier, an
+    /// incomplete exchange and the split (off by default). Swift-only key.
+    public var accessibilityAnnouncements = false
 
     public var databasesDir = ""
     public var lastDatabase = ""
@@ -341,7 +344,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
-        case checkUpdatesAtStart
+        case checkUpdatesAtStart, accessibilityAnnouncements
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -488,6 +491,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         callHistoryExtraFiles = c.value(.callHistoryExtraFiles, default: d.callHistoryExtraFiles)
         callHistoryShowUserInfo = c.value(.callHistoryShowUserInfo, default: d.callHistoryShowUserInfo)
         checkUpdatesAtStart = c.value(.checkUpdatesAtStart, default: d.checkUpdatesAtStart)
+        accessibilityAnnouncements = c.value(.accessibilityAnnouncements, default: d.accessibilityAnnouncements)
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

@@ -71,7 +71,8 @@ import Testing
                                           "contest.editor", "tools.programLogging", "tools.diagnosticsFolder",
                                           "tools.checkVersion", "tools.checkVersionAtStart"])
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
-                                             "settings.callHistoryLookup", "settings.exchangeAbbreviations"])
+                                             "settings.callHistoryLookup", "settings.exchangeAbbreviations",
+                                             "settings.announcements"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.contestRules",
                                          "help.contestCalendar", "help.report", "help.errorLog", "help.dataFolder",

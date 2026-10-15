@@ -2141,5 +2141,16 @@
  "Máte nejnovější verzi": "You have the latest version",
  "Kontrola nové verze": "Checking for a new version",
  "Nová verze %s, máte %s.": "New version %s, you have %s.",
- "Verze %s je nejnovější vydaná.": "Version %s is the latest release."
+ "Verze %s je nejnovější vydaná.": "Version %s is the latest release.",
+ "QSB (únik signálu)": "QSB (fading)",
+ "QRM (rušící stanice)": "QRM (interfering station)",
+ "Dupe": "Dupe",
+ "Dvojitý násobič": "Double multiplier",
+ "Neúplná výměna, QSO nezapsáno": "Incomplete exchange, QSO not logged",
+ "Chybí čas QSO": "QSO time missing",
+ "Split zapnut": "Split on",
+ "Split vypnut": "Split off",
+ "Hlášení pro nevidomé (VoiceOver)": "Announcements for blind operators (VoiceOver)",
+ "Hlášení pro nevidomé zapnuta (VoiceOver)": "Announcements for blind operators on (VoiceOver)",
+ "Hlášení pro nevidomé vypnuta": "Announcements for blind operators off"
 }

@@ -46,6 +46,10 @@ public final class EntryModel {
     @ObservationIgnored var partialCallSend: String?
     /// `{CTRLFn}`: cancels a pending return of the focus to this window.
     @ObservationIgnored var returnGeneration: Int = 0
+    /// Program announcements for blind operators (`AnnouncementsModel.note`); `nil` = none.
+    @ObservationIgnored public var announce: (@MainActor (AnnouncementsModel.Event) -> Void)?
+    /// The call status last announced.
+    @ObservationIgnored var announcedStatus: CallBandStatus?
     /// The typed call's status on each band of the band buttons (`updateBandStatuses`).
     public internal(set) var bandStatuses: [Band: CallBandStatus] = [:]
     /// The exchange values the call history or a spot filled in (field id → value), for N1MM „Clear auto-populated
@@ -424,6 +428,26 @@ public final class EntryModel {
             ports.beep()
         }
         wasDupe = dupe
+        announceCallStatus()
+    }
+
+    /// Program announcements for blind operators: the typed call's status when it becomes a dupe or a new / double
+    /// multiplier (once per change, not per keystroke; a cleared call starts over).
+    private func announceCallStatus() {
+        guard let announce, isActivePanel, quickEdit == nil else { return }
+        let status: CallBandStatus? = callStatus
+        defer { announcedStatus = status }
+        guard status != announcedStatus, let status else { return }
+        switch status {
+        case .dupe:
+            announce(.dupe)
+        case .multiplier:
+            announce(.newMultiplier(count: 1))
+        case .doubleMultiplier:
+            announce(.newMultiplier(count: 2))
+        case .newQso:
+            break
+        }
     }
 
     /// `countyLine.firstOrNull()?.takeIf { usesRoverQth } ?: roverQthForDupe()`.
@@ -570,6 +594,7 @@ public final class EntryModel {
         if operating.postContest {
             guard let parsed = PaperTime.parse(paperTime, previous: lastPaperTime, baseDate: paperBaseDate()) else {
                 status.show(EntryTexts.paperTimeMissing)
+                announce?(.paperTimeMissing)
                 timeFocusRequest += 1
                 return nil
             }
@@ -598,6 +623,7 @@ public final class EntryModel {
         let copies: [(qth: String?, qso: Qso)]
         if contestPath {
             if !contestReady && !force {
+                announce?(.incompleteExchange)
                 return nil
             }
             guard passesOperatingRules(force: force) else { return nil }

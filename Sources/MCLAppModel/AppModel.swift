@@ -78,6 +78,9 @@ public final class AppModel {
         public var programLog: ProgramLog?
         /// Program execution logging from the start (`MCL_DIAGNOSTICS=1`).
         public var diagnosticsAtStart = false
+        /// Posts a VoiceOver announcement (program announcements for blind operators); nothing by default,
+        /// `production` posts an accessibility announcement.
+        public var announce: @MainActor (String) -> Void = { _ in }
 
         public init(dataDir: URL, dxccDir: URL?, decimalSeparator: String = LanguageModel.systemDecimalSeparator,
                     rescoreClock: any RescoreClock, geometryClock: any RescoreClock,
@@ -118,6 +121,7 @@ public final class AppModel {
             environment.network = .production(environment: processEnvironment)
             environment.programLog = .shared
             environment.diagnosticsAtStart = processEnvironment["MCL_DIAGNOSTICS"] == "1"
+            environment.announce = AnnouncementsModel.systemPost
             environment.catLog = .shared
             environment.mapData = LocalMapData()
             environment.clipboard = { text in
@@ -254,6 +258,8 @@ public final class AppModel {
     @ObservationIgnored public internal(set) var grabList: GrabListModel!
     /// Tools / Help → check for a new program version.
     @ObservationIgnored public internal(set) var updates: UpdateCheckModel!
+    /// Program announcements for blind operators (VoiceOver).
+    @ObservationIgnored public internal(set) var announcements: AnnouncementsModel!
     /// The CQ repeat loop of the main entry window.
     @ObservationIgnored var cqRepeatRunner: CqRepeatRunner?
     /// The VFO B / rig 2 entry window (`entry-vfob`, SO2V/SO2R).

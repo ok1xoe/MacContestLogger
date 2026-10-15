@@ -32,7 +32,7 @@ public final class MenuModel {
         "layout.save", "layout.restore", "layout.gather",
         "view.qrz", "view.google", "tools.importCountryFile", "tools.removeCountryFile", "tools.programLogging",
         "tools.diagnosticsFolder", "tools.checkVersion", "tools.checkVersionAtStart", "help.checkUpdates",
-        "help.contestRules", "help.contestCalendar", "help.errorLog",
+        "help.contestRules", "help.contestCalendar", "help.errorLog", "settings.announcements",
     ]
 
     /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key

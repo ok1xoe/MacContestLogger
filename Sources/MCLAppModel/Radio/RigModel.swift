@@ -88,6 +88,9 @@ public final class RigModel {
     @ObservationIgnored public var onPluginPttReleased: (@MainActor () -> Void)?
     /// Told when the operator stops transmissions (Esc), before anything is released.
     @ObservationIgnored public var onOperatorStop: (@MainActor () -> Void)?
+    /// The active rig's split went on or off (program announcements for blind operators); not called for the first
+    /// state after a connect.
+    @ObservationIgnored public var onSplitChanged: (@MainActor (Bool) -> Void)?
     /// Raised by every release and operator stop: plugin CAT commands queued before it are dropped, so a safety
     /// `T 0` never waits behind them.
     let pluginCatEpoch = OSAllocatedUnfairLock(initialState: 0)
@@ -252,6 +255,9 @@ public final class RigModel {
         // Kotlin `LaunchedEffect(state.cat.state, …)`: only a different state of the active rig is followed.
         if index == vfo.activeCatIndex && previous != snapshot.state {
             notifyEntries { $0.followRig() }
+        }
+        if index == vfo.activeCatIndex, let before = previous, let now = snapshot.state, before.split != now.split {
+            onSplitChanged?(now.split)
         }
     }
 
