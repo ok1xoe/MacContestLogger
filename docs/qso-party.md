@@ -71,6 +71,11 @@ After the contest is opened, the sessions turn on by themselves. The command
 - The CW macro `{COUNTYLINE}` sends `DAD/JEF/WAL`. In county-line mode `{ROVERQTH}`
   is ignored and vice versa, so one set of messages serves both modes (N1MM).
 - County line is not saved (like N1MM); after a restart it must be entered again.
+- **The other station on a county line:** type its counties into the received field as `ORDES/JEF` (shorthand for
+  `ORDES/ORJEF`, counties of one state) or `IDFRA/UTCAC` (two states). One QSO per county is logged (N1MM 7QP).
+  This needs `split: true` on the received county field (add it to a definition made from the "Nová QSO party…"
+  template: `- { id: qth, type: DISTRICT, required: true, split: true }`). Enter the
+  compound value when logging the QSO; editing a logged single-county QSO into a compound one does not add QSOs.
 - The entry window shows `County line DAD/JEF/WAL`.
 
 ## Bonus stations – BONUS

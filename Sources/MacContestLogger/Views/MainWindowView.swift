@@ -158,7 +158,7 @@ struct EntryFocusFollower: ViewModifier {
     let focus: EntryFocusController
 
     private var order: EntryFocusOrder {
-        EntryFocusOrder(contestActive: app.contest.isActive, fields: entry.fields)
+        EntryFocusOrder(contestActive: app.contest.isActive, fields: entry.focusFields)
     }
 
     func body(content: Content) -> some View {

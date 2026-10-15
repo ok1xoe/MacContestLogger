@@ -115,7 +115,7 @@ struct PortedApp {
         dupe: { scope: PER_BAND_MODE }
         """
 
-    static func make(fixedNow: Date? = nil, productionKeyer: Bool = false,
+    static func make(fixedNow: Date? = nil, productionKeyer: Bool = false, contests: [String: String] = [:],
                      configure: (inout AppConfig) -> Void = { _ in }) async throws -> PortedApp {
         let dir = try TempDir()
         let dataDir: URL = dir.child("data")
@@ -129,6 +129,10 @@ struct PortedApp {
                         to: contestData.appendingPathComponent("contests/cq-ww-cw.yaml"))
         try qsoParty.write(to: contestData.appendingPathComponent("contests/test-qp.yaml"), atomically: true,
                            encoding: .utf8)
+        for (id, yaml) in contests {
+            try yaml.write(to: contestData.appendingPathComponent("contests/\(id).yaml"), atomically: true,
+                           encoding: .utf8)
+        }
         var config = AppConfig()
         config.contestDataDir = contestData.path
         config.station.call = "OK1XOE"
