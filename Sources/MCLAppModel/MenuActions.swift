@@ -62,8 +62,8 @@ public enum MenuActions {
         case gatherWindows
         /// N1MM Import country list from downloaded file: a `cty.dat` → `DataToolsModel.importCountryFile`.
         case openCountryFile
-        /// N1MM Download latest PDF manual: where to save it → `UpdateCheckModel.downloadManual(to:)`.
-        case saveManual(suggestedName: String)
+        /// N1MM Download latest PDF manual (also as HTML): where to save it → `UpdateCheckModel.downloadManual(to:format:)`.
+        case saveManual(suggestedName: String, format: ManualDownload.Format)
     }
 
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to

@@ -82,7 +82,7 @@ import Testing
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.contestRules",
                                          "help.contestCalendar", "help.report", "help.errorLog", "help.dataFolder",
-                                         "help.checkUpdates", "help.pdfManual"])
+                                         "help.checkUpdates", "help.pdfManual", "help.htmlManual"])
         let file: MenuEntry = try #require(Self.entry("file", in: entries))
         #expect(file.children.filter(\.isSeparator).count == 3)
         #expect(MenuShape(entries) == MenuShape(entries))

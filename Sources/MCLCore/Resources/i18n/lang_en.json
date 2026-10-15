@@ -2530,5 +2530,14 @@
  "Tailscale není nainstalovaný (aplikace Tailscale ani příkaz tailscale nenalezeny)": "Tailscale is not installed (neither the Tailscale app nor the tailscale command was found)",
  "Tailscale není připojený (%s) — spusťte a přihlaste Tailscale": "Tailscale is not connected (%s) — start Tailscale and log in",
  "Žádná z %s stanic tailnetu online neodpovídá jako MQTT broker": "None of the %s online tailnet machines answers as an MQTT broker",
- "Nalezené MQTT brokery v tailnetu: %s": "MQTT brokers found in the tailnet: %s"
+ "Nalezené MQTT brokery v tailnetu: %s": "MQTT brokers found in the tailnet: %s",
+ "Stáhnout nejnovější HTML manuál…": "Download latest HTML manual…",
+ "Uložit HTML manuál": "Save the HTML manual",
+ "Stahuji HTML manuál…": "Downloading the HTML manual…",
+ "HTML manuál uložen: %s": "HTML manual saved: %s",
+ "Uložení HTML manuálu selhalo: %s": "Saving the HTML manual failed: %s",
+ "nejnovější vydání HTML manuál nemá": "the latest release has no HTML manual",
+ "stažený soubor není HTML": "the downloaded file is not HTML",
+ "HTML manuál nejde stáhnout: %s": "The HTML manual cannot be downloaded: %s",
+ "HTML manuál": "HTML manual"
 }

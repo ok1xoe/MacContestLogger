@@ -99,7 +99,7 @@ public struct NetworkPorts: Sendable {
     public var discoverBrokers: BrokerDiscoverer = BonjourBrokerBrowser.inert
     /// The cluster search among the Tailscale peers (Settings → Cluster). Inert = runs nothing.
     public var discoverTailscale: TailscaleClusterDiscoverer = TailscaleClusterBrowser.inert
-    /// The PDF manual of the newest release (Help → „Stáhnout nejnovější PDF manuál…"). Inert = refused.
+    /// The PDF or HTML manual of the newest release (Help → „Stáhnout nejnovější PDF / HTML manuál…"). Inert = refused.
     public var fetchManual: ManualFetcher = NetworkPorts.inertManual
     /// The opt-in download of the published DX cluster list (Settings → DX Cluster); `nil` = nothing is downloaded.
     public var clusterList: (any DataFetcher)?
@@ -157,7 +157,8 @@ public struct NetworkPorts: Sendable {
     }
 
     /// The manual download of the inert ports: fails before any I/O.
-    @Sendable public static func inertManual(_ url: String) async -> ManualDownload.Outcome {
+    @Sendable public static func inertManual(_ url: String, _ format: ManualDownload.Format) async
+        -> ManualDownload.Outcome {
         .failed(disabledMessage)
     }
 
@@ -184,7 +185,7 @@ public struct NetworkPorts: Sendable {
         ports.discoverBrokers = BonjourBrokerBrowser.live
         ports.discoverTailscale = TailscaleClusterBrowser.live
         ports.clusterList = BoundedDataFetcher()
-        ports.fetchManual = { url in await ManualDownloader().fetch(url) }
+        ports.fetchManual = { url, format in await ManualDownloader().fetch(url, format: format) }
         return ports
     }()
 

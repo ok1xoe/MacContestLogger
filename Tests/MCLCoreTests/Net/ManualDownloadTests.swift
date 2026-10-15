@@ -2,11 +2,12 @@ import Foundation
 @testable import MCLCore
 import Testing
 
-/// The PDF manual download (Help → „Stáhnout nejnovější PDF manuál…"): only GitHub's HTTPS hosts, redirects only to
-/// allowed hosts, a size limit and a PDF check. The fetch runs against a fake HTTP server on 127.0.0.1 only.
+/// The PDF and HTML manual download (Help → „Stáhnout nejnovější PDF / HTML manuál…"): only GitHub's HTTPS hosts,
+/// redirects only to allowed hosts, a size limit and a check of the format. The fetch runs against a fake HTTP server on 127.0.0.1 only.
 @Suite struct ManualDownloadTests {
 
     static let pdf = "%PDF-1.7\nfake manual\n%%EOF\n"
+    static let html = "<!DOCTYPE html>\n<html lang=\"en\"><body>fake manual</body></html>\n"
 
     @Test func onlyGitHubDownloadsAreAllowed() throws {
         #expect(ManualDownload.isAllowed(try #require(URL(string: ManualDownload.latestUrl))))
@@ -16,12 +17,27 @@ import Testing
         #expect(!ManualDownload.isAllowed(try #require(URL(string: "https://github.com.example.org/x"))))
         #expect(!ManualDownload.isAllowed(try #require(URL(string: "https://example.com/manual.pdf"))))
         #expect(ManualDownload.latestUrl.hasSuffix("/releases/latest/download/" + ManualDownload.assetName))
+        #expect(ManualDownload.Format.pdf.latestUrl
+                == "https://github.com/ok1xoe/MacContestLogger/releases/latest/download/MacContestLogger-manual.pdf")
+        #expect(ManualDownload.Format.html.latestUrl
+                == "https://github.com/ok1xoe/MacContestLogger/releases/latest/download/MacContestLogger-manual.html")
+        #expect(ManualDownload.isAllowed(try #require(URL(string: ManualDownload.Format.html.latestUrl))))
     }
 
     @Test func answersAreChecked() {
-        #expect(ManualDownload.evaluate(status: 200, body: Data(Self.pdf.utf8)) == .pdf(Data(Self.pdf.utf8)))
-        #expect(ManualDownload.evaluate(status: 200, body: Data("<html>".utf8)) == .notPdf)
-        #expect(ManualDownload.evaluate(status: 200, body: Data("%PD".utf8)) == .notPdf)
+        #expect(ManualDownload.evaluate(status: 200, body: Data(Self.pdf.utf8)) == .file(Data(Self.pdf.utf8)))
+        #expect(ManualDownload.evaluate(status: 200, body: Data("<html>".utf8)) == .wrongFormat)
+        #expect(ManualDownload.evaluate(status: 200, body: Data("%PD".utf8)) == .wrongFormat)
+        let html = Data(Self.html.utf8)
+        #expect(ManualDownload.evaluate(status: 200, body: html, format: .html) == .file(html))
+        #expect(ManualDownload.evaluate(status: 200, body: Data(Self.pdf.utf8), format: .html) == .wrongFormat)
+        #expect(ManualDownload.evaluate(status: 200, body: html, format: .pdf) == .wrongFormat)
+        #expect(ManualDownload.evaluate(status: 404, body: Data(), format: .html) == .notPublished)
+        #expect(ManualDownload.isHtml(Data(([0xEF, 0xBB, 0xBF] + Array(" \n<HTML lang=\"en\">".utf8)))))
+        #expect(ManualDownload.isHtml(Data("<!doctype html><html></html>".utf8)))
+        #expect(!ManualDownload.isHtml(Data("<?xml version=\"1.0\"?><svg/>".utf8)))
+        #expect(!ManualDownload.isHtml(Data("{\"message\": \"Not Found\"}".utf8)))
+        #expect(!ManualDownload.isHtml(Data()))
         #expect(ManualDownload.evaluate(status: 404, body: Data()) == .notPublished)
         #expect(ManualDownload.evaluate(status: 500, body: Data()) == .httpStatus(500))
     }
@@ -41,8 +57,26 @@ import Testing
         defer { server.stop() }
         let fetch = Self.fetcher(Self.loopback(server.port))
         let outcome = await fetch.fetch("http://127.0.0.1:\(server.port)/manual.pdf")
-        #expect(outcome == .pdf(Data(Self.pdf.utf8)))
+        #expect(outcome == .file(Data(Self.pdf.utf8)))
         #expect(server.head(0).hasPrefix("GET /manual.pdf HTTP/1.1\r\n"))
+    }
+
+    @Test func downloadsTheHtmlAndChecksItsFormat() async throws {
+        let server = try FakeHttpServer(response: .init(contentType: "text/html", body: Self.html))
+        defer { server.stop() }
+        let fetch = Self.fetcher(Self.loopback(server.port))
+        let url = "http://127.0.0.1:\(server.port)/manual.html"
+        #expect(await fetch.fetch(url, format: .html) == .file(Data(Self.html.utf8)))
+        #expect(server.head(0).hasPrefix("GET /manual.html HTTP/1.1\r\n"))
+        #expect(server.head(0).lowercased().contains("accept: text/html"))
+        // The HTML request takes no PDF, and the PDF request no HTML.
+        #expect(await fetch.fetch(url, format: .pdf) == .wrongFormat)
+        server.respond(.init(contentType: "application/octet-stream", body: Self.pdf))
+        #expect(await fetch.fetch(url, format: .html) == .wrongFormat)
+        server.respond(.init(contentType: "text/html", body: Self.html + String(repeating: "x", count: 200_000)))
+        #expect(await Self.fetcher(Self.loopback(server.port), maxBytes: 1_000).fetch(url, format: .html) == .tooLarge)
+        server.respond(.init(status: 404, body: "Not Found"))
+        #expect(await fetch.fetch(url, format: .html) == .notPublished)
     }
 
     @Test func rejectsWhatIsNotTheManual() async throws {
@@ -50,7 +84,7 @@ import Testing
         defer { server.stop() }
         let fetch = Self.fetcher(Self.loopback(server.port), maxBytes: 1_000)
         let url = "http://127.0.0.1:\(server.port)/manual.pdf"
-        #expect(await fetch.fetch(url) == .notPdf)
+        #expect(await fetch.fetch(url) == .wrongFormat)
         server.respond(.init(status: 404, body: "Not Found"))
         #expect(await fetch.fetch(url) == .notPublished)
         server.respond(.init(status: 500))
@@ -71,7 +105,7 @@ import Testing
         defer { start.stop() }
         let url = "http://127.0.0.1:\(start.port)/latest/download/manual.pdf"
         let allowed = await Self.fetcher(Self.loopback(start.port, target.port)).fetch(url)
-        #expect(allowed == .pdf(Data(Self.pdf.utf8)))
+        #expect(allowed == .file(Data(Self.pdf.utf8)))
         #expect(target.requests.count == 1)
         let refused = await Self.fetcher(Self.loopback(start.port)).fetch(url)
         #expect(refused == .redirectRefused("127.0.0.1"))

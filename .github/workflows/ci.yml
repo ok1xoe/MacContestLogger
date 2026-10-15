@@ -28,11 +28,22 @@ jobs:
         run: scripts/release-version.sh --self-test
       - name: Tests
         run: scripts/test.sh
-      # The PDF user guide renders from docs/ (a missing page or image fails it); the release attaches it.
-      - name: User guide PDF
+      # The user guide renders from docs/ as a PDF and as one self-contained HTML file (a missing page or image fails
+      # it); the release attaches both.
+      - name: User guide PDF and HTML
         run: |
+          set -euo pipefail
           swift build --product mcl-manual
-          .build/debug/mcl-manual --out build/manual/MacContestLogger-manual.pdf
+          .build/debug/mcl-manual --out build/manual/MacContestLogger-manual.pdf \
+            --html build/manual/MacContestLogger-manual.html
+          [ "$(head -c 5 build/manual/MacContestLogger-manual.pdf)" = "%PDF-" ]
+          [ "$(head -c 15 build/manual/MacContestLogger-manual.html)" = "<!DOCTYPE html>" ]
+          # Self-contained: nothing is loaded from outside the file.
+          if grep -Eq 'src="(https?:|//)|<link |<script|@import' build/manual/MacContestLogger-manual.html; then
+            echo "the HTML guide loads something from outside the file"; exit 1
+          fi
+          [ "$(wc -c < build/manual/MacContestLogger-manual.html)" -lt 26214400 ]
+          ls -lh build/manual
       # Static accessibility audit of the views (reads sources only, starts nothing): icon and glyph controls,
       # canvases and AppKit islands carry a label, every window has the font stepper, the spoken texts are translated.
       - name: Accessibility audit
