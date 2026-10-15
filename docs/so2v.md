@@ -119,7 +119,26 @@ The options are remembered between runs ("sticky", as in N1MM).
   in the VFO B window switches the CQ repeat off.
 
 In SO2R the CQ repeat (Alt+R) stays on the radio it was switched on in, so the run radio keeps calling CQ while you
-type on the S&P radio.
+type on the S&P radio. A message sent on the other radio ends it (N1MM: "CQ-repeat is terminated when a message is
+sent on the other radio") — you have started a QSO there.
+
+## 2BSIQ — two QSOs at once
+
+Two band split interleaved QSOs (N1MM 2BSIQ) need nothing to switch on: with ESM on, both entry windows run their own
+QSO side by side.
+
+- Each window keeps its own ESM sequence (what has been sent in its QSO), Run / S&P state and last sent message
+  (`=` repeats the window's own last message, not the one the other radio sent meanwhile).
+- Typing in one window never interrupts a transmission on the other radio. AutoSend (CW) waits while the other
+  radio transmits; Enter then sends the whole call as usual.
+- Pressing Enter or an F-key in a window moves the transmit focus there and stops what the other radio was sending
+  (N1MM "changing transmit focus stops sending"); the radio swap times, the F-key stacking and the digital TX lockout
+  (Multi-TX / first wins / last wins) decide what happens when both radios want to transmit.
+- A CQ repeat ends when the other radio transmits.
+- The sent CW is echoed in each window's status line, so you can see where each QSO is.
+
+N2IC's suggested setup: ESM on, the stereo / OTRSP macros on, no Dueling CQs and no FocusOther, a short CQ, and the
+CQ on each radio started by hand with Enter once the other radio has finished.
 
 In digital modes each entry window can have its own Digital Interface and fldigi — see
 [Digital modes → SO2V / SO2R](digital-modes.md#so2v--so2r-two-digital-interfaces).

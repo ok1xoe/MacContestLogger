@@ -2484,6 +2484,7 @@
  "CAT / VOX": "CAT / VOX",
  "FSK obrácená polarita (aktivní linka = mark)": "FSK umgekehrte Polarität (aktive Leitung = Mark)",
  "Vestavěné FSK klíčuje linku DTR nebo RTS sériového portu s přesným časováním (náhrada EXTFSK); rig v režimu RTTY/FSK. Zvuk se pak nevysílá.": "Eingebautes FSK tastet die DTR- oder RTS-Leitung einer seriellen Schnittstelle mit genauem Timing (Ersatz für EXTFSK); das Funkgerät im RTTY/FSK-Modus. Dann wird kein Audio gesendet.",
- "%": ":",
- "%": " "
+ "Opakování CQ ukončeno vysíláním na rádiu %s": "CQ-Wiederholung durch Senden auf Radio %s beendet",
+ "%s: body %s × násobiče %s = %s": "%s: Punkte %s × Multiplikatoren %s = %s",
+ "%s  =  skóre %s": "%s  =  Ergebnis %s"
 }
