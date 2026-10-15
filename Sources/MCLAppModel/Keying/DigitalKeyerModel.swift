@@ -147,7 +147,9 @@ public final class DigitalKeyerModel {
                 return
             }
             self.sides[index].modem = name
-            self.status.show(DigitalTexts.modemSetKey, .string(name))
+            let key: String = self.config.config.digital.engine == .builtin
+                ? DigitalTexts.builtinModemSetKey : DigitalTexts.modemSetKey
+            self.status.show(key, .string(name))
         })
     }
 

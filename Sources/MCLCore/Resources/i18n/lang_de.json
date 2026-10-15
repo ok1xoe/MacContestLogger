@@ -2440,5 +2440,6 @@
  "Rozsah spektra a vodopádu": "Bereich von Spektrum und Wasserfall",
  "Úroveň signálu": "Signalpegel",
  "Spektrum a vodopád: klik nastaví mark, pravé tlačítko zářez, kolečko squelch": "Spektrum und Wasserfall: Klick setzt Mark, rechte Taste einen Notch, das Mausrad die Squelch",
- "Klik: volačka do pole volačky, jiné podtržené slovo do výměny · Option+klik: do zásobníku · Cmd+klik: slovo do pole s kurzorem · Shift+klik: převod Letters/Figs. Text dekóduje vestavěný modem (MMTTY).": "Klick: Rufzeichen ins Rufzeichenfeld, anderes unterstrichenes Wort in den Austausch · Option+Klick: auf den Stapel · Cmd+Klick: Wort ins Feld mit dem Cursor · Shift+Klick: Letters/Figs-Umwandlung. Den Text dekodiert das eingebaute Modem (MMTTY)."
+ "Klik: volačka do pole volačky, jiné podtržené slovo do výměny · Option+klik: do zásobníku · Cmd+klik: slovo do pole s kurzorem · Shift+klik: převod Letters/Figs. Text dekóduje vestavěný modem (MMTTY).": "Klick: Rufzeichen ins Rufzeichenfeld, anderes unterstrichenes Wort in den Austausch · Option+Klick: auf den Stapel · Cmd+Klick: Wort ins Feld mit dem Cursor · Shift+Klick: Letters/Figs-Umwandlung. Den Text dekodiert das eingebaute Modem (MMTTY).",
+ "Vestavěný modem: mód %s": "Eingebautes Modem: Modus %s"
 }

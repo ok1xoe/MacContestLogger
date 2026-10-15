@@ -119,6 +119,35 @@ import Testing
         digital.close()
     }
 
+    /// F1 in RTTY goes out through the built-in modem with its macros; Op Mode switches the speed; a PSK modem name
+    /// is refused (the built-in modem has only RTTY).
+    @Test func functionKeysAndOpMode() async throws {
+        let app = try await Self.make { config in
+            config.digital.runMessages[0] = FunctionKeyMessage(label: "CQ", text: "CQ TEST * TEST")
+            config.digital.spMessages[0] = FunctionKeyMessage(label: "CQ", text: "CQ TEST * TEST")
+        }
+        let digital: DigitalInterfaceModel = app.model.makeDigitalInterface()
+        digital.open()
+        await app.settle()
+        #expect(digital.opModes.common == ["RTTY"], "\(digital.opModes)")
+        digital.selectModem("RTTY-75")
+        await app.settle()
+        #expect(app.status == "Vestavěný modem: mód RTTY-75")
+        #expect(app.model.builtinModem.channel(0).tuning.baud == 75)
+        digital.selectModem("BPSK31")
+        await app.settle()
+        #expect(app.status.contains("only RTTY"), "\(app.status)")
+        app.entry.handle(.functionKey(0, shift: false, ctrlShift: false))
+        await app.settle()
+        let stream: FakeModemStream = try #require(app.keying.modemOutputs.first)
+        let audio: [Float] = Self.drain(app, stream)
+        let decoder = BuiltinRttyChannel()
+        try decoder.setMode("RTTY-75")
+        decoder.receive((audio + [Float](repeating: 0, count: 6_000)).map { Double($0) })
+        #expect(decoder.rxText(start: 0, length: decoder.rxLength).contains("CQ TEST OK1XOE TEST"))
+        digital.close()
+    }
+
     @Test func escStopsTheTransmissionAtOnce() async throws {
         let app = try await Self.make()
         app.keyer.digital.send("RYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRY", key: 0)
