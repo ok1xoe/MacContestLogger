@@ -63,4 +63,8 @@ struct LiveKeyer: KeyerPort {
         model?.changeCwSpeed(deltaWpm)
         return nil
     }
+
+    func changeOtherCwSpeed(by deltaWpm: Int) -> EntryStatus? {
+        model?.changeOtherCwSpeed(deltaWpm)
+    }
 }

@@ -165,6 +165,10 @@ extension EntryModel {
         case .nextMultDown: spots.jump(direction: -1, onlyMult: true)
         case .nextSelfUp: spots.jump(direction: 1, onlySelf: true)
         case .nextSelfDown: spots.jump(direction: -1, onlySelf: true)
+        case .otherSpotUp: spots.jumpOther(direction: 1)
+        case .otherSpotDown: spots.jumpOther(direction: -1)
+        case .otherMultUp: spots.jumpOther(direction: 1, onlyMult: true)
+        case .otherMultDown: spots.jumpOther(direction: -1, onlyMult: true)
         case .spotIt: spotIt()
         case .spotWithComment:
             spots.spotWithComment(call: KotlinStrings.trim(form.call), freqHz: form.freqHz, initial: spotComment(form))

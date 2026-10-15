@@ -88,6 +88,37 @@ public final class SpotNavigation {
         rig.tuneToSpot(found)
     }
 
+    /// N1MM Ctrl+Shift+↑/↓ and Shift+Ctrl+Alt+↑/↓ (SO2V / SO2R): the other radio / VFO to the next spot beyond its
+    /// own frequency (`onlyMult`: a new multiplier); on the band of the active radio the spot at its frequency (the
+    /// CQ frequency) is skipped. The focus stays here.
+    public func jumpOther(direction: Int, onlyMult: Bool = false) {
+        guard rig.otherVfoIndex != nil, let otherHz = rig.otherVfoFreqHz else {
+            status.show("Druhé rádio: jen v režimu SO2V nebo SO2R")
+            return
+        }
+        let analyzer: SpotAnalyzer = analysis.current()
+        let activeHz: Int64 = rig.tuning.tunedFreqHz
+        let sameBand: Bool = Band.from(frequencyHz: Int(clamping: activeHz)) == Band.from(frequencyHz: Int(clamping: otherHz))
+        let found: DxSpot? = SpotNavigator.next(feed.filteredSnapshot(), freqHz: Int(clamping: otherHz),
+                                                direction: direction) { spot in
+            if sameBand && abs(Int64(spot.freqHz) - activeHz) < SpotNavigation.skipActiveHz {
+                return false
+            }
+            let state: SpotStatus = analyzer.spotStatus(spot)
+            return SpotActions.navigable(selfSpotted: spot.selfSpotted, dupe: state.dupe, newMult: state.newMult,
+                                         onlyMult: onlyMult, onlySelf: false)
+        }
+        guard let found else {
+            status.show(ContestMessage(SpotActions.noSpotText(direction: direction, onlyMult: onlyMult,
+                                                              onlySelf: false)))
+            return
+        }
+        rig.tuneOtherToSpot(found)
+    }
+
+    /// The distance from the active radio within which a spot counts as its (CQ) frequency.
+    static let skipActiveHz: Int64 = 200
+
     /// Kotlin `spotForCall(call)`: the first spot of the call in the buffer (Kotlin `equals(call.trim(), ignoreCase)`).
     public func spotForCall(_ call: String) -> DxSpot? {
         rig.spotForCall(call)

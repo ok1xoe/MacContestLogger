@@ -98,12 +98,41 @@ extension EntryModel {
         fieldFrequencyChanged()
     }
 
-    /// Ctrl+PgUp/PgDn (`stepBand`, `EP:783-795`): the next band's last frequency, otherwise its segment start.
+    /// Ctrl+PgUp/PgDn (`stepBand`, `EP:783-795`): the next band's last frequency, otherwise its segment start. In
+    /// SO2R the other radio's band is skipped (N1MM's software band lockout).
     public func stepBand(_ direction: Int) {
         guard let rig else { return }
+        let allowed: [Band] = rig.lockedOut(rig.bandsForStepping(), otherBand: rig.otherRadioBand)
         guard let target = BandStepping.target(tuning: rig.tuning, band: band, mode: form.mode,
-                                               allowed: rig.bandsForStepping(), direction: direction) else { return }
+                                               allowed: allowed, direction: direction) else { return }
         qsy(toKHz: target.kHz, mode: form.mode)
+    }
+
+    /// N1MM Ctrl+Shift+PgUp/PgDn (SO2V / SO2R): the other radio / VFO one band up or down (its last frequency there,
+    /// otherwise the segment start of its mode); in SO2R this radio's band is skipped. The focus stays.
+    func stepOtherBand(_ direction: Int) {
+        guard let rig, let other = rig.otherEntry(than: self) else {
+            status.show("Druhé okno není otevřené (SO2V / SO2R)")
+            return
+        }
+        let allowed: [Band] = rig.lockedOut(rig.bandsForStepping(), otherBand: band)
+        guard let target = BandStepping.target(tuning: rig.tuning, band: rig.otherRadioBand ?? other.band,
+                                               mode: other.form.mode,
+                                               allowed: allowed, direction: direction) else { return }
+        rig.qsyOtherRadio(target.hz)
+    }
+
+    /// N1MM Shift+Alt+Q: the other radio / VFO to the CQ frequency of its band; the focus stays.
+    func otherToCqFrequency() {
+        guard let rig, let other = rig.otherEntry(than: self) else {
+            status.show("Druhé okno není otevřené (SO2V / SO2R)")
+            return
+        }
+        guard let band = rig.otherRadioBand ?? other.band, let cq = operating.cqFrequency(band: band) else {
+            show(.tr("Druhé rádio: na jeho pásmu není CQ frekvence"))
+            return
+        }
+        rig.qsyOtherRadio(cq)
     }
 
     // MARK: - shortcuts and commands
@@ -145,6 +174,9 @@ extension EntryModel {
             rig.swapFocus()
         case .swapRadios, .swapRadiosKeepFocus:
             swapRadios(moveFocus: action == .swapRadios)
+        case .otherBandUp: stepOtherBand(1)
+        case .otherBandDown: stepOtherBand(-1)
+        case .otherCqFrequency: otherToCqFrequency()
         case .so2rStereo:
             if rig.vfo.so2r {
                 rig.toggleSo2rStereo()
@@ -195,8 +227,13 @@ extension EntryModel {
             rig.swapVfo()
             rig.rememberInactiveFrequency(mine.hz, vfo: other.vfo)
         }
-        for (entry, take) in [(self, theirs), (other, mine)] {
-            entry.setFrequencyText(take.freq)
+        // The other window first: Run/S&P follows the last frequency reported, this (active) window's.
+        for (entry, take) in [(other, mine), (self, theirs)] {
+            if entry === self {
+                entry.setFrequencyText(take.freq)
+            } else {
+                entry.showInactiveFrequency(take.freq)
+            }
             if !entry.modeLocked && entry.form.mode != take.mode {
                 entry.setMode(take.mode)
             }
@@ -209,6 +246,13 @@ extension EntryModel {
         if moveFocus {
             rig.requestFocusVfo(other.vfo, rxOnly: true)
         }
+    }
+
+    /// The inactive window's frequency field when its radio / VFO was tuned from elsewhere (the other radio's QSY, a
+    /// swap): only the field and the preview — Run/S&P and the plugins follow the active window alone.
+    func showInactiveFrequency(_ text: String) {
+        form.freqKHz = text
+        updatePreview()
     }
 
     /// A rig command of the call field (`EP:404-405, 436-440`).
@@ -225,7 +269,13 @@ extension EntryModel {
             return
         }
         switch command {
-        case .otherVfo(let freqHz): rig.setOtherVfo(freqHz)
+        case .otherVfo(let freqHz):
+            // N1MM `/14030`: VFO B of the rig — in SO2R the other radio.
+            if rig.vfo.so2r {
+                rig.qsyOtherRadio(freqHz)
+            } else {
+                rig.setOtherVfo(freqHz)
+            }
         case .split(let txFreqHz): rig.setSplit(txFreqHz)
         case .splitOff: rig.splitOff()
         case .swapVfo: rig.swapVfo()

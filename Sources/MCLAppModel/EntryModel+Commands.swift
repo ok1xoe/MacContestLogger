@@ -118,6 +118,10 @@ extension EntryModel {
             if let message = ports.keyer.changeCwSpeed(by: steps * config.config.cwSpeedStepSecondary) {
                 show(message)
             }
+        case .cwSpeedOther(let steps):
+            if let message = ports.keyer.changeOtherCwSpeed(by: steps * config.config.cwSpeedStep) {
+                show(message)
+            }
         case .tune(let direction):
             tuneStep(direction)
         case .spectrumJump(let direction):

@@ -117,6 +117,18 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case toggleCtrlFx
     /// N1MM „Toggle Stereo/OTRSP Macro" (Ctrl+`): `{STEREOON}` / `{STEREOOFF}` and `{OTRSP RX}` on / off.
     case toggleStereoMacros
+    /// N1MM Ctrl+Shift+↓/↑ (SO2V / SO2R): the other radio to the next spot higher / lower (Cmd on a Mac, as the
+    /// active radio's spot keys).
+    case otherSpotUp
+    case otherSpotDown
+    /// N1MM Shift+Ctrl+Alt+↓/↑: the other radio to the next multiplier spot higher / lower.
+    case otherMultUp
+    case otherMultDown
+    /// N1MM Ctrl+Shift+PgUp/PgDn: the other radio one band up / down.
+    case otherBandUp
+    case otherBandDown
+    /// N1MM Shift+Alt+Q: the other radio to its band's CQ frequency.
+    case otherCqFrequency
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -210,12 +222,19 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .focusOther: Spec(name: "FOCUS_OTHER", id: "focus_other", label: "SO2R: FocusOther zap / vyp", defaultKeys: "Ctrl+Shift+K")
         case .toggleCtrlFx: Spec(name: "TOGGLE_CTRLFX", id: "toggle_ctrlfx", label: "Makro {CTRLFx} zap / vyp", defaultKeys: "Ctrl+Shift+L")
         case .toggleStereoMacros: Spec(name: "TOGGLE_STEREO_MACROS", id: "toggle_stereo_macros", label: "Makra stereo / OTRSP RX zap / vyp", defaultKeys: "Ctrl+BACK_QUOTE")
+        case .otherSpotUp: Spec(name: "OTHER_SPOT_UP", id: "other_spot_up", label: "Druhé rádio: další spot výš", defaultKeys: "Cmd+Shift+DOWN")
+        case .otherSpotDown: Spec(name: "OTHER_SPOT_DOWN", id: "other_spot_down", label: "Druhé rádio: další spot níž", defaultKeys: "Cmd+Shift+UP")
+        case .otherMultUp: Spec(name: "OTHER_MULT_UP", id: "other_mult_up", label: "Druhé rádio: další násobič výš", defaultKeys: "Ctrl+Alt+Shift+DOWN")
+        case .otherMultDown: Spec(name: "OTHER_MULT_DOWN", id: "other_mult_down", label: "Druhé rádio: další násobič níž", defaultKeys: "Ctrl+Alt+Shift+UP")
+        case .otherBandUp: Spec(name: "OTHER_BAND_UP", id: "other_band_up", label: "Druhé rádio: pásmo výš", defaultKeys: "Ctrl+Shift+PAGE_UP")
+        case .otherBandDown: Spec(name: "OTHER_BAND_DOWN", id: "other_band_down", label: "Druhé rádio: pásmo níž", defaultKeys: "Ctrl+Shift+PAGE_DOWN")
+        case .otherCqFrequency: Spec(name: "OTHER_CQ_FREQUENCY", id: "other_cq_freq", label: "Druhé rádio: na jeho CQ frekvenci", defaultKeys: "Alt+Shift+Q")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode, .focusSwap, .swapRadios, .swapRadiosKeepFocus, .duelingCq, .focusOther, .toggleCtrlFx, .toggleStereoMacros]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode, .focusSwap, .swapRadios, .swapRadiosKeepFocus, .duelingCq, .focusOther, .toggleCtrlFx, .toggleStereoMacros, .otherSpotUp, .otherSpotDown, .otherMultUp, .otherMultDown, .otherBandUp, .otherBandDown, .otherCqFrequency]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

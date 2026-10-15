@@ -82,6 +82,9 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Cmd+Alt+← / →** | SO2V/SO2R: both foci (RX and TX) to VFO A / rig 1 or VFO B / rig 2; in a digital mode with Digital Interface 1 / 2 (N1MM Ctrl+←/→) |
 | **Pause** (**F15**) | SO2V/SO2R: both foci to the other window, or the transmit focus to the entry focus when they are split (N1MM Pause) |
 | **Alt+F5** / **Alt+F6** | SO2V/SO2R: swap frequency, mode and call between the radios / VFOs, with / without moving the focus |
+| **Cmd+Shift+↓/↑**, **Ctrl+Alt+Shift+↓/↑** | SO2V/SO2R: the other radio to the next spot / multiplier spot (N1MM Ctrl+Shift+↓/↑, Shift+Ctrl+Alt+↓/↑) |
+| **Ctrl+Shift+PgUp/PgDn**, **Alt+Shift+Q** | SO2V/SO2R: the other radio one band up / down, to its CQ frequency |
+| **Alt+PgUp/PgDn** | CW, SO2V/SO2R: the speed of the radio without the transmit focus |
 | **Ctrl+B** | SO2R: Dueling CQs on / off |
 | **Ctrl+Shift+K** / **Ctrl+Shift+L** / **Ctrl+`** | SO2R: FocusOther / the `{CTRLFx}` macro / the stereo and OTRSP RX macros on / off |
 | **Ctrl+F1 … F12**, **Ctrl+Enter** | SO2V/SO2R: the other window's F-key / next ESM step on its radio — see [SO2R](so2v.md#so2r--two-rigs) |

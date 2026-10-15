@@ -718,6 +718,9 @@ public final class AppModel {
         radio.rig.keyerRelease = { [weak keyer] index in
             keyer?.releaseBeforeDisconnect(rigIndex: index)
         }
+        radio.rig.onTxSwap = { [weak keyer] in
+            keyer?.txRadioSwapped()
+        }
         radio.rig.connectRelease.set(keyer.owedReleaseHook())
     }
 

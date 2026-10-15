@@ -439,8 +439,12 @@ public final class BandmapModel {
     ///
     /// N1MM: with the call-frame on, a single click on a spot only tunes (the call shows in the call-frame) and a
     /// double click also fills the call field; with it off every click fills the field (v1.1.1).
-    public func click(x: Float, y: Float, height: Float, axisX: Float, rowH: Float) {
-        tap(x: x, y: y, height: height, axisX: axisX, rowH: rowH, fillCall: !config.config.dxCluster.callFrame)
+    ///
+    /// `otherRadio` (N1MM Shift+click, SO2V / SO2R): a spot or a frequency tunes the other radio / VFO instead, its
+    /// window takes the spot's call; the focus stays.
+    public func click(x: Float, y: Float, height: Float, axisX: Float, rowH: Float, otherRadio: Bool = false) {
+        tap(x: x, y: y, height: height, axisX: axisX, rowH: rowH, fillCall: !config.config.dxCluster.callFrame,
+            otherRadio: otherRadio && rig.otherVfoIndex != nil)
     }
 
     /// A double click: as a click, and a spot's call goes into the call field (replacing what was there).
@@ -448,7 +452,8 @@ public final class BandmapModel {
         tap(x: x, y: y, height: height, axisX: axisX, rowH: rowH, fillCall: true)
     }
 
-    private func tap(x: Float, y: Float, height: Float, axisX: Float, rowH: Float, fillCall: Bool) {
+    private func tap(x: Float, y: Float, height: Float, axisX: Float, rowH: Float, fillCall: Bool,
+                     otherRadio: Bool = false) {
         guard let band else { return }
         // The red TX arrow: a click turns split off (the RX arrow and the CQ marker keep their meaning).
         if arrowAt(x: x, y: y, height: height, axisX: axisX) == true {
@@ -463,8 +468,12 @@ public final class BandmapModel {
             if let cq = operating.jumpToCqFrequency(band: band) {
                 rig.qsy(cq)
             }
+        case .spot(let spot) where otherRadio:
+            rig.tuneOtherToSpot(spot)
         case .spot(let spot):
             rig.tuneToSpot(spot, fillCall: fillCall)
+        case .qsy(let hz) where otherRadio:
+            rig.qsyOtherRadio(hz)
         case .qsy(let hz):
             rig.qsy(hz)
         }

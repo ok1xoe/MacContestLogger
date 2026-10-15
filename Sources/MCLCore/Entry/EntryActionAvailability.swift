@@ -79,13 +79,14 @@ public enum EntryActionAvailability {
             return .windows
         case .jumpCq, .tune, .splitOn, .splitToggle, .splitPrompt, .previousFrequency, .swapVfo, .copyToVfoB, .ritUp,
              .ritDown, .ritClear, .resetRx, .switchRadio, .so2rStereo, .rotorTurn, .rotorLong, .rotorStop, .nextAntenna, .bandUp,
-             .bandDown, .toggleFilter, .cwReverse, .jumpLastCq, .focusSwap, .swapRadios, .swapRadiosKeepFocus:
+             .bandDown, .toggleFilter, .cwReverse, .jumpLastCq, .focusSwap, .swapRadios, .swapRadiosKeepFocus,
+             .otherBandUp, .otherBandDown, .otherCqFrequency:
             return .radio
         case .cwKeyboard:
             return .keyer
         case .nextSpotUp, .nextSpotDown, .nextMultUp, .nextMultDown, .nextSelfUp, .nextSelfDown, .spotIt,
              .spotWithComment, .store, .mark, .removeSpot, .removeSpotBlacklist, .dxClusterWindow, .availNext,
-             .availPrevious:
+             .availPrevious, .otherSpotUp, .otherSpotDown, .otherMultUp, .otherMultDown:
             return .spots
         case .passCall, .popStack, .toggleStationType, .passFrequency:
             return .network

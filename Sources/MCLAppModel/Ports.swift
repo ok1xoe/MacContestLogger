@@ -39,6 +39,8 @@ public protocol KeyerPort: Sendable {
     @MainActor func toggleTune() -> EntryStatus?
     /// PgUp/PgDn in CW: the CW speed by `deltaWpm`; the result is a status to show (`nil` = none).
     @MainActor func changeCwSpeed(by deltaWpm: Int) -> EntryStatus?
+    /// N1MM Alt+PgUp/PgDn (SO2V / SO2R): the CW speed of the radio without the transmit focus.
+    @MainActor func changeOtherCwSpeed(by deltaWpm: Int) -> EntryStatus?
     /// N1MM `{TX}` in CW / SSB: the active rig's PTT on until Esc; the result is a status to show (`nil` = none).
     @MainActor func manualPtt() -> EntryStatus?
     /// N1MM `{STOPTX}`: the PTT released (the manual PTT, a tune carrier).
@@ -51,6 +53,10 @@ public protocol KeyerPort: Sendable {
 extension KeyerPort {
     public var isTuning: Bool {
         false
+    }
+
+    public func changeOtherCwSpeed(by deltaWpm: Int) -> EntryStatus? {
+        .tr(EntryTexts.unavailable)
     }
 
     public func playVoiceText(_ text: String, hisCall: String, freqHz: Int64) -> EntryStatus? {

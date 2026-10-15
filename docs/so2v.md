@@ -57,6 +57,11 @@ Box+, microHAM in OTRSP mode). To turn it on: **"Nastavení → Hardware → SO2
 | **Alt+F5** | frequency, mode and call swapped between the radios (SO2R) or VFOs (SO2V); the entry focus moves to the other window |
 | **Alt+F6** | SO2R: the same swap, the focus stays |
 | **`** | SO2R stereo listening on / off |
+| **Cmd+Shift+↓ / ↑** | the other radio / VFO to the next spot higher / lower (N1MM Ctrl+Shift+↓/↑); on the active radio's band its frequency is skipped |
+| **Ctrl+Alt+Shift+↓ / ↑** | the other radio / VFO to the next multiplier spot higher / lower |
+| **Ctrl+Shift+PgUp / PgDn** | the other radio / VFO one band up / down |
+| **Alt+Shift+Q** | the other radio / VFO to the CQ frequency of its band |
+| **Alt+PgUp / PgDn** | CW: the speed of the radio without the transmit focus (each radio keeps its own speed) |
 | **Ctrl+B** | SO2R: Dueling CQs on / off |
 | **Ctrl+Shift+K** | SO2R: FocusOther on / off |
 | **Ctrl+Shift+L** | the `{CTRLFx}` macro on / off |
@@ -67,6 +72,13 @@ follow the F-keys and Enter. macOS keeps some Control+F-key combinations for key
 Keyboard → Keyboard Shortcuts → Keyboard); turn those off to use Ctrl+F1–F8. A PC keyboard's Pause key reaches a Mac
 as F15. In SO2V one rig has one transmitter, so both foci always sit in the same window: Ctrl+F1–F12 make the other
 VFO active for the message and come back once it has been sent when this window's call field holds a call.
+
+- **The other radio from the band map and the call field:** **Shift+click** on a spot (or a frequency) in the band map
+  tunes the other radio / VFO and puts the call into its window; `/14030` in the call field tunes the other radio in
+  SO2R (VFO B of the rig in SO1V / SO2V). The focus stays where it is.
+- **Software band lockout:** in SO2R Ctrl+PgUp/PgDn of either radio skips the band the other radio is on. It is no
+  substitute for a hardware lockout.
+- **The caret in the inactive window** stays marked (a thin bar), so after `\` you see where typing continues.
 
 ## Nastavení → SO2R (N1MM Config → SO2R)
 

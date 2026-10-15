@@ -2389,5 +2389,16 @@
  "FocusOther — fokus na druhé rádio": "Focus on Other Radio",
  "FocusOther: vždy přepnout": "FocusOther Always Swap",
  "Makro {CTRLFx}": "{CTRLFx} Macro",
- "Makra stereo / OTRSP RX": "Stereo / OTRSP Macros"
+ "Makra stereo / OTRSP RX": "Stereo / OTRSP Macros",
+ "Druhé rádio: další spot výš": "Other radio: next spot up",
+ "Druhé rádio: další spot níž": "Other radio: next spot down",
+ "Druhé rádio: další násobič výš": "Other radio: next multiplier up",
+ "Druhé rádio: další násobič níž": "Other radio: next multiplier down",
+ "Druhé rádio: pásmo výš": "Other radio: band up",
+ "Druhé rádio: pásmo níž": "Other radio: band down",
+ "Druhé rádio: na jeho CQ frekvenci": "Other radio: to its CQ frequency",
+ "Druhé rádio: jen v režimu SO2V nebo SO2R": "Other radio: SO2V or SO2R only",
+ "Druhé rádio: na jeho pásmu není CQ frekvence": "Other radio: no CQ frequency on its band",
+ "Rychlost druhého rádia: jen v režimu SO2V nebo SO2R": "Other radio's speed: SO2V or SO2R only",
+ "CW rádio %s: %s WPM": "CW radio %s: %s WPM"
 }
