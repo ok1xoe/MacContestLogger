@@ -42,7 +42,7 @@ import Testing
 
     /// The command line provider runs only `status --json` of the first command it finds — here a fake script that
     /// records its arguments; a missing command is "not installed".
-    @Test func theCommandLineProviderRunsOnlyStatusJson() throws {
+    @Test func theCommandLineProviderRunsOnlyStatusJson() async throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("mcl-ts-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -57,14 +57,17 @@ import Testing
         """.write(to: script, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
         let missing: String = dir.appendingPathComponent("nothing-here").path
-        let cli = TailscaleCli(candidates: [missing, script.path])
-        guard case .peers(let peers) = cli.status() else {
+        let cli = TailscaleCli(candidates: [missing, script.path], timeoutMs: 600_000)  // generous: slow CI runners
+        // Blocking calls run on a thread of their own, never on the shared pool of the test run.
+        let status: TailscaleStatus.Result = await onOwnThread { cli.status() }
+        guard case .peers(let peers) = status else {
             Issue.record("expected peers")
             return
         }
         #expect(peers.count == 3)
         #expect(try String(contentsOf: args, encoding: .utf8) == "status --json\n")
-        #expect(TailscaleCli(candidates: [missing]).status() == .notInstalled)
+        let none: TailscaleStatus.Result = await onOwnThread { TailscaleCli(candidates: [missing]).status() }
+        #expect(none == .notInstalled)
         #expect(TailscaleCli.standardCandidates.first == "/Applications/Tailscale.app/Contents/MacOS/Tailscale")
     }
 
@@ -142,7 +145,7 @@ import Testing
         func add(_ call: String) { lock.withLock { value.append(call) } }
     }
 
-    @Test func onlyOnlinePeersAreProbedOnTheMqttPorts() {
+    @Test func onlyOnlinePeersAreProbedOnTheMqttPorts() async {
         let probes = Probes()
         let peers: [TailscaleStatus.Peer] = [
             .init(hostName: "hub", dnsName: "hub.ts.net", addresses: ["100.64.0.2"], online: true),
@@ -157,7 +160,7 @@ import Testing
         #expect(ports == [TailscaleProbePort(port: 1883, tls: false), TailscaleProbePort(port: 8883, tls: true)])
         #expect(TailscaleProbePort.list(configuredPort: 1883, tls: false) == [TailscaleProbePort(port: 1883, tls: false)])
         #expect(TailscaleProbePort.list(configuredPort: nil, tls: false) == [TailscaleProbePort(port: 1883, tls: false)])
-        let outcome = search.run(ports: ports)
+        let outcome: TailscaleClusterSearch.Outcome = await onOwnThread { search.run(ports: ports) }
         #expect(probes.calls == ["100.64.0.2:1883", "100.64.0.4:1883", "100.64.0.4:8883s", "hub.ts.net:8883s"])
         #expect(outcome == .found([
             DiscoveredBroker(name: "hub", host: "100.64.0.2", port: 1883, tls: false),
@@ -167,18 +170,21 @@ import Testing
             Issue.record("nothing may be probed")
             return false
         }
-        #expect(TailscaleClusterSearch(provider: FakeProvider(result: .notInstalled), probe: never).run(ports: ports)
-                == .notInstalled)
-        #expect(TailscaleClusterSearch(provider: FakeProvider(result: .notRunning("Stopped")), probe: never)
-                .run(ports: ports) == .notRunning("Stopped"))
+        let missing = TailscaleClusterSearch(provider: FakeProvider(result: .notInstalled), probe: never)
+        let notInstalled: TailscaleClusterSearch.Outcome = await onOwnThread { missing.run(ports: ports) }
+        #expect(notInstalled == .notInstalled)
+        let stopped = TailscaleClusterSearch(provider: FakeProvider(result: .notRunning("Stopped")), probe: never)
+        let notRunning: TailscaleClusterSearch.Outcome = await onOwnThread { stopped.run(ports: ports) }
+        #expect(notRunning == .notRunning("Stopped"))
         let many: [TailscaleStatus.Peer] = (0..<100).map {
             .init(hostName: "p\($0)", dnsName: "", addresses: ["100.64.1.\($0)"], online: true)
         }
         let counted = Probes()
-        let big = TailscaleClusterSearch(provider: FakeProvider(result: .peers(many)), probe: { host, _, _, _ in
+        let bigSearch = TailscaleClusterSearch(provider: FakeProvider(result: .peers(many)), probe: { host, _, _, _ in
             counted.add(host)
             return false
-        }).run(ports: [TailscaleProbePort(port: 1883, tls: false)])
+        })
+        let big: TailscaleClusterSearch.Outcome = await onOwnThread { bigSearch.run(ports: [TailscaleProbePort(port: 1883, tls: false)]) }
         #expect(big == .found([], probed: TailscaleClusterSearch.maxPeers))
         #expect(counted.calls.count == TailscaleClusterSearch.maxPeers)
     }
