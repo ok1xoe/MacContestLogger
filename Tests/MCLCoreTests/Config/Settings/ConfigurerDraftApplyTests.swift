@@ -311,6 +311,7 @@ import Testing
                                "ctyEnabled",
                                "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",
                                "colorOverrides", "fontFamily", "fixedFontFamily", "spotTooltips",
+                               "digiRadioMode", "stationPerDatabase",
                                "callHistoryFile", "functionKeyFiles", "firstSerial", "scpFile", "goalFile",
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",

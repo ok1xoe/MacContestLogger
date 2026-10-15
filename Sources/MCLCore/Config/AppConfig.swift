@@ -174,6 +174,12 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// Digital Modes: how to write the rig's data mode (PKTUSB/PKTLSB) and RTTY over AFSK.
     public var dataMode = "DIGITAL"
     public var rttyAfsk = false
+    /// N1MM „Mode sent to radio" for PSK, FT8 and the other digital modes: `PKTUSB`, `PKTLSB`, `USB` or `LSB`.
+    /// Swift-only key.
+    public var digiRadioMode: String = "PKTUSB"
+    /// N1MM keeps the station data per database: switching databases switches the station (`DatabaseStation`).
+    /// Swift-only key.
+    public var stationPerDatabase: Bool = false
     /// Other: CW speed step (PgUp/PgDn), arrow-key tuning step (Hz) and a beep on dupe.
     public var cwSpeedStep = 2 {
         didSet {
@@ -310,6 +316,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case rig2, otrspPort, radioMode, ntpServer, ntpCorrectQsoTime
         case language, themeMode, themeAccent
         case colorOverrides, fontFamily, fixedFontFamily, spotTooltips
+        case digiRadioMode, stationPerDatabase
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
@@ -452,6 +459,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         fontFamily = c.value(.fontFamily, default: d.fontFamily)
         fixedFontFamily = c.value(.fixedFontFamily, default: d.fixedFontFamily)
         spotTooltips = c.value(.spotTooltips, default: d.spotTooltips)
+        digiRadioMode = HamlibModeMapping.normalizedDigiRadioMode(c.value(.digiRadioMode, default: d.digiRadioMode))
+        stationPerDatabase = c.value(.stationPerDatabase, default: d.stationPerDatabase)
         entryHiddenBands = c.value(.entryHiddenBands, default: d.entryHiddenBands)
         entryBandButtonsClick = c.value(.entryBandButtonsClick, default: d.entryBandButtonsClick)
         entryShowUtcClock = c.value(.entryShowUtcClock, default: d.entryShowUtcClock)

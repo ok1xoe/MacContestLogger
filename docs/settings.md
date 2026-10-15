@@ -85,6 +85,9 @@ placeholders; their order may be rearranged.
   when the rig reports USB even for digital operation.
 - **Vždy** (Always) — a fixed mode (e.g. RTTY when operating through an external program).
 - **RTTY to the rig**: FSK (the rig's RTTY mode) or AFSK (data mode PKTLSB).
+- **Other digital modes to the rig** (PSK, FT8…; N1MM "Mode sent to radio"): PKTUSB (the rig's data mode, the
+  default), PKTLSB, USB or LSB — USB/LSB for a rig without a data mode; the logged mode then follows the rule
+  above.
 
 A single-mode contest has its mode set by the definition; the rules apply to free
 logging and multi-mode contests.
@@ -99,6 +102,21 @@ forecast, band notes, waterfall, definition editor, QTC, map (also in DXCC mode)
 and the multiplier windows (DXCC, zones, districts...). The second SO2V/SO2R entry
 window opens automatically according to the mode in Settings → Hardware. Dialogs
 (New contest, operator...) are not restored.
+
+### Window layouts and lost windows
+
+N1MM's Tools → Save / Restore Window Positions:
+
+- **Nástroje → Uložit rozložení oken…** (Tools → Save window layout) saves the open windows and their places
+  under a name — the operator's call is offered, so each operator can keep a layout
+  (`layouts/<name>.json` in the data directory).
+- **Nástroje → Obnovit rozložení oken…** (Restore window layout) moves the open windows to the saved places and
+  opens the layout's windows that are closed (no window is closed).
+- **Okno → Přesunout ztracená okna na hlavní obrazovku** (Window → Move lost windows to the main display) brings
+  every window that is off all connected displays (a monitor that was unplugged) to the top left of the main
+  display — N1MM's Ctrl+Shift+click recovery.
+- N1MM's Ctrl+Tab rotation between the windows is the macOS **Cmd+`** (and Cmd+Shift+`); Ctrl+Tab in the entry
+  window keeps its N1MM meaning.
 
 ## Appearance
 
@@ -143,6 +161,32 @@ Profily nastavení…** (Settings → Settings profiles...):
 - **Smazat** (Delete) a profile.
 
 Logs and databases are not changed by a profile.
+
+### Settings backups and reset
+
+- Once a day, at start, `config.json` is copied to `config-backups/config-<date>.json`; the last **7** are kept
+  (N1MM's daily INI backups).
+- The Settings profiles window lists them; **Obnovit** (Restore) takes a backup's settings.
+- **Výchozí nastavení…** (Default settings, N1MM "Clear INI file settings") returns every setting to its default.
+  The station data stays.
+- Both ask first and back the current settings up before they change anything. The databases, the contest data
+  folder, the open windows and their places are kept. Reconnect the rig and the networks afterwards (as after
+  loading a profile).
+
+### Data folder (N1MM UserDir)
+
+**Settings → Other → Datová složka** shows where the app keeps its data. **Spustit s jinou datovou složkou…**
+(Restart with another data folder) quits the app and starts it again over the chosen folder (through
+`MCL_DATA_DIR`): its own settings, profiles, backups and, by default, databases — for another user, a club
+station or a test setup. **Spustit s výchozí datovou složkou** returns to the default one. `config.json` holds
+absolute paths, so do not copy a data folder; start a new one (it begins like a first run) or carry the settings
+over with a profile.
+
+### Station per database
+
+**Settings → Stanice → Údaje stanice podle databáze** (Station data per database) — like N1MM, every database
+remembers its station: switching databases saves the station next to the database left (`<name>.station.json`)
+and takes the opened database's own. A database without one takes the current station. Off by default.
 
 ## Language
 

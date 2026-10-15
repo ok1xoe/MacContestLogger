@@ -34,6 +34,7 @@ struct OtherTab: View {
                     isOn: $draft.ccCabrilloToScp)
             }
             MenuFileGroup(app: app)
+            DataFolderGroup(app: app)
         }
         .onAppear {
             app.settingsTools.loadLanguages()

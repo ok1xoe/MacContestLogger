@@ -66,6 +66,7 @@ import Testing
                                           "tools.addCallToCountry", "settings.downloadScp",
                                           "contest.updateDefinitions", "database.updateClubLogDxcc",
                                           "contest.updateCallHistory", "callhistory.clear", "beacons.load",
+                                          "layout.save", "layout.restore",
                                           "contest.editor"])
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
                                              "settings.callHistoryLookup", "settings.exchangeAbbreviations"])

@@ -340,6 +340,8 @@ extension ConfigurerDraft {
         config.fontFamily = Self.trim(fontFamily)
         config.fixedFontFamily = Self.trim(fixedFontFamily)
         config.spotTooltips = spotTooltips
+        config.digiRadioMode = HamlibModeMapping.normalizedDigiRadioMode(digiRadioMode)
+        config.stationPerDatabase = stationPerDatabase
         config.ritClearAfterLog = ritClearAfterLog
     }
 

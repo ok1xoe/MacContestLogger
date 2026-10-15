@@ -358,7 +358,9 @@ public final class AppModel {
         let configFile: URL = dataDir.appendingPathComponent("config.json")
         let store = ConfigStore(file: configFile)
         let loaded: AppConfig = try await BlockingQueue.run {
-            store.load()
+            // N1MM's daily settings backup (`config-backups/`, 7 days) before anything can write the file.
+            ProfilesModel.dailyBackup(dataDir: dataDir, now: Date())
+            return store.load()
         }
         let languageDir: URL = dataDir.appendingPathComponent("language")
         let translator: Translator = await LanguageModel.load(code: loaded.language, languageDir: languageDir)

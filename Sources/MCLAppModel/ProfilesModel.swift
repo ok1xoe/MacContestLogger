@@ -15,17 +15,22 @@ public final class ProfilesModel {
 
     /// The saved profiles (Kotlin `profiles.list()`, Java order).
     public private(set) var names: [String] = []
+    /// The daily settings backups, newest first (`ConfigBackups`; read by `refreshBackups`).
+    public internal(set) var backups: [ConfigBackups.Entry] = []
 
     @ObservationIgnored private let profiles: ConfigProfiles<AppConfig>
-    @ObservationIgnored private let config: ConfigModel
-    @ObservationIgnored private let status: StatusModel
-    @ObservationIgnored private let settings: SettingsModel
+    @ObservationIgnored let config: ConfigModel
+    @ObservationIgnored let status: StatusModel
+    @ObservationIgnored let settings: SettingsModel
+    /// The data directory (the parent of the profiles directory): the backups and the window layouts live there.
+    @ObservationIgnored let dataDir: URL
     @ObservationIgnored private var listGeneration: Int = 0
     @ObservationIgnored private var tasks: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored private var nextTaskId: Int = 0
 
     init(dir: URL, config: ConfigModel, status: StatusModel, settings: SettingsModel) {
         profiles = ConfigProfiles<AppConfig>(dir: dir)
+        dataDir = dir.deletingLastPathComponent()
         self.config = config
         self.status = status
         self.settings = settings

@@ -32,6 +32,17 @@ struct ModeControlTab: View {
                 SettingsCaption(language.tr(
                     "Jednomódový závod má mód daný definicí; pravidlo platí pro volné logování a vícemódové závody."))
             }
+            SettingsGroup(title: language.tr("Ostatní digitální módy do rigu (PSK, FT8…)")) {
+                HStack(spacing: 16) {
+                    ForEach(HamlibModeMapping.digiRadioModes, id: \.self) { mode in
+                        SettingsRadio(label: mode, selected: draft.digiRadioMode == mode) {
+                            draft.digiRadioMode = mode
+                        }
+                    }
+                }
+                SettingsCaption(language.tr(
+                    "PKTUSB = datový režim rigu (výchozí). USB/LSB pro rig bez datového režimu — mód do deníku pak určí pravidlo výše."))
+            }
             SettingsGroup(title: "RTTY do rigu") {
                 HStack(spacing: 16) {
                     SettingsRadio(label: language.tr("FSK (RTTY mód rigu)"), selected: !draft.rttyAfsk) {

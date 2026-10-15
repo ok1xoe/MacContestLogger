@@ -58,6 +58,8 @@ public enum MenuActions {
         /// N1MM Config → Change Exchange Abbreviations: the table file (created with a short header when missing) in
         /// the text editor; it is read again whenever it changes.
         case openFile(URL)
+        /// N1MM's recovery of a lost window: every window off the connected displays moves onto the main one.
+        case gatherWindows
     }
 
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to
@@ -90,6 +92,13 @@ public enum MenuActions {
         }
         if id == "help.dataFolder" {
             return .openDataFolder(app.dataDir)
+        }
+        if id == "layout.gather" {
+            return .gatherWindows
+        }
+        if id == "layout.save" || id == "layout.restore" {
+            promptLayout(save: id == "layout.save", app: app)
+            return nil
         }
         if id == "settings.exchangeAbbreviations" {
             let url: URL = app.dataDir.appendingPathComponent(ExchangeAbbreviations.fileName)
@@ -253,6 +262,38 @@ public enum MenuActions {
     }
 
     /// „Přepočítat posledních N hodin…": asks for N, then rescores the QSOs of that window (`RescoreWindow`).
+    /// Tools › Save / Restore window layout (N1MM Save / Restore Window Positions): the name prompt, the operator's
+    /// call by default (a layout per operator); the restore opens the layout's windows too.
+    private static func promptLayout(save: Bool, app: AppModel) {
+        let profiles: ProfilesModel = app.profiles
+        let windows: WindowsModel = app.windows
+        let dialogs: DialogsModel = app.dialogs
+        let operatorCall: String = KotlinStrings.nilIfBlank(app.operating.operatorCall) ?? "MCL"
+        Task {
+            let names: [String] = await profiles.layoutNames()
+            let list: String = names.isEmpty ? "—" : names.joined(separator: ", ")
+            if save {
+                dialogs.prompt(title: ContestMessage("Uložit rozložení oken"),
+                               hint: ContestMessage("Jméno rozložení (třeba volačka operátora). Uložená: %s", .string(list)),
+                               initial: operatorCall) { name in
+                    Task { await profiles.saveLayout(name: name) }
+                }
+            } else {
+                let initial: String = names.contains(operatorCall) ? operatorCall : names.first ?? operatorCall
+                dialogs.prompt(title: ContestMessage("Obnovit rozložení oken"),
+                               hint: ContestMessage("Jméno rozložení. Uložená: %s", .string(list)),
+                               initial: initial) { name in
+                    Task {
+                        guard let ids = await profiles.restoreLayout(name: name) else { return }
+                        for id in ids where WindowsModel.implemented.contains(id) {
+                            windows.setOpen(id, true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private static func promptRescoreHours(app: AppModel) {
         let contest: ContestModel = app.contest
         let status: StatusModel = app.status

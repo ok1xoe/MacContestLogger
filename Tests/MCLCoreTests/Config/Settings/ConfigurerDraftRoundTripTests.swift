@@ -144,6 +144,8 @@ import Testing
         expected.fontFamily = ""
         expected.fixedFontFamily = ""
         expected.spotTooltips = true
+        expected.digiRadioMode = "PKTUSB"
+        expected.stationPerDatabase = false
         expected.clubLog.ctyEnabled = true
         expected.esm.nextCallKey = -1
         expected.esm.keyMap = EsmKeyMap.n1mm.keys
@@ -444,6 +446,8 @@ import Testing
         w.same(\.fontFamily, \.fontFamily, "Avenir Next")
         w.same(\.fixedFontFamily, \.fixedFontFamily, "PT Mono")
         w.same(\.spotTooltips, \.spotTooltips, false)
+        w.same(\.digiRadioMode, \.digiRadioMode, "USB")
+        w.same(\.stationPerDatabase, \.stationPerDatabase, true)
         w.same(\.ritClearAfterLog, \.ritClearAfterLog, false)
     }
 

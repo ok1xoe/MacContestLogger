@@ -73,6 +73,8 @@ enum ProfileMergeSchema {
             Property("fontFamily", .string, .fieldDefault),
             Property("fixedFontFamily", .string, .fieldDefault),
             Property("spotTooltips", .boolean, .fieldDefault),
+            Property("digiRadioMode", .string, .fieldDefault),
+            Property("stationPerDatabase", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ContestSetup": [
             Property("callHistoryFile", .string, .fieldDefault),

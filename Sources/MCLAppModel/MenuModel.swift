@@ -29,6 +29,7 @@ public final class MenuModel {
         "edit.wipe", "edit.wipeUndo", "edit.incrementNr", "edit.note", "edit.find", "edit.deleteLast", "edit.editLast", "edit.editCurrent", "edit.quickEdit", "edit.quickEditForward",
         "file.openRecent", "recent.clear", "file.copyContest", "contest.rescoreHours", "settings.exportAdifRange", "callhistory.exportN1mm",
         "callhistory.exportCsv", "fkeys.export", "file.recoverJournal", "callhistory.clear", "callhistory.import", "settings.callHistoryLookup", "tools.addCallToCountry", "file.post3830", "settings.keys", "help.docs", "help.shortcuts", "help.commands", "help.report", "help.dataFolder", "settings.exchangeAbbreviations",
+        "layout.save", "layout.restore", "layout.gather",
     ]
 
     /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key

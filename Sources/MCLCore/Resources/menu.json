@@ -84,6 +84,8 @@
         { "id": "contest.updateCallHistory", "label": "Aktualizovat call history z deníku", "state": "enable" },
         { "id": "callhistory.clear", "label": "Vymazat call history…", "state": "enable" },
         { "id": "beacons.load", "label": "Načíst soubor majáků…", "state": "enable" },
+        { "id": "layout.save", "label": "Uložit rozložení oken…", "state": "enable" },
+        { "id": "layout.restore", "label": "Obnovit rozložení oken…", "state": "enable" },
         { "id": "sep.tools.2", "state": "enable" },
         { "id": "contest.editor", "label": "Editor definic…", "state": "enable" }
       ]
@@ -165,6 +167,7 @@
         { "id": "window.chat",      "label": "Chat",            "state": "enable" },
         { "id": "window.partner",   "label": "Partner",         "state": "enable" },
         { "id": "window.dxccmap",   "label": "Mapa DXCC a šedá linie", "state": "enable" },
+        { "id": "layout.gather",    "label": "Přesunout ztracená okna na hlavní obrazovku", "state": "enable" },
         {
           "id": "multipliers", "label": "Multiplikátory", "state": "enable",
           "children": [

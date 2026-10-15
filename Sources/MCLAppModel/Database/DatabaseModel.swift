@@ -141,14 +141,44 @@ public final class DatabaseModel {
         }
         await drain?()
         let old: LogbookHandle = handle
+        let oldName: String = currentName
         handle = newHandle
         currentName = name
         config.config.lastDatabase = name
         config.save(failureKey: "Uložení poslední databáze selhalo (%s)")
         await old.close()
+        let station: StationConfig? = config.config.stationPerDatabase
+            ? await switchStation(from: oldName, to: name, dir: dir) : nil
         await onOpened?()
         status.show("Otevřena databáze %s", .string(name))
+        if let station {
+            status.show("Otevřena databáze %s — údaje stanice z databáze (%s)", .string(name), .string(station.call))
+        }
         await afterOpened?()
+    }
+
+    /// N1MM keeps the station data in the database (Settings › Station „Údaje stanice podle databáze"): the station
+    /// is saved next to the database left, and the opened one's own station (when it has a different one) becomes
+    /// the configuration's. Returns the station taken, `nil` = the station stays.
+    private func switchStation(from oldName: String, to name: String, dir: URL) async -> StationConfig? {
+        let current: StationConfig = config.config.station
+        let result: Result<StationConfig?, any Error> = await Self.blockingResult {
+            let catalog = try DatabaseCatalog(databasesDir: dir)
+            let old: URL? = oldName == name ? nil : catalog.pathFor(oldName)
+            return try DatabaseStation.switchDatabase(from: old, to: catalog.pathFor(name), current: current)
+        }
+        switch result {
+        case .success(let stored?):
+            config.config.station = stored
+            config.save(failureKey: "Uložení konfigurace selhalo (%s)")
+            config.bumpRevision()
+            return stored
+        case .success(nil):
+            return nil
+        case .failure(let error):
+            status.show("Údaje stanice databáze nejde uložit / načíst (%s)", .string(ErrorText.message(error)))
+            return nil
+        }
     }
 
     /// Kotlin `setDatabasesDir(dir)` (first-run dialog): saves the directory, creates the default database in it and
