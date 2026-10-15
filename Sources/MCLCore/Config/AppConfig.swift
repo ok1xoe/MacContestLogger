@@ -340,6 +340,16 @@ public struct AppConfig: Codable, Equatable, Sendable {
         set { so2rSetup = newValue.values }
     }
 
+    /// The window behaviour: grabbing the focus when a radio is tuned and snapping windows to the screen edges and to
+    /// each other (`WindowSetup.Key` → value; only non-default values are kept). Swift-only key.
+    public var windowSetup: [String: String] = [:]
+
+    /// The window behaviour options.
+    public var window: WindowSetup {
+        get { WindowSetup(windowSetup) }
+        set { windowSetup = newValue.values }
+    }
+
     /// The built-in RTTY modem: linked tuning of the two receivers, PTT, the transmit output and level
     /// (`BuiltinModemSetup.Key` → value; only non-default values are kept). Swift-only key.
     public var builtinModemSetup: [String: String] = [:]
@@ -398,7 +408,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case showUnmatchedCallMark
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
         case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup, rotorSetup, spectrumSetup, so2rSetup
-        case builtinModemSetup
+        case builtinModemSetup, windowSetup
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -552,6 +562,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         spectrumSetup = SpectrumSetup(c.value(.spectrumSetup, default: d.spectrumSetup)).values
         so2rSetup = So2rSetup(c.value(.so2rSetup, default: d.so2rSetup)).values
         builtinModemSetup = BuiltinModemSetup(c.value(.builtinModemSetup, default: d.builtinModemSetup)).values
+        windowSetup = WindowSetup(c.value(.windowSetup, default: d.windowSetup)).values
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

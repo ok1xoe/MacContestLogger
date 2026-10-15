@@ -14,7 +14,7 @@ extension MenuActions {
         "view.qrz", "view.google", "tools.importCountryFile", "tools.removeCountryFile", "tools.programLogging",
         "tools.diagnosticsFolder", "tools.checkVersion", "tools.checkVersionAtStart", "help.checkUpdates",
         "help.contestRules", "help.contestCalendar", "help.errorLog", "settings.announcements", "tools.tuneBeacon",
-        "settings.autoSend",
+        "settings.autoSend", "settings.grabFocus", "settings.snapWindows",
     ]
 
     /// Runs one of `miscIds`; what the app layer must do is returned.
@@ -37,6 +37,12 @@ extension MenuActions {
             tuneBeacon(app: app, now: Date())
         case "settings.autoSend":
             promptAutoSend(app: app)
+        case "settings.grabFocus":
+            toggleWindowSetup(.grabFocusOnTune, app: app, on: "Ladění rádia převezme fokus od jiných aplikací",
+                              off: "Ladění rádia fokus nepřevezme")
+        case "settings.snapWindows":
+            toggleWindowSetup(.snapWindows, app: app, on: "Okna se přichytávají k okrajům",
+                              off: "Okna se nepřichytávají")
         case "tools.removeCountryFile":
             app.dataTools.removeCountryFile()
         case "tools.programLogging":
@@ -136,8 +142,22 @@ extension MenuActions {
             return app.updates.checksAtStart
         case "settings.announcements":
             return app.announcements.isEnabled
+        case "settings.grabFocus":
+            return app.config.config.window.flag(.grabFocusOnTune)
+        case "settings.snapWindows":
+            return app.config.config.window.flag(.snapWindows)
         default:
             return false
         }
+    }
+
+    /// A window behaviour switch flipped and saved, with its status.
+    static func toggleWindowSetup(_ key: WindowSetup.Key, app: AppModel, on: String, off: String) {
+        var setup: WindowSetup = app.config.config.window
+        let next: Bool = !setup.flag(key)
+        setup.set(key, flag: next)
+        app.config.config.window = setup
+        app.config.save(failureKey: "Uložení nastavení selhalo: %s")
+        app.status.show(next ? on : off)
     }
 }

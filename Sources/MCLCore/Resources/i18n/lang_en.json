@@ -2484,5 +2484,11 @@
  "CAT / VOX": "CAT / VOX",
  "FSK obrácená polarita (aktivní linka = mark)": "FSK inverted polarity (active line = mark)",
  "Vestavěné FSK klíčuje linku DTR nebo RTS sériového portu s přesným časováním (náhrada EXTFSK); rig v režimu RTTY/FSK. Zvuk se pak nevysílá.": "Built-in FSK keys the DTR or RTS line of a serial port with precise timing (an EXTFSK replacement); the rig in RTTY/FSK mode. No audio is sent then.",
- "Opakování CQ ukončeno vysíláním na rádiu %s": "CQ repeat ended by a transmission on radio %s"
+ "Opakování CQ ukončeno vysíláním na rádiu %s": "CQ repeat ended by a transmission on radio %s",
+ "Převzít fokus od jiných aplikací při ladění rádia": "Grab focus from other apps when a radio is tuned",
+ "Přichytávat okna k okrajům": "Snap windows to edges",
+ "Ladění rádia převezme fokus od jiných aplikací": "Tuning a radio grabs the focus from other apps",
+ "Ladění rádia fokus nepřevezme": "Tuning a radio does not grab the focus",
+ "Okna se přichytávají k okrajům": "Windows snap to edges",
+ "Okna se nepřichytávají": "Windows do not snap"
 }

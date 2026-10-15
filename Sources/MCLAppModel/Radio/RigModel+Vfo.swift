@@ -14,6 +14,7 @@ extension RigModel {
             show(RigTexts.vfoNeedsCat(label))
             return
         }
+        noteAppChange(rig: vfo.activeCatIndex)
         activeLane.run({ cat in
             RigOutcome.run(cat, op)
         }, then: { [weak self] outcome in
@@ -245,6 +246,7 @@ extension RigModel {
                 onTxSwap()
             }
             guard active.connected else { return }
+            noteAppChange(rig: vfo.activeCatIndex)
             activeLane.run({ cat in
                 RigOutcome.run(cat) { rig in try rig.selectVfo(b) }
             }, then: { [weak self] outcome in
@@ -307,6 +309,7 @@ extension RigModel {
         }
         vfo.setInactiveFrequency(freqHz, vfo: index)
         guard snapshot(vfo: index).connected else { return }
+        noteAppTune(rig: vfo.catIndex(for: index), freqHz: freqHz)
         lanes[vfo.catIndex(for: index)].run { cat in
             try? cat.tune(freqHz)
             if let mode {

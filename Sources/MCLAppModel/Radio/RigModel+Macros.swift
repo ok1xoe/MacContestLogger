@@ -11,6 +11,7 @@ extension RigModel {
     func sendMacroCat(_ macro: CatMacro, delayMs: Int) {
         guard let index = catTarget(macro.target), index < lanes.count else { return }
         let commands: [String] = macro.commands
+        noteAppChange(rig: index)
         lanes[index].run({ cat -> RigOutcome in
             let outcome: RigOutcome = RigOutcome.run(cat) { rig in
                 for command in commands {

@@ -195,10 +195,11 @@ import Testing
         // the empty modem profile and
         // 7 keys of the multi-channel receiver and
         // 5 keys of the built-in FSK and
-        // 1 key of 2BSIQ.
-        #expect(map.count == 2_486)
+        // 1 key of 2BSIQ and
+        // 6 keys of grabbing the focus and snapping windows.
+        #expect(map.count == 2_492)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_486)
+        #expect(german.count == 2_492)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

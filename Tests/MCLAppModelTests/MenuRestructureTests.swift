@@ -72,7 +72,8 @@ import Testing
                                           "tools.checkVersion", "tools.checkVersionAtStart"])
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
                                              "settings.callHistoryLookup", "settings.exchangeAbbreviations",
-                                             "settings.announcements", "settings.autoSend", "settings.so2r"])
+                                             "settings.announcements", "settings.autoSend", "settings.grabFocus",
+                                             "settings.snapWindows", "settings.so2r"])
         #expect(try children("settings.so2r") == ["so2r.dueling", "so2r.duelingTime", "so2r.focusOther",
                                                   "so2r.focusOtherAlways", "so2r.ctrlFx", "so2r.stereoMacros",
                                                   "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2", "so2r.so2vRepeat",
