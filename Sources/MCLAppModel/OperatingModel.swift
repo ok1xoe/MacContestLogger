@@ -13,8 +13,13 @@ import Observation
 @Observable @MainActor
 public final class OperatingModel {
 
-    /// Kotlin `runMode` (S&P by default).
+    /// Kotlin `runMode` (S&P by default): the Run/S&P of the entry window with the focus.
     public var runMode: RunMode = .searchAndPounce
+    /// N1MM: with two entry windows (SO2V / SO2R) each has its own Run/S&P (Run/S&P, S&P/S&P, Run/Run). The window
+    /// with the focus keeps its state in `runMode`; this holds the other window's.
+    public private(set) var windowRunModes: [RunMode] = [.searchAndPounce, .searchAndPounce]
+    /// The entry window with the focus (0 = VFO A / rig 1, 1 = VFO B / rig 2).
+    public private(set) var focusWindow: Int = 0
     /// Raised with every change of a CQ frequency (the CQ marker follows it).
     public private(set) var cqFreqRevision: Int = 0
     /// Alt+F11 / AUTORSP (Kotlin `autoRunSwitch`, from `config.runMode.autoSwitch`).
@@ -55,7 +60,7 @@ public final class OperatingModel {
     @ObservationIgnored var onOperating: (@MainActor (_ radio: Int, _ freqHz: Int64, _ mode: Mode) -> Void)?
     @ObservationIgnored private let tracker = RunModeTracker()
     /// The keys of the last tuning effect (Kotlin `LaunchedEffect(state.tunedFreqHz, mode)`, `EP:187`).
-    @ObservationIgnored private var lastTuned: (freqHz: Int64, mode: Mode)?
+    @ObservationIgnored private var lastTuned: [(freqHz: Int64, mode: Mode)?] = [nil, nil]
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let status: StatusModel
 
@@ -105,25 +110,54 @@ public final class OperatingModel {
         return tracker.cqFrequency(band).map { Int64($0) }
     }
 
-    /// Kotlin `onCqSent(freqHz)`: F1 sent — the CQ frequency is remembered, Run.
-    public func onCqSent(_ freqHz: Int64) {
-        runMode = tracker.onCq(Int(clamping: freqHz))
+    // MARK: - Run / S&P per entry window
+
+    /// The Run/S&P of entry window `window` (the focused one's is `runMode`).
+    public func runMode(window: Int) -> RunMode {
+        window == focusWindow || !windowRunModes.indices.contains(window) ? runMode : windowRunModes[window]
+    }
+
+    public func isRun(window: Int) -> Bool {
+        runMode(window: window) == .run
+    }
+
+    /// Sets the Run/S&P of entry window `window`.
+    public func setRunMode(_ mode: RunMode, window: Int) {
+        if window == focusWindow || !windowRunModes.indices.contains(window) {
+            runMode = mode
+        } else {
+            windowRunModes[window] = mode
+        }
+    }
+
+    /// The entry focus moved to window `window` (two entry windows): `runMode` becomes that window's.
+    public func focusMoved(to window: Int) {
+        guard window != focusWindow, windowRunModes.indices.contains(window) else { return }
+        windowRunModes[focusWindow] = runMode
+        focusWindow = window
+        runMode = windowRunModes[window]
+    }
+
+    /// Kotlin `onCqSent(freqHz)`: F1 sent — the CQ frequency is remembered, Run (of the window that sent it).
+    public func onCqSent(_ freqHz: Int64, window: Int? = nil) {
+        setRunMode(tracker.onCq(Int(clamping: freqHz)), window: window ?? focusWindow)
         cqFreqRevision += 1
     }
 
     /// Kotlin `selectRunMode(mode, freqHz)` (`AS:2196`): Run sets the CQ frequency to the current one.
-    public func select(_ mode: RunMode, freqHz: Int64) {
+    public func select(_ mode: RunMode, freqHz: Int64, window: Int? = nil) {
         if mode == .run {
-            onCqSent(freqHz)
+            onCqSent(freqHz, window: window)
         } else {
-            runMode = .searchAndPounce
+            setRunMode(.searchAndPounce, window: window ?? focusWindow)
         }
     }
 
     /// Kotlin `toggleRunMode(freqHz)` (Alt+U); the texts are not translated in Kotlin.
-    public func toggleRun(freqHz: Int64) {
-        select(runMode == .run ? .searchAndPounce : .run, freqHz: freqHz)
-        if runMode == .run {
+    public func toggleRun(freqHz: Int64, window: Int? = nil) {
+        let target: Int = window ?? focusWindow
+        select(runMode(window: target) == .run ? .searchAndPounce : .run, freqHz: freqHz, window: target)
+        if runMode(window: target) == .run {
             let kHz: String = EntryFormat.oneDecimal(Double(freqHz) / 1000.0)
             status.showVerbatim("Run (CQ frekvence " + kHz + " kHz)")
         } else {
@@ -133,30 +167,34 @@ public final class OperatingModel {
 
     /// Kotlin `LaunchedEffect(state.tunedFreqHz, mode) { onTunedForRunMode(...) }` and `updateTunedFreq`: the entry
     /// window's frequency or mode changed.
-    public func tuned(_ freqHz: Int64, mode: Mode) {
-        tunedFreqHz = freqHz
+    public func tuned(_ freqHz: Int64, mode: Mode, window: Int? = nil) {
+        let target: Int = window ?? focusWindow
+        if target == focusWindow {
+            tunedFreqHz = freqHz
+        }
         // The effect re-runs only when its keys change: a retyped frequency, the same mode again or a contest
         // activation on the same frequency leave a hand-picked S&P alone.
-        if let last = lastTuned, last.freqHz == freqHz, last.mode == mode {
+        let slot: Int = lastTuned.indices.contains(target) ? target : 0
+        if let last = lastTuned[slot], last.freqHz == freqHz, last.mode == mode {
             return
         }
-        lastTuned = (freqHz: freqHz, mode: mode)
-        let next: RunMode? = tracker.onTuned(Int(clamping: freqHz), mode: mode, current: runMode,
+        lastTuned[slot] = (freqHz: freqHz, mode: mode)
+        let next: RunMode? = tracker.onTuned(Int(clamping: freqHz), mode: mode, current: runMode(window: target),
                                              autoSwitch: autoRunSwitch,
                                              runOnCqFreq: config.config.runMode.runOnCqFrequency)
         if let next {
-            runMode = next
+            setRunMode(next, window: target)
         }
     }
 
     /// Kotlin `jumpToCqFrequency(band)` without a rig: the band's CQ frequency (the caller puts it into the field and
     /// hands it to the rig port) and Run; `nil` with `tr("Na pásmu %s zatím nebylo CQ")` when there was no CQ.
-    public func jumpToCqFrequency(band: Band?) -> Int64? {
+    public func jumpToCqFrequency(band: Band?, window: Int? = nil) -> Int64? {
         guard let cq = cqFrequency(band: band) else {
             status.show("Na pásmu %s zatím nebylo CQ", .string(band?.adif ?? ""))
             return nil
         }
-        runMode = .run
+        setRunMode(.run, window: window ?? focusWindow)
         return cq
     }
 

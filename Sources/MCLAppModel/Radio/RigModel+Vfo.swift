@@ -214,6 +214,9 @@ extension RigModel {
         let txBefore: Int = vfo.txCatIndex
         let txMoved: Bool = nextVfo.txVfo != vfo.txVfo
         vfo = nextVfo
+        if moving {
+            onFocusMoved(index)
+        }
         if outcome.restoredFreqHz != nil {
             // Kotlin `tunedFreqHz = it` — no QSY, no previous frequency, no rig.
             setTuning(nextTuning)

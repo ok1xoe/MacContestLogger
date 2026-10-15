@@ -545,6 +545,10 @@ public final class AppModel {
             return entry
         }
         model.so2rAutomation = automation
+        // N1MM: each entry window keeps its own Run/S&P; the focused window's is `operating.runMode`.
+        radio.rig.onFocusMoved = { [weak operating] index in
+            operating?.focusMoved(to: index)
+        }
         entry.so2rAutomation = automation
         vfoB.entry.so2rAutomation = automation
         Self.wireInfoStrip(model)

@@ -35,7 +35,7 @@ extension EntryModel {
     }
 
     private var esmInput: EsmFlow.Input {
-        EsmFlow.Input(progress: esmProgress, run: operating.isRun, call: form.call, dupe: isDupe,
+        EsmFlow.Input(progress: esmProgress, run: isRunHere, call: form.call, dupe: isDupe,
                       exchangeValid: exchangeValid, options: operating.esmOptions, nextCallKey: nextCallKey,
                       keyMap: config.config.esm.keys)
     }
@@ -44,7 +44,7 @@ extension EntryModel {
     /// a call waiting on the stack (Run only).
     var nextCallKey: Int? {
         let key: Int = config.config.esm.nextCallKey
-        guard operating.isRun, key >= 0, let stack = callStack, stack.next != nil else { return nil }
+        guard isRunHere, key >= 0, let stack = callStack, stack.next != nil else { return nil }
         let set: [FunctionKeyMessage] = currentKeySet(opposite: false)
         guard key < set.count, CallStackMacro.hasLogThenPop(set[key].text) else { return nil }
         return key
@@ -62,7 +62,7 @@ extension EntryModel {
         } else {
             keys = FunctionKeySet(run: app.cwKeyer.runMessages, sp: app.cwKeyer.spMessages)
         }
-        return keys.messages(run: operating.isRun, opposite: opposite)
+        return keys.messages(run: isRunHere, opposite: opposite)
     }
 
     /// Kotlin `esmStep`: what the next Enter does (the F-keys and "Log It" are highlighted); `nil` without ESM.
@@ -451,7 +451,7 @@ extension EntryModel {
         case .operator:
             dialogs.openOperator()
         case .toggleRun:
-            operating.toggleRun(freqHz: form.freqHz)
+            operating.toggleRun(freqHz: form.freqHz, window: vfo)
         case .cqRepeat:
             operating.cqRepeatWindow = vfo
             operating.setCqRepeat(!operating.cqRepeat)
@@ -566,7 +566,7 @@ extension EntryModel {
         // N1MM: the space bar puts the call-frame's call into an empty call field.
         takeCallFrame()
         esmProgress = EsmFlow.jumpToExchange(esmProgress, esmEnabled: operating.esmEnabled, mode: form.mode,
-                                             run: operating.isRun, call: form.call)
+                                             run: isRunHere, call: form.call)
         exchangeFocusRequest += 1
         if isActivePanel {
             rig?.callEntered()
@@ -579,7 +579,7 @@ extension EntryModel {
     /// the rig port; the tuning effect follows as in Kotlin (`LaunchedEffect(tunedFreqHz, mode)`, section 46).
     @discardableResult
     func jumpToCqFrequency() -> Bool {
-        guard let cq = operating.jumpToCqFrequency(band: band) else { return false }
+        guard let cq = operating.jumpToCqFrequency(band: band, window: vfo) else { return false }
         form.freqKHz = FrequencyText.formatHz(cq)
         if cq > 0 {
             ports.rig.qsy(hz: cq)
@@ -629,7 +629,7 @@ extension EntryModel {
         }
         if !keys.isEmpty {
             // N1MM „Send partial calls": the corrected call's resend carries only the part that changed.
-            if config.config.esm.sendPartialCalls, operating.isRun, esmProgress.callCorrected(form.call) {
+            if config.config.esm.sendPartialCalls, isRunHere, esmProgress.callCorrected(form.call) {
                 partialCallSend = PartialCall.part(sent: esmProgress.sentCall, call: form.call)
             }
             sendKeys(keys, refocus: false)
@@ -714,7 +714,7 @@ extension EntryModel {
         }
         if let freqHz = outcome.cqSentFreqHz {
             operating.lastCqWindow = vfo
-            operating.onCqSent(freqHz)
+            operating.onCqSent(freqHz, window: vfo)
             grabList?.cqSent()
         }
         if outcome.refocus {
@@ -733,9 +733,9 @@ extension EntryModel {
         case .wipe:
             wipe()
         case .run:
-            operating.runMode = .run
+            operating.setRunMode(.run, window: vfo)
         case .searchAndPounce:
-            operating.runMode = .searchAndPounce
+            operating.setRunMode(.searchAndPounce, window: vfo)
         case .clearRit:
             if let message = ports.rig.clearRit() {
                 show(message)
@@ -765,7 +765,7 @@ extension EntryModel {
         case .grabDeleteSelected:
             grabList?.removeSelected()
         case .resumeCq:
-            if operating.isRun {
+            if isRunHere {
                 operating.cqRepeatWindow = vfo
                 operating.applyCqRepeat(true)
             }
@@ -799,7 +799,7 @@ extension EntryModel {
             spotMeMacro()
         case .cq:
             if canTransmit {
-                operating.onCqSent(form.freqHz)
+                operating.onCqSent(form.freqHz, window: vfo)
                 grabList?.cqSent()
             }
         case .exchangeSent:
@@ -1188,7 +1188,7 @@ extension EntryModel {
     /// N1MM „AFC On/Off with CQ": the Run CQ and TU messages turn fldigi's AFC on, the S&P messages off.
     private func afcWithCq(_ transmission: FunctionKeyTransmission) {
         guard config.config.digital.afcOnCq, case .digital(_, let index, _) = transmission else { return }
-        if !operating.isRun {
+        if !isRunHere {
             digitalKeyer?.set(.afc, false)
         } else if index == config.config.esm.keys.cq || index == config.config.esm.keys.end {
             digitalKeyer?.set(.afc, true)
@@ -1208,7 +1208,7 @@ extension EntryModel {
             if digital.grabAddToBandmap {
                 storeCall()
             }
-            if digital.digitalCallStacking && operating.isRun {
+            if digital.digitalCallStacking && isRunHere {
                 callStack?.push(typed)
             }
         }
@@ -1227,7 +1227,7 @@ extension EntryModel {
         }
         guard !KotlinStrings.isBlank(form.call) else { return }
         let keys: [Int] = config.config.esm.keys.keys(
-            InsertKey.keys(run: operating.isRun, esm: esmActive, dupe: isDupe,
+            InsertKey.keys(run: isRunHere, esm: esmActive, dupe: isDupe,
                            workDupes: operating.esmOptions.workDupes, exchangeValid: exchangeValid))
         if !keys.isEmpty && canTransmit {
             sendKeys(keys, refocus: false)
@@ -1241,7 +1241,7 @@ extension EntryModel {
     /// is not stacked (the field stays).
     func stackAnother(label: String, runOnly: Bool) {
         guard let callStack else { return }
-        if runOnly && !operating.isRun {
+        if runOnly && !isRunHere {
             show(.tr(CallStackTexts.runOnlyKey, .string(label)))
             return
         }
@@ -1254,7 +1254,7 @@ extension EntryModel {
     /// field cleared; a call with a stacked call is exchanged with it. With an empty stack a dupe does nothing.
     func soCallStack() {
         guard let callStack else { return }
-        if !operating.isRun {
+        if !isRunHere {
             show(.tr(CallStackTexts.runOnlyKey, .string(CallStackMacro.soCallStack)))
             return
         }
@@ -1324,7 +1324,7 @@ extension EntryModel {
         for macro in macros {
             switch macro {
             case CallStackMacro.logThenPop, CallStackMacro.logThenNext:
-                if !operating.isRun {
+                if !isRunHere {
                     show(.tr("%s: {LOGTHENPOP} jen v Run", .string(FunctionKeyRouter.keysLabel(indices))))
                     return false
                 }
@@ -1371,13 +1371,13 @@ extension EntryModel {
             functionKeys: [], now: now(), leftDigitalFrequency: digitalFrequencyText(vfo: 0),
             rightDigitalFrequency: digitalFrequencyText(vfo: 1))
         var context = FunctionKeyContext(
-            mode: form.mode, digitalReady: digitalReady, postContest: operating.postContest, run: operating.isRun,
+            mode: form.mode, digitalReady: digitalReady, postContest: operating.postContest, run: isRunHere,
             call: form.call, rstSent: form.rstSent, freqHz: form.freqHz, progress: esmProgress,
             stationCall: station.call,
             voice: FunctionKeySet(run: app.voiceKeyer.runMessages, sp: app.voiceKeyer.spMessages),
             cw: FunctionKeySet(run: app.cwKeyer.runMessages, sp: app.cwKeyer.spMessages),
             digital: FunctionKeySet(run: app.digital.runMessages, sp: app.digital.spMessages),
-            cwBase: base, exchangeValid: exchangeValid, stackNext: operating.isRun ? callStack?.next : nil,
+            cwBase: base, exchangeValid: exchangeValid, stackNext: isRunHere ? callStack?.next : nil,
             serialAfterLog: logbook.nextSerial(band: band) + 1, grabNext: grabList?.highlighted)
         context.esmKeys = app.esm.keys
         context.callExchangeSeparator = app.esm.callExchangeSeparator
@@ -1485,7 +1485,7 @@ extension EntryModel {
 
     /// N1MM right click on an F-key button (like Alt+K): Settings → Function Keys on the set the keys send now.
     public func openFunctionKeyEditor() {
-        menu.functionKeysFocus = FunctionKeysFocus(kind: currentKeyKind, run: operating.isRun != shiftHeld)
+        menu.functionKeysFocus = FunctionKeysFocus(kind: currentKeyKind, run: isRunHere != shiftHeld)
         openSettingsTab("function-keys")
     }
 
@@ -1528,7 +1528,7 @@ extension EntryModel {
     func keyerSettings(opposite: Bool) -> KeyerSettings {
         let app: AppConfig = config.config
         let set = FunctionKeySet(run: app.voiceKeyer.runMessages, sp: app.voiceKeyer.spMessages)
-        let texts: [String] = set.messages(run: operating.isRun, opposite: opposite).map(\.text)
+        let texts: [String] = set.messages(run: isRunHere, opposite: opposite).map(\.text)
         return KeyerSettings(cwMethod: app.cwKeyer.method, winkeyerPort: app.cwKeyer.winkeyerPort, voiceTexts: texts)
     }
 

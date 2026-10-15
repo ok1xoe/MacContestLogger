@@ -108,8 +108,9 @@ private struct RunModePicker: View {
     var body: some View {
         let operating: OperatingModel = app.operating
         let entry: EntryModel = panel.entry
-        Picker(selection: Binding(get: { operating.runMode },
-                                  set: { operating.select($0, freqHz: entry.form.freqHz) })) {
+        // The window's own Run/S&P (two entry windows: each has one).
+        Picker(selection: Binding(get: { operating.runMode(window: entry.vfo) },
+                                  set: { operating.select($0, freqHz: entry.form.freqHz, window: entry.vfo) })) {
             Text(verbatim: "Run").tag(RunMode.run)
             Text(verbatim: "S&P").tag(RunMode.searchAndPounce)
         } label: {

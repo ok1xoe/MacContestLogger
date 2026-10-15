@@ -28,7 +28,7 @@ extension EntryModel {
         if sent == nil {
             autoSentCall = nil
         }
-        guard operating.isRun, form.mode == .cw, isActivePanel, !operating.postContest,
+        guard isRunHere, form.mode == .cw, isActivePanel, !operating.postContest,
               config.config.cwKeyer.method != .none,
               let chunk = AutoSend.next(call: call, sent: sent, threshold: threshold) else { return }
         let message: CwMessage = CwMessageBuilder.build(chunk, functionKeyContext().cwBase)
