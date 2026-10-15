@@ -1,11 +1,21 @@
 # Third-party notices
 
 MacContestLogger is licensed under the GNU General Public License v3.0 or later (see
-`LICENSE`). The repository has no third-party code dependencies (the Swift package
-uses only the Swift toolchain and Apple system frameworks). This file lists the third-party
-**data** bundled in the repository, its origin and its licence. All of it is used only by
+`LICENSE`). The Swift package uses only the Swift toolchain and Apple system frameworks; the only
+third-party **code** in the repository is the MMTTY RTTY core vendored from RYRY (below). This file
+also lists the third-party **data** bundled in the repository, its origin and its licence. All of it is used only by
 tests and development tools and none of it is compiled into the application, except the OpenJDK
 macOS key table (a numeric mapping, see below).
+
+## MMTTY RTTY core (vendored from RYRY)
+
+- **Files:** `Sources/MMTTYCore/`, `Sources/ModemKit/`, `Sources/RTTYModem/`, `Sources/RTTYSignalKit/` and
+  the tests in `Tests/RTTYModemTests/` (except `DecodeAccuracyTests.swift`) — compiled into the
+  application as its built-in RTTY modem.
+- **Source:** MMTTY by Makoto Mori, JE3HHT, and Nobuyuki Oba, JA7UDE (<https://github.com/n5ac/mmtty>),
+  through the macOS port RYRY by Tomáš Kaplan, OK1XOE (<https://github.com/ok1xoe/RYRY>).
+- **Licence:** GNU Lesser General Public License v3 — `third-party/MMTTY/COPYING.LESSER`; details and the
+  list of files in `third-party/MMTTY/NOTICE.md`.
 
 ## AD1C Amateur Radio Country Files (`cty.dat`)
 

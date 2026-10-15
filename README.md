@@ -153,7 +153,8 @@ and `--sign -` runs the same hardened-runtime path with an ad-hoc signature (no 
 - `Sources/mcl-scorecheck` and `Sources/mcl-synthlog` are the command-line tools.
 - Tests are in `Tests/MCLCoreTests` (mirroring `Sources/MCLCore`) and `Tests/MCLAppModelTests`.
 - There are no external package dependencies: only the Swift standard library, Foundation, AppKit
-  and, in tests, CryptoKit.
+  and, in tests, CryptoKit. `Sources/MMTTYCore`, `ModemKit`, `RTTYModem` and `RTTYSignalKit` are the
+  RTTY modem vendored from RYRY (LGPL-3.0).
 
 `Tests/MCLCoreTests/Fixtures/contest-data/` is the reference set of contest definitions and
 multiplier lists; `Package.swift` copies it with `.copy` because `.process` would flatten the
@@ -168,5 +169,6 @@ Copyright © 2026 Tomáš Kaplan, OK1XOE.
 MacContestLogger is free software: you can redistribute it and/or modify it under the terms of
 the GNU General Public License as published by the Free Software Foundation, either version 3
 of the License, or (at your option) any later version (GPL-3.0-or-later). See [`LICENSE`](LICENSE)
-for the full text. Bundled third-party data and its licences are listed in
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+for the full text. The built-in RTTY modem uses the MMTTY core by JE3HHT through RYRY (GNU LGPL v3,
+[`third-party/MMTTY/NOTICE.md`](third-party/MMTTY/NOTICE.md)). Bundled third-party code and data and their
+licences are listed in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

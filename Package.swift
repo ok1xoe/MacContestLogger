@@ -11,6 +11,25 @@ let package = Package(
     ],
     targets: [
         .target(name: "MCLCore", resources: [.process("Resources")]),
+        // The built-in RTTY modem, vendored from RYRY (LGPL-3.0, see `third-party/MMTTY/NOTICE.md`): the MMTTY
+        // demodulator/modulator core by JE3HHT behind a C API (`MMTTYCore`, C++), the generic modem interface
+        // (`ModemKit`), the Swift RTTY modem over the core (`RTTYModem`) and an independent AFSK test-signal
+        // generator (`RTTYSignalKit`, used by the tests and the synthetic-signal tools).
+        .target(
+            name: "MMTTYCore",
+            cxxSettings: [
+                .headerSearchPath("mmtty"),
+                .headerSearchPath("compat"),
+                // MMTTY's original code style (Borland C++ Builder era); the warnings are not ours to fix in vendored code.
+                .unsafeFlags(["-Wno-deprecated-declarations", "-Wno-writable-strings",
+                              "-Wno-parentheses", "-Wno-dangling-else", "-Wno-unused-variable",
+                              "-Wno-nontrivial-memcall", "-Wno-unknown-warning-option"]),
+            ]
+        ),
+        .target(name: "ModemKit"),
+        .target(name: "RTTYModem", dependencies: ["MMTTYCore", "ModemKit"]),
+        .target(name: "RTTYSignalKit"),
+        .testTarget(name: "RTTYModemTests", dependencies: ["MMTTYCore", "ModemKit", "RTTYModem", "RTTYSignalKit"]),
         // App models (state holders, main-thread hops, the resource check) — testable without AppKit windows.
         .target(name: "MCLAppModel", dependencies: ["MCLCore"]),
         // The SwiftUI/AppKit app; `scripts/bundle.sh` assembles it into `MacContestLogger.app`.
@@ -165,5 +184,6 @@ let package = Package(
                 .process("Fixtures/awt-mac-chars-jdk21.tsv"),
             ]
         ),
-    ]
+    ],
+    cxxLanguageStandard: .cxx17
 )
