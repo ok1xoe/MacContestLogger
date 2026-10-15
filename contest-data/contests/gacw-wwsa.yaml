@@ -1,0 +1,48 @@
+schemaVersion: 1
+id: gacw-wwsa
+metadata:
+  name: "GACW WWSA CW DX Contest"
+  organizer: "GACW (Grupo Argentino de CW)"
+  description: "Second weekend of June, 1500 UTC Saturday to 1500 UTC Sunday, CW, 80-10 m. Exchange RST + CQ zone. Points: different continents 3, same continent but different countries 1, same country 0 (still counts for multipliers); stations outside South America get 5 points for QSOs with South America. Each station once per band. Multipliers per band: CQ zones + DXCC countries. Score = points x (zones + countries). Multi-single: one band in any 10-minute period. Simplified: WAE countries and maritime mobile (zone only) are not distinguished."
+  officialUrl: "https://gacw.ar/wwsa/reglas-rules/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1500" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,     source: AUTO_RST }
+    - { id: zone, type: CQ_ZONE, source: FROM_STATION }
+  received:
+    - { id: rst,  type: RST,     required: true }
+    - { id: zone, type: CQ_ZONE, required: true, validation: { min: 1, max: 40 }, estimate: cqZone }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      - { when: { ownDxcc: true },                                          value: { fixed: 0 } }
+      - { when: { continentIs: SA, not: { ownContinentIs: SA } },           value: { fixed: 5 } }
+      - { when: { otherContinent: true },                                   value: { fixed: 3 } }
+      - { when: { sameContinent: true },                                    value: { fixed: 1 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: zones,     set: cq_zones,      from: zone,     scope: PER_BAND }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: WWSA, sentOrder: [rst, zone], receivedOrder: [rst, zone] }
+ui:
+  entryOrder: [call, zone]
+  logColumns: [time, call, band, mode, rst, zone, points, mult]
+operating:
+  rules:
+  # Multi-operator mono-transmitter: one band in any 10-minute period.
+  - when:
+      OPERATOR: "MULTI-OP"
+      TRANSMITTER: "ONE"
+    bandChange:
+      minimumMinutes: 10

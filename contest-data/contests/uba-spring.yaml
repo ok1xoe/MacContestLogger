@@ -1,0 +1,46 @@
+schemaVersion: 1
+id: uba-spring
+metadata:
+  name: "UBA Spring Contest"
+  organizer: "UBA (section DST, Diest)"
+  description: "Four separate parts in March, each on Sunday 0700-1100 UTC (2026: 2 m phone/CW 1 March, 80 m CW 8 March, 6 m phone/CW 15 March, 80 m phone 22 March); one log per part. Belgian stations send RS(T) + serial + UBA section (XXX for non-members, UBA for ON4UB, ON4UBA, ON4DIG, ON4XYL); others RS(T) + serial. Every QSO must include at least one ON station: foreign stations may only work Belgian stations. 3 points per QSO. Multipliers: every three-letter group received (UBA sections, XXX and UBA all count); Belgian entrants also count DXCC entities except ON. Score = QSO points x multipliers. Simplified: the rules give no dupe rule - each station is taken once per band; multipliers are counted per band (each part is one band)."
+  officialUrl: "https://www.uba.be/en/hf/contest-rules/spring-contest-dst"
+period: { durationHours: 4, startWeekday: SUN, startTime: "0700" }
+bands: [80m, 6m, 2m]
+modes: [CW, SSB, FM]
+
+stationClasses:
+  - { id: on, when: { entityIn: [209] } }
+  - { id: dx, when: { not: { entityIn: [209] } } }
+
+workable:
+  anyOf:
+    - { ownEntityIn: [209] }
+    - { workedClass: on }
+
+exchange:
+  sent:
+    - { id: rst,       type: RST,    source: AUTO_RST }
+    - { id: nr,        type: SERIAL, source: AUTO_SERIAL }
+    - { id: mysection, type: TEXT,   source: FROM_STATION }   # Belgian stations: UBA section or XXX
+  received:
+    - { id: rst,     type: RST,    required: true }
+    - { id: nr,      type: SERIAL, required: true }
+    - { id: section, type: TEXT,   required: true, appliesWhen: { workedClass: on },
+        validation: { regex: "^[A-Z]{3}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 3 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: sections,  set: uba_section_codes, from: section,  scope: PER_BAND, appliesWhen: { workedClass: on } }
+  - { id: countries, set: dxcc_entities,     from: callsign, scope: PER_BAND,
+      when: { allOf: [ { ownEntityIn: [209] }, { not: { entityIn: [209] } } ] } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: UBA-SPRING, sentOrder: [rst, nr, mysection], receivedOrder: [rst, nr, section] }
+ui:
+  entryOrder: [call, nr, section]
+  logColumns: [time, call, band, mode, rst, nr, section, points, mult]

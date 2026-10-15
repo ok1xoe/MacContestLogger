@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: uba-psk63-prefix
+metadata:
+  name: "UBA PSK63 Prefix Contest"
+  organizer: "UBA"
+  description: "Second weekend of January, 1200 UTC Saturday to 1159 UTC Sunday (2027: 9-10 January), BPSK63 only, 80-10 m, maximum 50 W (QRP 5 W). Stations in Belgium send RSQ + UBA section (XXX for non-members, UBA for the national stations); all others RSQ + serial. Everyone works everyone, each station once per band. 1 point per QSO. Multipliers per band: WPX prefixes + UBA sections (XXX is not a multiplier). Score = points x multipliers. Until further notice QSOs with Russia and Belarus count 0 points and no multipliers."
+  officialUrl: "https://www.uba.be/en/hf/contest-rules/uba-psk63-prefix-contest"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [PSK]
+
+stationClasses:
+  - { id: on, when: { entityIn: [209] } }
+  - { id: dx, when: { not: { entityIn: [209] } } }
+
+# QSOs with the Russian Federation and Belarus count for nothing (UBA decision)
+workable: { not: { entityIn: [54, 15, 126, 27] } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }   # stations in Belgium: UBA section (change the source)
+  received:
+    - { id: rst,     type: RST,    required: true }
+    - { id: section, type: TEXT,   required: true, appliesWhen: { workedClass: on },
+        validation: { regex: "^[A-Z]{3}$" } }
+    - { id: nr,      type: SERIAL, required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: prefixes, set: wpx_prefixes, from: callsign, scope: PER_BAND }
+  - { id: sections, set: uba_sections, from: section,  scope: PER_BAND, appliesWhen: { workedClass: on } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: UBA-PSK63-PREFIX, sentOrder: [rst, nr], receivedOrder: [rst, section, nr] }
+ui:
+  entryOrder: [call, section, nr]
+  logColumns: [time, call, band, mode, rst, section, nr, points, mult]

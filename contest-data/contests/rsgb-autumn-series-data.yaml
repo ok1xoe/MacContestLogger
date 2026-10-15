@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: rsgb-autumn-series-data
+metadata:
+  name: "RSGB 80m Autumn Series — Data"
+  organizer: "RSGB HF Contest Committee"
+  description: "Sessions on Mondays, Wednesdays and Thursdays in September-November (1900-2030 UTC in September and October, 2000-2130 UTC in November; dates in the RSGB HF calendar). 80 m only, RTTY and PSK63 (a station may be worked once on each; the score is the sum of both). Exchange RS(T) + serial. 1 point per QSO; a UK&CD station (G, GD, GI, GJ, GM, GU, GW) must be at one or both ends of the QSO. QSOs with the RSGB station (G6XX or a regional variant such as GM6XX) are worth 5 points. No multipliers. Simplified: the contest lasts 90 minutes, the period here is rounded up to 2 hours; club scoring and score normalisation are done by the adjudicators."
+  officialUrl: "https://www.rsgbcc.org/hf/rules/2026/rautumn.shtml"
+period: { durationHours: 2 }
+bands: [80m]
+modes: [RTTY, PSK]
+
+# a UK&CD station must be at one or both ends of the QSO
+workable:
+  anyOf:
+    - { ownEntityIn: [223, 114, 265, 122, 279, 106, 294] }
+    - { entityIn: [223, 114, 265, 122, 279, 106, 294] }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      # RSGB station G6XX (or a regional variant GM6XX, GW6XX...)
+      - { when: { expr: "matches(call, '^G[A-Z]?6XX(/.*)?$')" }, value: { fixed: 5 } }
+  total: "qsoPoints"
+
+dupe: { scope: PER_MODE }
+
+cabrillo: { contestName: RSGB-80M-AUT, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points]

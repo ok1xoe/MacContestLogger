@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: dme_municipalities
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "Spanish municipalities (URE DME references)"
+  description: "Open set: five-digit DME (Diploma de Municipios Españoles) municipality reference sent by Spanish stations in the URE Spanish Municipalities Contest (e.g. 28096), plus HQ for EA4URE. The reference list is published by URE (diplomas.ure.es)."
+validation: { keyPattern: "^([0-9]{5}|HQ)$" }

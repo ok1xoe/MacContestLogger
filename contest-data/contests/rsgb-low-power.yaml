@@ -1,0 +1,36 @@
+schemaVersion: 1
+id: rsgb-low-power
+metadata:
+  name: "RSGB International Low Power Contest"
+  organizer: "RSGB HF Contest Committee"
+  description: "Sunday in July (2026: 19 July), two sessions 0900-1200 and 1300-1600 UTC, CW only on 80, 40 and 20 m, maximum 10 W (sections: UK&CD fixed / portable 10 W and 5 W, non-UK&CD 10 W and 5 W). Exchange RST + serial (continuing over all bands and both sessions) + transmitted power ('W' as decimal point, e.g. 1W, 10W, 1W5; over 10 W send QRO). Points: low power (10 W or less) portable or mobile station 15, low power fixed station 10, all other QSOs 5. Each station once per band. No multipliers. Simplified: a portable or mobile station is recognised by /P or /M at the end of its call; the 1200-1300 UTC break is not enforced."
+  officialUrl: "https://www.rsgbcc.org/hf/rules/2026/rqrp.shtml"
+period: { durationHours: 7, startWeekday: SUN, startTime: "0900" }
+bands: [80m, 40m, 20m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+    - { id: pwr, type: TEXT,   source: FROM_STATION }   # e.g. 5W, 1W5; QRO over 10 W
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+    - { id: pwr, type: TEXT,   required: true, validation: { regex: "^(QRO|[0-9]+W[0-9]*)$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 10
+    rules:
+      - { when: { fieldEquals: { field: pwr, value: QRO } }, value: { fixed: 5 } }
+      - { when: { expr: "matches(call, '/(P|M)$')" }, value: { fixed: 15 } }
+  total: "qsoPoints"
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: RSGB-LOW-POWER, sentOrder: [rst, nr, pwr], receivedOrder: [rst, nr, pwr] }
+ui:
+  entryOrder: [call, nr, pwr]
+  logColumns: [time, call, band, mode, rst, nr, pwr, points]

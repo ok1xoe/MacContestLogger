@@ -1,0 +1,41 @@
+schemaVersion: 1
+id: ea-qrp-cw
+metadata:
+  name: "EA-QRP CW Contest"
+  organizer: "EA-QRP Club"
+  description: "Third weekend of April (2026: 18-19 April), Saturday 1700 to Sunday 1200 UTC in band periods: Saturday 10 m 1700-1800, 15 m 1800-1900, 20 m 1900-2000, 40 m 2000-2100, 80 m 2100-2300; Sunday 40 m 0700-0900, 20 m 0900-1000, 15 m 1000-1100, 10 m 1100-1200. CW, maximum 5 W (1 W QRPp). Exchange RST + category letter (A QRPp under 1 W, B QRP 1-5 W, C home-brew, D old-time equipment) + M for EA-QRP Club members (e.g. 599 BM). Points: same country 1 (EA, EA6, EA8, EA9 together), same continent 2, other continent 4; QSOs with QRPp (A) and old-time (D) stations 5, with home-brew (C) stations 10. Each station once per band. Multipliers per band: DXCC countries + EA-QRP Club members. Score = points x multipliers. Simplified: the band periods are not enforced; EA6, EA8 and EA9 count as separate DXCC multipliers (the rules count them as EA) and as other countries for an EA entrant."
+  officialUrl: "https://www.eaqrp.com/index.php/actividades/concurso?id=310"
+period: { durationHours: 19, startWeekday: SAT, startTime: "1700" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: cat, type: TEXT, source: FROM_STATION }   # A, B, C or D (+ M for members)
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: cat, type: TEXT, required: true, validation: { regex: "^[ABCD]M?$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 4
+    rules:
+      - { when: { expr: "matches(cat, '^C')" },     value: { fixed: 10 } }
+      - { when: { expr: "matches(cat, '^[AD]')" },  value: { fixed: 5 } }
+      - { when: { ownDxcc: true },                  value: { fixed: 1 } }
+      - { when: { sameContinent: true },            value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+  - { id: members,   set: worked_calls,  from: callsign, scope: PER_BAND, label: "EA-QRP members",
+      when: { expr: "matches(cat, 'M$')" } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: EA-QRP-CW, sentOrder: [rst, cat], receivedOrder: [rst, cat] }
+ui:
+  entryOrder: [call, cat]
+  logColumns: [time, call, band, mode, rst, cat, points, mult]

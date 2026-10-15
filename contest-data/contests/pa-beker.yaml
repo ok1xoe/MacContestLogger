@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: pa-beker
+metadata:
+  name: "PA-Beker Contest"
+  organizer: "VERON"
+  description: "Second full weekend of November, 0900-1130 UTC: CW on Saturday, SSB on Sunday (2026: 14 and 15 November; one log per mode). Only for stations located in the Netherlands (QSOs are taken as Dutch-Dutch only, since only Dutch stations have a QSL region), 80 and 40 m in the IARU contest segments. Exchange RS(T) + QSL region number. 1 point per QSO, each station once per band. Multiplier: different QSL regions per band. Score = points x multipliers. Simplified: the contest lasts 2.5 hours, the period here is rounded up to 3 hours; log the region as the two-digit number (R18 -> 18)."
+  officialUrl: "https://veron.nl/vereniging/commissies-en-werkgroepen/traffic-bureau/hf-contesten/pa-beker/"
+period: { durationHours: 3, startWeekday: SAT, startTime: "0900" }
+bands: [80m, 40m]
+modes: [CW, SSB]
+
+# the exchange (QSL region) exists only for stations in the Netherlands
+workable: { entityIn: [263] }
+
+exchange:
+  sent:
+    - { id: rst,      type: RST,      source: AUTO_RST }
+    - { id: myregion, type: DISTRICT, source: FROM_STATION }   # own QSL region
+  received:
+    - { id: rst,    type: RST,      required: true }
+    - { id: region, type: DISTRICT, required: true, validation: { regex: "^[0-9]{2}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: regions, set: pa_qsl_regions, from: region, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: PA-BEKER, sentOrder: [rst, myregion], receivedOrder: [rst, region] }
+ui:
+  entryOrder: [call, region]
+  logColumns: [time, call, band, mode, rst, region, points, mult]

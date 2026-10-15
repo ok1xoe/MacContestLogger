@@ -1,0 +1,48 @@
+schemaVersion: 1
+id: ea-psk63
+metadata:
+  name: "EA PSK63 Contest"
+  organizer: "URE"
+  description: "Second weekend of March (2026: 14-15 March), 1200 UTC Saturday to 1159 UTC Sunday, BPSK63 only, 80-10 m, maximum 50 W (QRP 5 W). EA stations (all stations transmitting from Spanish territory) send RSQ + province, others RSQ + serial; EA4URE sends HQ. Each station once per band. Points: EA-EA 2, EA-DX 1, DX-DX 1, DX-EA 3. Multipliers per band: EADX-100 entities (DXCC), Spanish provinces, EA4URE (HQ) and the call areas of USA, Canada, Japan and Australia; the first QSO with W/VE/JA/VK or EA/EA6/EA8/EA9 on a band gives both multipliers. Score = points x multipliers. Simplified: call areas are approximated by the WPX prefix; EADX-100 entities are taken as DXCC entities; the sent field is the serial (EA stations replace it by their province); unique QSOs (in one log only) are removed by the log checkers."
+  officialUrl: "https://concursos.ure.es/en/eapsk63/bases/"
+# second weekend of March (2026: 14-15 March), 1200 UTC Saturday to 1159 UTC Sunday
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [PSK]
+
+stationClasses:
+  # Spain, Balearic, Canary, Ceuta & Melilla
+  - { id: ea, when: { entityIn: [281, 21, 29, 32] } }
+  - { id: dx, when: { not: { entityIn: [281, 21, 29, 32] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }   # EA stations: province (change the source)
+  received:
+    - { id: rst,  type: RST,      required: true }
+    - { id: prov, type: DISTRICT, required: true, appliesWhen: { workedClass: ea } }   # province or HQ
+    - { id: nr,   type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: { allOf: [ { ownEntityIn: [281, 21, 29, 32] }, { workedClass: ea } ] }, value: { fixed: 2 } }
+      - { when: { ownEntityIn: [281, 21, 29, 32] }, value: { fixed: 1 } }
+      - { when: { workedClass: ea }, value: { fixed: 3 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+  - { id: provinces, set: ea_provinces,  from: prov,     scope: PER_BAND, appliesWhen: { workedClass: ea } }
+  # JA/W/VE/VK call areas (approximation: WPX prefix)
+  - { id: areas, set: wpx_prefixes, from: callsign, scope: PER_BAND, when: { entityIn: [291, 1, 339, 150] } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: EA-PSK63, sentOrder: [rst, nr], receivedOrder: [rst, prov, nr] }
+ui:
+  entryOrder: [call, prov, nr]
+  logColumns: [time, call, band, mode, rst, prov, nr, points, mult]

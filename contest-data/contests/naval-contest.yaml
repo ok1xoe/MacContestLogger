@@ -1,0 +1,37 @@
+schemaVersion: 1
+id: naval-contest
+metadata:
+  name: "International Naval Contest (INC)"
+  organizer: "Participating naval clubs (2025: ARMI)"
+  description: "Second weekend of December, 1600 UTC Saturday to 1559 UTC Sunday, CW, SSB or mixed, 80-10 m. Naval club members send RS(T) + club + membership number (e.g. 599 MI300), others RS(T) + serial. Points: QSO with a naval club member 10, with a non-member 1. Multiplier: every naval club member worked, once in the contest regardless of band. Score = QSO points x multipliers. Simplified: the rules give no dupe rule - each station is taken once per band and mode; a member is recognised by a received club + number matching one of the clubs listed in the 2025 rules; enter the serial (or your club + number) in the sent field."
+  officialUrl: "https://www.marinefreunde.com/eng/inc.html"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1600" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+exchange:
+  sent:
+    - { id: rst,  type: RST,  source: AUTO_RST }
+    - { id: exch, type: TEXT, source: FROM_STATION }   # members: club + number (MI300); others: serial
+  received:
+    - { id: rst,  type: RST,  required: true }
+    - { id: exch, type: TEXT, required: true }          # club + number or serial
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: { expr: "matches(exch, '^(MI|FN|GR|IN|MA|MF|CA|PN|RN|YO)[0-9]{1,5}$')" }, value: { fixed: 10 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: members, set: naval_members, from: exch, scope: ONCE,
+      when: { expr: "matches(exch, '^(MI|FN|GR|IN|MA|MF|CA|PN|RN|YO)[0-9]{1,5}$')" } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: NAVAL, sentOrder: [rst, exch], receivedOrder: [rst, exch] }
+ui:
+  entryOrder: [call, exch]
+  logColumns: [time, call, band, mode, rst, exch, points, mult]

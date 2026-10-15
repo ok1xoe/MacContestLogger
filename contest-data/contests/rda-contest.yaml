@@ -1,0 +1,50 @@
+schemaVersion: 1
+id: rda-contest
+metadata:
+  name: "RDA Contest (Russian Districts Award)"
+  organizer: "Tambov Award Group"
+  description: "Saturday in mid-August, 0800-0800 UTC (2025: 16-17 August), CW and SSB, 160-10 m without WARC. Russian stations send RS(T) + RDA district (e.g. TB02), others RS(T) + serial. Each station once per band and mode. Points for Russian entrants: Russia on your own continent 1, Russia on the other continent 2, other country on your continent 3, other continent 5 (Kaliningrad counts as European Russia); for other entrants: 10 points per QSO with a Russian station. Multipliers: RDA districts once regardless of band, plus for Russian entrants DXCC entities on each band. Score = points x multipliers. Simplified: QSOs with C1/C2 field entrants (10 points for Russian entrants) are not recognised; non-Russian entrants get 0 points for QSOs with non-Russian stations (the rules only give points for QSOs with Russia)."
+  officialUrl: "http://rdaward.org/rdac1.htm"
+period: { durationHours: 24, startWeekday: SAT, startTime: "0800" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+stationClasses:
+  # European Russia, Asiatic Russia, Kaliningrad
+  - { id: ru, when: { entityIn: [54, 15, 126] } }
+  - { id: dx, when: { not: { entityIn: [54, 15, 126] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }   # Russian stations: RDA district (change the source)
+  received:
+    - { id: rst, type: RST,      required: true }
+    - { id: rda, type: DISTRICT, required: true, appliesWhen: { workedClass: ru },
+        validation: { regex: "^[A-Z]{2}[0-9]{2}$" } }
+    - { id: nr,  type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 0
+    rules:
+      # Russian entrants
+      - { when: { ownEntityIn: [54, 15, 126], workedClass: ru, sameContinent: true },  value: { fixed: 1 } }
+      - { when: { ownEntityIn: [54, 15, 126], workedClass: ru },                       value: { fixed: 2 } }
+      - { when: { ownEntityIn: [54, 15, 126], sameContinent: true },                   value: { fixed: 3 } }
+      - { when: { ownEntityIn: [54, 15, 126] },                                        value: { fixed: 5 } }
+      # other entrants: QSOs with Russia only
+      - { when: { workedClass: ru },                                         value: { fixed: 10 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: districts, set: rda_districts, from: rda,      scope: ONCE, appliesWhen: { workedClass: ru } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND, when: { ownEntityIn: [54, 15, 126] } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: RDAC, sentOrder: [rst, nr], receivedOrder: [rst, rda, nr] }
+ui:
+  entryOrder: [call, rda, nr]
+  logColumns: [time, call, band, mode, rst, rda, nr, points, mult]

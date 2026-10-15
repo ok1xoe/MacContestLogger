@@ -1,0 +1,33 @@
+schemaVersion: 1
+id: foc-old-school
+metadata:
+  name: "FOC Old School Classic 1960s QSO Party"
+  organizer: "FOC (First Class CW Operators' Club)"
+  description: "Twice a year (winter: first weekend of January; summer: last weekend of June or first weekend of July), 24 hours from 1200 UTC; dates are subject to change. CW only, 160-6 m without WARC, no CW decoders, memory keyers, contest logging programs or DX clusters. Exchange: actual RST + three-letter station class (P/C paper or computer log, V/T/L/R vintage, transition, late-model or remote gear, M/E mechanical or electronic keying) + year first licensed (2 or 4 digits) + name. 1 point per QSO, each station once per band. Score = QSOs plus a percentage of the base QSO count for your own class: paper log +5 %, vintage gear +10 %, transition gear +5 %, mechanical key +5 %. Simplified: the class bonus (your own station class) is not added - add it by hand; results are reported on the honour system."
+  officialUrl: "https://www.g4foc.org/foc-old-school-classic-1960s-qso-party/"
+period: { durationHours: 24, startTime: "1200" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m, 6m]
+modes: [CW]
+
+exchange:
+  sent:
+    - { id: rst,   type: RST,  source: MANUAL }
+    - { id: class, type: TEXT, source: FROM_STATION }   # e.g. PVM
+    - { id: year,  type: TEXT, source: FROM_STATION }   # year first licensed
+    - { id: name,  type: TEXT, source: FROM_STATION }
+  received:
+    - { id: rst,   type: RST,  required: true }
+    - { id: class, type: TEXT, required: true, validation: { regex: "^[PC][VTLR][ME]$" } }
+    - { id: year,  type: TEXT, required: true, validation: { regex: "^([0-9]{2}|[0-9]{4})$" } }
+    - { id: name,  type: TEXT, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints"
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: FOC-OSQP, sentOrder: [rst, class, year, name], receivedOrder: [rst, class, year, name] }
+ui:
+  entryOrder: [call, rst, class, year, name]
+  logColumns: [time, call, band, mode, rst, class, year, name, points]

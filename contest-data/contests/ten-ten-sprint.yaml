@@ -1,0 +1,35 @@
+schemaVersion: 1
+id: ten-ten-sprint
+metadata:
+  name: "10-10 International Sprint (10 October)"
+  organizer: "Ten-Ten International Net"
+  description: "24 hours on 10 October, 0001-2359 UTC, all modes except weak-signal modes. 10 m only, direct contacts (no repeaters, satellites or internet links). Exchange: name + 10-10 number (log 0 if none) + QTH (state, province or country). Points: 2 per QSO with a 10-10 number, 1 without. Each station counted once regardless of mode. No multipliers. Logs are accepted from active 10-10 members (others as check logs)."
+  officialUrl: "https://www.ten-ten.org/qso-party-rules/"
+period: { durationHours: 24, startTime: "0000" }
+bands: [10m]
+modes: [CW, SSB, AM, FM, RTTY, PSK]
+
+exchange:
+  sent:
+    - { id: name, type: TEXT, source: FROM_STATION }
+    - { id: num,  type: TEXT, source: FROM_STATION }   # 10-10 number
+    - { id: qth,  type: TEXT, source: FROM_STATION }   # state / province / country
+  received:
+    - { id: name, type: TEXT, required: true }
+    - { id: num,  type: TEXT, required: true, validation: { regex: "^[0-9]+$" } }
+    - { id: qth,  type: TEXT, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 2
+    rules:
+      - { when: { expr: "matches(num, '^0+$')" }, value: { fixed: 1 } }
+  total: "qsoPoints"
+
+dupe: { scope: ONCE }
+
+cabrillo: { contestName: 10-10-SPRINT, sentOrder: [name, num, qth], receivedOrder: [name, num, qth] }
+ui:
+  entryOrder: [call, name, num, qth]
+  logColumns: [time, call, mode, name, num, qth, points]

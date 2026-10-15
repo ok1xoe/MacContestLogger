@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: pa_qsl_regions
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata:
+  name: "Dutch QSL regions (PA-Beker)"
+  description: "The 49 VERON/VRZA QSL regions from the region list published with the PA-Beker rules (R01-R51). The key is the two-digit region number without the R (R18 -> 18); the label lists the local sections in the region."
+valuesFile: pa_qsl_regions.csv

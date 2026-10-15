@@ -1,0 +1,38 @@
+schemaVersion: 1
+id: russian-yl-om
+metadata:
+  name: "Russian YL/OM Contest"
+  organizer: "Radio magazine and Russian Contest Club"
+  description: "The Saturday closest to 8 March, 0700-1059 UTC, CW and SSB (mixed only), 40, 20, 15 and 10 m. Exchange: YL stations RS(T) + 88, OM stations RS(T) + 73. Everyone works everyone; each station once per band and mode. Points: QSO with a YL station 5, with an OM station 1. Multiplier: each YL call sign on each band and mode. Score = QSO points x multipliers."
+  officialUrl: "https://www.contest.ru/russian-yl-om-contest-en/"
+period: { durationHours: 4, startWeekday: SAT, startTime: "0700" }
+bands: [40m, 20m, 15m, 10m]
+modes: [CW, SSB]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: yl,  type: TEXT, source: FROM_STATION }   # 88 (YL) or 73 (OM)
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: yl,  type: TEXT, required: true, validation: { regex: "^(88|73)$" } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 1
+    rules:
+      - { when: { fieldEquals: { field: yl, value: "88" } }, value: { fixed: 5 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  # each YL call sign on each band and mode
+  - { id: yls, set: worked_calls, from: callsign, scope: PER_BAND_MODE, label: "YL stations",
+      when: { fieldEquals: { field: yl, value: "88" } } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: RUSSIAN-YL-OM, sentOrder: [rst, yl], receivedOrder: [rst, yl] }
+ui:
+  entryOrder: [call, yl]
+  logColumns: [time, call, band, mode, rst, yl, points, mult]

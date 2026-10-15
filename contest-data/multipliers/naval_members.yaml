@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: naval_members
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "Naval club members (International Naval Contest)"
+  description: "Open set: club abbreviation + membership number sent by members of the participating naval clubs (2025 list: MI ARMI, FN FNARS, GR HNARC, IN INORC, MA MARAC, MF Marinefunker-Runde, CA MFCA, PN NRA, RN RNARS, YO YO-MARC), e.g. MI300. Each member counts once."
+validation: { keyPattern: "^(MI|FN|GR|IN|MA|MF|CA|PN|RN|YO)[0-9]{1,5}$" }
