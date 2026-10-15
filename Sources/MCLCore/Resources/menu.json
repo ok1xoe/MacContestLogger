@@ -253,7 +253,8 @@
         { "id": "help.errorLog", "label": "Zobrazit chybový log", "state": "enable" },
         { "id": "help.dataFolder", "label": "Otevřít datovou složku", "state": "enable" },
         { "id": "help.checkUpdates", "label": "Zkontrolovat aktualizace…", "state": "enable" },
-        { "id": "help.pdfManual", "label": "Stáhnout nejnovější PDF manuál…", "state": "enable" }
+        { "id": "help.pdfManual", "label": "Stáhnout nejnovější PDF manuál…", "state": "enable" },
+        { "id": "help.htmlManual", "label": "Stáhnout nejnovější HTML manuál…", "state": "enable" }
       ]
     },
     { "id": "buffer", "label": "Nezařazené", "state": "hidden", "children": [] }

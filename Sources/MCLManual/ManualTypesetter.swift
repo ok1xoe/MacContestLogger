@@ -8,11 +8,14 @@ extension NSAttributedString.Key {
     static let manualHeading = NSAttributedString.Key("mcl.manual.heading")
     /// A link: `#<anchor>` inside the book, otherwise an absolute URL.
     static let manualLink = NSAttributedString.Key("mcl.manual.link")
+    /// What separates a chapter from the previous one (the form feed, or the rule of a joined chapter): its file.
+    static let manualChapterLead = NSAttributedString.Key("mcl.manual.chapterLead")
 }
 
 /// Turns the book into one attributed text for the paginated layout: the title page, the contents (with the page
-/// numbers of the previous layout pass) and the chapters, each starting on a new page (form feed). Colours are fixed
-/// sRGB values, never the appearance-dependent system colours.
+/// numbers of the previous layout pass) and the chapters, each starting on a new page (form feed) unless the previous
+/// layout pass found the chapter before it ending high on its page (`joined`: the chapter goes on below it). Colours are
+/// fixed sRGB values, never the appearance-dependent system colours.
 @MainActor
 struct ManualTypesetter {
 
@@ -20,6 +23,8 @@ struct ManualTypesetter {
     /// The `docs` directory (images are read from it).
     let docs: URL
     let version: String?
+    /// The build date on the title page (`nil` = none).
+    let buildDate: Date?
     /// Content width of a page, for images and the contents' right tab.
     let contentWidth: CGFloat
     let contentHeight: CGFloat
@@ -27,9 +32,8 @@ struct ManualTypesetter {
     let pages: [String: Int]
     /// Headings that ended up alone at the bottom of a page in the previous pass: they start a new page.
     let breaks: Set<String>
-
-    /// Where links to other files of the repository lead.
-    static let repositoryDocs = "https://github.com/ok1xoe/MacContestLogger/blob/main/docs/"
+    /// Chapters (by file) that go on below the previous one instead of starting a new page.
+    let joined: Set<String>
 
     // MARK: - styles
 
@@ -115,25 +119,9 @@ struct ManualTypesetter {
         return out
     }
 
-    /// A link target of the book: `#<anchor>` for a chapter (or a heading in it), otherwise an absolute URL.
+    /// A link target of the book (`ManualBook.resolveLink`).
     func resolve(_ raw: String, from file: String) -> String? {
-        if raw.hasPrefix("http://") || raw.hasPrefix("https://") || raw.hasPrefix("mailto:") {
-            return raw
-        }
-        if raw.hasPrefix("#") {
-            return "#" + file + raw
-        }
-        var path: String = raw
-        var fragment: String?
-        if let hash = raw.firstIndex(of: "#") {
-            path = String(raw[..<hash])
-            fragment = String(raw[raw.index(after: hash)...])
-        }
-        if book.chapters.contains(where: { $0.file == path }) {
-            return "#" + path + (fragment.map { "#" + $0 } ?? "")
-        }
-        guard !path.isEmpty, !path.hasPrefix("/"), !path.contains("..") else { return nil }
-        return Self.repositoryDocs + path
+        book.resolveLink(raw, from: file)
     }
 
     // MARK: - the book
@@ -144,7 +132,16 @@ struct ManualTypesetter {
         text.append(pageBreak())
         contents(into: text)
         for chapter in book.chapters {
-            text.append(pageBreak())
+            let goesOn: Bool = joined.contains(chapter.file) && !breaks.contains(chapter.file)
+                && chapter.file != book.chapters.first?.file
+            let lead: Int = text.length
+            if !goesOn {
+                text.append(pageBreak())
+            }
+            if goesOn {
+                rule(into: text)
+            }
+            text.addAttribute(.manualChapterLead, value: chapter.file, range: NSRange(location: lead, length: text.length - lead))
             heading(1, chapter.title, anchor: chapter.file, file: chapter.file, into: text)
             for block in chapter.blocks {
                 append(block, file: chapter.file, into: text)
@@ -157,26 +154,23 @@ struct ManualTypesetter {
         NSAttributedString(string: "\u{000C}", attributes: [.font: Self.font(Self.bodySize)])
     }
 
+    /// The title page: the name, the version and build date, the guide's introduction and the parts with their
+    /// chapters at a glance (the contents with page numbers follow on the next page).
     func titlePage(into text: NSMutableAttributedString) {
-        let center: NSMutableParagraphStyle = paragraphStyle(spacingBefore: 0, after: 8, alignment: .center)
-        let top: NSMutableParagraphStyle = paragraphStyle(spacingBefore: contentHeight * 0.28, after: 10, alignment: .center)
+        let center: NSMutableParagraphStyle = paragraphStyle(spacingBefore: 0, after: 6, alignment: .center)
+        let top: NSMutableParagraphStyle = paragraphStyle(spacingBefore: contentHeight * 0.1, after: 8, alignment: .center)
         text.append(NSAttributedString(string: "MacContestLogger\n", attributes: [
             .font: Self.font(30, .bold), .foregroundColor: Self.ink, .paragraphStyle: top,
         ]))
-        var subtitle: String = book.title
-        if subtitle.hasPrefix("MacContestLogger ") {
-            subtitle = String(subtitle.dropFirst("MacContestLogger ".count))
-            subtitle = subtitle.prefix(1).uppercased() + subtitle.dropFirst()
-        }
-        text.append(NSAttributedString(string: subtitle + "\n", attributes: [
+        text.append(NSAttributedString(string: Self.subtitle(book.title) + "\n", attributes: [
             .font: Self.font(16), .foregroundColor: Self.muted, .paragraphStyle: center,
         ]))
-        if let version, !version.isEmpty {
-            text.append(NSAttributedString(string: version + "\n", attributes: [
-                .font: Self.font(12, .medium), .foregroundColor: Self.muted, .paragraphStyle: center,
+        if let line = Self.editionLine(version: version, buildDate: buildDate) {
+            text.append(NSAttributedString(string: line + "\n", attributes: [
+                .font: Self.font(10.5, .medium), .foregroundColor: Self.muted, .paragraphStyle: center,
             ]))
         }
-        let gap: NSMutableParagraphStyle = paragraphStyle(spacingBefore: 36, after: 6)
+        let gap: NSMutableParagraphStyle = paragraphStyle(spacingBefore: 26, after: 6)
         var first = true
         for block in book.intro {
             if case .paragraph(let body) = block {
@@ -186,11 +180,64 @@ struct ManualTypesetter {
                 first = false
             }
         }
+        text.append(NSAttributedString(string: "At a glance\n", attributes: [
+            .font: Self.font(11, .semibold), .foregroundColor: Self.ink,
+            .paragraphStyle: paragraphStyle(spacingBefore: 16, after: 4),
+        ]))
+        for (part, chapters) in book.parts {
+            let style: NSMutableParagraphStyle = paragraphStyle(after: 4)
+            let line = NSMutableAttributedString(string: part + "  ", attributes: [
+                .font: Self.font(8.5, .semibold), .foregroundColor: Self.ink, .paragraphStyle: style,
+            ])
+            for (index, chapter) in chapters.enumerated() {
+                if index > 0 {
+                    line.append(NSAttributedString(string: " · ", attributes: [
+                        .font: Self.font(8.5), .foregroundColor: Self.rule, .paragraphStyle: style,
+                    ]))
+                }
+                line.append(NSAttributedString(string: ManualRenderer.plain(chapter.title), attributes: [
+                    .font: Self.font(8.5), .foregroundColor: Self.muted, .paragraphStyle: style,
+                    .manualLink: "#" + chapter.file,
+                ]))
+            }
+            line.append(NSAttributedString(string: "\n", attributes: [.paragraphStyle: style]))
+            text.append(line)
+        }
         let link: String = "https://github.com/ok1xoe/MacContestLogger"
         text.append(NSAttributedString(string: link + "\n", attributes: [
             .font: Self.font(Self.bodySize), .foregroundColor: Self.linkColor, .manualLink: link,
-            .paragraphStyle: paragraphStyle(spacingBefore: 12, alignment: .center),
+            .paragraphStyle: paragraphStyle(spacingBefore: 14, alignment: .center),
         ]))
+    }
+
+    /// `MacContestLogger user guide` → `User guide`.
+    static func subtitle(_ title: String) -> String {
+        var subtitle: String = title
+        if subtitle.hasPrefix("MacContestLogger ") {
+            subtitle = String(subtitle.dropFirst("MacContestLogger ".count))
+            subtitle = subtitle.prefix(1).uppercased() + subtitle.dropFirst()
+        }
+        return subtitle
+    }
+
+    /// `Version v0.9.0 · built 2026-10-16` (either part may be missing; `nil` when both are).
+    static func editionLine(version: String?, buildDate: Date?) -> String? {
+        var parts: [String] = []
+        if let version, !version.isEmpty {
+            parts.append("Version " + version)
+        }
+        if let buildDate {
+            parts.append("built " + isoDay(buildDate))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// `2026-10-16` (UTC).
+    static func isoDay(_ date: Date) -> String {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC") ?? .current
+        let parts: DateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     }
 
     /// The contents: the parts and their chapters with right-aligned page numbers (linked to the chapter).
@@ -202,10 +249,12 @@ struct ManualTypesetter {
                 part = chapter.part
                 text.append(NSAttributedString(string: part + "\n", attributes: [
                     .font: Self.font(11, .semibold), .foregroundColor: Self.ink,
-                    .paragraphStyle: paragraphStyle(spacingBefore: 8, after: 3),
+                    .paragraphStyle: paragraphStyle(spacingBefore: 7, after: 2),
                 ]))
             }
-            let style: NSMutableParagraphStyle = paragraphStyle(after: 2, indent: 14)
+            // Compact enough for the whole book's contents to fit one page.
+            let style: NSMutableParagraphStyle = paragraphStyle(after: 1, indent: 14)
+            style.lineHeightMultiple = 1.0
             style.tabStops = [NSTextTab(textAlignment: .right, location: contentWidth)]
             let page: String = pages[chapter.file].map(String.init) ?? "000"
             text.append(NSAttributedString(string: ManualRenderer.plain(chapter.title) + "\t" + page + "\n", attributes: [
@@ -213,6 +262,14 @@ struct ManualTypesetter {
                 .manualLink: "#" + chapter.file,
             ]))
         }
+    }
+
+    /// The separator above a chapter that goes on below the previous one.
+    func rule(into text: NSMutableAttributedString) {
+        let style: NSMutableParagraphStyle = paragraphStyle(spacingBefore: 22, after: 10, alignment: .center)
+        text.append(NSAttributedString(string: "\u{2014}  \u{2014}  \u{2014}\n", attributes: [
+            .font: Self.font(Self.bodySize), .foregroundColor: Self.rule, .paragraphStyle: style,
+        ]))
     }
 
     func heading(_ level: Int, _ title: String, anchor: String?, file: String, into text: NSMutableAttributedString) {

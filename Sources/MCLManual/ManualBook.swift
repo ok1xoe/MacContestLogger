@@ -30,6 +30,19 @@ public struct ManualBook: Sendable {
         }
     }
 
+    /// The parts in order with their chapters.
+    public var parts: [(name: String, chapters: [Chapter])] {
+        var out: [(name: String, chapters: [Chapter])] = []
+        for chapter in chapters {
+            if out.last?.name == chapter.part {
+                out[out.count - 1].chapters.append(chapter)
+            } else {
+                out.append((chapter.part, [chapter]))
+            }
+        }
+        return out
+    }
+
     /// Reads `README.md` and every page it links in `dir`.
     public static func load(docs dir: URL) throws -> ManualBook {
         let readme: String = try read(dir, "README.md")
@@ -103,5 +116,30 @@ public struct ManualBook: Sendable {
     /// The anchor of a heading in a chapter (`dx-cluster.md#spot-comment`).
     public static func anchor(file: String, heading: String) -> String {
         file + "#" + slug(heading)
+    }
+
+    /// Where links to other files of the repository lead.
+    public static let repositoryDocs = "https://github.com/ok1xoe/MacContestLogger/blob/main/docs/"
+
+    /// A link target of the book (the same for the PDF and the HTML): `#<anchor>` for a chapter (`#map.md`) or a
+    /// heading in it (`#map.md#layers`), otherwise an absolute URL; `nil` for a path that leaves `docs/`.
+    public func resolveLink(_ raw: String, from file: String) -> String? {
+        if raw.hasPrefix("http://") || raw.hasPrefix("https://") || raw.hasPrefix("mailto:") {
+            return raw
+        }
+        if raw.hasPrefix("#") {
+            return "#" + file + raw
+        }
+        var path: String = raw
+        var fragment: String?
+        if let hash = raw.firstIndex(of: "#") {
+            path = String(raw[..<hash])
+            fragment = String(raw[raw.index(after: hash)...])
+        }
+        if chapters.contains(where: { $0.file == path }) {
+            return "#" + path + (fragment.map { "#" + $0 } ?? "")
+        }
+        guard !path.isEmpty, !path.hasPrefix("/"), !path.contains("..") else { return nil }
+        return Self.repositoryDocs + path
     }
 }

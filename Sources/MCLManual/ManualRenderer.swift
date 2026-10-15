@@ -2,8 +2,8 @@ import AppKit
 import Foundation
 import PDFKit
 
-/// The PDF of the user guide: A4 pages laid out by the text system (one text container per page, a chapter starts a
-/// page), a running header with the chapter, page numbers in the footer, a contents page with page numbers, the PDF
+/// The PDF of the user guide: A4 pages laid out by the text system (one text container per page; a chapter starts a
+/// page unless the previous one ends in the upper two thirds of its page, then it goes on below it), a running header with the chapter, page numbers in the footer, a contents page with page numbers, the PDF
 /// outline (chapters and their sections) and working links (inside the book and to the web). Only AppKit and PDFKit —
 /// nothing to install on the build machine.
 @MainActor
@@ -12,11 +12,14 @@ public struct ManualRenderer {
     public struct Options: Sendable {
         /// Shown on the title page and in the document info (`v0.9.0`).
         public var version: String?
+        /// The build date on the title page (`nil` = none).
+        public var buildDate: Date?
         public var pageSize = CGSize(width: 595.28, height: 841.89)
         public var margin = CGSize(width: 54, height: 60)
 
-        public init(version: String? = nil) {
+        public init(version: String? = nil, buildDate: Date? = nil) {
             self.version = version
+            self.buildDate = buildDate
         }
     }
 
@@ -28,7 +31,12 @@ public struct ManualRenderer {
         public var chapterPages: [String: Int]
         public var outlineEntries: Int
         public var links: Int
+        /// The chapters (files, in book order) that start a new page; the others go on below the previous chapter.
+        public var pageStarts: [String]
     }
+
+    /// A chapter goes on below the previous one when that one leaves more than this share of its last page empty.
+    static let joinBelow: CGFloat = 2.0 / 3.0
 
     let book: ManualBook
     let docs: URL
@@ -54,30 +62,38 @@ public struct ManualRenderer {
         var anchors: [String: (page: Int, y: CGFloat)] = [:]
         /// Headings (by anchor) whose next paragraph starts on a later page.
         var stranded: Set<String> = []
+        /// The chapters (by file) whose previous chapter ends high enough on its page for them to go on below it.
+        var joinable: Set<String> = []
+        /// The chapters that went on below the previous one in this pass.
+        var joined: Set<String> = []
     }
 
     /// Lays the book out until the contents' page numbers and the page breaks before stranded headings settle.
     func settledLayout() -> Layout {
         var pages: [String: Int] = [:]
         var breaks: Set<String> = []
-        var layout: Layout = lay(pages: pages, breaks: breaks)
-        for _ in 0..<6 {
+        var joined: Set<String> = []
+        var layout: Layout = lay(pages: pages, breaks: breaks, joined: joined)
+        // Every set only grows, so the passes settle; the cap is a safety net.
+        for _ in 0..<10 {
             let found: [String: Int] = layout.anchors.mapValues { $0.page + 1 }
             let newBreaks: Set<String> = breaks.union(layout.stranded)
-            if found == pages && newBreaks == breaks {
+            let newJoined: Set<String> = joined.union(layout.joinable)
+            if found == pages && newBreaks == breaks && newJoined == joined {
                 break
             }
             pages = found
             breaks = newBreaks
-            layout = lay(pages: pages, breaks: breaks)
+            joined = newJoined
+            layout = lay(pages: pages, breaks: breaks, joined: joined)
         }
         return layout
     }
 
-    func lay(pages: [String: Int], breaks: Set<String>) -> Layout {
-        let typesetter = ManualTypesetter(book: book, docs: docs, version: options.version,
+    func lay(pages: [String: Int], breaks: Set<String>, joined: Set<String>) -> Layout {
+        let typesetter = ManualTypesetter(book: book, docs: docs, version: options.version, buildDate: options.buildDate,
                                           contentWidth: contentSize.width, contentHeight: contentSize.height,
-                                          pages: pages, breaks: breaks)
+                                          pages: pages, breaks: breaks, joined: joined)
         let storage = NSTextStorage(attributedString: typesetter.build())
         let manager = NSLayoutManager()
         manager.allowsNonContiguousLayout = false
@@ -115,10 +131,27 @@ public struct ManualRenderer {
                 layout.anchors[anchor] = place
             }
         }
+        // Where each chapter's predecessor ends: high on its page → the chapter may go on below it.
+        let first: String? = book.chapters.first?.file
+        storage.enumerateAttribute(.manualChapterLead, in: whole) { value, range, _ in
+            guard let file = value as? String, file != first, range.location > 0 else { return }
+            if storage.attributedSubstring(from: NSRange(location: range.location, length: 1)).string != "\u{000C}" {
+                layout.joined.insert(file)
+            }
+            let end: Int = range.location - 1
+            let glyph: Int = manager.glyphIndexForCharacter(at: end)
+            guard manager.textContainer(forGlyphAt: glyph, effectiveRange: nil) != nil else { return }
+            let line: CGRect = manager.lineFragmentRect(forGlyphAt: glyph, effectiveRange: nil)
+            if line.maxY < contentSize.height * Self.joinBelow {
+                layout.joinable.insert(file)
+            }
+        }
+        // A heading alone at the bottom of a page (also a chapter title that went on below the previous chapter).
         storage.enumerateAttribute(.manualHeading, in: whole) { value, range, _ in
-            guard let level = value as? Int, level > 1, let start = page(ofCharacter: range.location),
+            guard let level = value as? Int, let start = page(ofCharacter: range.location),
                   let next = page(ofCharacter: NSMaxRange(range)), next.page > start.page,
-                  let anchor = storage.attribute(.manualAnchor, at: range.location, effectiveRange: nil) as? String else {
+                  let anchor = storage.attribute(.manualAnchor, at: range.location, effectiveRange: nil) as? String,
+                  level > 1 || layout.joined.contains(anchor) else {
                 return
             }
             layout.stranded.insert(anchor)
@@ -173,8 +206,18 @@ public struct ManualRenderer {
             }
         }
         let summary = Summary(pages: layout.containers.count, chapters: book.chapters.count, chapterPages: chapterPages,
-                              outlineEntries: outlineEntries, links: links)
+                              outlineEntries: outlineEntries, links: links, pageStarts: pageStarts(layout))
         return (data, summary)
+    }
+
+    /// The chapters that start a new page in `layout` (book order).
+    func pageStarts(_ layout: Layout) -> [String] {
+        book.chapters.map(\.file).filter { !layout.joined.contains($0) }
+    }
+
+    /// The page flow alone (no PDF): the chapters that start a new page, for the HTML's print breaks.
+    public func pageStarts() -> [String] {
+        pageStarts(settledLayout())
     }
 
     /// The chapter title shown in the header of each page (the last chapter that starts on or before it).

@@ -44,7 +44,8 @@ struct UpdateNoticePresenter: ViewModifier {
         case .newer?: return language.tr("Je k dispozici nová verze")
         case .upToDate?: return language.tr("Máte nejnovější verzi")
         case .failed?, nil: return language.tr("Kontrola nové verze")
-        case .manualFailed?: return language.tr("PDF manuál")
+        case .manualFailed(_, .pdf)?: return language.tr("PDF manuál")
+        case .manualFailed(_, .html)?: return language.tr("HTML manuál")
         }
     }
 
@@ -56,7 +57,7 @@ struct UpdateNoticePresenter: ViewModifier {
             return language.tr("Verze %s je nejnovější vydaná.", .string(current))
         case .failed(let text)?:
             return language.text(text)
-        case .manualFailed(let text)?:
+        case .manualFailed(let text, _)?:
             return language.text(text) + "\n\n" + language.tr("Dokumentace je k dispozici online: %s",
                                                                 .string(ManualDownload.docsUrl))
         case nil:

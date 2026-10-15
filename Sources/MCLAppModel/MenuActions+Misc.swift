@@ -15,6 +15,7 @@ extension MenuActions {
         "tools.diagnosticsFolder", "tools.checkVersion", "tools.checkVersionAtStart", "help.checkUpdates",
         "help.contestRules", "help.contestCalendar", "help.errorLog", "settings.announcements", "tools.tuneBeacon",
         "settings.autoSend", "settings.grabFocus", "settings.snapWindows", "tools.pdfManual", "help.pdfManual",
+        "help.htmlManual",
     ]
 
     /// Runs one of `miscIds`; what the app layer must do is returned.
@@ -57,7 +58,10 @@ extension MenuActions {
             app.updates.checkNow()
         case "tools.pdfManual", "help.pdfManual":
             guard app.updates.canDownloadManual() else { return nil }
-            return .saveManual(suggestedName: ManualDownload.assetName)
+            return .saveManual(suggestedName: ManualDownload.Format.pdf.assetName, format: .pdf)
+        case "help.htmlManual":
+            guard app.updates.canDownloadManual() else { return nil }
+            return .saveManual(suggestedName: ManualDownload.Format.html.assetName, format: .html)
         case "tools.checkVersionAtStart":
             app.updates.checksAtStart.toggle()
         case "help.contestRules":

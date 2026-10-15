@@ -55,6 +55,7 @@ public enum DefaultMenu {
         "tools.checkVersionAtStart": "Kontrolovat novou verzi při spuštění",
         "tools.pdfManual": "Stáhnout nejnovější PDF manuál…",
         "help.pdfManual": "Stáhnout nejnovější PDF manuál…",
+        "help.htmlManual": "Stáhnout nejnovější HTML manuál…",
         "help.contestRules": "Pravidla závodu",
         "help.contestCalendar": "Kalendář závodů (WA7BNM)",
         "help.errorLog": "Zobrazit chybový log",
@@ -235,6 +236,7 @@ public enum DefaultMenu {
             leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("help.contestRules"),
             leaf("help.contestCalendar"), leaf("sep.help.1"), leaf("help.report"), leaf("help.errorLog"),
             leaf("help.dataFolder"), leaf("help.checkUpdates"), leaf("help.pdfManual"),
+            leaf("help.htmlManual"),
         ])
         let window = node("window", [
             leaf("window.log"),

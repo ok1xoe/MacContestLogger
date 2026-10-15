@@ -104,18 +104,24 @@ SIGTERM, SIGINT and SIGHUP run the regular quit, and the transmitter is released
 
     swift run mcl-scorecheck --help    # recompute a Cabrillo log's score and compare it with CLAIMED-SCORE
     swift run mcl-synthlog --help      # generate synthetic logs
-    swift run mcl-manual --out build/manual/MacContestLogger-manual.pdf   # the user guide as a PDF
+    swift run mcl-manual --out build/manual/MacContestLogger-manual.pdf \
+        --html build/manual/MacContestLogger-manual.html                  # the user guide as a PDF and as HTML
 
 `mcl-manual` turns `docs/*.md` into one PDF (order and parts from `docs/README.md`; title page, contents with page
-numbers, bookmarks, page numbers, links) using only AppKit's text layout and PDFKit, so it needs nothing installed.
-It fails when a page or an image linked from the guide is missing; CI builds it on every pull request.
+numbers, bookmarks, page numbers, links; a short chapter goes on below the previous one instead of leaving most of a
+page empty) using only AppKit's text layout and PDFKit, so it needs nothing installed. `--html` writes the same guide
+as one self-contained HTML file (images embedded as data URIs, linked contents, numbered chapters, light and dark
+screen styles, an A4 print style that breaks pages where the PDF does), meant to be adjusted and exported to PDF from
+a browser. Either or both can be requested in one run. It fails when a page or an image linked from the guide is
+missing; CI builds both on every pull request.
 
 ## Release
 
 A release is built by `.github/workflows/release.yml`: pushing a version tag such as `v0.9.0` builds a
 universal (arm64 and x86_64) DMG, checks it on an Intel runner and creates a draft GitHub
 release with `MacContestLogger-<version>-macos-universal.dmg`, its `.sha256` and the user guide
-`MacContestLogger-manual.pdf` (built by `mcl-manual`; the app's Help menu downloads it from the latest release). A suffix such as
+`MacContestLogger-manual.pdf` and `MacContestLogger-manual.html` (built by `mcl-manual`; the app's Help menu downloads
+them from the latest release). A suffix such as
 `-rc1` stays in the file name; the bundle version is `0.9.0`. The version rules are in
 `scripts/release-version.sh`. Locally:
 
