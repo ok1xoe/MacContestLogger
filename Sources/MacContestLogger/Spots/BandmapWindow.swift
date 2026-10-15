@@ -86,7 +86,7 @@ struct BandmapWindowView: View {
                 Color.clear
             }
         }
-        .frame(minWidth: 320, minHeight: 240)
+        .frame(minWidth: BandmapLayout.minWidth(fontSize: session.fontSize), minHeight: 240)
     }
 
     private func content(_ app: AppModel) -> some View {
@@ -95,7 +95,7 @@ struct BandmapWindowView: View {
         let drawState: BandmapDrawState? = BandmapDrawState(model)
         return VStack(alignment: .leading, spacing: 0) {
             if let drawState {
-                controls(model: model, language: language)
+                BandmapHeader(model: model, language: language, fontSize: $session.fontSize)
                 BandmapTopBar(model: model, language: language)
                 BandmapButtonGrid(model: model, language: language)
                 BandmapView(model: model, language: language, state: drawState)
@@ -122,41 +122,6 @@ struct BandmapWindowView: View {
             SpotHistorySheet(app: app, call: model.historyCall ?? "", fontSize: $sheets.fontSize,
                              close: { model.historyCall = nil })
         }
-    }
-
-    /// The control row: the radio (N1MM: the rig, its VFO), the tuned frequency and the transmit frequency while
-    /// split, the zoom buttons and the font stepper, which sizes the window and the spot labels together (the spot
-    /// font keeps its own value and 8…28 bounds and moves by the same step).
-    private func controls(model: BandmapModel, language: LanguageModel) -> some View {
-        HStack(alignment: .center, spacing: 6) {
-            Text(verbatim: model.radioName(language))
-                .windowFont(12, weight: .medium)
-                .foregroundStyle(.secondary)
-                .fixedSize()
-            Text(verbatim: model.tunedText)
-                .windowFont(18, weight: .bold, design: .monospaced)
-                .foregroundStyle(.mclPrimary)
-                .fixedSize()
-            if let tx = model.txText {
-                Text(verbatim: tx)
-                    .windowFont(13, weight: .bold, design: .monospaced)
-                    .foregroundStyle(Color(nsColor: .systemRed))
-                    .fixedSize()
-            }
-            Spacer(minLength: 0)
-            iconButton("plus", language.tr("Přiblížit")) { model.zoomIn() }
-            iconButton("minus", language.tr("Oddálit")) { model.zoomOut() }
-            iconButton("arrow.clockwise", language.tr("Reset zobrazení")) { model.resetView() }
-        }
-        .trailingFontStepper(size: $session.fontSize, language: language,
-                             stepped: { model.setSpotFont(model.spotFont + $0) })
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-    }
-
-    private func iconButton(_ symbol: String, _ label: String, action: @escaping @MainActor () -> Void) -> some View {
-        IconButton(symbol: symbol, label: label, size: CGSize(width: 28, height: 28), outlined: true, action: action)
-            .buttonStyle(.plain)
     }
 }
 

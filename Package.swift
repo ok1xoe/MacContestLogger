@@ -35,6 +35,8 @@ let package = Package(
         // The SwiftUI/AppKit app; `scripts/bundle.sh` assembles it into `MacContestLogger.app`.
         .executableTarget(name: "MacContestLogger", dependencies: ["MCLAppModel", "MCLCore"]),
         .testTarget(name: "MCLAppModelTests", dependencies: ["MCLAppModel", "MCLCore", "RTTYSignalKit"]),
+        // Layout checks of the app's own views (measured with `NSHostingView`, no window is shown).
+        .testTarget(name: "MacContestLoggerTests", dependencies: ["MacContestLogger", "MCLAppModel", "MCLCore"]),
         // the Java parity suite: command line over `ScoreCheckReport` (the logic lives in MCLCore so it can be tested).
         .executableTarget(name: "mcl-scorecheck", dependencies: ["MCLCore"]),
         // Development tool of the 20k measurement: a synthetic CQ WW CW log and core timings.
