@@ -145,6 +145,11 @@ Ctrl+Alt+Shift+0…Z), see [DX cluster → Band map top bar](dx-cluster.md#band-
 | **Ctrl+Alt+A** | next antenna for the band |
 | **F1–F10** (Rotator window active) | the rotor setup's preset bearings |
 
+The rotator keys are N1MM's. Up to version 1.1.1 MacContestLogger had the long path and stop the other way round
+(long path **Ctrl+Alt+J**, stop **Alt+L**). Only the defaults changed: if you remapped either action in
+"Nastavení → Klávesy" (Settings → Keys), your keys stay as you set them. **Výchozí** (Default) or **Vše na výchozí
+(N1MM)** (All to default (N1MM)) switches to the N1MM keys.
+
 ## Other
 
 | Key | Action |

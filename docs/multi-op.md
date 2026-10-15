@@ -39,7 +39,8 @@ On connecting, each station sends its **setup** to the others: program version, 
 contest and the operator/transmitter category of the contest setup (and again whenever it
 changes). When another online station differs, the Messages tab shows a red warning (and the
 tab label a ⚠), and the status line announces each new difference once (N1MM configuration
-mismatch warnings).
+mismatch warnings). Each new difference — for example multi-single on one computer and multi-two
+on another — is also written to the program messages of the Info window, N1MM's Message Window.
 
 ### Actions tab
 
