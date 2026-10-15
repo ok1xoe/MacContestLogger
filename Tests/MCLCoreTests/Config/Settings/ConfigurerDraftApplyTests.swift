@@ -330,7 +330,7 @@ import Testing
                                "spotComment", "spotAllSpQsos", "specialCalls", "specialCallsIncludeBonus",
                                "availColumns", "availColumnWidths", "availSummaryBands", "availShowSummary",
                                "nextCallKey", "callStackOrder", "keyMap", "sendPartialCalls", "callExchangeSeparator",
-                               "repeatMaxMinutes", "stackMessages", "weight", "contestSpacing", "wkSendSettings", "wkKeyMode", "wkAutospace", "wkSwapPaddles", "wkSidetone", "wkSidetonePaddleOnly", "wkSidetoneHz", "wkPotMode", "wkPotMinWpm", "wkPotRangeWpm", "wkPtt", "wkLeadMs", "wkTailMs", "wkHangTime", "wkFirstExtensionMs", "wkKeyCompensationMs", "outputDevice2", "outputLevel",
+                               "repeatMaxMinutes", "stackMessages", "weight", "contestSpacing", "wkSendSettings", "wkKeyMode", "wkAutospace", "wkSwapPaddles", "wkSidetone", "wkSidetonePaddleOnly", "wkSidetoneHz", "wkPotMode", "wkPotMinWpm", "wkPotRangeWpm", "wkPtt", "wkLeadMs", "wkTailMs", "wkHangTime", "wkFirstExtensionMs", "wkKeyCompensationMs", "serialKeying", "serialPort", "serialKeyLine", "serialPttLine", "serialPttDelayMs", "serialPttTailMs", "cwPttViaCat", "monitorEnabled", "monitorDevice", "monitorPitchHz", "monitorVolume", "outputDevice2", "outputLevel",
                                "callStackClearOnBandChange", "digitalCallStacking",
                                "rttyInterface", "so2rTxLockout",
                                "tncType",
