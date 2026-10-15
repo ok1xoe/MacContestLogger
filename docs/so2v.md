@@ -122,6 +122,28 @@ In SO2R the CQ repeat (Alt+R) stays on the radio it was switched on in, so the r
 type on the S&P radio. A message sent on the other radio ends it (N1MM: "CQ-repeat is terminated when a message is
 sent on the other radio") — you have started a QSO there.
 
+## Two keyboards
+
+N1MM's Config → SO2R → *Two Keyboards*: **Nastavení → SO2R → Dvě klávesnice** (off by default). With two entry
+windows on screen, each of two keyboards drives its own window — a key typed on keyboard 1 goes to the left
+window (rig 1 / VFO A), a key typed on keyboard 2 to the right one (rig 2 / VFO B), whichever window has the focus.
+
+- **Which keyboard is which:** as in N1MM, the first keyboard you type on after starting drives window 1 and the
+  next other keyboard window 2. To fix the assignment, open **Nastavení → SO2R → Dvě klávesnice: přiřazení…**: it
+  lists the attached keyboards, lets you pick the one for *Okno 1* and *Okno 2*, and shows which keyboard the last
+  key came from (keys are not moved between the windows while it is open). Two keyboards of the same model are told
+  apart by the USB port they are plugged into.
+- `\` typed on a keyboard only moves the focus to that keyboard's window; the Pause key (F15) does nothing — with
+  two keyboards neither is needed to switch windows.
+- Keys stay where they are while a dialog or a sheet is open, and while you type into a text field of another
+  window (the cluster command line, a dialog).
+- **macOS Input Monitoring:** telling the keyboards apart needs it. macOS asks when you switch the option on; if
+  you refused, allow MacContestLogger in System Settings → Privacy & Security → Input Monitoring (the setup window
+  has a button for it) and switch the option off and on again. Without the permission the keys simply stay with
+  the focused window. The app only reads which keyboard a key came from; nothing is sent to any device.
+- Keyboard remapping tools that send keys of their own (Karabiner and the like) may confuse the matching, as N1MM
+  warns for AutoHotKey.
+
 ## 2BSIQ — two QSOs at once
 
 Two band split interleaved QSOs (N1MM 2BSIQ) need nothing to switch on: with ESM on, both entry windows run their own
@@ -137,7 +159,7 @@ QSO side by side.
 - A CQ repeat ends when the other radio transmits.
 - The sent CW is echoed in each window's status line, so you can see where each QSO is.
 
-N2IC's suggested setup: ESM on, the stereo / OTRSP macros on, no Dueling CQs and no FocusOther, a short CQ, and the
+N2IC's suggested setup: [two keyboards](#two-keyboards), ESM on, the stereo / OTRSP macros on, no Dueling CQs and no FocusOther, a short CQ, and the
 CQ on each radio started by hand with Enter once the other radio has finished.
 
 In digital modes each entry window can have its own Digital Interface and fldigi — see

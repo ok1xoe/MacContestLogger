@@ -8,6 +8,8 @@ import MCLCore
 struct KeyEventSnapshot: Sendable {
     let event: MacKeyEvent
     let windowNumber: Int
+    /// The window server's time stamp (N1MM „Two Keyboards" tells one event from another by it).
+    var timestamp: Double = 0
 }
 
 /// `NSEvent` → `MacKeyEvent` (podklad 4.3): the fields `CPlatformResponder.handleKeyEvent` reads. The previous
@@ -38,7 +40,7 @@ enum KeyEventBridge {
                 copy.deadKeyCharacter = deadKeyCharacter(keyCode: event.keyCode)
             }
         }
-        return KeyEventSnapshot(event: copy, windowNumber: event.windowNumber)
+        return KeyEventSnapshot(event: copy, windowNumber: event.windowNumber, timestamp: event.timestamp)
     }
 
     /// JDK 21 `NsGetDeadKeyChar` (`AWTEvent.m`): the key translated with the current Carbon modifiers
@@ -92,6 +94,7 @@ final class EntryKeyMonitor: ObservableObject {
         remove()
         self.window = window
         flow = EntryKeyFlow(entry: entry)
+        TwoKeyboardDispatcher.shared.register(window, vfo: entry.vfo)
         token = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { [weak self] event in
             guard let snapshot = KeyEventBridge.snapshot(event) else { return event }
             let consumed: Bool = MainActor.assumeIsolated {
@@ -125,6 +128,10 @@ final class EntryKeyMonitor: ObservableObject {
 
     private func handle(_ snapshot: KeyEventSnapshot) -> Bool {
         guard let flow else { return false }
+        // N1MM „Two Keyboards": a key of the other entry window's keyboard goes there.
+        if let taken = TwoKeyboardDispatcher.shared.dispatch(snapshot) {
+            return taken
+        }
         return flow.process(snapshot.event, target: target(windowNumber: snapshot.windowNumber))
     }
 

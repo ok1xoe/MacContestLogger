@@ -157,6 +157,8 @@
             { "id": "so2r.swapLead", "label": "Předstih při přepnutí rádia (ms)…", "state": "enable" },
             { "id": "so2r.winkeyer2", "label": "Winkeyer: rádio 2 na druhém výstupu (KEY OUT 2)", "state": "enable" },
             { "id": "so2r.so2vRepeat", "label": "SO2V: zápis do okna VFO B ukončí opakované CQ", "state": "enable" },
+            { "id": "so2r.twoKeyboards", "label": "Dvě klávesnice (každá ovládá jedno okno)", "state": "enable" },
+            { "id": "so2r.keyboards", "label": "Dvě klávesnice: přiřazení…", "state": "enable" },
             {
               "id": "so2r.voice1", "label": "Hlasové zprávy rádia 1", "state": "enable",
               "children": [
