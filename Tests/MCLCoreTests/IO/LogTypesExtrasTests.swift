@@ -80,4 +80,24 @@ import Testing
         #expect(FormattedTextExport.line(qsos[0], layout: "{call:3}{unknown}{", myCall: "", received: JavaLinkedMap())
                     == "DL1{")
     }
+
+    @Test func waeRttyLetsEverybodyWorkEverybody() throws {
+        let definition = try ContestDefinitionLoader.loadFile(
+            PublishedContestDataTests.root.appendingPathComponent("contests/wae-rtty.yaml"))
+        let dxcc = try SessionFixture.dxcc()
+        let registry = try MultiplierSetRegistry(dxcc: dxcc)
+            .loadDir(PublishedContestDataTests.root.appendingPathComponent("multipliers"))
+        let session = ContestSession(definition: definition, dxcc: dxcc, registry: registry, myCall: "OK1XOE")
+        session.setQtcCount(3)
+        for (call, band) in [("DL1ABC", "80m"), ("W1AW", "20m")] {
+            _ = try session.log(call: call, band: band, mode: "RTTY",
+                                receivedRaw: SessionFixture.raw(("rst", "599"), ("nr", "1")),
+                                at: Date(timeIntervalSince1970: 1_795_867_500))
+        }
+        let score = try session.score()
+        #expect(score.qsoPoints == 2)
+        // DL on 80 m x4 + W on 20 m x2; (2 QSOs + 3 QTCs) x 6.
+        #expect(score.multTotal == 6)
+        #expect(score.total == 30)
+    }
 }

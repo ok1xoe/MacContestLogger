@@ -153,6 +153,7 @@ contests/ure-municipalities.yaml
 contests/vhf-dx.yaml
 contests/vhf-serial.yaml
 contests/wae-cw.yaml
+contests/wae-rtty.yaml
 contests/wae-ssb.yaml
 contests/winter-field-day.yaml
 contests/ww-digi.yaml

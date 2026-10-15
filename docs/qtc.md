@@ -3,7 +3,7 @@
 ![QTC window for WAE](img/qtc.png)
 
 Equivalent of the N1MM **QTC window** for the [WAE DX Contest](https://www.darc.de/der-club/referate/conteste/wae-dx-contest/en/).
-The contests `wae-cw` and `wae-ssb` are in the contest data.
+The contests `wae-cw`, `wae-ssb` and `wae-rtty` are in the contest data.
 
 ## Rules in the definition
 
@@ -37,6 +37,10 @@ multipliers:
 - QTC points are in the score immediately (also after recalculation), and in
   Cabrillo as `QTC:` lines after the QSOs:
   `QTC: freq mo date time sender series/count recipient time callsign number`.
+
+**WAE RTTY** (`wae-rtty`): everybody works everybody and QTCs go in both directions between stations on
+different continents — any station uses both **Receive QTC** and **Send QTC**. The limit of 10 counts the QTCs sent
+and received with one station together, as the RTTY rules require.
 
 QTCs are stored in the log (table `qtc`); cluster sync does not transfer them
 between stations.

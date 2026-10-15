@@ -1,0 +1,38 @@
+schemaVersion: 1
+id: wae-rtty
+metadata:
+  name: "WAE DX Contest — RTTY"
+  organizer: "DARC"
+  description: "second full weekend of November, 0000 UTC Saturday to 2359 UTC Sunday (single operators 36 of the 48 hours, off times at least 60 minutes). Unlike CW and SSB, everybody works everybody: RST + serial, 1 point per QSO, each station once per band. QTC traffic in both directions between stations on different continents: every station may send and receive QTCs (QTC window: Receive / Send), at most 10 QTCs between two stations in sum, each QSO reported once, 1 point per QTC for sender and receiver. Multipliers for all stations: countries per band weighted 80 m x4, 40 m x3, 20-10 m x2. Simplifications: DXCC entities instead of the WAE list and the call-area splits of W, VE, VK, ZL, ZS, JA, BY, PY and RA8-0; the continent of a QTC partner is not checked."
+  officialUrl: "https://www.darc.de/der-club/referate/conteste/wae-dx-contest/en/wae-rules/"
+period: { durationHours: 48, startWeekday: SAT, startTime: "0000" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  qtc: { points: 1, maxPerStation: 10, groupSize: 10 }
+  total: "(qsoPoints + qtcPoints) * multTotal"
+
+multipliers:
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND,
+      bandWeights: { 80m: 4, 40m: 3, 20m: 2, 15m: 2, 10m: 2 } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: DARC-WAEDC-RTTY, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points, mult]
+operating:
+  offTime:
+    minimumMinutes: 60
+    requiredMinutes: 720
