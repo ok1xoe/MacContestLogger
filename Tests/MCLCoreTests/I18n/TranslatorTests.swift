@@ -197,10 +197,11 @@ import Testing
         // 5 keys of the built-in FSK and
         // 1 key of 2BSIQ and
         // 6 keys of grabbing the focus and snapping windows and
-        // 20 keys of two keyboards.
-        #expect(map.count == 2_512)
+        // 20 keys of two keyboards and
+        // 2 keys of the combined contest's part scores.
+        #expect(map.count == 2_514)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_512)
+        #expect(german.count == 2_514)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

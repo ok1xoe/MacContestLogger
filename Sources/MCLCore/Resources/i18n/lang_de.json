@@ -2510,5 +2510,7 @@
  "Okno %s": "Fenster %s",
  "Test: stiskni klávesu na jedné z klávesnic": "Test: eine Taste auf einer der Tastaturen drücken",
  "Test: %s — nepřiřazena": "Test: %s — nicht zugeordnet",
- "Test: %s → okno %s": "Test: %s → Fenster %s"
+ "Test: %s → okno %s": "Test: %s → Fenster %s",
+ "%s: body %s × násobiče %s = %s": "%s: Punkte %s × Multiplikatoren %s = %s",
+ "%s  =  skóre %s": "%s  =  Ergebnis %s"
 }

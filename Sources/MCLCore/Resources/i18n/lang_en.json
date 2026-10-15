@@ -2510,5 +2510,7 @@
  "Okno %s": "Window %s",
  "Test: stiskni klávesu na jedné z klávesnic": "Test: press a key on one of the keyboards",
  "Test: %s — nepřiřazena": "Test: %s — not assigned",
- "Test: %s → okno %s": "Test: %s → window %s"
+ "Test: %s → okno %s": "Test: %s → window %s",
+ "%s: body %s × násobiče %s = %s": "%s: points %s × multipliers %s = %s",
+ "%s  =  skóre %s": "%s  =  score %s"
 }
