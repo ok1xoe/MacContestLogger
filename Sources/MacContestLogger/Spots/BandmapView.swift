@@ -463,8 +463,9 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
             model.doubleClick(x: Float(start.x), y: Float(start.y), height: height, axisX: metrics.axisX,
                               rowH: metrics.rowH)
         } else {
+            // N1MM Shift+click: the other radio / VFO (SO2V / SO2R).
             model.click(x: Float(start.x), y: Float(start.y), height: height, axisX: metrics.axisX,
-                        rowH: metrics.rowH)
+                        rowH: metrics.rowH, otherRadio: event.modifierFlags.contains(.shift))
         }
     }
 

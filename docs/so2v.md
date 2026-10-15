@@ -57,12 +57,51 @@ Box+, microHAM in OTRSP mode). To turn it on: **"Nastavení → Hardware → SO2
 | **Alt+F5** | frequency, mode and call swapped between the radios (SO2R) or VFOs (SO2V); the entry focus moves to the other window |
 | **Alt+F6** | SO2R: the same swap, the focus stays |
 | **`** | SO2R stereo listening on / off |
+| **Cmd+Shift+↓ / ↑** | the other radio / VFO to the next spot higher / lower (N1MM Ctrl+Shift+↓/↑); on the active radio's band its frequency is skipped |
+| **Ctrl+Alt+Shift+↓ / ↑** | the other radio / VFO to the next multiplier spot higher / lower |
+| **Ctrl+Shift+PgUp / PgDn** | the other radio / VFO one band up / down |
+| **Alt+Shift+Q** | the other radio / VFO to the CQ frequency of its band |
+| **Alt+PgUp / PgDn** | CW: the speed of the radio without the transmit focus (each radio keeps its own speed) |
+| **Ctrl+B** | SO2R: Dueling CQs on / off |
+| **Ctrl+Shift+K** | SO2R: FocusOther on / off |
+| **Ctrl+Shift+L** | the `{CTRLFx}` macro on / off |
+| **Ctrl+`** | the stereo / OTRSP RX macros on / off |
 
 All of them can be remapped in "Nastavení → Klávesy" (Settings → Keys), except Ctrl+F1–F12 and Ctrl+Enter, which
 follow the F-keys and Enter. macOS keeps some Control+F-key combinations for keyboard navigation (System Settings →
 Keyboard → Keyboard Shortcuts → Keyboard); turn those off to use Ctrl+F1–F8. A PC keyboard's Pause key reaches a Mac
 as F15. In SO2V one rig has one transmitter, so both foci always sit in the same window: Ctrl+F1–F12 make the other
 VFO active for the message and come back once it has been sent when this window's call field holds a call.
+
+- **The other radio from the band map and the call field:** **Shift+click** on a spot (or a frequency) in the band map
+  tunes the other radio / VFO and puts the call into its window; `/14030` in the call field tunes the other radio in
+  SO2R (VFO B of the rig in SO1V / SO2V). The focus stays where it is.
+- **Software band lockout:** in SO2R Ctrl+PgUp/PgDn of either radio skips the band the other radio is on. It is no
+  substitute for a hardware lockout.
+- **The caret in the inactive window** stays marked (a thin bar), so after `\` you see where typing continues.
+
+## Nastavení → SO2R (N1MM Config → SO2R)
+
+The options are remembered between runs ("sticky", as in N1MM).
+
+- **Dueling CQ** (Ctrl+B): the CQ key (F1, or the ESM CQ key) goes out on one radio, and when it has been sent and
+  the *Pauza Dueling CQ* (default 100 ms) is over, on the other one — alternately, starting on the radio with the entry
+  focus; both radios are run radios. A call typed in either window pauses it, clearing it resumes it. It ends with
+  Esc, Ctrl+B, either radio moving more than 200 Hz, a failed send, the network TX lockout, post-contest entry and
+  the CQ repeat's maximum duration ("Max Repeat / Dueling CQ duration"). It never starts by itself.
+- **FocusOther — fokus na druhé rádio** (Ctrl+Shift+K): while the run radio (the one that sent the last CQ)
+  transmits, the entry focus moves to the other radio, so you can type the call heard there; when the run radio
+  stops, the focus returns — unless an unworked call has been typed in the S&P window. **FocusOther: vždy přepnout**
+  (Always Swap): every transmission moves the focus to the other radio and back, whatever was typed.
+- **Makro {CTRLFx}** (Ctrl+Shift+L): off = `{CTRLF1}`…`{CTRLF12}` in the messages are ignored.
+- **Makra stereo / OTRSP RX** (Ctrl+`): off = `{STEREOON}`, `{STEREOOFF}`, `{OTRSP RX}` and `{OTRSPOTHER RX}` are
+  ignored (e.g. while you use only one entry window for a while).
+- **Čas po vysílání / Předstih při přepnutí rádia** and **Winkeyer: rádio 2 na druhém výstupu** — see above.
+- **SO2V: zápis do okna VFO B ukončí opakované CQ** (N1MM "Repeating CQ Ends With VFOB Window Entry"): typing a call
+  in the VFO B window switches the CQ repeat off.
+
+In SO2R the CQ repeat (Alt+R) stays on the radio it was switched on in, so the run radio keeps calling CQ while you
+type on the S&P radio.
 
 In digital modes each entry window can have its own Digital Interface and fldigi — see
 [Digital modes → SO2V / SO2R](digital-modes.md#so2v--so2r-two-digital-interfaces).

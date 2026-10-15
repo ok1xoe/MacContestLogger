@@ -44,6 +44,8 @@ public final class RigModel {
     @ObservationIgnored var pendingSwapDelayMs: Int = 0
     /// The tail part of it: OTRSP `TX` waits this long after an interrupted transmission.
     @ObservationIgnored var pendingSwapTailMs: Int = 0
+    /// The transmit focus moved to the other radio (wired to the keyer: each radio keeps its CW speed).
+    @ObservationIgnored var onTxSwap: @MainActor () -> Void = {}
     /// Kotlin `focusVfoRequest`: the entry window `vfo` takes the focus (the view clears it).
     public var focusVfoRequest: Int?
     /// With `focusVfoRequest`: the caret goes after the call's text instead of selecting it (typing that came from

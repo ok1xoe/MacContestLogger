@@ -14,8 +14,12 @@ import os
 @Observable @MainActor
 public final class KeyerModel {
 
-    /// Kotlin `cwSpeed` (PgUp/PgDn, the spinner); written to `config.cwKeyer.speed` without saving.
+    /// Kotlin `cwSpeed` (PgUp/PgDn, the spinner); written to `config.cwKeyer.speed` without saving. In SO2V / SO2R
+    /// the speed of the radio with the transmit focus.
     public private(set) var cwSpeed: Int
+    /// N1MM SO2R: the CW speed of the radio without the transmit focus (Alt+PgUp/PgDn); `nil` = the same as
+    /// `cwSpeed`. The two swap when the transmit focus moves.
+    public private(set) var otherCwSpeed: Int?
     /// Kotlin `cwSendingKey` + `cwToken` + `digitalSending`.
     public private(set) var lamp = SendLamp()
     /// Kotlin `tuning` (Ctrl+T).
@@ -517,6 +521,24 @@ public final class KeyerModel {
         lane.run { devices in
             try? devices.keyer?.setSpeed(clamped)
         }
+    }
+
+    /// N1MM Alt+PgUp/PgDn: the CW speed of the radio without the transmit focus (two entry windows only).
+    func changeOtherCwSpeed(_ deltaWpm: Int) -> EntryStatus? {
+        guard let rig, rig.vfo.twoEntryWindows else {
+            return .tr("Rychlost druhého rádia: jen v režimu SO2V nebo SO2R")
+        }
+        let next: Int = CwKeyerConfig.clamp((otherCwSpeed ?? cwSpeed) + deltaWpm)
+        otherCwSpeed = next
+        return .tr("CW rádio %s: %s WPM", .int(2 - rig.vfo.txVfo), .int(next))
+    }
+
+    /// The transmit focus moved to the other radio: its own speed becomes the keying speed (N1MM keeps one per radio).
+    func txRadioSwapped() {
+        guard let other = otherCwSpeed else { return }
+        let current: Int = cwSpeed
+        updateCwSpeed(other)
+        otherCwSpeed = current
     }
 
     /// The followed Winkeyer speed pot moved (N1MM "Use Winkey Speed Pot"): it becomes the CW speed.

@@ -19,6 +19,9 @@ import Testing
         "TOGGLE_FILTER", "CW_REVERSE", "WIPE_OTHER", "JUMP_LAST_CQ", "TOGGLE_STATION_TYPE", "PASS_FREQUENCY",
         "AVAIL_NEXT", "AVAIL_PREVIOUS", "GRID_SEARCH", "GRID_TOGGLE", "QTC_MODE",
         "FOCUS_SWAP", "SWAP_RADIOS", "SWAP_RADIOS_KEEP_FOCUS",
+        "DUELING_CQ", "FOCUS_OTHER", "TOGGLE_CTRLFX", "TOGGLE_STEREO_MACROS",
+        "OTHER_SPOT_UP", "OTHER_SPOT_DOWN", "OTHER_MULT_UP", "OTHER_MULT_DOWN", "OTHER_BAND_UP", "OTHER_BAND_DOWN",
+        "OTHER_CQ_FREQUENCY",
     ]
 
     private static let expected: [String: EntryArea] = [
@@ -39,12 +42,15 @@ import Testing
         "TOGGLE_STATION_TYPE": .network, "PASS_FREQUENCY": .network,
         "AVAIL_NEXT": .spots, "AVAIL_PREVIOUS": .spots, "GRID_SEARCH": .local, "GRID_TOGGLE": .local, "QTC_MODE": .local,
         "FOCUS_SWAP": .radio, "SWAP_RADIOS": .radio, "SWAP_RADIOS_KEEP_FOCUS": .radio,
+        "DUELING_CQ": .local, "FOCUS_OTHER": .local, "TOGGLE_CTRLFX": .local, "TOGGLE_STEREO_MACROS": .local,
+        "OTHER_SPOT_UP": .spots, "OTHER_SPOT_DOWN": .spots, "OTHER_MULT_UP": .spots, "OTHER_MULT_DOWN": .spots,
+        "OTHER_BAND_UP": .radio, "OTHER_BAND_DOWN": .radio, "OTHER_CQ_FREQUENCY": .radio,
     ]
 
     @Test func everyShortcutActionHasAnArea() {
-        #expect(ShortcutAction.allCases.count == 79)
+        #expect(ShortcutAction.allCases.count == 90)
         #expect(Set(ShortcutAction.allCases.map(\.name)) == Set(Self.runShortcutOrder))
-        #expect(Self.runShortcutOrder.count == 79)
+        #expect(Self.runShortcutOrder.count == 90)
         for action in ShortcutAction.allCases {
             #expect(EntryActionAvailability.area(of: action) == Self.expected[action.name], "\(action.name)")
         }

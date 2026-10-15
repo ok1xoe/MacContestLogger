@@ -1,16 +1,40 @@
 import Foundation
 import MCLCore
 
-/// N1MM Config → SO2R: the radio swap times and Winkeyer's second output (the sticky options of `So2rSetup`, saved
-/// at once).
+/// N1MM Config → SO2R: Dueling CQs and their pause, FocusOther, the `{CTRLFx}` and stereo / OTRSP macro switches, the
+/// radio swap times, Winkeyer's second output and the SO2V option „Repeating CQ Ends With VFOB Window Entry" (the
+/// sticky options of `So2rSetup`, saved at once).
 extension MenuActions {
 
     /// The ids handled here.
-    static let so2rIds: Set<String> = ["so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2"]
+    static let so2rIds: Set<String> = [
+        "so2r.dueling", "so2r.duelingTime", "so2r.focusOther", "so2r.focusOtherAlways", "so2r.ctrlFx",
+        "so2r.stereoMacros", "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2", "so2r.so2vRepeat",
+    ]
 
     /// Runs one of `so2rIds`.
     static func performSo2r(_ id: String, app: AppModel) {
         switch id {
+        case "so2r.dueling":
+            guard let automation = app.so2rAutomation else { return }
+            automation.toggleDueling()
+        case "so2r.duelingTime":
+            promptSo2rMillis(.duelingCqMs, title: "Pauza Dueling CQ",
+                             hint: "ms mezi koncem CQ na jednom rádiu a začátkem na druhém (0–2000)", app: app)
+        case "so2r.focusOther":
+            guard let automation = app.so2rAutomation else { return }
+            automation.toggleFocusOther()
+        case "so2r.focusOtherAlways":
+            toggleSo2r(.focusOtherAlwaysSwap, app: app, on: "FocusOther: vždy přepnout fokus",
+                       off: "FocusOther: přepnout jen při vysílání run rádia")
+        case "so2r.ctrlFx":
+            toggleSo2r(.ctrlFx, app: app, on: "Makro {CTRLFx} zapnuto", off: "Makro {CTRLFx} vypnuto")
+        case "so2r.stereoMacros":
+            toggleSo2r(.stereoMacros, app: app, on: "Makra stereo / OTRSP RX zapnuta",
+                       off: "Makra stereo / OTRSP RX vypnuta")
+        case "so2r.so2vRepeat":
+            toggleSo2r(.so2vRepeatEndsWithVfoB, app: app, on: "SO2V: zápis do okna VFO B ukončí opakované CQ",
+                       off: "SO2V: zápis do okna VFO B opakované CQ neukončí")
         case "so2r.swapTail":
             promptSo2rMillis(.swapTailMs, title: "Čas po vysílání při přepnutí rádia",
                              hint: "ms, o které se po přerušeném vysílání na jednom rádiu odloží přepnutí na druhé (0–2000)",
@@ -28,9 +52,22 @@ extension MenuActions {
 
     /// The ✓ of the SO2R toggles.
     static func isSo2rChecked(_ id: String, app: AppModel) -> Bool {
+        let setup: So2rSetup = app.config.config.so2r
         switch id {
+        case "so2r.dueling":
+            return app.operating.duelingCq
+        case "so2r.focusOther":
+            return setup.flag(.focusOther)
+        case "so2r.focusOtherAlways":
+            return setup.flag(.focusOtherAlwaysSwap)
+        case "so2r.ctrlFx":
+            return setup.flag(.ctrlFx)
+        case "so2r.stereoMacros":
+            return setup.flag(.stereoMacros)
+        case "so2r.so2vRepeat":
+            return setup.flag(.so2vRepeatEndsWithVfoB)
         case "so2r.winkeyer2":
-            return app.config.config.so2r.flag(.winkeyerSecondOutput)
+            return setup.flag(.winkeyerSecondOutput)
         default:
             return false
         }

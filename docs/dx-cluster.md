@@ -178,7 +178,8 @@ Modelled on the N1MM Logger+ [Bandmap window](https://n1mmwp.hamdocs.com/manual-
 
 **Clicks.** A click on a spot tunes the radio to it (with the automatic split above). A click on the
 frequency scale or on an empty place tunes to the frequency under the cursor; a click on the CQ marker
-goes back to the CQ frequency.
+goes back to the CQ frequency. With two radios or VFOs (SO2R / SO2V) **Shift+click** tunes the **other** radio / VFO
+instead and puts the spot's call into its entry window; the focus stays (N1MM).
 
 | Action | Call |
 |---|---|

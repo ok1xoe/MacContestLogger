@@ -41,6 +41,7 @@ extension RigModel {
             return
         }
         vfo.setInactiveFrequency(freqHz, vfo: other)
+        showOtherFrequency(freqHz)
         guard vfo.so2r else {
             setOtherVfo(freqHz)
             return

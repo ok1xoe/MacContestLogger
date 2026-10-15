@@ -238,6 +238,9 @@ extension RigModel {
                 show(status)
             }
         case .selectVfo(let b):
+            if txMoved {
+                onTxSwap()
+            }
             guard active.connected else { return }
             activeLane.run({ cat in
                 RigOutcome.run(cat) { rig in try rig.selectVfo(b) }
@@ -280,6 +283,7 @@ extension RigModel {
         let tail: Int = operatorKeying(before) ? setup.millis(.swapTailMs) : 0
         pendingSwapTailMs = tail
         pendingSwapDelayMs = tail + setup.millis(.swapLeadMs)
+        onTxSwap()
     }
 
     /// The pause the keyer waits before the next transmission after a swap of the transmit focus (once).

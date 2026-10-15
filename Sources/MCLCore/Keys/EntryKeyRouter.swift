@@ -98,6 +98,8 @@ public indirect enum EntryKeyDecision: Equatable, Sendable {
     case cwSpeed(Int)
     /// `Shift+PgUp`/`Shift+PgDn` in CW (N1MM): `+1`/`-1` steps of the secondary `cwSpeedStepSecondary`.
     case cwSpeedSecondary(Int)
+    /// `Alt+PgUp`/`Alt+PgDn` in CW with two entry windows (N1MM): the speed of the radio without the transmit focus.
+    case cwSpeedOther(Int)
     /// Enter released.
     case enter(ctrl: Bool, step: EntryEnterStep)
     /// Esc released.
@@ -211,11 +213,12 @@ public enum EntryKeyRouter {
         let released: Bool = !pressed
         // 4. PgUp/PgDn: CW speed.
         let secondary: Bool = stroke.isShiftDown && !stroke.isControlDown && !stroke.isAltDown
+        let other: Bool = context.twoRadios && stroke.isAltDown && !stroke.isControlDown && !stroke.isShiftDown
         if context.isCw && pressed && stroke.isKey(AwtKeyCodes.vkPageUp) {
-            return secondary ? .cwSpeedSecondary(1) : .cwSpeed(1)
+            return other ? .cwSpeedOther(1) : secondary ? .cwSpeedSecondary(1) : .cwSpeed(1)
         }
         if context.isCw && pressed && stroke.isKey(AwtKeyCodes.vkPageDown) {
-            return secondary ? .cwSpeedSecondary(-1) : .cwSpeed(-1)
+            return other ? .cwSpeedOther(-1) : secondary ? .cwSpeedSecondary(-1) : .cwSpeed(-1)
         }
         // 5. Esc first stops sending.
         let isEscape: Bool = stroke.isKey(AwtKeyCodes.vkEscape)

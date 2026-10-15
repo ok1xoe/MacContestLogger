@@ -181,10 +181,12 @@ import Testing
         // the window layouts, the settings backups, the data folder and the digital radio mode and
         // 37 keys of the program menu items (update check, country list, diagnostics, contest rules) and
         // the simulator's QSB/QRM and the VoiceOver announcements and
-        // the SO2R foci, swap and menu texts.
-        #expect(map.count == 2_364)
+        // the SO2R foci, swap and menu texts and
+        // the SO2R automation texts and
+        // the other-radio texts.
+        #expect(map.count == 2_402)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_364)
+        #expect(german.count == 2_402)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

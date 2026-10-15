@@ -36,6 +36,9 @@ final class AppHost {
                     self?.onQuitMilestone?()
                 }
                 model = app
+                EntryFieldEditor.marksInactiveCaret = { [weak app] in
+                    app?.rig.vfo.twoEntryWindows ?? false
+                }
                 if gate.bootstrapSucceeded() {
                     // ⌘Q arrived during the bootstrap: the regular quit sequence runs now.
                     await runQuitSequence(app)

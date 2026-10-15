@@ -145,9 +145,16 @@
         {
           "id": "settings.so2r", "label": "SO2R", "state": "enable",
           "children": [
+            { "id": "so2r.dueling", "label": "Dueling CQ", "state": "enable" },
+            { "id": "so2r.duelingTime", "label": "Pauza Dueling CQ (ms)…", "state": "enable" },
+            { "id": "so2r.focusOther", "label": "FocusOther — fokus na druhé rádio", "state": "enable" },
+            { "id": "so2r.focusOtherAlways", "label": "FocusOther: vždy přepnout", "state": "enable" },
+            { "id": "so2r.ctrlFx", "label": "Makro {CTRLFx}", "state": "enable" },
+            { "id": "so2r.stereoMacros", "label": "Makra stereo / OTRSP RX", "state": "enable" },
             { "id": "so2r.swapTail", "label": "Čas po vysílání při přepnutí rádia (ms)…", "state": "enable" },
             { "id": "so2r.swapLead", "label": "Předstih při přepnutí rádia (ms)…", "state": "enable" },
-            { "id": "so2r.winkeyer2", "label": "Winkeyer: rádio 2 na druhém výstupu (KEY OUT 2)", "state": "enable" }
+            { "id": "so2r.winkeyer2", "label": "Winkeyer: rádio 2 na druhém výstupu (KEY OUT 2)", "state": "enable" },
+            { "id": "so2r.so2vRepeat", "label": "SO2V: zápis do okna VFO B ukončí opakované CQ", "state": "enable" }
           ]
         }
       ]

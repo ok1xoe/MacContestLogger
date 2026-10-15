@@ -257,6 +257,41 @@ final class EntryFieldEditor: NSTextView {
 
     weak var owner: EntryNSTextField?
 
+    /// N1MM „Show text cursor position in inactive Entry window" (SO2V / SO2R): while the window is not the key window
+    /// the caret's place stays marked, so typing after `\` continues where you expect. Wired by the app.
+    static var marksInactiveCaret: @MainActor () -> Bool = { false }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        let center = NotificationCenter.default
+        center.removeObserver(self, name: NSWindow.didBecomeKeyNotification, object: nil)
+        center.removeObserver(self, name: NSWindow.didResignKeyNotification, object: nil)
+        guard let window else { return }
+        center.addObserver(self, selector: #selector(keyWindowChanged(_:)), name: NSWindow.didBecomeKeyNotification,
+                           object: window)
+        center.addObserver(self, selector: #selector(keyWindowChanged(_:)), name: NSWindow.didResignKeyNotification,
+                           object: window)
+    }
+
+    @objc private func keyWindowChanged(_ notification: Notification) {
+        needsDisplay = true
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard let window, !window.isKeyWindow, window.firstResponder === self, Self.marksInactiveCaret(),
+              selectedRange().length == 0, let font else { return }
+        let text = string as NSString
+        let index: Int = Swift.min(selectedRange().location, text.length)
+        let prefixWidth: CGFloat = text.substring(to: index).size(withAttributes: [.font: font]).width
+        let padding: CGFloat = textContainer?.lineFragmentPadding ?? 0
+        let x: CGFloat = textContainerOrigin.x + padding + prefixWidth
+        let height: CGFloat = Swift.min(bounds.height, ceil(font.ascender - font.descender + font.leading))
+        let y: CGFloat = textContainerOrigin.y
+        insertionPointColor.withAlphaComponent(0.55).setFill()
+        NSRect(x: x, y: y, width: 1.5, height: height).fill()
+    }
+
     override func becomeFirstResponder() -> Bool {
         let became: Bool = super.becomeFirstResponder()
         if became {

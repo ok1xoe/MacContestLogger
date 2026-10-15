@@ -137,6 +137,11 @@ import Testing
             "run_mult Ctrl+Alt+M", "pass_freq Alt+Z", "avail_next Alt+A", "avail_previous Alt+Shift+A",
             "grid_search Alt+EQUALS", "grid_toggle Alt+MINUS", "qtc_mode Ctrl+Z",
             "focus_swap F15", "swap_radios Alt+F5", "swap_radios_keep Alt+F6",
+            "dueling_cq Ctrl+B", "focus_other Ctrl+Shift+K", "toggle_ctrlfx Ctrl+Shift+L",
+            "toggle_stereo_macros Ctrl+BACK_QUOTE",
+            "other_spot_up Shift+Cmd+DOWN", "other_spot_down Shift+Cmd+UP", "other_mult_up Ctrl+Alt+Shift+DOWN",
+            "other_mult_down Ctrl+Alt+Shift+UP", "other_band_up Ctrl+Shift+PAGE_UP",
+            "other_band_down Ctrl+Shift+PAGE_DOWN", "other_cq_freq Alt+Shift+Q",
         ]
         let actual: [String] = ShortcutAction.allCases.map { "\($0.id) \($0.defaultCombo().format())" }
         #expect(actual == expected)

@@ -118,6 +118,10 @@ extension EntryModel {
             if let message = ports.keyer.changeCwSpeed(by: steps * config.config.cwSpeedStepSecondary) {
                 show(message)
             }
+        case .cwSpeedOther(let steps):
+            if let message = ports.keyer.changeOtherCwSpeed(by: steps * config.config.cwSpeedStep) {
+                show(message)
+            }
         case .tune(let direction):
             tuneStep(direction)
         case .spectrumJump(let direction):
@@ -195,8 +199,9 @@ extension EntryModel {
             _ = keyer.stopSending()
             return true
         }
-        let repeating: Bool = operating.cqRepeat
+        let repeating: Bool = operating.cqRepeat || operating.duelingCq
         operating.applyCqRepeat(false)
+        operating.duelingCq = false
         let stopped: Bool = keyer.stopSending()
         return stopped || repeating || pluginPtt
     }
@@ -372,6 +377,16 @@ extension EntryModel {
             insertKey()
         case .toggleTx:
             toggleDigitalTx()
+        case .duelingCq:
+            guard let so2rAutomation else { return unavailable() }
+            so2rAutomation.toggleDueling()
+        case .focusOther:
+            guard let so2rAutomation else { return unavailable() }
+            so2rAutomation.toggleFocusOther()
+        case .toggleCtrlFx:
+            toggleSo2rFlag(.ctrlFx, on: "Makro {CTRLFx} zapnuto", off: "Makro {CTRLFx} vypnuto")
+        case .toggleStereoMacros:
+            toggleSo2rFlag(.stereoMacros, on: "Makra stereo / OTRSP RX zapnuta", off: "Makra stereo / OTRSP RX vypnuta")
         case .digitalLeft, .digitalRight:
             // N1MM Ctrl+←/→: both foci to VFO A / rig 1 or VFO B / rig 2; in a digital mode with its Digital
             // Interface.
@@ -385,6 +400,16 @@ extension EntryModel {
         default:
             runOperatingShortcut(action)
         }
+    }
+
+    /// An SO2R macro switch flipped and saved (N1MM's sticky SO2R options).
+    func toggleSo2rFlag(_ key: So2rSetup.Key, on: String, off: String) {
+        var setup: So2rSetup = config.config.so2r
+        let next: Bool = !setup.flag(key)
+        setup.set(key, flag: next)
+        config.config.so2r = setup
+        config.saveSilently()
+        status.show(next ? on : off)
     }
 
     /// N1MM Ctrl+F / Find Again: the log window shows the typed call's QSOs; Ctrl+F again with the same call (the log
@@ -688,6 +713,7 @@ extension EntryModel {
             }
         }
         if let freqHz = outcome.cqSentFreqHz {
+            operating.lastCqWindow = vfo
             operating.onCqSent(freqHz)
             grabList?.cqSent()
         }
@@ -813,7 +839,9 @@ extension EntryModel {
         case .stopTx:
             ports.keyer.releasePtt()
         case .stereoOn, .stereoOff:
-            rig?.setSo2rStereo(action == .stereoOn)
+            if config.config.so2r.flag(.stereoMacros) {
+                rig?.setSo2rStereo(action == .stereoOn)
+            }
         case .activeAudioToggle, .activeAudioOn, .activeAudioOff:
             rig?.setAudio(inactive: false, on: action == .activeAudioToggle ? nil : action == .activeAudioOn)
         case .inactiveAudioToggle, .inactiveAudioOn, .inactiveAudioOff:
@@ -1023,9 +1051,15 @@ extension EntryModel {
             case .antennaRx(let port):
                 rig?.toggleRxAntenna(port: port, transmitting: ports.keyer.isSending)
             case .otherRadioKey(let index):
-                sendOnOtherRadio(index)
+                // N1MM „Toggle CTRLFx Macro" (Ctrl+Shift+L): off = the macro is ignored.
+                if config.config.so2r.flag(.ctrlFx) {
+                    sendOnOtherRadio(index)
+                }
             case .otrsp(let text, let other):
-                rig?.sendOtrsp(text, other: other)
+                // N1MM „Toggle Stereo/OTRSP Macro": off = `{OTRSP RX}` / `{OTRSPOTHER RX}` are ignored.
+                if text != "RX" || config.config.so2r.flag(.stereoMacros) {
+                    rig?.sendOtrsp(text, other: other)
+                }
             case .swapContests(let count):
                 swapContests(count: count)
             case .swapContest(let name):
