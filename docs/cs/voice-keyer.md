@@ -87,13 +87,13 @@ provedou, nikdy se nepřehrávají jako soubory (stejná sada a význam jako v
 | `{CLEARRIT}` / `{RITCLEAR}` | vynuluje RIT |
 | `{CQFREQ}` | skok na CQ frekvenci (a vymazání polí) |
 | `{NOSPLIT}` | vypne split |
-| `{SPOTME}` | spotne vlastní stanici do DX clusteru na frekvenci zadávacího okna, s [komentářem spotu](dx-cluster.md#spot-comment-spotting-sp-qsos-and-special-calls) (`CQ`, když je prázdný); ověř, že pravidla závodu vlastní spoty dovolují |
+| `{SPOTME}` | spotne vlastní stanici do DX clusteru na frekvenci zadávacího okna, s [komentářem spotu](dx-cluster.md#komentář-spotu-spotování-qso-v-sp-a-speciální-volačky) (`CQ`, když je prázdný); ověř, že pravidla závodu vlastní spoty dovolují |
 | `{F1}`...`{F12}` | vloží zprávu jiné F-klávesy ze stejné sady (řetězení, nejvýš 3 úrovně) |
-| `{CQ}`, `{QSYCQ}`, `{EXCHSENT}`, `{CTRLHOME}`, `{FORCELOG}`, `{FORCELOGNOTE}`, `{SPACE}` | jako v [cw-keyer.md](cw-keyer.md#more-macros-n1mm) |
+| `{CQ}`, `{QSYCQ}`, `{EXCHSENT}`, `{CTRLHOME}`, `{FORCELOG}`, `{FORCELOGNOTE}`, `{SPACE}` | jako v [cw-keyer.md](cw-keyer.md#další-makra-n1mm) |
 | `{COMMENT text}` | přidá text do poznámky QSO; provede se při startu zprávy |
 | `{VARYMSG1&a.wav&b.wav&N&}` | střídavá zpráva jako v CW (`{VARYMSG2 &TU.wav&TUMYCALL.wav&2&}` přehraje delší poděkování po každém druhém QSO) |
 | `{END}` | ukončí zprávu: žádný soubor za ním se nepřehraje; jeho makra se provedou, jakmile zpráva dohraje do konce (ne po Esc nebo chybě) |
-| `{PGUP}`, `{PGDN}`, `{FREQUP}`, `{FREQDN}`, `{TURNROTOR}`, `{LONGPATH}`, `{STOPROTOR}`, `{DIGQTCR}`, `{DIGQTCS}`, `{CAT…}`, `{CATDELAY n}`, `{ANTRXnTOGGLE}`, `{AUXANTSEL nn}`, `{TELNET cmd}` | jako v [cw-keyer.md](cw-keyer.md#actions-after-the-message-rig-and-station-macros) |
+| `{PGUP}`, `{PGDN}`, `{FREQUP}`, `{FREQDN}`, `{TURNROTOR}`, `{LONGPATH}`, `{STOPROTOR}`, `{DIGQTCR}`, `{DIGQTCS}`, `{CAT…}`, `{CATDELAY n}`, `{ANTRXnTOGGLE}`, `{AUXANTSEL nn}`, `{TELNET cmd}` | jako v [cw-keyer.md](cw-keyer.md#akce-po-zprávě-makra-rigu-a-stanice) |
 | `{TX}` | PTT rigu zapnuté až do Esc (ruční PTT s pojistkou 30 s) |
 | `{SETWAVDIR text}` | `{WAVDIR}` cest, použije se dřív, než se vyhledají soubory této zprávy |
 | `{LOGTHENPOP}`, `{LOGTHENNEXT}`, `{SOCALLSTACK}`, `{STACKANOTHER}`, `{CLRSTACK}` | [zásobník volaček](call-stacking.md); provede se **před** přehráním zprávy, takže `!` a `{F5}` už znamenají další volačku |

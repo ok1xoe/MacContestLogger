@@ -48,7 +48,7 @@ a instanci.
 N1MM umí pro WSJT-X fungovat jako server rigu (emulace DXLab Commander). MacContestLogger sdílí rig
 jinak: oba programy mluví s **jedním `rigctld`**. Ve WSJT-X zvol *Rig: Hamlib NET rigctl*, *Network
 Server* `localhost:4532` (démon, který používá MacContestLogger, viz
-[Digitální módy → sdílení CAT](digital-modes.md#sharing-cat-with-fldigi)), *PTT: CAT* a *Split: Rig* nebo
+[Digitální módy → sdílení CAT](digital-modes.md#sdílení-cat-s-fldigi)), *PTT: CAT* a *Split: Rig* nebo
 *Fake It* podle libosti. Frekvence, mód, PTT i split pak fungují z obou programů bez
 emulace Commanderu.
 
