@@ -2195,5 +2195,19 @@
  "Enter v hlavičce série pošle QRV (CW)": "Return in the series header sends QRV (CW)",
  "QTC v jedné sérii": "QTCs per series",
  "Max. QTC pro barvy v bandmapě": "Max QTCs for band map colours",
- "WAE: QTC režim zap / vyp": "WAE: QTC mode on / off"
+ "WAE: QTC režim zap / vyp": "WAE: QTC mode on / off",
+ "Normální": "Normal",
+ "O 50 % pomalejší": "50% slower",
+ "O 100 % pomalejší": "100% slower",
+ "Volby rádia": "Radio options",
+ "Icom CI-V adresa (hex)": "Icom CI-V address (hex)",
+ "Dotazování rádia": "Radio polling rate",
+ "Timeout TRX (s, 0 = bez upozornění)": "Transceiver timeout (s, 0 = no alert)",
+ "Reverzní CW (CW-R) při přepnutí na CW": "Reverse CW (CW-R) when switching to CW",
+ "Ztlumit mikrofon rádia během hlasových zpráv (MICGAIN, např. K3, Orion)": "Mute the radio's mic during voice messages (MICGAIN, e.g. K3, Orion)",
+ "Vedlejší přijímač stále zapnutý (dual watch po připojení)": "Sub receiver always on (dual watch on connect)",
+ "CI-V adresa se předá rigctld spuštěnému aplikací (prázdné = výchozí hamlib). Když spojení s rigem vypadne a do timeoutu se neobnoví, bandmapa ukáže upozornění s tlačítkem Reset Radio.": "The CI-V address is passed to the rigctld the app starts (empty = hamlib default). When the connection to the rig is lost and does not come back within the timeout, the band map shows an alert with a Reset Radio button.",
+ "* Nastavený port %s teď není k dispozici (odpojený USB převodník?)": "* The configured port %s is not available now (USB adapter unplugged?)",
+ "Reverzní CW (CW-R) na rigu 2": "Reverse CW (CW-R) on rig 2",
+ "Problém s rádiem: TRX neodpovídá": "Radio problem: the transceiver does not respond"
 }

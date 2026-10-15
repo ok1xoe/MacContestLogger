@@ -31,9 +31,10 @@ struct CwKeyerTab: View {
                 draft.cwMethod = .winkeyer
             }
             SettingsField(caption: "Port Winkeyeru") {
-                SettingsDropdown(label: ifBlank(draft.cwPort, noPort), options: ports, language: language,
-                                 enabled: draft.cwMethod == .winkeyer) { draft.cwPort = $0 }
+                SettingsDropdown(label: ifBlank(app.settingsTools.portLabel(draft.cwPort), noPort), options: ports,
+                                 language: language, enabled: draft.cwMethod == .winkeyer) { draft.cwPort = $0 }
             }
+            MissingPortNote(app: app, port: draft.cwPort)
             SettingsRadio(label: "Vypnuto", selected: draft.cwMethod == .none) {
                 draft.cwMethod = .none
             }

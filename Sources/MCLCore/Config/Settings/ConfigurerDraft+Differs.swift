@@ -13,6 +13,11 @@ extension ConfigurerDraft {
         if dataBits != rig.dataBits || stopBits != rig.stopBits || parity != rig.parity { return true }
         if flow != rig.flowControl || dtr != rig.dtr || rts != rig.rts { return true }
         if Self.differs(Self.trim(host), rig.host) { return true }
+        // The options the connection is built with (a running connection picks them up on the reconnect).
+        if Self.differs(Self.trim(civAddress), rig.civAddress) || pollRate != rig.pollRate
+            || reverseCw != rig.reverseCw || subReceiverOn != rig.subReceiverOn {
+            return true
+        }
         let port: Int = Self.trimmedInt(rigPort) ?? rig.port
         return port != rig.port
     }

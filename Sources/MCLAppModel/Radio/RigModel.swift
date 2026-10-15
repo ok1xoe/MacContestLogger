@@ -18,6 +18,14 @@ public final class RigModel {
     public private(set) var cat1 = CatSession.Snapshot()
     /// The mirror of rig 2's session (SO2R).
     public private(set) var cat2 = CatSession.Snapshot()
+    /// The rigs (0 = rig 1, 1 = rig 2) whose band map radio problem alert shows (N1MM „Radio Problem").
+    public internal(set) var radioProblems: Set<Int> = []
+    /// The last contact (a polled state) with each rig, for the radio problem alert.
+    @ObservationIgnored var lastContact: [Int: Date] = [:]
+    /// The scheduled radio problem check of each rig.
+    @ObservationIgnored var problemChecks: [Int: Task<Void, Never>] = [:]
+    /// The clock of the radio problem alert (tests set it).
+    @ObservationIgnored var clock: @MainActor () -> Date = { Date() }
     /// `tunedFreqHz`, `previousFreqHz`, `lastFreqOnBand`, `antennaBand`.
     public internal(set) var tuning = TuningState()
     /// `ritHz` (the last value the rig accepted).
@@ -252,6 +260,7 @@ public final class RigModel {
             cat2 = snapshot
         }
         pluginPttConnectionChanged(index, connected: snapshot.connected)
+        radioContact(index, snapshot)
         // Kotlin `LaunchedEffect(state.cat.state, …)`: only a different state of the active rig is followed.
         if index == vfo.activeCatIndex && previous != snapshot.state {
             notifyEntries { $0.followRig() }

@@ -15,10 +15,11 @@ import Foundation
 ///   - `CONNECT_RUNNING`: a single `RigctldClient(host, port)` attempt (a shared daemon under launchd on the
 ///     user's machine — never started or terminated by us);
 ///   - `CatException` anywhere in that → `disconnect("Připojení selhalo: <message>")` (also closes an already started daemon);
-///   - success: the rig is wrapped in `TransverterRig`, `RigPoller` starts (500 ms), `connected = true`,
+///   - success: the rig is wrapped in `TransverterRig`, `RigPoller` starts (500 ms, slower by `RigConfig.pollRate`; with
+///     `subReceiverOn` the dual watch is switched on first), `connected = true`,
 ///     „Připojeno (<model>)…" — only then may the first state arrive (Kotlin: the callback waits for the main thread).
 /// - poller state → `state` + status text `TRX: %.1f kHz  <mode>` (Java `String.format`, HALF_UP);
-/// - **first poll error** → `disconnect("Spojení s rigem ztraceno")`; no reconnect;
+/// - **first poll error** → `disconnect("Spojení s rigem ztraceno")` with `lost` set; no reconnect;
 /// - `disconnect(message)`: stop the poller, close the rig, terminate **only our own** daemon, `connected = false`,
 ///   `state = nil`, status message (`nil` = the default „TRX odpojen", translated only on read);
 /// - `toggle`: connected or own daemon running → `disconnect(nil)`, otherwise `connect`.
@@ -49,6 +50,9 @@ public final class CatSession: @unchecked Sendable {
         public var connected: Bool
         /// A connect is in progress (set with „Připojuji (…)…", cleared when it ends either way).
         public var connecting: Bool
+        /// The connection was lost by a failed poll (not closed by the user or the app): the band map's radio
+        /// problem alert follows it (N1MM „Radio Problem"). Cleared by the next connect or disconnect.
+        public var lost: Bool = false
 
         public init(state: RigState? = nil, statusMessage: String? = nil, connected: Bool = false,
                     connecting: Bool = false) {
@@ -102,6 +106,8 @@ public final class CatSession: @unchecked Sendable {
     private var rig: (any RigController)?
     private var poller: RigPoller?
     private var processManager: RigctldProcessManager?
+    /// N1MM „Use Reverse CW" of the connected rig's configuration: CW is set as CW-R.
+    private var reverseCw = false
     /// Raised by `disconnectCancellingConnect`: a connect started under an older generation is stale — it closes
     /// what it opened (its daemon, its rig) and changes nothing.
     private var generation: UInt64 = 0
@@ -233,6 +239,10 @@ public final class CatSession: @unchecked Sendable {
 
     /// `message` `nil` = return to the default „disconnected".
     public func disconnect(_ message: String?) {
+        disconnect(message, lost: false)
+    }
+
+    private func disconnect(_ message: String?, lost: Bool) {
         lock.lock()
         defer { lock.unlock() }
         poller?.stop()
@@ -243,6 +253,7 @@ public final class CatSession: @unchecked Sendable {
         processManager = nil
         current.connected = false
         current.connecting = false
+        current.lost = lost
         current.state = nil
         current.statusMessage = message
         onChange(current)
@@ -261,9 +272,23 @@ public final class CatSession: @unchecked Sendable {
     }
 
     /// Sets the operating mode on the rig.
+    /// With N1MM „Use Reverse CW" (`RigConfig.reverseCw`) CW goes to the rig as `M CWR 0`.
     public func setMode(_ mode: Mode?, freqHz: Int64) throws {
-        try rigOrNull()?.setMode(mode, freqHz: freqHz)
+        guard let rig = rigOrNull() else { return }
+        if mode == .cw, locked({ reverseCw }) {
+            let reply: RigRawReply = try rig.sendRaw(Self.reverseCwCommand)
+            if reply.code != 0 {
+                throw CatException("rigctld odmítl CW-R: RPRT " + String(reply.code))
+            }
+            return
+        }
+        try rig.setMode(mode, freqHz: freqHz)
     }
+
+    /// The mode command of N1MM „Use Reverse CW" (passband 0 = the rig's normal one).
+    public static let reverseCwCommand = "M CWR 0"
+    /// N1MM „Sub receiver always on": hamlib's dual watch on, sent once with every fresh connection.
+    public static let dualWatchCommand = "U DUAL_WATCH 1"
 
     // MARK: - Helpers (Kotlin `format`, `serialParamsOf`)
 
@@ -292,7 +317,7 @@ public final class CatSession: @unchecked Sendable {
                     return
                 }
                 try pm.start(model: rc.model, device: rc.device, baud: rc.baud, port: rc.port,
-                             serial: Self.serialParams(of: rc))
+                             serial: Self.serialParams(of: rc), civAddress: rc.civAddress)
                 let stale: Bool = locked { () -> Bool in
                     if generation != started {
                         return true
@@ -330,6 +355,10 @@ public final class CatSession: @unchecked Sendable {
         if !isStale(started), let hook = locked({ onConnected }) {
             hook(newRig)
         }
+        // N1MM „Sub receiver always on": a rig without dual watch answers with an error code, which is ignored.
+        if rc.subReceiverOn, !isStale(started) {
+            _ = try? newRig.sendRaw(Self.dualWatchCommand)
+        }
         lock.lock()
         defer { lock.unlock() }
         if generation != started {
@@ -348,7 +377,9 @@ public final class CatSession: @unchecked Sendable {
         }
         let wrapped = TransverterRig(inner: newRig, transverters: transverters)
         rig = wrapped
-        let newPoller = RigPoller(rig: wrapped, intervalMs: timing.pollIntervalMs, onState: { [weak self] st in
+        reverseCw = rc.reverseCw
+        let interval: Int64 = rc.pollRate.interval(base: timing.pollIntervalMs)
+        let newPoller = RigPoller(rig: wrapped, intervalMs: interval, onState: { [weak self] st in
             self?.applyState(st)
         }, onError: { [weak self] _ in
             self?.pollFailed()
@@ -357,6 +388,7 @@ public final class CatSession: @unchecked Sendable {
         newPoller.start()
         current.connected = true
         current.connecting = false
+        current.lost = false
         current.statusMessage = tr("Připojeno (%s)…", rc.modelLabel)
         onChange(current)
     }
@@ -389,7 +421,7 @@ public final class CatSession: @unchecked Sendable {
     }
 
     private func pollFailed() {
-        disconnect(tr("Spojení s rigem ztraceno"))
+        disconnect(tr("Spojení s rigem ztraceno"), lost: true)
     }
 
     /// Kotlin `tr(cs)` (without arguments translation only, no `format`) and `tr(cs, args…)` = `tr(cs).format(args)`.

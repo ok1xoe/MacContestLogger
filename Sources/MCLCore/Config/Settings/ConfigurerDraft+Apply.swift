@@ -166,6 +166,12 @@ extension ConfigurerDraft {
         rig.rts = rts
         rig.host = Self.trim(host)
         rig.port = Self.trimmedInt(rigPort) ?? rig.port
+        rig.civAddress = Self.trim(civAddress)
+        rig.pollRate = pollRate
+        rig.reverseCw = reverseCw
+        rig.muteMicOnVoice = muteMicOnVoice
+        rig.subReceiverOn = subReceiverOn
+        rig.timeoutSeconds = Self.trimmedInt(rigTimeout).map { max(0, $0) } ?? rig.timeoutSeconds
     }
 
     private func applyStation(_ st: inout StationConfig) {
@@ -361,6 +367,7 @@ extension ConfigurerDraft {
         let rig2: String = Self.trim(rig2Host)
         config.rig2.host = KotlinText.isBlank(rig2) ? "localhost" : rig2
         config.rig2.port = ConfigurerRows.toIntOrNull(rig2Port) ?? 4534
+        config.rig2.reverseCw = rig2ReverseCw
         config.otrspPort = Self.trim(otrspPort)
         config.cwPitchHz = Self.pitch(cwPitch)
     }

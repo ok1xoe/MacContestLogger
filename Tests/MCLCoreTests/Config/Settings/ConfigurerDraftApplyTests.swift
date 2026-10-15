@@ -314,6 +314,8 @@ import Testing
                                "digiRadioMode", "stationPerDatabase",
                                "checkUpdatesAtStart", "accessibilityAnnouncements", "qtcSetup",
                                "callHistoryFile", "functionKeyFiles", "firstSerial", "scpFile", "goalFile",
+                               "civAddress", "pollRate", "reverseCw", "muteMicOnVoice", "subReceiverOn",
+                               "timeoutSeconds",
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",
                                "checkReverseThreshold", "checkReverseFromStart", "showUnmatchedCallMark",

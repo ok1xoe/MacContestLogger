@@ -24,6 +24,15 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var rts: PinState = .unset
     public var host: String = ""
     public var rigPort: String = ""
+    /// N1MM per-radio options (`RigConfig.civAddress` … `timeoutSeconds`).
+    public var civAddress: String = ""
+    public var pollRate: PollRate = .normal
+    public var reverseCw: Bool = false
+    public var muteMicOnVoice: Bool = false
+    public var subReceiverOn: Bool = false
+    public var rigTimeout: String = ""
+    /// N1MM „Use Reverse CW Radio 2" (SO2R rig 2).
+    public var rig2ReverseCw: Bool = false
 
     // MARK: Station — `CD:39-62` (latitude/longitude are derived from the locator, `gridLatLon`)
 
@@ -400,6 +409,12 @@ extension ConfigurerDraft {
         rts = rig.rts
         host = rig.host
         rigPort = String(rig.port)
+        civAddress = rig.civAddress
+        pollRate = rig.pollRate
+        reverseCw = rig.reverseCw
+        muteMicOnVoice = rig.muteMicOnVoice
+        subReceiverOn = rig.subReceiverOn
+        rigTimeout = String(rig.timeoutSeconds)
     }
 
     private mutating func loadStation(_ station: StationConfig) {
@@ -591,6 +606,7 @@ extension ConfigurerDraft {
         rotatorPort = String(config.rotatorPort)
         rig2Host = config.rig2.host
         rig2Port = String(config.rig2.port)
+        rig2ReverseCw = config.rig2.reverseCw
         otrspPort = config.otrspPort
         cwPitch = String(config.cwPitchHz)
     }
