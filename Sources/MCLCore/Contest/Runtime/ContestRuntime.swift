@@ -347,6 +347,12 @@ public final class ContestRuntime {
         return try session.activeReceivedFields(call: call)
     }
 
+    /// The default values of the received fields for a callsign (`prefill`); empty outside a contest.
+    public func exchangePrefill(call: String) throws(ExpressionError) -> JavaLinkedMap<String> {
+        guard let session else { return JavaLinkedMap() }
+        return try session.exchangePrefill(call: call)
+    }
+
     /// Are all required fields filled in? (saving with Enter)
     public func isComplete(call: String, exchange: JavaLinkedMap<String>) throws(ContestSessionError) -> Bool {
         if KotlinText.isBlank(call) {

@@ -78,6 +78,17 @@ public final class QsoContextFactory: Sendable {
         try StationClassifier.classify(definition, worked: dxcc.resolve(call), own: ownEntity)
     }
 
+    /// The `prefill` values of `fields` for a callsign (see `ExchangePrefill`): the conditions see the worked and my
+    /// own entity and the worked station's class, like the station classes.
+    public func prefill(call: String?, fields: [ContestDefinition.ExchangeField]) throws(ExpressionError)
+        -> JavaLinkedMap<String> {
+        guard fields.contains(where: { $0.prefill != nil }) else { return JavaLinkedMap() }
+        let probe = QsoContext(call: call, band: nil, mode: nil, received: JavaLinkedMap(),
+                               workedEntity: dxcc.resolve(call), ownEntity: ownEntity,
+                               workedClass: try workedClass(call))
+        return try ExchangePrefill.values(fields, probe)
+    }
+
     /// `nil` → always false (Java `call -> false`).
     public func setBonusPredicate(_ bonus: (@Sendable (String) -> Bool)?) {
         let predicate = BonusPredicate(test: bonus ?? { _ in false })

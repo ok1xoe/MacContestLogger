@@ -159,6 +159,12 @@ public final class ContestModel {
         return (try? runtime.exchangeFields(call: call)) ?? []
     }
 
+    /// The default values of the received fields for a callsign (the definition's `prefill`).
+    public func exchangePrefill(call: String) -> JavaLinkedMap<String> {
+        _ = definition
+        return (try? runtime.exchangePrefill(call: call)) ?? JavaLinkedMap()
+    }
+
     /// Kotlin `contest.isComplete(call, exchange)`.
     public func isComplete(call: String, exchange: JavaLinkedMap<String>) -> Bool {
         _ = definition

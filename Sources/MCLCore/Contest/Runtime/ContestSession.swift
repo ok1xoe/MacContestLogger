@@ -149,6 +149,11 @@ public final class ContestSession: Sendable {
         exchange.activeReceivedFields(definition, try factory.workedClass(call))
     }
 
+    /// The default values of the received fields for this callsign (`prefill`, N1MM's ARRL DX default power).
+    public func exchangePrefill(call: String?) throws(ExpressionError) -> JavaLinkedMap<String> {
+        try factory.prefill(call: call, fields: activeReceivedFields(call: call))
+    }
+
     /// Are all required received fields for this callsign filled in and valid? `receivedRaw == nil`
     /// → all fields `""`; a key with a `nil` value → a `nil` input (Java `getOrDefault`).
     /// Throws like Java: a station-class expression, a number above 2³¹−1.

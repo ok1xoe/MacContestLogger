@@ -565,6 +565,7 @@ extension EntryModel {
     public func jumpToExchange() {
         // N1MM: the space bar puts the call-frame's call into an empty call field.
         takeCallFrame()
+        applyExchangePrefill()
         esmProgress = EsmFlow.jumpToExchange(esmProgress, esmEnabled: operating.esmEnabled, mode: form.mode,
                                              run: isRunHere, call: form.call)
         exchangeFocusRequest += 1
@@ -573,6 +574,18 @@ extension EntryModel {
         }
         integrations?.callLookedUp(call: form.call, freqHz: Int(form.freqHz), mode: form.mode,
                                    radioNr: rig?.vfo.so2r == true ? (rig?.vfo.catIndex(for: vfo) ?? 0) + 1 : 1)
+    }
+
+    /// N1MM's default exchange values (ARRL DX: the DX station's default power) on the space bar: the definition's
+    /// `prefill` goes into the fields that are still empty; a typed value is never replaced.
+    func applyExchangePrefill() {
+        guard contest.isActive, !KotlinStrings.isBlank(form.call) else { return }
+        var values = JavaLinkedMap<String>()
+        for (id, value) in contest.exchangePrefill(call: form.call).entries
+        where KotlinStrings.isBlank(form.contestExchange[id] ?? "") {
+            values.put(id, value)
+        }
+        prefillExchange(values)
     }
 
     /// Kotlin `jumpToCqFrequency(band)` (Alt+Q, `{CQFREQ}`): the band's CQ frequency into the field, Run, the QSY to
