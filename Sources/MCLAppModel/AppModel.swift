@@ -496,7 +496,7 @@ public final class AppModel {
             contest: contest, logbook: logbook, callData: callData, config: config, status: status,
             language: language, messages: messages, dataDir: dataDir, now: environment.now,
             definitionSource: environment.definitionSource ?? DataToolsModel.DefinitionSource(),
-            clubLogFetcher: environment.network.clubLogCty))
+            clubLogFetcher: environment.network.clubLogCty, clusterListFetcher: environment.network.clusterList))
         let definitionEditor = DefinitionEditorModel(
             config: config, contest: contest, language: language, dataDir: dataDir,
             clock: environment.definitionCheckClock ?? MainQueueRescoreClock())

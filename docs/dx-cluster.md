@@ -126,8 +126,9 @@ Presses wait behind a button that is still in its `{WAIT}`.
 
 - **Settings → DX Cluster → Importovat / Exportovat seznam…** (N1MM's cluster list import/export): a text file with one
   cluster per line, `name,host:port[,login]`, `#` starts a comment. Passwords are never exported. An import adds only
-  the clusters whose `host:port` is not in the list yet; like every Settings change it applies with Save. N1MM's
-  *live* cluster list is not offered: it comes from N1MM's own reporting server, there is no public list to read.
+  the clusters whose `host:port` is not in the list yet; like every Settings change it applies with Save.
+- **Settings → DX Cluster → Vybrat ze seznamu…** (Choose from list; N1MM's *Live cluster list*): see
+  [Public cluster list](#public-cluster-list) below.
 - **Možnosti… → Uchovat spoty přes restart programu** (N1MM "Save Spots", off by default): at quit the spot buffer is
   written to `spots.json` in the data directory; after the start the spots still within the *Buffer spotů (min)*
   timeout come back with their original times (blacklisted calls stay out). With the option off the file is removed
@@ -136,6 +137,65 @@ Presses wait behind a button that is still in its `{WAIT}`.
   default): tuning to a cluster spot (a click, the spot jumps) lands 50–150 Hz (phone 100–250 Hz) above or below it,
   so the operators who click the same spot do not all call on exactly the same frequency. Own spots (Mark, Store)
   are tuned exactly; the split from the spot comment is unchanged.
+### Public cluster list
+
+N1MM's *Live cluster list* comes from N1MM's own reporting server, which has no public interface. MacContestLogger
+keeps its own list instead, in the project repository:
+[`cluster-data/clusters.json`](../cluster-data/clusters.json).
+
+**Choosing a cluster.** *Settings → DX Cluster → Vybrat ze seznamu…* opens the list:
+
+- **Hledat** (Search) filters by every word typed (name, callsign, host, country, location, locator, software,
+  notes; case and accents ignored). **Včetně skimmerů (RBN)** shows or hides the skimmer feeds.
+- **Řadit podle** (Sort by): *Hodnocení* (rating, best first, unrated last), *Země* (country) or *Název* (name).
+- Each row shows the name and callsign, `host:port`, country, software, a skimmer mark and the rating, then the login
+  hint, notes and the date the entry was last verified.
+- **Přidat do clusterů** (Add to clusters), or a double click, adds the selected cluster as a new favorite that logs in
+  with the station's callsign (Settings → Station). A cluster whose `host:port` is already a favorite is not added
+  twice. Like every Settings change, the new favorite is kept only after **Save**.
+- The line under the list says which copy is shown (the one shipped with the program, or the one downloaded from
+  GitHub) and its date.
+
+**Updating the list.** The program never goes online for this list on its own. **Aktualizovat seznam z GitHubu**
+(Update list from GitHub) downloads `cluster-data/clusters.json` from the `main` branch on
+`raw.githubusercontent.com`, the same place the contest definition updates come from. The download:
+
+- contacts only that one address (a redirect to another host is not followed) and stops after 256 KB;
+- is checked before anything is written: it must be the list format, with at least one valid entry; otherwise the
+  current list stays and the reason is shown;
+- is stored as `cluster-data/clusters.json` in the data directory and used from then on, unless a newer program
+  version ships a newer list (the copy with the later `updated` date wins);
+- does nothing with `MCL_INERT_NETWORK` set (the button reports that the network is off).
+
+**File format** (JSON, UTF-8):
+
+| Key | Required | Meaning |
+|---|---|---|
+| `schema` | yes | Format version. This version reads `1`; a file with a higher number is ignored (it is meant for newer program versions), so older programs keep their current list |
+| `updated` | | Date of the list, `yyyy-MM-dd` |
+| `clusters` | yes | The entries |
+| `name` | yes | Name shown in the list and given to the favorite |
+| `host`, `port` | yes | Telnet address (host name or IPv4 address) and port 1–65535 |
+| `callsign` | | Node callsign |
+| `country`, `dxcc` | | Country name and DXCC entity number |
+| `location`, `grid` | | Place and Maidenhead locator |
+| `software` | | Cluster software (DXSpider, AR-Cluster, CC Cluster, …) |
+| `login` | | Login hint, e.g. "your callsign" |
+| `skimmer` | | `true` for a skimmer / RBN feed |
+| `notes` | | Free text |
+| `rating` | | 0–5, higher is better (used by the rating sort) |
+| `verified` | | Date the entry was last checked against its source, `yyyy-MM-dd` |
+| `source` | | URL of the public page that documents the address |
+
+Unknown keys are ignored. An invalid entry (no name, a host that is not a host name, a bad port) or a repeated
+`host:port` is skipped; the rest of the file is still used.
+
+**Maintaining the list.** Add only clusters whose address is published by a public source (the node's own page, the
+cluster software's documentation, a logging program's manual), and put that page in `source` and today's date in
+`verified`. Keep `Sources/MCLCore/Resources/clusters.json` (the copy shipped with the program) identical to
+`cluster-data/clusters.json`; a test checks it. The first entries are the RBN servers already described above (CW/RTTY and
+FT8/FT4), the N1MM Logger+ Telnet window manual (K1TTT, W9PA) and the DXSpider wiki (G1FEF).
+
 ## Spot comment, spotting S&P QSOs and special calls
 
 The other tabs of **Možnosti… (Options)** in the DX Cluster window, modelled on the N1MM Telnet window's *Spot Comment*

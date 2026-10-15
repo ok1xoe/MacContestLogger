@@ -1,0 +1,67 @@
+{
+  "about": "Public DX cluster nodes offered by MacContestLogger in Settings > DX Cluster > Choose from list. Only nodes whose address is documented by a public source are listed; 'source' names it and 'verified' is the date the entry was last checked against that source. Format: docs/dx-cluster.md.",
+  "schema": 1,
+  "updated": "2026-10-15",
+  "clusters": [
+    {
+      "name": "RBN CW / RTTY",
+      "host": "telnet.reversebeacon.net",
+      "port": 7000,
+      "software": "RBN",
+      "login": "your callsign",
+      "skimmer": true,
+      "notes": "Reverse Beacon Network: CW and RTTY skimmer spots only, no human spots.",
+      "verified": "2026-10-15",
+      "source": "https://www.reversebeacon.net/"
+    },
+    {
+      "name": "RBN FT8 / FT4",
+      "host": "telnet.reversebeacon.net",
+      "port": 7001,
+      "software": "RBN",
+      "login": "your callsign",
+      "skimmer": true,
+      "notes": "Reverse Beacon Network: digital mode (FT8/FT4) skimmer spots only.",
+      "verified": "2026-10-15",
+      "source": "https://www.reversebeacon.net/"
+    },
+    {
+      "name": "K1TTT",
+      "callsign": "K1TTT",
+      "host": "k1ttt.net",
+      "port": 7300,
+      "country": "United States",
+      "dxcc": 291,
+      "login": "your callsign",
+      "skimmer": false,
+      "verified": "2026-10-15",
+      "source": "https://n1mmwp.hamdocs.com/manual-windows/telnet-window/"
+    },
+    {
+      "name": "W9PA",
+      "callsign": "W9PA",
+      "host": "dxc.w9pa.net",
+      "port": 7373,
+      "country": "United States",
+      "dxcc": 291,
+      "login": "your callsign",
+      "skimmer": false,
+      "verified": "2026-10-15",
+      "source": "https://n1mmwp.hamdocs.com/manual-windows/telnet-window/"
+    },
+    {
+      "name": "G1FEF (DXSpider wiki)",
+      "callsign": "G1FEF",
+      "host": "dxc.hamserve.uk",
+      "port": 7300,
+      "country": "England",
+      "dxcc": 223,
+      "software": "DXSpider",
+      "login": "your callsign",
+      "skimmer": false,
+      "notes": "Run by the maintainer of the DXSpider wiki.",
+      "verified": "2026-10-15",
+      "source": "https://wiki.dxcluster.org/wiki/How_to_connect"
+    }
+  ]
+}
