@@ -6,7 +6,8 @@ import Testing
 /// the frozen subset the Java parity references were measured over: every fixture file is published byte-identical,
 /// and the definitions and sets added after the port are checked here instead (the index lists every file, each
 /// definition passes the definition editor's check against the published sets and scores a QSO without an engine
-/// error).
+/// error). `index-v2.txt` lists every file; `index.txt` only what the released v0.9.0-rc1 can load (see
+/// `rc1Incompatible`).
 @Suite struct PublishedContestDataTests {
 
     @Test func rootContestDataMatchesFixtureCorpus() throws {
@@ -20,8 +21,8 @@ import Testing
         let publishedFiles = try ContestDataLayoutTests.relativeFiles(under: published)
         let fixtureFiles = try ContestDataLayoutTests.relativeFiles(under: fixture)
         #expect(Set(fixtureFiles).isSubset(of: Set(publishedFiles)))
-        // The index lists the published files (more than the fixture's); `indexListsEveryFile` checks it.
-        for path in publishedFiles where fixtureFiles.contains(path) && path != "index.txt" {
+        // The indexes list the published files (more than the fixture's); the index tests below check them.
+        for path in publishedFiles where fixtureFiles.contains(path) && !path.hasPrefix("index") {
             let a = try Data(contentsOf: published.appendingPathComponent(path))
             let b = try Data(contentsOf: fixture.appendingPathComponent(path))
             #expect(a == b, "\(path) differs between contest-data/ and the fixture corpus")
@@ -40,15 +41,113 @@ import Testing
             .filter { !$0.hasPrefix(".") }.sorted().map { dir + "/" + $0 }
     }
 
-    @Test func indexListsEveryFile() throws {
-        let text = try String(contentsOf: Self.root.appendingPathComponent("index.txt"), encoding: .utf8)
-        let listed: [String] = text.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty && !$0.hasPrefix("#") }
-        let rootFiles: [String] = try FileManager.default.contentsOfDirectory(atPath: Self.root.path)
+    /// The files of the directory an index may list: the root `*.yaml`, `contests/*` and `multipliers/*`.
+    static func presentFiles() throws -> [String] {
+        let rootFiles: [String] = try FileManager.default.contentsOfDirectory(atPath: root.path)
             .filter { $0.hasSuffix(".yaml") }
-        let present: [String] = (rootFiles + (try Self.files("contests")) + (try Self.files("multipliers"))).sorted()
-        #expect(listed.sorted() == present)
-        #expect(Set(listed).count == listed.count, "no file listed twice")
+        return (rootFiles + (try files("contests")) + (try files("multipliers"))).sorted()
+    }
+
+    /// The entries of an index file, parsed like the updater does.
+    static func indexEntries(_ name: String) throws -> [String] {
+        let data = try Data(contentsOf: root.appendingPathComponent(name))
+        return DefinitionUpdater.indexLines(String(decoding: data, as: UTF8.self))
+    }
+
+    /// The files `index.txt` leaves out because the released v0.9.0-rc1 cannot load them (it reads only
+    /// `index.txt`). They are listed in `index-v2.txt`, which newer apps read first. Keep in sync with the comment at
+    /// the top of `index.txt` and with `docs/definition-editor.md`.
+    static let rc1Incompatible: Set<String> = [
+        "multipliers/last_letters.yaml", "multipliers/worked_calls.yaml",
+        "contests/ea-qrp-cw.yaml", "contests/ok-dx-rtty.yaml", "contests/ok1wc-memorial.yaml",
+        "contests/russian-yl-om.yaml",
+    ]
+
+    /// Algorithms of `kind: ALGORITHM` sets the released v0.9.0-rc1 builds; any other fails its whole `loadDir`.
+    static let rc1Algorithms: Set<String> = ["wpx"]
+    /// Providers of `kind: EXTERNAL_DATA` sets the released v0.9.0-rc1 builds (`nil` = the default DXCC).
+    static let rc1Providers: Set<String> = ["dxcc-json", "cty"]
+
+    private static func checkWellFormed(_ name: String, _ listed: [String]) throws {
+        #expect(Set(listed).count == listed.count, "\(name): no file listed twice")
+        for path in listed {
+            #expect(DefinitionUpdater.isSafe(path), "\(name): unsafe path \(path)")
+            #expect(!path.contains(" "), "\(name): \(path)")
+            #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent(path).path),
+                    "\(name): \(path) does not exist")
+        }
+    }
+
+    /// `index-v2.txt` (read first by the app) lists every published file.
+    @Test func indexV2ListsEveryFile() throws {
+        let listed = try Self.indexEntries("index-v2.txt")
+        try Self.checkWellFormed("index-v2.txt", listed)
+        #expect(listed.sorted() == (try Self.presentFiles()))
+    }
+
+    /// `index.txt` (the only index v0.9.0-rc1 reads) lists every published file except the documented
+    /// rc1-incompatible ones.
+    @Test func indexListsEveryFileExceptRc1Incompatible() throws {
+        let listed = try Self.indexEntries("index.txt")
+        try Self.checkWellFormed("index.txt", listed)
+        let present = try Self.presentFiles()
+        #expect(Self.rc1Incompatible.isSubset(of: Set(present)), "rc1Incompatible names a file that is gone")
+        #expect(listed.sorted() == present.filter { !Self.rc1Incompatible.contains($0) })
+    }
+
+    /// What v0.9.0-rc1 could not load from the files of an index: a multiplier set with an algorithm or provider it
+    /// does not know (which would stop every set after it from loading), and a definition that fails the editor's
+    /// check against the sets it could load (or references a set the index does not ship).
+    static func rc1Problems(_ listed: [String]) throws -> [String] {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("rc1-index-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try FileManager.default.createDirectory(at: dir.appendingPathComponent("multipliers"),
+                                                withIntermediateDirectories: true)
+        var problems: [String] = []
+        for path in listed where path.hasPrefix("multipliers/") {
+            if path.hasSuffix(".yaml") {
+                let definition = try MultiplierSetLoader.loadFile(root.appendingPathComponent(path))
+                switch definition.kind {
+                case .ALGORITHM?:
+                    let type = (definition.algorithm?.type ?? "").lowercased()
+                    if !rc1Algorithms.contains(type) {
+                        problems.append(path)
+                        continue
+                    }
+                case .EXTERNAL_DATA?:
+                    if let type = definition.provider?.type, !rc1Providers.contains(type.lowercased()) {
+                        problems.append(path)
+                        continue
+                    }
+                default:
+                    break
+                }
+            }
+            try FileManager.default.copyItem(at: root.appendingPathComponent(path),
+                                             to: dir.appendingPathComponent(path))
+        }
+        // What the rc1-loadable sets of the index load to (no file may fail here either).
+        _ = try MultiplierSetRegistry(dxcc: try SessionFixture.dxcc()).loadDir(dir.appendingPathComponent("multipliers"))
+        let known = DefinitionEditing.knownSets(dir.appendingPathComponent("multipliers"))
+        for path in listed where path.hasPrefix("contests/") {
+            let url = root.appendingPathComponent(path)
+            let text = try String(contentsOf: url, encoding: .utf8)
+            let check = DefinitionEditing.check(text, fileId: url.deletingPathExtension().lastPathComponent,
+                                                knownSets: known)
+            if check.hasErrors { problems.append(path) }
+        }
+        return problems.sorted()
+    }
+
+    /// Guard: every file of `index.txt` must be loadable by v0.9.0-rc1. A set with a newer algorithm (or a
+    /// definition using one) belongs only to `index-v2.txt`.
+    @Test func indexIsLoadableByRc1() throws {
+        #expect(try Self.rc1Problems(try Self.indexEntries("index.txt")) == [])
+    }
+
+    /// The guard can turn red: over the complete `index-v2.txt` it finds exactly the files `index.txt` leaves out.
+    @Test func rc1GuardFindsTheIncompatibleFiles() throws {
+        #expect(try Self.rc1Problems(try Self.indexEntries("index-v2.txt")) == Self.rc1Incompatible.sorted())
     }
 
     @Test func everyDefinitionPassesTheEditorCheck() throws {
