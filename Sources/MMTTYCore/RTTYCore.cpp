@@ -1,0 +1,717 @@
+// RTTYCore.cpp – a C++ wrapper around the MMTTY core behind the C API.
+// Copyright 2026 OK1XOE (RYRY), LGPL v3
+#include "include/RTTYCore.h"
+#include "MMTTYCompat.h"
+#include "mmtty/Rtty.h"
+#include "mmtty/Fft.h"
+#include "AFC.h"
+#include <cmath>
+#include <memory>
+#include <new>
+#include <vector>
+
+// The MMTTY classes do not set all members in their constructors – in the original, VCL (TObject)
+// allocated them in zeroed memory. We keep that: raw memory → memset 0 → placement new.
+template <class T> struct ZeroedDeleter {
+    void operator()(T* p) const { if (p) { p->~T(); ::operator delete(p); } }
+};
+template <class T> using ZeroedPtr = std::unique_ptr<T, ZeroedDeleter<T>>;
+template <class T> static ZeroedPtr<T> makeZeroed() {
+    void* mem = ::operator new(sizeof(T));
+    memset(mem, 0, sizeof(T));
+    try { return ZeroedPtr<T>(new (mem) T()); } catch (...) { ::operator delete(mem); throw; }
+}
+
+struct RTTYCore {
+    CoreContext ctx;          // MUST be first: the other members are destroyed while the context is valid
+    RTTYCoreConfig cfg;
+    ZeroedPtr<CFSKDEM> dem;
+    ZeroedPtr<CFSKMOD> mod;
+    ZeroedPtr<CFFT> fft;
+    ZeroedPtr<CRTTY> rttyPtr;
+    ZeroedPtr<CLMS> lmsPtr;
+    int    fftWindow = 0;     // TSound::m_FFTWINDOW
+    int    bpfafc = 1;        // TSound::m_bpfafc
+    int    net = 1;
+    CRTTY& rtty() const { return *rttyPtr; }
+    CLMS&  lms() const { return *lmsPtr; }
+    double HBPF[TAPMAX + 1];
+    double ZBPF[TAPMAX + 1];
+    int    bpf = 0, lmsOn = 0, bpftap = 56;
+    double bpffw = 100.0;
+    int    echo = 1;
+    int    afc = 1, afcMode = 1;
+    double afcSQ = 32, afcTime = 8.0, afcSweep = 1.0;
+    double afcMaxDev = 0, afcAnchor = 2125;   // plan 9: limiting AFC around the manually set mark
+    int    afcGate = 0;
+    int    txActive = 0;
+    int    txStopping = 0;
+    int    tuning = 0;
+    long   echoHold = 0;          // after TX ends keep marking characters as echo for a while (echo=1)
+    std::vector<double> txBlock;
+    std::vector<double> echoTail;     // pre-allocated silence for the echo tail
+    static constexpr int kBufSize = 1024;   // MMTTY m_BuffSize at 11025 Hz
+    int    overflowLatched = 0;
+    std::vector<double> block;
+
+    void calcBPF() {
+        MakeFilter(HBPF, bpftap, ffBPF, SampFreq,
+                   dem->GetMarkFreq() - bpffw, dem->GetSpaceFreq() + bpffw, 60, 1.0);
+        lms().SetWindow(dem->GetMarkFreq(), dem->GetSpaceFreq());
+    }
+};
+
+static bool validRate(double r) {
+    if (!std::isfinite(r)) return false;
+    return (r >= 11025 * 0.98 && r <= 11025 * 1.02) || (r >= 12000 * 0.98 && r <= 12000 * 1.02);
+}
+
+extern "C" RTTYCoreConfig rttycore_default_config(void) {
+    RTTYCoreConfig c;
+    c.sampleRate = 11025; c.txOffset = 0; c.codeSet = 0; c.doubleShift = 0; c.txUOS = 1;
+    return c;
+}
+
+extern "C" const char* rttycore_version(void) { return "MMTTYCore 0.1 (MMTTY 1.70H)"; }
+
+extern "C" RTTYCore* rttycore_create(const RTTYCoreConfig* cfg) {
+    if (!cfg || !validRate(cfg->sampleRate)) return nullptr;
+    try {
+    auto* c = new RTTYCore();
+    CoreScope scope(&c->ctx);
+    // The context MUST be set BEFORE constructing CFSKDEM/CFSKMOD/CFFT (their constructors read it).
+    SampFreq = cfg->sampleRate;
+    InitSampType();
+    sys.m_SampFreq = SampFreq;
+    sys.m_TxOffset = cfg->txOffset;
+    sys.m_CodeSet  = cfg->codeSet;
+    sys.m_dblsft   = cfg->doubleShift;
+    sys.m_txuos    = cfg->txUOS;
+    sys.m_TxPort   = txSound;
+
+    c->cfg = *cfg;
+    c->dem = makeZeroed<CFSKDEM>();
+    c->mod = makeZeroed<CFSKMOD>();
+    c->fft = makeZeroed<CFFT>();
+    c->rttyPtr = makeZeroed<CRTTY>();
+    c->lmsPtr = makeZeroed<CLMS>();
+    c->fftWindow = (SampType == 2) ? int(3000 * FFT_SIZE / SampFreq) : int(4000 * FFT_SIZE / SampFreq);
+    c->mod->SetDem(c->dem.get());
+    c->mod->SetSampFreq(SampFreq + sys.m_TxOffset);
+    c->rtty().SetCodeSet();
+    memset(c->HBPF, 0, sizeof(c->HBPF));
+    memset(c->ZBPF, 0, sizeof(c->ZBPF));
+    c->calcBPF();
+    c->echoTail.assign(size_t(SampFreq * 0.2), 0.0);
+    return c;
+    } catch (...) { return nullptr; }          // bad_alloc must not escape through extern "C"
+}
+
+extern "C" void rttycore_destroy(RTTYCore* c) {
+    if (!c) return;
+    CoreScope scope(&c->ctx);
+    delete c;   // scope.prev is restored only after destruction (ctx is inside c, but ~CoreScope does not read it)
+}
+
+// The RX chain as in TSound::Execute: BPF/LMS → FFT collection → demodulator.
+static void rxPipeline(RTTYCore* c, double* lp, size_t n) {
+    if (c->bpf || c->lmsOn) {
+        for (size_t i = 0; i < n; i++) {
+            if (c->bpf)   lp[i] = DoFIR(c->HBPF, c->ZBPF, lp[i], c->bpftap);
+            if (c->lmsOn) lp[i] = c->lms().Do(lp[i]);
+        }
+    }
+    c->fft->CollectFFT(lp, int(n));
+    for (size_t i = 0; i < n; i++) c->dem->Do(lp[i]);
+    if (c->dem->m_OverFlow) { c->overflowLatched = 1; c->dem->m_OverFlow = 0; }
+}
+
+extern "C" void rttycore_process_rx(RTTYCore* c, const float* s, size_t n) {
+    if (!c || !s || n == 0) return;
+    CoreScope scope(&c->ctx);
+    if (c->echoHold > 0) c->echoHold -= long(n);
+    // During TX the input is closed in MMTTY (echo 0/1); only echo=2 listens to the real input.
+    if (c->txActive && c->echo != 2) return;
+    c->block.resize(n);
+    for (size_t i = 0; i < n; i++) c->block[i] = std::isfinite(s[i]) ? double(s[i]) * 32768.0 : 0.0;
+    rxPipeline(c, c->block.data(), n);
+}
+
+extern "C" size_t rttycore_read_chars(RTTYCore* c, RTTYCoreChar* out, size_t max) {
+    if (!c || !out) return 0;
+    CoreScope scope(const_cast<CoreContext*>(&c->ctx));
+    size_t k = 0;
+    while (k < max) {
+        int d = c->dem->GetData();
+        if (d < 0) break;
+        char ch = 0;
+        switch (c->dem->m_BitLen) {
+            case 7: d &= 0x7f; /* fallthrough */
+            case 8: ch = char(d); break;
+            default: ch = c->rtty().ConvAscii(d); break;
+        }
+        if (ch) { out[k].ch = ch; out[k].echo = uint8_t((c->txActive || c->echoHold > 0) ? 1 : 0); k++; }
+    }
+    return k;
+}
+
+extern "C" RTTYCoreSignal rttycore_signal(RTTYCore* c) {
+    RTTYCoreSignal r{};
+    if (!c) return r;
+    CoreScope scope(&c->ctx);
+    r.level = c->dem->m_avgdeff;
+    // The same threshold as CFSKDEM::DoFSK: on receive (m_Limit) SQLevel × 10.
+    double thr = c->dem->m_Limit ? c->dem->GetSQLevel() * 10.0 : c->dem->GetSQLevel();
+    r.squelchOpen = (!c->dem->GetSQ() || c->dem->m_avgdeff >= thr) ? 1 : 0;
+    r.overflow = c->overflowLatched; c->overflowLatched = 0;
+    r.mark = c->dem->GetMarkFreq();
+    r.space = c->dem->GetSpaceFreq();
+    r.fig = c->rtty().m_fig;
+    return r;
+}
+
+static bool inRange(double v, double lo, double hi) { return std::isfinite(v) && v >= lo && v <= hi; }
+static bool isBool(double v) { return v == 0.0 || v == 1.0; }
+static bool isInt(double v, int lo, int hi) { return inRange(v, lo, hi) && v == std::floor(v); }
+// FIR with an odd number of taps: MakeFilter writes only n coefficients out of n+1 → always even (rounded up).
+static int evenTaps(double v) { int n = int(v); return (n & 1) ? n + 1 : n; }
+
+extern "C" int rttycore_set_param(RTTYCore* c, RTTYCoreParam p, double v) {
+    if (!c) return RC_ERR_UNKNOWN;
+    CoreScope scope(const_cast<CoreContext*>(&c->ctx));
+    CFSKDEM& dem = *c->dem;
+    CFSKMOD& mod = *c->mod;
+    switch (p) {
+    case RC_BAUD:
+        if (!inRange(v, 20, 300)) return RC_ERR_RANGE;
+        dem.SetBaudRate(v); mod.SetBaudRate(v); break;
+    case RC_MARK:
+        if (!inRange(v, 100, 3000)) return RC_ERR_RANGE;
+        if (!inRange(std::fabs(dem.GetSpaceFreq() - v), 20, 2000)) return RC_ERR_RANGE;
+        dem.SetMarkFreq(v); mod.SetMarkFreq(v); c->calcBPF(); c->afcAnchor = v; break;
+    case RC_SPACE:
+        if (!inRange(v, 100, 3000)) return RC_ERR_RANGE;
+        if (!inRange(std::fabs(v - dem.GetMarkFreq()), 20, 2000)) return RC_ERR_RANGE;
+        dem.SetSpaceFreq(v); mod.SetSpaceFreq(v); c->calcBPF(); break;
+    case RC_REVERSE:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        dem.SetRev(int(v)); mod.SetRev(int(v)); break;
+    case RC_SQUELCH:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        dem.SetSQ(int(v)); break;
+    case RC_SQUELCH_LEVEL:
+        if (!inRange(v, 0, 32768)) return RC_ERR_RANGE;
+        dem.SetSQLevel(v); break;
+    case RC_DEMOD_TYPE:
+        if (!isInt(v, 0, 3)) return RC_ERR_RANGE;
+        dem.m_type = int(v); break;
+    case RC_IIR_BW:
+        if (!inRange(v, 20, 500)) return RC_ERR_RANGE;
+        dem.SetIIR(v); break;
+    case RC_FIR_TAP:
+        if (!isInt(v, 8, TAPMAX)) return RC_ERR_RANGE;
+        dem.SetFilterTap(int(v)); break;
+    case RC_SMOOTH_TYPE:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        dem.m_lpf = int(v); break;
+    case RC_SMOOTH_FREQ:
+        if (!inRange(v, 10, 1000)) return RC_ERR_RANGE;
+        dem.SetSmoozFreq(v); break;
+    case RC_LPF_FREQ:
+        if (!inRange(v, 10, 1000)) return RC_ERR_RANGE;
+        dem.SetLPFFreq(v); break;
+    case RC_LPF_ORDER:
+        if (!isInt(v, 1, 8)) return RC_ERR_RANGE;
+        dem.m_lpfOrder = int(v); dem.SetLPFFreq(dem.m_lpffreq); break;
+    case RC_ATC:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        dem.m_atc = int(v); break;
+    case RC_MAJORITY:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        dem.m_majority = int(v); break;
+    case RC_IGNORE_FRAMING:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        dem.m_ignoreFream = int(v); break;
+    case RC_BIT_LENGTH:
+        if (!isInt(v, 5, 8)) return RC_ERR_RANGE;
+        dem.m_BitLen = mod.m_BitLen = int(v); break;
+    case RC_STOP_BITS:
+        if (!isInt(v, 0, 4)) return RC_ERR_RANGE;
+        dem.m_StopLen = mod.m_StopLen = int(v); break;
+    case RC_PARITY:
+        if (!isInt(v, 0, 4)) return RC_ERR_RANGE;
+        dem.m_Parity = mod.m_Parity = int(v); break;
+    case RC_LIMITER_AGC:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        dem.m_LimitAGC = int(v); break;
+    case RC_LIMITER_OVERSAMPLE:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        dem.m_LimitOverSampling = int(v); break;
+    case RC_UOS:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->rtty().m_uos = int(v); break;
+    case RC_DIDDLE:
+        if (!isInt(v, 0, 2)) return RC_ERR_RANGE;
+        mod.m_diddle = int(v); break;
+    case RC_ECHO:
+        if (!isInt(v, 0, 2)) return RC_ERR_RANGE;
+        c->echo = int(v); break;
+    case RC_AFC:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->afc = int(v); break;
+    case RC_AFC_MODE:
+        if (!isInt(v, 0, 3)) return RC_ERR_RANGE;
+        c->afcMode = int(v); break;
+    case RC_AFC_SQ:
+        if (!inRange(v, 0, 1024)) return RC_ERR_RANGE;
+        c->afcSQ = v; break;
+    case RC_AFC_TIME:
+        if (!inRange(v, 1, 64)) return RC_ERR_RANGE;
+        c->afcTime = v; break;
+    case RC_AFC_SWEEP:
+        if (!inRange(v, 0.1, 3.0)) return RC_ERR_RANGE;
+        c->afcSweep = v; break;
+    case RC_RX_BPF:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->bpf = int(v); break;
+    case RC_RX_BPF_WIDTH:
+        if (!inRange(v, 20, 500)) return RC_ERR_RANGE;
+        c->bpffw = v; c->calcBPF(); break;
+    case RC_RX_LMS:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->lmsOn = int(v);
+        if (v == 0 && c->lms().m_twoNotch) c->lms().m_lmsNotch = c->lms().m_lmsNotch2 = 0;   // SBLMSClick
+        else c->calcBPF();
+        break;
+    case RC_TX_OUTPUT_GAIN:
+        if (!inRange(v, 0, 32768)) return RC_ERR_RANGE;
+        mod.SetOutputGain(v); break;
+    case RC_NET:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->net = int(v); break;
+    case RC_AA6YQ:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        if (dem.m_AA6YQ.m_fEnabled != int(v)) {
+            dem.m_AA6YQ.m_fEnabled = int(v);
+            if (v != 0) dem.m_AA6YQ.Create();       // like TOptionDlg (CBAA6YQ)
+        }
+        break;
+    case RC_AA6YQ_BPF_TAPS:
+        if (!isInt(v, 16, 1024)) return RC_ERR_RANGE;
+        dem.m_AA6YQ.m_bpfTaps = evenTaps(v); dem.m_AA6YQ.Create(); break;
+    case RC_AA6YQ_BPF_FW:
+        if (!inRange(v, 5, 500)) return RC_ERR_RANGE;
+        dem.m_AA6YQ.m_bpfFW = v; dem.m_AA6YQ.Create(); break;
+    case RC_AA6YQ_BEF_TAPS:
+        if (!isInt(v, 16, 1024)) return RC_ERR_RANGE;
+        dem.m_AA6YQ.m_befTaps = evenTaps(v); dem.m_AA6YQ.Create(); break;
+    case RC_AA6YQ_BEF_FW:
+        if (!inRange(v, 5, 100)) return RC_ERR_RANGE;
+        dem.m_AA6YQ.m_befFW = v; dem.m_AA6YQ.Create(); break;
+    case RC_LMS_TYPE:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->lms().m_Type = int(v); c->calcBPF(); break;
+    case RC_NOTCH_FREQ:
+        if (!isInt(v, 0, 3000)) return RC_ERR_RANGE;
+        c->lms().m_lmsNotch = int(v); c->calcBPF(); break;
+    case RC_NOTCH2_FREQ:
+        if (!isInt(v, 0, 3000)) return RC_ERR_RANGE;
+        c->lms().m_lmsNotch2 = int(v); c->calcBPF(); break;
+    case RC_TWO_NOTCH:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->lms().m_twoNotch = int(v); c->calcBPF(); break;
+    case RC_NOTCH_TAPS:
+        if (!isInt(v, 8, TAPMAX)) return RC_ERR_RANGE;
+        c->lms().m_NotchTap = evenTaps(v); c->calcBPF(); break;
+    case RC_LMS_TAPS:
+        if (!isInt(v, 8, TAPMAX)) return RC_ERR_RANGE;
+        c->lms().m_Tap = evenTaps(v); c->calcBPF(); break;
+    case RC_LMS_MU2:
+        if (!inRange(v, 0, 1)) return RC_ERR_RANGE;
+        c->lms().m_lmsMU2 = v; break;
+    case RC_LMS_GAMMA:
+        if (!inRange(v, 0, 1)) return RC_ERR_RANGE;
+        c->lms().m_lmsGM = v; break;
+    case RC_LMS_DELAY:
+        if (!isInt(v, 0, 512)) return RC_ERR_RANGE;
+        c->lms().m_lmsDelay = int(v); break;
+    case RC_LMS_AGC:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->lms().m_lmsAGC = int(v); break;
+    case RC_LMS_INV:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->lms().m_lmsInv = int(v); break;
+    case RC_LMS_BPF:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->lms().m_bpf = int(v); c->calcBPF(); break;
+    case RC_PLL_VCO_GAIN:
+        if (!inRange(v, 1e-6, 100)) return RC_ERR_RANGE;
+        dem.m_pll.SetVcoGain(v); break;
+    case RC_PLL_LOOP_ORDER:
+        if (!isInt(v, 1, 31)) return RC_ERR_RANGE;
+        dem.m_pll.m_loopOrder = int(v); dem.m_pll.MakeLoopLPF(); break;
+    case RC_PLL_LOOP_FC:
+        if (!inRange(v, 1, 2500)) return RC_ERR_RANGE;
+        dem.m_pll.m_loopFC = v; dem.m_pll.MakeLoopLPF(); break;
+    case RC_PLL_OUT_ORDER:
+        if (!isInt(v, 1, 31)) return RC_ERR_RANGE;
+        dem.m_pll.m_outOrder = int(v); dem.m_pll.MakeOutLPF(); break;
+    case RC_PLL_OUT_FC:
+        if (!inRange(v, 1, 2500)) return RC_ERR_RANGE;
+        dem.m_pll.m_outFC = v; dem.m_pll.MakeOutLPF(); break;
+    case RC_TX_BPF:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        mod.m_bpf = int(v); break;
+    case RC_TX_LPF:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        mod.m_lpf = int(v); break;
+    case RC_TX_LPF_FREQ:
+        if (!inRange(v, 10, 1000)) return RC_ERR_RANGE;
+        mod.SetLPFFreq(v); break;
+    case RC_TX_CHAR_WAIT:
+        if (!isInt(v, 0, 50)) return RC_ERR_RANGE;
+        mod.m_CharWait = int(v); break;
+    case RC_TX_CHAR_WAIT_DIDDLE:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        mod.m_CharWaitDiddle = int(v); break;
+    case RC_TX_RANDOM_DIDDLE:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        mod.m_RandomDiddle = int(v); break;
+    case RC_AFC_MAX_DEV:
+        if (!inRange(v, 0, 1000)) return RC_ERR_RANGE;
+        c->afcMaxDev = v; c->afcAnchor = dem.GetMarkFreq(); break;
+    case RC_AFC_GATE:
+        if (!isBool(v)) return RC_ERR_RANGE;
+        c->afcGate = int(v); break;
+    default:
+        return RC_ERR_UNKNOWN;
+    }
+    return RC_OK;
+}
+
+extern "C" double rttycore_get_param(const RTTYCore* c, RTTYCoreParam p) {
+    if (!c) return NAN;
+    CoreScope scope(const_cast<CoreContext*>(&c->ctx));
+    CFSKDEM& dem = *c->dem;
+    CFSKMOD& mod = *c->mod;
+    switch (p) {
+    case RC_BAUD: return dem.GetBaudRate();
+    case RC_MARK: return dem.GetMarkFreq();
+    case RC_SPACE: return dem.GetSpaceFreq();
+    case RC_REVERSE: return dem.GetRev();
+    case RC_SQUELCH: return dem.GetSQ();
+    case RC_SQUELCH_LEVEL: return dem.GetSQLevel();
+    case RC_DEMOD_TYPE: return dem.m_type;
+    case RC_IIR_BW: return dem.m_iirfw;
+    case RC_FIR_TAP: return dem.GetFilterTap();
+    case RC_SMOOTH_TYPE: return dem.m_lpf;
+    case RC_SMOOTH_FREQ: return dem.GetSmoozFreq();
+    case RC_LPF_FREQ: return dem.m_lpffreq;
+    case RC_LPF_ORDER: return dem.m_lpfOrder;
+    case RC_ATC: return dem.m_atc;
+    case RC_MAJORITY: return dem.m_majority;
+    case RC_IGNORE_FRAMING: return dem.m_ignoreFream;
+    case RC_BIT_LENGTH: return dem.m_BitLen;
+    case RC_STOP_BITS: return dem.m_StopLen;
+    case RC_PARITY: return dem.m_Parity;
+    case RC_LIMITER_AGC: return dem.m_LimitAGC;
+    case RC_LIMITER_OVERSAMPLE: return dem.m_LimitOverSampling;
+    case RC_UOS: return c->rtty().m_uos;
+    case RC_DIDDLE: return mod.m_diddle;
+    case RC_ECHO: return c->echo;
+    case RC_AFC: return c->afc;
+    case RC_AFC_MODE: return c->afcMode;
+    case RC_AFC_SQ: return c->afcSQ;
+    case RC_AFC_TIME: return c->afcTime;
+    case RC_AFC_SWEEP: return c->afcSweep;
+    case RC_RX_BPF: return c->bpf;
+    case RC_RX_BPF_WIDTH: return c->bpffw;
+    case RC_RX_LMS: return c->lmsOn;
+    case RC_TX_OUTPUT_GAIN: return mod.GetOutputGain();
+    case RC_NET: return c->net;
+    case RC_AA6YQ: return dem.m_AA6YQ.m_fEnabled;
+    case RC_AA6YQ_BPF_TAPS: return dem.m_AA6YQ.m_bpfTaps;
+    case RC_AA6YQ_BPF_FW: return dem.m_AA6YQ.m_bpfFW;
+    case RC_AA6YQ_BEF_TAPS: return dem.m_AA6YQ.m_befTaps;
+    case RC_AA6YQ_BEF_FW: return dem.m_AA6YQ.m_befFW;
+    case RC_LMS_TYPE: return c->lms().m_Type;
+    case RC_NOTCH_FREQ: return c->lms().m_lmsNotch;
+    case RC_NOTCH2_FREQ: return c->lms().m_lmsNotch2;
+    case RC_TWO_NOTCH: return c->lms().m_twoNotch;
+    case RC_NOTCH_TAPS: return c->lms().m_NotchTap;
+    case RC_LMS_TAPS: return c->lms().m_Tap;
+    case RC_LMS_MU2: return c->lms().m_lmsMU2;
+    case RC_LMS_GAMMA: return c->lms().m_lmsGM;
+    case RC_LMS_DELAY: return c->lms().m_lmsDelay;
+    case RC_LMS_AGC: return c->lms().m_lmsAGC;
+    case RC_LMS_INV: return c->lms().m_lmsInv;
+    case RC_LMS_BPF: return c->lms().m_bpf;
+    case RC_PLL_VCO_GAIN: return dem.m_pll.m_vcogain;
+    case RC_PLL_LOOP_ORDER: return dem.m_pll.m_loopOrder;
+    case RC_PLL_LOOP_FC: return dem.m_pll.m_loopFC;
+    case RC_PLL_OUT_ORDER: return dem.m_pll.m_outOrder;
+    case RC_PLL_OUT_FC: return dem.m_pll.m_outFC;
+    case RC_TX_BPF: return mod.m_bpf;
+    case RC_TX_LPF: return mod.m_lpf;
+    case RC_TX_LPF_FREQ: return mod.GetLPFFreq();
+    case RC_TX_CHAR_WAIT: return mod.m_CharWait;
+    case RC_TX_CHAR_WAIT_DIDDLE: return mod.m_CharWaitDiddle;
+    case RC_TX_RANDOM_DIDDLE: return mod.m_RandomDiddle;
+    case RC_AFC_MAX_DEV: return c->afcMaxDev;
+    case RC_AFC_GATE: return c->afcGate;
+    default: return NAN;
+    }
+}
+
+// TMmttyWd::PBoxFFTINMouseDown, right button + SBLMSClick.
+extern "C" void rttycore_notch_click(RTTYCore* c, double hz) {
+    if (!c || !std::isfinite(hz) || hz < 0 || hz > 3000) return;
+    CoreScope scope(&c->ctx);
+    CLMS& l = c->lms();
+    if (!l.m_Type) return;
+    if (!c->lmsOn) {
+        l.m_lmsNotch2 = 0;
+        l.m_lmsNotch = int(hz + 0.5);
+        c->lmsOn = 1;
+    } else {
+        l.m_lmsNotch2 = l.m_lmsNotch;
+        l.m_lmsNotch = int(hz + 0.5);
+    }
+    c->calcBPF();
+}
+
+// --- Transmitting (after TMmttyWd::XMIT, ToRX and the TX branch of TSound::Execute) ---
+
+extern "C" void rttycore_tx_begin(RTTYCore* c, int tune) {
+    if (!c) return;
+    CoreScope scope(const_cast<CoreContext*>(&c->ctx));
+    if (c->net) {   // UpdateNet(): TX on the RX frequency (after AFC)
+        c->mod->SetMarkFreq(c->dem->GetMarkFreq());
+        c->mod->SetSpaceFreq(c->dem->GetSpaceFreq());
+    }
+    c->mod->ClearTXBuf();
+    c->mod->ClearFskCodes();
+    c->rtty().ClearTX();
+    c->mod->SetBaudRate(c->dem->GetBaudRate());
+    c->mod->m_Amp.Reset();
+    c->mod->m_AmpVal = 1;
+    c->mod->OutTone(tune ? 1 : 0, RTTYCore::kBufSize);
+    if (c->echo != 2) c->dem->ClearRXBuf();
+    c->mod->InitPhase();
+    c->mod->SetCount(RTTYCore::kBufSize * 3);
+    c->tuning = tune ? 1 : 0;
+    c->mod->SetDiddleTimer(tune ? -1 : int(SampFreq / 4));   // tune: a plain carrier, otherwise 0.25 s as in XMIT
+    c->txActive = 1;
+    c->txStopping = 0;
+}
+
+extern "C" size_t rttycore_tx_space(const RTTYCore* c) {
+    return c ? size_t(MODBUFMAX - c->mod->GetBufCount()) : 0;
+}
+
+extern "C" size_t rttycore_tx_pending(const RTTYCore* c) {
+    return c ? size_t(c->mod->GetBufCount()) : 0;
+}
+
+extern "C" size_t rttycore_queue_tx(RTTYCore* c, const char* text) {
+    if (!c || !text || !c->txActive || c->txStopping || c->tuning) return 0;
+    CoreScope scope(&c->ctx);
+    size_t used = 0;
+    BYTE codes[8];
+    for (const char* p = text; *p; p++) {
+        if (rttycore_tx_space(c) < 3) break;
+        unsigned char u = (unsigned char)*p;
+        used++;
+        if (u >= 'a' && u <= 'z') u = u - 'a' + 'A';
+        if (!(u == '\r' || u == '\n' || u == 0x1B || u == 0x1F || (u >= 0x20 && u < 0x7F))) continue;
+        // The MMTTY control characters (_ ~ [ ]) only through rttycore_queue_tx_raw.
+        if (u == '_' || u == '~' || u == '[' || u == ']') continue;
+        // Do not send a character without a Baudot code (the table gives 0x00) – tested on a copy (ConvRTTY changes state).
+        CRTTY probe = c->rtty();
+        if (u != 0x1B && u != 0x1F && (probe.ConvRTTY(char(u)) & 0xff) == 0) continue;
+        char one[2] = { char(u), 0 };
+        int n = c->rtty().ConvRTTY(codes, one);
+        for (int i = 0; i < n; i++) c->mod->PutData(codes[i]);
+    }
+    return used;
+}
+
+extern "C" size_t rttycore_queue_tx_raw(RTTYCore* c, const uint8_t* codes, size_t n) {
+    if (!c || !codes || !c->txActive || c->txStopping || c->tuning) return 0;
+    CoreScope scope(&c->ctx);
+    size_t i = 0;
+    for (; i < n && rttycore_tx_space(c) > 0; i++) c->mod->PutData(codes[i]);
+    return i;
+}
+
+extern "C" size_t rttycore_generate_tx(RTTYCore* c, float* out, size_t n) {
+    if (!c || !out) return 0;
+    CoreScope scope(&c->ctx);
+    size_t i = 0;
+    if (c->txActive) {
+        c->txBlock.resize(n);
+        for (; i < n; i++) {
+            if (c->txStopping && !c->mod->GetMode()) {
+                c->txActive = 0; c->txStopping = 0; c->tuning = 0;
+                c->echoHold = long(SampFreq / 2);
+                if (c->echo == 1) {
+                    // tail: this block's TX samples + 0.2 s of silence so the demodulator finishes the last character
+                    if (i > 0) rxPipeline(c, c->txBlock.data(), i);
+                    std::fill(c->echoTail.begin(), c->echoTail.end(), 0.0);   // rxPipeline modifies the buffer (BPF/LMS)
+                    rxPipeline(c, c->echoTail.data(), c->echoTail.size());
+                    for (size_t k = i; k < n; k++) out[k] = 0.0f;
+                    return i;
+                }
+                break;
+            }
+            double d = c->mod->Do(c->echo);
+            c->txBlock[i] = d;
+            double f = d / 32768.0;
+            out[i] = float(f > 1.0 ? 1.0 : (f < -1.0 ? -1.0 : f));
+        }
+        // echo=1: the demodulator decodes our own transmitted audio (TSound: input closed, Buff = the TX block).
+        if (c->echo == 1 && i > 0) rxPipeline(c, c->txBlock.data(), i);
+    }
+    for (size_t k = i; k < n; k++) out[k] = 0.0f;
+    return i;
+}
+
+extern "C" void rttycore_tx_stop(RTTYCore* c) {
+    if (!c || !c->txActive) return;
+    CoreScope scope(const_cast<CoreContext*>(&c->ctx));
+    c->mod->SetDiddleTimer(-1);
+    c->mod->DeleteTXBuf();
+    c->txStopping = 1;
+}
+
+extern "C" void rttycore_tx_abort(RTTYCore* c) {
+    if (!c) return;
+    c->tuning = 0;
+    CoreScope scope(const_cast<CoreContext*>(&c->ctx));
+    c->mod->DeleteTXBuf();
+    c->txActive = 0; c->txStopping = 0;
+}
+
+extern "C" int rttycore_is_tx(const RTTYCore* c) { return c && c->txActive ? 1 : 0; }
+
+// --- Spectrum and AFC (after TSound::DrawFFT and the DoAFC call from TMmttyWd::TimerTimer) ---
+
+extern "C" int rttycore_tick(RTTYCore* c) {
+    if (!c) return 0;
+    CoreScope scope(const_cast<CoreContext*>(&c->ctx));
+    if (c->fft->m_CollectFFT) {
+        double gain;
+        switch (sys.m_FFTGain) {
+            case 0: gain = 30.0; break;
+            case 1: gain = 34.0; break;
+            case 2: gain = 42.0; break;
+            case 3: gain = 54.0; break;
+            default: gain = (c->echo != 2 && c->txActive) ? 0.02 : 0.1; break;
+        }
+        c->fft->CalcFFT(c->fftWindow, gain, sys.m_FFTResp);
+        c->fft->TrigFFT();
+    }
+    if (!c->afc) return 0;
+    if (c->txActive && c->echo != 2) return 0;        // AFC does not run while transmitting
+    // plan 9: AFC only when the signal is above the squelch threshold (in noise it jumps to other stations)
+    if (c->afcGate) {
+        double thr = c->dem->m_Limit ? c->dem->GetSQLevel() * 10.0 : c->dem->GetSQLevel();
+        if (c->dem->m_avgdeff < thr) return 0;
+    }
+    AFCParams p{ c->afcMode, c->afcSQ, c->afcTime, c->afcSweep, sys.m_FFTGain };
+    int r = DoAFC(c->fft->m_fft, c->fftWindow, c->bpfafc, *c->dem, p);
+    if (r != AFC_NOCHANGE && c->afcMaxDev > 0) {
+        double m = c->dem->GetMarkFreq(), sft = c->dem->GetSpaceFreq() - m;
+        double lo = c->afcAnchor - c->afcMaxDev, hi = c->afcAnchor + c->afcMaxDev;
+        if (m < lo || m > hi) {
+            double cm = m < lo ? lo : hi;
+            c->dem->AFCMarkFreq(cm); c->dem->AFCSpaceFreq(cm + sft);
+        }
+    }
+    if (r == AFC_CHANGED_RECALC_BPF) c->calcBPF();
+    return r != AFC_NOCHANGE ? 1 : 0;
+}
+
+extern "C" size_t rttycore_spectrum(RTTYCore* c, float* out, size_t max, double* binHz) {
+    if (!c || !out) return 0;
+    CoreScope scope(const_cast<CoreContext*>(&c->ctx));
+    size_t n = size_t(c->fftWindow);
+    if (n > max) n = max;
+    for (size_t i = 0; i < n; i++) out[i] = float(c->fft->m_fft[i]);
+    if (binHz) *binHz = SampFreq / FFT_SIZE;
+    return n;
+}
+
+
+extern "C" size_t rttycore_read_fsk_codes(RTTYCore* c, uint8_t* out, size_t max) {
+    if (!c || !out) return 0;
+    size_t k = 0;
+    while (k < max) {
+        int d = c->mod->ReadFskCode();
+        if (d < 0) break;
+        if (d >= 0xFC) continue;
+        out[k++] = uint8_t(d & 0x1F);
+    }
+    return k;
+}
+
+// --- XY scope (CFSKDEM::m_XYScopeMark/Space, collected in batches as in TMmttyWd::UpdateXYScope) ---
+static const int kXYSize = 512;
+
+static void scopeCollect(CFSKDEM& d) {
+    for (int i = 0; i < 4; i++) { d.m_ScopeMark[i].Collect(SCOPESIZE); d.m_ScopeSpace[i].Collect(SCOPESIZE); }
+    d.m_ScopeSync.Collect(SCOPESIZE); d.m_ScopeBit.Collect(SCOPESIZE);
+}
+
+extern "C" void rttycore_set_scope(RTTYCore* c, int on) {
+    if (!c) return;
+    CoreScope scope(&c->ctx);
+    c->dem->m_Scope = 0;                       // like TTScope: switch off first, then prepare and switch on
+    if (on) { scopeCollect(*c->dem); c->dem->m_Scope = 1; }
+}
+
+extern "C" size_t rttycore_read_scope(RTTYCore* c, int src, float* m, float* s, float* b, float* y, size_t max) {
+    if (!c || !m || !s || !b || !y || src < 0 || src > 3 || !c->dem->m_Scope) return 0;
+    CoreScope scope(&c->ctx);
+    CFSKDEM& d = *c->dem;
+    CScope &sm = d.m_ScopeMark[src], &ss = d.m_ScopeSpace[src];
+    if (!sm.GetFlag() || !ss.GetFlag() || !d.m_ScopeBit.GetFlag() || !d.m_ScopeSync.GetFlag()) return 0;
+    size_t n = size_t(std::min(std::min(sm.m_ScopeSize, ss.m_ScopeSize), std::min(d.m_ScopeBit.m_ScopeSize, d.m_ScopeSync.m_ScopeSize)));
+    if (n > max) n = max;
+    for (size_t i = 0; i < n; i++) {
+        m[i] = float(sm.pScopeData[i] / 32768.0); s[i] = float(ss.pScopeData[i] / 32768.0);
+        b[i] = float(d.m_ScopeBit.pScopeData[i] / 8192.0); y[i] = float(d.m_ScopeSync.pScopeData[i] / 8192.0);
+    }
+    return n;
+}
+
+extern "C" int rttycore_scope_ready(RTTYCore* c) {
+    if (!c || !c->dem->m_Scope) return 0;
+    return (c->dem->m_ScopeBit.GetFlag() && c->dem->m_ScopeSync.GetFlag()) ? 1 : 0;
+}
+
+extern "C" void rttycore_scope_rearm(RTTYCore* c) {
+    if (!c || !c->dem->m_Scope) return;
+    CoreScope scope(&c->ctx);
+    scopeCollect(*c->dem);
+}
+
+extern "C" void rttycore_set_xy(RTTYCore* c, int on) {
+    if (!c) return;
+    CoreScope scope(&c->ctx);
+    c->dem->m_XYScope = on ? 1 : 0;
+    if (on) { c->dem->m_XYScopeMark.Collect(kXYSize); c->dem->m_XYScopeSpace.Collect(kXYSize); }
+}
+
+extern "C" size_t rttycore_read_xy(RTTYCore* c, float* x, float* y, size_t max) {
+    if (!c || !x || !y || !c->dem->m_XYScope) return 0;
+    CoreScope scope(&c->ctx);
+    CScope& mx = c->dem->m_XYScopeMark;
+    CScope& sy = c->dem->m_XYScopeSpace;
+    if (!mx.GetFlag() || !sy.GetFlag()) return 0;
+    size_t n = size_t(std::min(mx.m_ScopeSize, sy.m_ScopeSize));
+    if (n > max) n = max;
+    for (size_t i = 0; i < n; i++) { x[i] = float(mx.pScopeData[i] / 32768.0); y[i] = float(sy.pScopeData[i] / 32768.0); }
+    mx.Collect(kXYSize); sy.Collect(kXYSize);
+    return n;
+}
