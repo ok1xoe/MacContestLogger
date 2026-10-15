@@ -2152,5 +2152,14 @@
  "Split vypnut": "Split off",
  "Hlášení pro nevidomé (VoiceOver)": "Announcements for blind operators (VoiceOver)",
  "Hlášení pro nevidomé zapnuta (VoiceOver)": "Announcements for blind operators on (VoiceOver)",
- "Hlášení pro nevidomé vypnuta": "Announcements for blind operators off"
+ "Hlášení pro nevidomé vypnuta": "Announcements for blind operators off",
+ "VHF: hledat volačku a lokátor v call history": "VHF: search call and grid in the call history",
+ "VHF: přepínat lokátory z call history": "VHF: toggle grids from the call history",
+ "Závod nemá pole lokátoru": "The contest has no grid field",
+ "Napiš volačku nebo lokátor, který se má hledat": "Type the call or grid to search for",
+ "Zpětné hledání v call history zapnuto (okno Check)": "Reverse call history lookup on (Check window)",
+ "Call history nezná pro tuto volačku žádný lokátor": "The call history has no grid for this call",
+ "%s uložen do bandmapy na %s": "%s stored in the band map on %s",
+ "Pass: na pásmu %s není žádná stanice sítě": "Pass: no network station on %s",
+ "Poslední stanici na toto pásmo": "Last station to this band"
 }

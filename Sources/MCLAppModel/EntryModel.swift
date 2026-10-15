@@ -142,6 +142,8 @@ public final class EntryModel {
     @ObservationIgnored var inputGate: @MainActor () -> Bool = { true }
     /// The self-spot anchor and `callFromSpot` of this window (`EP:150-153`).
     @ObservationIgnored var selfSpot = SelfSpotTracker()
+    /// Alt+-: the grid the operator typed for a call, kept in the toggle cycle.
+    @ObservationIgnored var gridToggleEntered: (call: String, grid: String)?
     /// The tuned frequency the tuning effect last ran for (Kotlin `LaunchedEffect(state.tunedFreqHz)` runs once per
     /// new value).
     @ObservationIgnored var selfSpotTunedHz: Int64?

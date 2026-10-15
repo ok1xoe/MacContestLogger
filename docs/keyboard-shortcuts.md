@@ -73,6 +73,8 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Ctrl+Alt+P** | **pass** — hands the callsign from the field to another station of the network log (directly to the only online station, otherwise a choice in the Network status window) |
 | **Ctrl+Alt+M** | multi-op: this station's type **Run ↔ Mult** (saved, shown to the other stations; Settings → Cluster) |
 | **Alt+Z** | multi-op: sets this station's **pass frequency** (kHz, the current one offered; empty = clear) and announces it to all stations; a call passed to this station then lands in its band map on that frequency |
+| **Alt+=** | VHF and up: the typed call and grid are searched in the call history and the log — the [Check window](call-check.md) opens with its reverse lookup on (N1MM *Search entered info from both the Callsign field and the Gridsquare field*) |
+| **Alt+-** | VHF and up: the grid field toggles through the call history's grids of the typed call (Loc1, Loc2) and the grid you typed — three at most |
 | **Alt+A** / **Shift+Alt+A** | the next / previous spot of the [Available window](available-window.md) list is tuned and taken (the list wraps around) |
 | **Ctrl+Alt+G** | the callsign from the field onto the [call stack](call-stacking.md); the fields are wiped for the next call |
 | **Alt+G** / **Ctrl+Alt+K** | the next callsign from the [call stack](call-stacking.md) (own and partner's) into a wiped entry window; Alt+G in a digital mode takes the Digital Interface's [Grab window](digital-modes.md#the-grab-window) callsign first |

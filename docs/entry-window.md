@@ -19,6 +19,20 @@ A right click anywhere in the entry window (outside the text fields) opens N1MM'
 
 The choices are saved with the settings.
 
+## Right click on a band button
+
+As in N1MM, a right click (or Control+click) on a band/mode button acts at once:
+
+- **without a network log**, or with an empty call field: the rig goes to that band and mode — the last frequency
+  used on the band, otherwise the start of the mode segment — and the call of the **last logged station** is stored
+  in the band map there (a local spot, nothing is sent to the cluster). Meant for VHF contests, where one station is
+  moved through many bands in a row.
+- **in a network log with a call typed**: the call is **passed** to the network station working that band (its pass
+  frequency from Alt+Z, otherwise its own frequency), like Ctrl+Alt+P. No station on the band: the status line says so.
+
+The right click works even when *Klik na tlačítko pásma mění pásmo* is off (that option only covers the left click).
+VoiceOver offers it as the action *Poslední stanici na toto pásmo*.
+
 ## Colours of the typed call
 
 In a contest the typed call is checked on the current band and on every band button:
