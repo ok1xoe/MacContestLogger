@@ -44,6 +44,8 @@ public final class KeyerModel {
     @ObservationIgnored private let operating: OperatingModel
     @ObservationIgnored private(set) weak var rig: RigModel?
     @ObservationIgnored private let activeCat: ActiveCatBox
+    /// The sound-card CW monitor.
+    @ObservationIgnored let monitor: CwMonitor
     /// A keyer may be open on the lane (Kotlin `cwKeyer != null`): set when a job that opens it is queued, cleared
     /// by the reset and the quit. Esc aborts only then (Kotlin), but never misses a keyer still being opened.
     @ObservationIgnored private var keyerMayBeOpen: Bool = false
@@ -84,6 +86,7 @@ public final class KeyerModel {
         self.activeCat = activeCat
         let lane = KeyerLane(hardware: dependencies.hardware, activeCat: activeCat)
         self.lane = lane
+        monitor = CwMonitor(hardware: dependencies.hardware)
         voice = VoiceKeyerModel(VoiceKeyerModel.Dependencies(
             hardware: dependencies.hardware, config: dependencies.config, status: dependencies.status,
             language: dependencies.language, operating: dependencies.operating, clock: dependencies.clock,
@@ -164,6 +167,7 @@ public final class KeyerModel {
                 self.noteSendFailure()
                 return
             }
+            self.monitor.play(message, wpm: wpm, options: self.config.config.cwKeyer.options, interrupt: true)
             let millis: Int64 = SendLamp.estimateMillis(message, wpm: wpm)
             self.lampTimer = self.clock.schedule(afterMilliseconds: Int(clamping: millis)) { [weak self] in
                 self?.lampElapsed(begin.token)
@@ -193,6 +197,7 @@ public final class KeyerModel {
                 self.noteSendFailure()
                 return
             }
+            self.monitor.play(message, wpm: wpm, options: self.config.config.cwKeyer.options, interrupt: false)
             if self.lamp.key == nil {
                 self.light(key, millis: millis)
             } else {
@@ -261,6 +266,7 @@ public final class KeyerModel {
             return simulated
         }
         cwQueue.removeAll()
+        monitor.stop()
         guard keyerMayBeOpen else { return false }
         let wasSending: Bool = lamp.abortCw()
         lampTimer?.cancel()
@@ -309,7 +315,8 @@ public final class KeyerModel {
         }
         if on {
             prepareKeyer()
-            if config.config.cwKeyer.method == .cat || viaPtt, let index = rig?.vfo.activeCatIndex {
+            let catKeyer: Bool = config.config.cwKeyer.method == .cat && !config.config.cwKeyer.options.serialKeying
+            if catKeyer || viaPtt, let index = rig?.vfo.activeCatIndex {
                 tunedRig = index
             }
         }
@@ -477,6 +484,12 @@ public final class KeyerModel {
         }
     }
 
+    /// The followed Winkeyer speed pot moved (N1MM "Use Winkey Speed Pot"): it becomes the CW speed.
+    func potSpeedChanged(_ wpm: Int) {
+        guard !closed, config.config.cwKeyer.options.wkPotMode == .follow else { return }
+        updateCwSpeed(wpm)
+    }
+
     // MARK: - Esc
 
     /// Kotlin `stopSending()` without the CQ repeat (the entry window clears it, `AS:1757-1765`): tuning first, then
@@ -497,6 +510,7 @@ public final class KeyerModel {
     /// A Winkeyer carrier on is switched off before the keyer closes (a CAT carrier was released with the rig).
     public func resetKeyer() {
         keyerMayBeOpen = false
+        monitor.stop()
         let keyerTuning: Bool = isTuning && tunedRig == nil
         if keyerTuning {
             tuneGeneration &+= 1
@@ -511,6 +525,7 @@ public final class KeyerModel {
             devices.keyer?.close()
             devices.keyer = nil
             devices.signature = nil
+            devices.appliedOptions = nil
             devices.serial?.close()
             devices.serial = nil
         }
@@ -551,6 +566,7 @@ public final class KeyerModel {
             }
         }
         let keyerTuning: Bool = wasTuning && tuneRigLane == nil
+        monitor.stop()
         digital.shutdown()
         keyerMayBeOpen = false
         lane.run { devices in
@@ -561,6 +577,7 @@ public final class KeyerModel {
             devices.keyer?.close()
             devices.keyer = nil
             devices.signature = nil
+            devices.appliedOptions = nil
             devices.fldigi = nil
             devices.fldigiSignature = nil
             devices.serial?.close()
@@ -568,6 +585,7 @@ public final class KeyerModel {
         }
         await voice.shutdown()
         await lane.settle()
+        await monitor.settle()
         for rigLane in rigLanes {
             await rigLane.settle()
         }
@@ -577,6 +595,7 @@ public final class KeyerModel {
     func settle() async {
         await lane.settle()
         await voice.settle()
+        await monitor.settle()
     }
 
     // MARK: - shared with the voice and digital keyers
@@ -654,9 +673,18 @@ public final class KeyerModel {
 
     func openRequest() -> KeyerLane.OpenRequest {
         let keyerConfig: CwKeyerConfig = config.config.cwKeyer
-        return KeyerLane.OpenRequest(method: keyerConfig.method, port: keyerConfig.winkeyerPort, wpm: cwSpeed,
-                                     disabledText: language.tr(KeyerTexts.cwDisabled),
-                                     noPortText: language.tr(KeyerTexts.winkeyerNoPort))
+        var request = KeyerLane.OpenRequest(method: keyerConfig.method, port: keyerConfig.winkeyerPort, wpm: cwSpeed,
+                                            disabledText: language.tr(KeyerTexts.cwDisabled),
+                                            noPortText: language.tr(KeyerTexts.winkeyerNoPort))
+        request.options = keyerConfig.options
+        request.noSerialPortText = language.tr(KeyerTexts.serialNoPort)
+        request.noRigText = "CW přes CAT: TRX není připojený"
+        request.potSpeed = { [weak self] wpm in
+            Task { @MainActor [weak self] in
+                self?.potSpeedChanged(wpm)
+            }
+        }
+        return request
     }
 }
 

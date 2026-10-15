@@ -63,7 +63,7 @@ import Testing
                                                 "callhistory.exportN1mm",
                                                 "callhistory.exportCsv", "fkeys.export"])
         #expect(try children("tools") == ["contest.rescore", "contest.rescoreHours", "database.refillDxcc",
-                                          "tools.addCallToCountry", "settings.downloadScp",
+                                          "tools.addCallToCountry", "tools.tuneBeacon", "settings.downloadScp",
                                           "contest.updateDefinitions", "database.updateClubLogDxcc",
                                           "tools.importCountryFile", "tools.removeCountryFile",
                                           "contest.updateCallHistory", "callhistory.clear", "beacons.load",
@@ -72,7 +72,7 @@ import Testing
                                           "tools.checkVersion", "tools.checkVersionAtStart"])
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
                                              "settings.callHistoryLookup", "settings.exchangeAbbreviations",
-                                             "settings.announcements"])
+                                             "settings.announcements", "settings.autoSend"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.contestRules",
                                          "help.contestCalendar", "help.report", "help.errorLog", "help.dataFolder",

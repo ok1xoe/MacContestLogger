@@ -65,6 +65,10 @@ struct OtherTab: View {
                     SettingsTextField(text: $draft.macroQsyStepKHz, filter: .digits(limit: 3))
                 }
                 .frame(maxWidth: .infinity)
+                SettingsField(caption: language.tr("AutoSend volačky v CW (znaků za číslicí, 0 = vyp.)")) {
+                    SettingsTextField(text: $draft.autoSendThreshold, filter: .digits(limit: 2))
+                }
+                .frame(maxWidth: .infinity)
             }
         }
     }

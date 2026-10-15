@@ -456,7 +456,9 @@ import Testing
         #expect(rec.all.map(\.statusMessage) == [
             "Připojuji (Test)…", "Připojeno (Test)…", "TRX: 14025.1 kHz  SSB", "Spojení s rigem ztraceno",
         ])
-        #expect(rec.last == CatSession.Snapshot(state: nil, statusMessage: "Spojení s rigem ztraceno", connected: false))
+        var lost = CatSession.Snapshot(state: nil, statusMessage: "Spojení s rigem ztraceno", connected: false)
+        lost.lost = true
+        #expect(rec.last == lost)
         #expect(rec.connectCalls.count == 1)
         #expect(session.rigOrNull() == nil)
     }

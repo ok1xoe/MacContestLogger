@@ -18,6 +18,14 @@ public final class RigModel {
     public private(set) var cat1 = CatSession.Snapshot()
     /// The mirror of rig 2's session (SO2R).
     public private(set) var cat2 = CatSession.Snapshot()
+    /// The rigs (0 = rig 1, 1 = rig 2) whose band map radio problem alert shows (N1MM „Radio Problem").
+    public internal(set) var radioProblems: Set<Int> = []
+    /// The last contact (a polled state) with each rig, for the radio problem alert.
+    @ObservationIgnored var lastContact: [Int: Date] = [:]
+    /// The scheduled radio problem check of each rig.
+    @ObservationIgnored var problemChecks: [Int: Task<Void, Never>] = [:]
+    /// The clock of the radio problem alert (tests set it).
+    @ObservationIgnored var clock: @MainActor () -> Date = { Date() }
     /// `tunedFreqHz`, `previousFreqHz`, `lastFreqOnBand`, `antennaBand`.
     public internal(set) var tuning = TuningState()
     /// `ritHz` (the last value the rig accepted).
@@ -56,6 +64,9 @@ public final class RigModel {
     @ObservationIgnored private var entries: [WeakEntry] = []
     /// The call typed in the active entry window (Kotlin `typedCall`, the antenna's azimuth).
     @ObservationIgnored var typedCall: @MainActor () -> String = { "" }
+    /// The typed station's grid: the contest's grid field, else the call history's grid (`nil` = unknown). With it
+    /// the bearing goes from my grid to that grid instead of the country's centre (VHF).
+    @ObservationIgnored var typedGrid: @MainActor () -> String? = { nil }
     /// `cwKeyer?.close(); cwKeyer = null` of `resetInterfaces` (the keyer).
     @ObservationIgnored public var resetKeyer: @MainActor () -> Void = {}
     /// The keyer's release before a user disconnect of rig `index` (a CAT carrier, a voice message's PTT).
@@ -252,6 +263,7 @@ public final class RigModel {
             cat2 = snapshot
         }
         pluginPttConnectionChanged(index, connected: snapshot.connected)
+        radioContact(index, snapshot)
         // Kotlin `LaunchedEffect(state.cat.state, …)`: only a different state of the active rig is followed.
         if index == vfo.activeCatIndex && previous != snapshot.state {
             notifyEntries { $0.followRig() }

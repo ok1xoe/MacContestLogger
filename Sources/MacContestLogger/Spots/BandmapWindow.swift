@@ -117,6 +117,7 @@ struct BandmapWindowView: View {
                     .padding(8)
                 Spacer(minLength: 0)
             }
+            RadioProblemBanner(rig: app.rig, language: language)
         }
         .environment(\.windowFontSize, session.fontSize)
         .sheet(isPresented: Binding(get: { model.showSpotFilter }, set: { model.showSpotFilter = $0 })) {
@@ -200,5 +201,43 @@ struct BandmapWindowView: View {
         IconButton(symbol: symbol, label: label, size: CGSize(width: 28, height: 15), outlined: true,
                    symbolSize: 8, secondary: true, action: action)
             .buttonStyle(.plain)
+    }
+}
+
+/// N1MM „Radio Problem" (band map, `RigConfig.timeoutSeconds`): the rig's connection was lost and has not come back
+/// within the timeout. „Reset Radio" connects it again; × hides the alert.
+private struct RadioProblemBanner: View {
+    let rig: MCLAppModel.RigModel
+    let language: LanguageModel
+
+    var body: some View {
+        if !rig.radioProblems.isEmpty {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.white)
+                    .accessibilityHidden(true)
+                Text(verbatim: language.tr("Problém s rádiem: TRX neodpovídá"))
+                    .windowFont(13, weight: .semibold)
+                    .foregroundStyle(.white)
+                Spacer(minLength: 0)
+                Button {
+                    rig.resetRadios()
+                } label: {
+                    Text(verbatim: "Reset Radio")
+                        .windowFont(12)
+                }
+                Button {
+                    rig.dismissRadioProblem()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.white)
+                .accessibilityLabel(Text(verbatim: language.tr("Zavřít")))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(Color.red)
+        }
     }
 }

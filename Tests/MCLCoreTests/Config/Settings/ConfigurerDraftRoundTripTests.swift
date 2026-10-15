@@ -153,6 +153,7 @@ import Testing
         expected.esm.callExchangeSeparator = " "
         expected.runMode.repeatMaxMinutes = 0
         expected.cwKeyer.stackMessages = false
+        expected.cwKeyer.options = CwKeyingOptions()
         expected.voiceKeyer.outputDevice2 = ""
         expected.voiceKeyer.outputLevel = 100
         expected.esm.callStackOrder = CallStack.Order.multsFirst.rawValue
@@ -574,6 +575,14 @@ import Testing
         w.same(\.cwCutNumbers, \.cwKeyer.cutNumbers, true)
         w.same(\.cwLeadingZeros, \.cwKeyer.leadingZeros, true)
         w.same(\.cwCutStyle, \.cwKeyer.cutStyle, .allO)
+        var options = CwKeyingOptions()
+        options.weight = 60
+        options.contestSpacing = true
+        options.wkSendSettings = true
+        options.wkKeyMode = .ultimatic
+        options.wkSidetoneHz = 800
+        options.wkLeadMs = 30
+        w.same(\.cwOptions, \.cwKeyer.options, options)
         w.rows(\.cwRun, \.cwKeyer.runMessages, messages("cwr")) { FunctionKeyDraft($0) }
         w.rows(\.cwSp, \.cwKeyer.spMessages, messages("cws")) { FunctionKeyDraft($0) }
         w.same(\.digiEngine, \.digital.engine, .fldigi)

@@ -47,6 +47,8 @@ public final class SettingsToolsModel {
     public private(set) var rigModels: [HamlibRigModel] = []
     /// `SerialPorts.available()` as last listed.
     public private(set) var serialPorts: [String] = []
+    /// The serial ports have been listed (a configured port is marked missing only then).
+    public private(set) var serialPortsListed: Bool = false
     public private(set) var scanState: ScanState = .idle
     /// A scan thread is still running — also after the sheet closed, until its current candidate ended. No new scan
     /// starts meanwhile, so two `rigctld` never share the rig's serial port (Kotlin allows it after a reopen).
@@ -118,6 +120,16 @@ public final class SettingsToolsModel {
         RigModelFilter.filter(rigModels, manufacturer: manufacturer, query: query)
     }
 
+    /// N1MM's asterisk: a configured port that is not among the listed ones (`false` until they are listed).
+    public func portMissing(_ port: String) -> Bool {
+        serialPortsListed && SerialPortChoice.isMissing(port, available: serialPorts)
+    }
+
+    /// A port drop-down's label: `* <port>` when it is missing.
+    public func portLabel(_ port: String) -> String {
+        portMissing(port) ? "* " + port : port
+    }
+
     /// The OTRSP and footswitch drop-downs (`HW:128, 168`): `"—"` + the ports.
     public var serialPortsWithNone: [String] {
         ["—"] + serialPorts
@@ -130,6 +142,7 @@ public final class SettingsToolsModel {
         let generation: Int = sheetGeneration
         rigModels = []
         serialPorts = []
+        serialPortsListed = false
         let port: any RigListPort = ports.rigList
         let devices: any DevicePort = ports.devices
         track { [weak self] in
@@ -139,6 +152,7 @@ public final class SettingsToolsModel {
             let listed: [String] = await OwnThread.run("serial-ports") { devices.serialPorts() }
             guard generation == self.sheetGeneration else { return }
             self.serialPorts = listed
+            self.serialPortsListed = true
         }
     }
 
@@ -160,6 +174,7 @@ public final class SettingsToolsModel {
             let listed: [String] = await OwnThread.run("serial-ports") { devices.serialPorts() }
             guard let self, generation == self.windowGeneration else { return }
             self.serialPorts = listed
+            self.serialPortsListed = true
         }
     }
 

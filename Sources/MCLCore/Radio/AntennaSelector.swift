@@ -43,15 +43,18 @@ public enum AntennaSelector {
         all.indices.filter { covers(all[$0], band) }
     }
 
-    /// Antenna for a band: the first whose non-empty sector contains `azimuth`, otherwise the first
-    /// antenna of the band; `nil` if the band has none.
+    /// Antenna for a band: the first whose non-empty sector contains `azimuth` (a bidirectional antenna also when its
+    /// back end does, `azimuth + 180`), otherwise the first antenna of the band; `nil` if the band has none.
     /// - Returns: position of the selected antenna in `all`.
     public static func select(_ all: [AntennaEntry], band: Band, azimuth: Int?) -> Int? {
         let indices = candidates(all, band: band)
         guard let first = indices.first else { return nil }
         if let azimuth {
-            for index in indices where !JavaText.isBlank(all[index].sector) && inSector(all[index].sector, azimuth) {
-                return index
+            for index in indices where !JavaText.isBlank(all[index].sector) {
+                let entry: AntennaEntry = all[index]
+                if inSector(entry.sector, azimuth) || (entry.bidirectional && inSector(entry.sector, azimuth + 180)) {
+                    return index
+                }
             }
         }
         return first
