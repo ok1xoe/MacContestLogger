@@ -45,9 +45,6 @@ struct BlacklistWindowView: View {
         _ = model.revision
         let entries: [BlacklistEntry] = model.entries(isCall: isCall)
         return VStack(alignment: .leading, spacing: 0) {
-            WindowTopBar(size: $session.fontSize, language: language)
-                .padding(.horizontal, 8)
-                .padding(.top, 4)
             tabs(language)
             summary(language: language, count: entries.count, isCall: isCall)
             tools(language: language, model: model, isCall: isCall)
@@ -79,6 +76,7 @@ struct BlacklistWindowView: View {
         }
         .pickerStyle(.segmented)
         .labelsHidden()
+        .trailingFontStepper(size: $session.fontSize, language: language)
         .padding(.horizontal, 8)
         .padding(.top, 4)
     }

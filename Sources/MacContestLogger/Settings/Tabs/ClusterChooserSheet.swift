@@ -29,11 +29,9 @@ struct ClusterChooserSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            WindowTopBar(size: $fontSizeState.value, language: language)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
             VStack(alignment: .leading, spacing: 10) {
                 Text(verbatim: language.tr("Vybrat cluster ze seznamu")).windowFont(15, weight: .semibold)
+                    .trailingFontStepper(size: $fontSizeState.value, language: language)
                 controls
                 list
                 if let line = model.statusLine {

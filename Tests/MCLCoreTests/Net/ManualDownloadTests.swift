@@ -30,10 +30,16 @@ import Testing
         { url in url.host == "127.0.0.1" && ports.contains(url.port ?? -1) }
     }
 
+    /// Generous timeouts: under the load of the whole suite on a CI runner `URLSession` can lag by minutes.
+    static func fetcher(_ allow: @escaping @Sendable (URL) -> Bool, maxBytes: Int = ManualDownload.maxBytes)
+        -> ManualDownloader {
+        ManualDownloader(allow: allow, maxBytes: maxBytes, requestTimeout: 600, timeout: 900)
+    }
+
     @Test func downloadsAPdf() async throws {
         let server = try FakeHttpServer(response: .init(contentType: "application/pdf", body: Self.pdf))
         defer { server.stop() }
-        let fetch = ManualDownloader(allow: Self.loopback(server.port))
+        let fetch = Self.fetcher(Self.loopback(server.port))
         let outcome = await fetch.fetch("http://127.0.0.1:\(server.port)/manual.pdf")
         #expect(outcome == .pdf(Data(Self.pdf.utf8)))
         #expect(server.head(0).hasPrefix("GET /manual.pdf HTTP/1.1\r\n"))
@@ -42,7 +48,7 @@ import Testing
     @Test func rejectsWhatIsNotTheManual() async throws {
         let server = try FakeHttpServer(response: .init(contentType: "text/html", body: "<html>not here</html>"))
         defer { server.stop() }
-        let fetch = ManualDownloader(allow: Self.loopback(server.port), maxBytes: 1_000)
+        let fetch = Self.fetcher(Self.loopback(server.port), maxBytes: 1_000)
         let url = "http://127.0.0.1:\(server.port)/manual.pdf"
         #expect(await fetch.fetch(url) == .notPdf)
         server.respond(.init(status: 404, body: "Not Found"))
@@ -64,10 +70,10 @@ import Testing
                                                        headers: ["Location: http://127.0.0.1:\(target.port)/asset.pdf"]))
         defer { start.stop() }
         let url = "http://127.0.0.1:\(start.port)/latest/download/manual.pdf"
-        let allowed = await ManualDownloader(allow: Self.loopback(start.port, target.port)).fetch(url)
+        let allowed = await Self.fetcher(Self.loopback(start.port, target.port)).fetch(url)
         #expect(allowed == .pdf(Data(Self.pdf.utf8)))
         #expect(target.requests.count == 1)
-        let refused = await ManualDownloader(allow: Self.loopback(start.port)).fetch(url)
+        let refused = await Self.fetcher(Self.loopback(start.port)).fetch(url)
         #expect(refused == .redirectRefused("127.0.0.1"))
         #expect(target.requests.count == 1)
     }

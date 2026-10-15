@@ -15,6 +15,7 @@ struct GoalEditorWindowView: View {
                         size: CGSize(width: 420, height: 560), minSize: CGSize(width: 340, height: 300),
                         appeared: { $0.goals.openEditor() },
                         closedByUser: { $0.info.showGoalEditor = false },
+                        stepperInContent: true,
                         content: { app, _ in GoalEditorContent(app: app) })
     }
 }
@@ -32,6 +33,7 @@ private struct GoalEditorContent: View {
                     .windowFont(13)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("goals.noContest")
+                    .trailingFontStepper()
                 Button(language.tr("Zavřít")) { app.info.showGoalEditor = false }
                     .windowFont(13)
                     .padding(.top, 12)
@@ -40,6 +42,7 @@ private struct GoalEditorContent: View {
                     .windowFont(11)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .trailingFontStepper()
                 bulkFill(goals)
                 Divider()
                 ScrollView {
@@ -139,6 +142,7 @@ struct GoalFromLogWindowView: View {
                         size: CGSize(width: 560, height: 460), minSize: CGSize(width: 400, height: 260),
                         appeared: { app in Task { @MainActor in await app.goals.openFromLog() } },
                         closedByUser: { $0.info.showGoalFromLog = false },
+                        stepperInContent: true,
                         content: { app, _ in GoalFromLogContent(app: app) })
     }
 }
@@ -153,6 +157,7 @@ private struct GoalFromLogContent: View {
             Text(verbatim: goals.fromLogHelpText)
                 .windowFont(11)
                 .foregroundStyle(.secondary)
+                .trailingFontStepper()
             pickers(goals, language: language)
             Divider()
             if !goals.error.isEmpty {

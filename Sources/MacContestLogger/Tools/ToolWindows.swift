@@ -28,6 +28,7 @@ struct SimulatorWindowView: View {
         ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("Simulátor pileupu") },
                         size: CGSize(width: 620, height: 520), minSize: CGSize(width: 460, height: 340),
                         disappeared: { $0.simulator.windowClosed() },
+                        stepperInContent: true,
                         content: { app, _ in SimulatorContent(app: app) })
     }
 }
@@ -42,6 +43,7 @@ private struct SimulatorContent: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: SimulatorSession.activityText(Int(form.activity), translate: language.translator))
                 .windowFont(13, weight: .medium)
+                .trailingFontStepper()
             Slider(value: $form.activity, in: 1...6, step: 1)
                 .accessibilityLabel(Text(verbatim: SimulatorSession.activityText(Int(form.activity),
                                                                                   translate: language.translator)))
@@ -165,6 +167,7 @@ struct BandNotesWindowView: View {
     var body: some View {
         ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("Poznámky k pásmům") },
                         size: CGSize(width: 560, height: 420), minSize: CGSize(width: 420, height: 240),
+                        stepperInContent: true,
                         content: { app, _ in BandNotesContent(app: app) })
     }
 }
@@ -194,6 +197,7 @@ private struct BandNotesContent: View {
             }
             .textFieldStyle(.roundedBorder)
             .windowFont(12)
+            .trailingFontStepper()
             Divider()
             let notes: [BandNote] = model.notes
             if notes.isEmpty {
@@ -234,6 +238,7 @@ struct MoveMultsWindowView: View {
     var body: some View {
         ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("Přesun násobičů") },
                         size: CGSize(width: 640, height: 420), minSize: CGSize(width: 420, height: 240),
+                        stepperInContent: true,
                         content: { app, _ in MoveMultsContent(app: app) })
     }
 }
@@ -249,6 +254,7 @@ private struct MoveMultsContent: View {
                 .windowFont(13)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("movemults.noContest")
+                .trailingFontStepper()
             Spacer(minLength: 0)
         } else {
             VStack(alignment: .leading, spacing: 6) {
@@ -264,6 +270,7 @@ private struct MoveMultsContent: View {
                 .windowFont(12)
                 .accessibilityLabel(Text(verbatim: language.tr("Zobrazení přesunu násobičů")))
                 .accessibilityIdentifier("movemults.view")
+                .trailingFontStepper()
                 if model.showSpots {
                     MoveMultsSpotsView(model: model, language: language)
                 } else {
@@ -480,6 +487,7 @@ struct PropagationWindowView: View {
         ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("Předpověď šíření") },
                         size: CGSize(width: 720, height: 360), minSize: CGSize(width: 560, height: 260),
                         appeared: { $0.propagation.open() },
+                        stepperInContent: true,
                         content: { app, windowSize in PropagationContent(app: app, windowSize: windowSize) })
     }
 }
@@ -506,6 +514,7 @@ private struct PropagationContent: View {
             }
             .textFieldStyle(.roundedBorder)
             .windowFont(12)
+            .trailingFontStepper()
             switch model.view {
             case .message(let text):
                 Text(verbatim: text)

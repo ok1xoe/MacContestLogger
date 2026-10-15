@@ -209,9 +209,9 @@ struct GoalBandSheet: View {
     var body: some View {
         let language: LanguageModel = app.language
         VStack(alignment: .leading, spacing: 8) {
-            WindowTopBar(size: $session.fontSize, language: language)
             Text(verbatim: language.tr("Import cílů — pásmo"))
                 .windowFont(15, weight: .bold)
+                .trailingFontStepper(size: $session.fontSize, language: language)
             Text(verbatim: language.tr("Soubor nese sloupce pásem. Vyber, ze kterého se má plán vzít."))
                 .windowFont(13)
             Button(language.tr("Všechna pásma (součet)")) {

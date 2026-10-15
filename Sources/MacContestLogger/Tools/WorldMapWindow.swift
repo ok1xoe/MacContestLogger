@@ -17,6 +17,7 @@ struct WorldMapWindowView: View {
                         size: CGSize(width: 900, height: 520), minSize: CGSize(width: 420, height: 260),
                         appeared: { $0.worldMap.open() }, disappeared: { $0.worldMap.close() },
                         closedByUser: { $0.windows.setWorldMapOpen(false) },
+                        stepperInContent: true,
                         content: { app, _ in WorldMapContent(app: app) })
     }
 }
@@ -38,6 +39,7 @@ private struct WorldMapContent: View {
                 Spacer(minLength: 0)
                 options(model, language: language)
             }
+            .trailingFontStepper()
             if model.needsContest {
                 Text(verbatim: model.noContestText)
                     .windowFont(13)

@@ -8,7 +8,7 @@ struct AdifRangeWindowView: View {
     let host: AppHost
 
     var body: some View {
-        DialogWindowView(host: host, dialog: .adifRange, padding: 10, title: { app in
+        DialogWindowView(host: host, dialog: .adifRange, padding: 10, stepperInContent: true, title: { app in
             app.language.tr("Export ADIF podle data")
         }) { app in
             AdifRangeContent(app: app)
@@ -22,6 +22,8 @@ private struct AdifRangeContent: View {
     var body: some View {
         if let model = app.dialogs.adifRange {
             AdifRangeForm(app: app, model: model)
+        } else {
+            WindowFontStepperRow()
         }
     }
 }
@@ -40,6 +42,7 @@ private struct AdifRangeForm: View {
                        displayedComponents: .date) {
                 Text(verbatim: language.tr("Od (UTC):"))
             }
+            .trailingFontStepper()
             DatePicker(selection: Binding(get: { model.last }, set: { model.last = $0 }),
                        displayedComponents: .date) {
                 Text(verbatim: language.tr("Do (UTC):"))

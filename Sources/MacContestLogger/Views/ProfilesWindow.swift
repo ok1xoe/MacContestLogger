@@ -40,8 +40,8 @@ struct ProfilesWindowView: View {
     private func content(_ app: AppModel) -> some View {
         let language: LanguageModel = app.language
         return VStack(alignment: .leading, spacing: 6) {
-            WindowTopBar(size: $session.fontSize, language: language)
             nameRow(app)
+                .trailingFontStepper(size: $session.fontSize, language: language)
             Text(verbatim: language.tr(
                 "Profil = celé nastavení (stanice, rig, klávesy, zprávy, cluster…). Načtení přepíše aktuální nastavení."))
                 .windowFont(11)

@@ -63,44 +63,103 @@ public enum ManualDownload {
 /// Fetches the manual; replaceable in tests (the app model gets it from its network ports).
 public typealias ManualFetcher = @Sendable (_ url: String) async -> ManualDownload.Outcome
 
-/// The production fetch over `URLSession`: no cookies or cache, redirects only where `allow` says, the body read in
-/// pieces and abandoned as soon as it passes `maxBytes`.
+/// The production fetch over `URLSession`: no cookies or cache, redirects only where `allow` says, the body
+/// collected by the session's delegate on a queue of its own (never the shared pool) and abandoned as soon as it
+/// passes `maxBytes`.
 public struct ManualDownloader: Sendable {
 
     let allow: @Sendable (URL) -> Bool
     let maxBytes: Int
+    let requestTimeout: TimeInterval
     let timeout: TimeInterval
 
     public init(allow: @escaping @Sendable (URL) -> Bool = ManualDownload.isAllowed,
-                maxBytes: Int = ManualDownload.maxBytes, timeout: TimeInterval = ManualDownload.timeoutSeconds) {
+                maxBytes: Int = ManualDownload.maxBytes, requestTimeout: TimeInterval = 30,
+                timeout: TimeInterval = ManualDownload.timeoutSeconds) {
         self.allow = allow
         self.maxBytes = maxBytes
+        self.requestTimeout = requestTimeout
         self.timeout = timeout
     }
 
-    /// Checks every redirect against the allow list and remembers a refused one.
-    final class RedirectGuard: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    /// The session's delegate: checks every redirect against the allow list, collects the body within the limit and
+    /// reports the outcome once.
+    final class Transfer: NSObject, URLSessionDataDelegate, @unchecked Sendable {
         let allow: @Sendable (URL) -> Bool
+        let maxBytes: Int
         private let lock = NSLock()
-        private var refusedValue: String?
+        private var refused: String?
+        private var status = 0
+        private var body = Data()
+        private var tooLarge = false
+        private var finish: (@Sendable (ManualDownload.Outcome) -> Void)?
 
-        init(allow: @escaping @Sendable (URL) -> Bool) {
+        init(allow: @escaping @Sendable (URL) -> Bool, maxBytes: Int,
+             finish: @escaping @Sendable (ManualDownload.Outcome) -> Void) {
             self.allow = allow
+            self.maxBytes = maxBytes
+            self.finish = finish
         }
 
-        var refused: String? {
-            lock.withLock { refusedValue }
-        }
-
-        // The completion-handler form (not `async`): the answer never waits for a free thread of the shared pool.
         func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
                         newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
             guard let url = request.url, allow(url) else {
-                lock.withLock { refusedValue = request.url?.host ?? request.url?.absoluteString ?? "?" }
+                lock.withLock { refused = request.url?.host ?? request.url?.absoluteString ?? "?" }
                 completionHandler(nil)
                 return
             }
             completionHandler(request)
+        }
+
+        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
+                        completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+            let code: Int = (response as? HTTPURLResponse)?.statusCode ?? 0
+            let large: Bool = response.expectedContentLength > Int64(maxBytes)
+            lock.withLock {
+                status = code
+                tooLarge = large
+            }
+            // Only a 200 within the limit is read; anything else ends here with its status.
+            completionHandler(code == 200 && !large ? .allow : .cancel)
+        }
+
+        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+            let over: Bool = lock.withLock {
+                body.append(data)
+                if body.count > maxBytes {
+                    tooLarge = true
+                    body = Data()
+                    return true
+                }
+                return false
+            }
+            if over {
+                dataTask.cancel()
+            }
+        }
+
+        func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+            let outcome: ManualDownload.Outcome = lock.withLock {
+                if let refused {
+                    return .redirectRefused(refused)
+                }
+                if tooLarge {
+                    return .tooLarge
+                }
+                if status != 0 && status != 200 {
+                    return ManualDownload.evaluate(status: status, body: Data())
+                }
+                if let error {
+                    return .failed(error.localizedDescription)
+                }
+                return ManualDownload.evaluate(status: status, body: body)
+            }
+            let done: (@Sendable (ManualDownload.Outcome) -> Void)? = lock.withLock {
+                defer { finish = nil }
+                return finish
+            }
+            done?(outcome)
+            session.finishTasksAndInvalidate()
         }
     }
 
@@ -110,47 +169,22 @@ public struct ManualDownloader: Sendable {
         configuration.httpCookieStorage = nil
         configuration.urlCache = nil
         configuration.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        configuration.timeoutIntervalForRequest = 30
+        configuration.timeoutIntervalForRequest = requestTimeout
         configuration.timeoutIntervalForResource = timeout
-        let guardian = RedirectGuard(allow: allow)
-        let session = URLSession(configuration: configuration, delegate: guardian, delegateQueue: nil)
-        defer { session.invalidateAndCancel() }
         var request = URLRequest(url: url)
         request.setValue("MacContestLogger", forHTTPHeaderField: "User-Agent")
         request.setValue("application/pdf, application/octet-stream", forHTTPHeaderField: "Accept")
-        do {
-            let (bytes, response) = try await session.bytes(for: request)
-            guard let http = response as? HTTPURLResponse else { return .failed("no HTTP response") }
-            if let refused = guardian.refused {
-                return .redirectRefused(refused)
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
+        queue.name = "mcl.manual-download"
+        let allow = self.allow
+        let maxBytes = self.maxBytes
+        return await withCheckedContinuation { (continuation: CheckedContinuation<ManualDownload.Outcome, Never>) in
+            let transfer = Transfer(allow: allow, maxBytes: maxBytes) { outcome in
+                continuation.resume(returning: outcome)
             }
-            guard http.statusCode == 200 else {
-                return ManualDownload.evaluate(status: http.statusCode, body: Data())
-            }
-            if http.expectedContentLength > Int64(maxBytes) {
-                return .tooLarge
-            }
-            var body = Data()
-            var chunk: [UInt8] = []
-            chunk.reserveCapacity(65_536)
-            for try await byte in bytes {
-                chunk.append(byte)
-                if chunk.count == 65_536 {
-                    body.append(contentsOf: chunk)
-                    chunk.removeAll(keepingCapacity: true)
-                    if body.count > maxBytes {
-                        return .tooLarge
-                    }
-                }
-            }
-            body.append(contentsOf: chunk)
-            guard body.count <= maxBytes else { return .tooLarge }
-            return ManualDownload.isPdf(body) ? .pdf(body) : .notPdf
-        } catch {
-            if let refused = guardian.refused {
-                return .redirectRefused(refused)
-            }
-            return .failed(error.localizedDescription)
+            let session = URLSession(configuration: configuration, delegate: transfer, delegateQueue: queue)
+            session.dataTask(with: request).resume()
         }
     }
 }
