@@ -263,7 +263,10 @@ if [ "$DMG" -eq 1 ]; then
   mkdir -p "$STAGE"
   cp -R "$APP" "$STAGE/"
   ln -s /Applications "$STAGE/Applications"
-  hdiutil create -volname MacContestLogger -srcfolder "$STAGE" -format UDZO -ov "$DMG_FILE"
+  # hdiutil sizes the image from the folder itself and runs out of room ("No space left on device") for a large
+  # universal app; give it the folder size plus 30 % and 64 MB.
+  STAGE_MB="$(du -sm "$STAGE" | cut -f1)"
+  hdiutil create -volname MacContestLogger -srcfolder "$STAGE" -format UDZO -size "$((STAGE_MB + STAGE_MB * 3 / 10 + 64))m" -ov "$DMG_FILE"
   rm -rf "$STAGE"
   if [ -n "$SIGN_IDENTITY" ] && [ "$SIGN_IDENTITY" != "-" ]; then
     DMG_SIGN_ARGS=(--force -s "$SIGN_IDENTITY")
