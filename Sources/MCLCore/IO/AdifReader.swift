@@ -183,6 +183,14 @@ public struct AdifReader: Sendable {
         if let stx = f["stx_string"], !JavaText.isBlank(stx) {
             q.exchangeSent = JavaText.trim(stx)
         }
+        // N1MM's own fields (Swift-only): the received exchange when there is no SRX_STRING, and Run/S&P from
+        // APP_N1MM_ISRUNQSO. (APP_N1MM_RUNNING stays ignored on import, as in v1.1.1.)
+        if JavaText.isBlank(q.exchangeRcvd), let exchange = f["app_n1mm_exchange1"], !JavaText.isBlank(exchange) {
+            q.exchangeRcvd = JavaText.trim(exchange)
+        }
+        if let run = f["app_n1mm_isrunqso"].map(JavaText.trim), run == "0" || run == "1" {
+            q.runMode = run == "1" ? .run : .searchAndPounce
+        }
         q.operator = f["operator"] ?? ""
         q.comment = f["comment"] ?? ""
         return q

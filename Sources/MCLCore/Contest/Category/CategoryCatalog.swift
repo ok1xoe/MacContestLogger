@@ -18,19 +18,22 @@ public enum CategoryCatalog {
         }
     }
 
-    /// Fixed Cabrillo categories (without Band/Mode — those come from the definition).
+    /// Fixed Cabrillo categories (without Band/Mode — those come from the definition). Swift adds the Cabrillo 3.0
+    /// values v1.1.1 lacked: overlays NOVICE-TECH and OVER-50, stations DISTRIBUTED, ROVER-LIMITED, ROVER-UNLIMITED and
+    /// EXPLORER, and the 8-HOURS time category.
     public static func fixed() -> [CategoryDim] {
         [
             CategoryDim(key: "OPERATOR", label: "Operátor", options: ["SINGLE-OP", "MULTI-OP", "CHECKLOG"]),
             CategoryDim(key: "POWER", label: "Výkon", options: ["HIGH", "LOW", "QRP"]),
             CategoryDim(key: "OVERLAY", label: "Overlay",
-                        options: ["N/A", "CLASSIC", "ROOKIE", "TB-WIRES", "YOUTH", "YL"]),
+                        options: ["N/A", "CLASSIC", "ROOKIE", "TB-WIRES", "YOUTH", "YL", "NOVICE-TECH", "OVER-50"]),
             CategoryDim(key: "STATION", label: "Stanice",
-                        options: ["FIXED", "MOBILE", "PORTABLE", "ROVER", "EXPEDITION", "HQ", "SCHOOL"]),
+                        options: ["FIXED", "MOBILE", "PORTABLE", "ROVER", "EXPEDITION", "HQ", "SCHOOL",
+                                  "DISTRIBUTED", "ROVER-LIMITED", "ROVER-UNLIMITED", "EXPLORER"]),
             CategoryDim(key: "ASSISTED", label: "Asistovaně", options: ["NON-ASSISTED", "ASSISTED"]),
             CategoryDim(key: "TRANSMITTER", label: "Vysílače",
                         options: ["ONE", "TWO", "LIMITED", "UNLIMITED", "SWL"]),
-            CategoryDim(key: "TIME", label: "Časová kat.", options: ["N/A", "6-HOURS", "12-HOURS", "24-HOURS"]),
+            CategoryDim(key: "TIME", label: "Časová kat.", options: ["N/A", "6-HOURS", "8-HOURS", "12-HOURS", "24-HOURS"]),
         ]
     }
 

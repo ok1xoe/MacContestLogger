@@ -45,6 +45,7 @@ enum ProfileMergeSchema {
             Property("checkReverseFromStart", .boolean, .fieldDefault),
             Property("showUnmatchedCallMark", .boolean, .fieldDefault),
             Property("dupesheetSortBySuffix", .boolean, .fieldDefault),
+            Property("ccCabrilloToScp", .boolean, .fieldDefault),
             Property("showSentCw", .boolean, .fieldDefault),
             Property("cwSpeedStepSecondary", .int, .fieldDefault),
             Property("clearPrefilledExchange", .boolean, .fieldDefault),

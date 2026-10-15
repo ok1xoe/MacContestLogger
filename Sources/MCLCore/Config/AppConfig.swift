@@ -197,6 +197,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var preferredCallbook = CallbookService.hamQth.rawValue
     /// The Dupesheet windows sort each column by suffix (N1MM), otherwise by the whole call (v1.1.1). Swift-only key.
     public var dupesheetSortBySuffix = true
+    /// N1MM „CC Cabrillo to logs@supercheckpartial.com": after a Cabrillo export the mail client opens a message
+    /// to that address with the file attached (the operator sends it). Off by default. Swift-only key.
+    public var ccCabrilloToScp: Bool = false
     /// N1MM „Display Sent CW": the CW being sent is shown in the status line. Swift-only key.
     public var showSentCw: Bool = false
     /// N1MM „Secondary CW Speed Step" (Shift+PgUp/PgDn, WPM). Swift-only key.
@@ -299,6 +302,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
+        case ccCabrilloToScp
         case showSentCw
         case cwSpeedStepSecondary
         case clearPrefilledExchange
@@ -428,6 +432,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         checkReverseFromStart = c.value(.checkReverseFromStart, default: d.checkReverseFromStart)
         showUnmatchedCallMark = c.value(.showUnmatchedCallMark, default: d.showUnmatchedCallMark)
         dupesheetSortBySuffix = c.value(.dupesheetSortBySuffix, default: d.dupesheetSortBySuffix)
+        ccCabrilloToScp = c.value(.ccCabrilloToScp, default: d.ccCabrilloToScp)
         showSentCw = c.value(.showSentCw, default: d.showSentCw)
         let secondaryStep: Int = c.value(.cwSpeedStepSecondary, default: d.cwSpeedStepSecondary)
         cwSpeedStepSecondary = secondaryStep <= 0 ? 1 : secondaryStep

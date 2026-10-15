@@ -69,8 +69,12 @@ import Testing
         #expect(model.status.message == "Exportováno do " + file.path)
         let qsos: [Qso] = try await model.database.handle.run { try $0.service.findAll() }
         #expect(qsos.count == 2)
-        let expected: String = AdifWriter(contestId: "CQ-WW-CW")
-            .toAdif(qsos, station: model.config.config.station.toStation())
+        var writer = AdifWriter(contestId: "CQ-WW-CW")
+        writer.n1mmFields = true
+        let session: ContestSession = try #require(model.contest.runtime.freshSession())
+        writer.multipliers = ImportExportModel.newMultipliers(session, qsos)
+        #expect(!writer.multipliers.isEmpty)
+        let expected: String = writer.toAdif(qsos, station: model.config.config.station.toStation())
         #expect(try Data(contentsOf: file) == Data(expected.utf8))
     }
 

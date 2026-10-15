@@ -44,6 +44,10 @@ private struct AdifRangeForm: View {
                        displayedComponents: .date) {
                 Text(verbatim: language.tr("Do (UTC):"))
             }
+            Toggle(isOn: Binding(get: { model.allContests }, set: { model.allContests = $0 })) {
+                Text(verbatim: language.tr("Ze všech závodů v databázi"))
+            }
+            .accessibilityLabel(Text(verbatim: language.tr("Ze všech závodů v databázi")))
             if model.range == nil {
                 Text(verbatim: language.tr("Konec je před začátkem."))
                     .foregroundStyle(Color(domain: DomainColors.dupe))
@@ -59,8 +63,9 @@ private struct AdifRangeForm: View {
                 Button(language.tr("Exportovat…")) {
                     guard let range = model.range else { return }
                     let name: String = model.suggestedName
+                    let all: Bool = model.allContests
                     app.dialogs.setOpen(.adifRange, false)
-                    ExportPanels.run(.saveAdifRange(suggestedName: name, range: range), app: app)
+                    ExportPanels.run(.saveAdifRange(suggestedName: name, range: range, allContests: all), app: app)
                 }
                 .disabled(!model.canExport)
             }

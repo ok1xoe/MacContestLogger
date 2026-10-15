@@ -44,7 +44,9 @@ public enum MenuActions {
         /// The data directory in the Finder (`help.dataFolder`; honours `MCL_DATA_DIR`).
         case openDataFolder(URL)
         /// The ADIF of the QSOs in `range` (Export → ADIF by date) → `exportAdif(to:range:)`.
-        case saveAdifRange(suggestedName: String, range: AdifDateRange)
+        case saveAdifRange(suggestedName: String, range: AdifDateRange, allContests: Bool = false)
+        /// N1MM „Export to file (generic) sorted by band" → `exportTextByBand(to:)`.
+        case saveTextByBand(suggestedName: String)
         /// The loaded call history → `exportCallHistory(to:format:)`.
         case saveCallHistory(format: DataToolsModel.CallHistoryFormat, suggestedName: String)
         /// N1MM Export Function Keys to file: the message set the entry window's keys send now, as an `.mc` file.
@@ -59,7 +61,8 @@ public enum MenuActions {
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to
     /// type-check).
     private static let fileIds: Set<String> = [
-        "settings.export", "settings.exportCabrillo", "settings.exportEdi", "settings.exportOther", "settings.import",
+        "settings.export", "settings.exportCabrillo", "settings.exportEdi", "settings.exportOther", "settings.exportByBand",
+        "settings.import",
         "settings.merge", "database.refillDxcc", "callhistory.exportN1mm", "callhistory.exportCsv",
         "callhistory.import", "fkeys.export", "file.recoverJournal",
     ]
@@ -158,6 +161,8 @@ public enum MenuActions {
             return .chooseDirectory(.edi)
         case "settings.exportOther":
             return .chooseDirectory(.other)
+        case "settings.exportByBand":
+            return .saveTextByBand(suggestedName: ExportNames.otherBase(call: app.config.config.station.call) + "-by-band.txt")
         case "database.refillDxcc":
             return .confirmRefillDxcc(count: app.logbook.rows.count)
         case "callhistory.import":

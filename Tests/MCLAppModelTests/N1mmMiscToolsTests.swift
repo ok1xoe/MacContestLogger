@@ -132,6 +132,72 @@ import Testing
         #expect(try Self.adifCalls(all).count == 4)
     }
 
+    /// N1MM „ADIF by date from ALL contests": a QSO of another contest of the database is counted and exported too,
+    /// without CONTEST_ID; the file carries N1MM's own fields.
+    @Test func allContestsTakesEveryContestOfTheDatabase() async throws {
+        let app = try await TestApp.make()
+        let model: AppModel = app.model
+        try await app.startCqWwCw()
+        try await Self.inject(app, "DL1BBB", at: Self.t0)
+        var other = Qso()
+        other.timestampUtc = Self.t0.addingTimeInterval(60)
+        other.call = "DL9ZZZ"
+        other.freqHz = 7_025_000
+        other.band = .m40
+        other.mode = .cw
+        other.contestId = "another-contest"
+        other.uuid = "other-1"
+        let stored: Qso = other
+        try await model.database.handle.run { access in
+            var copy = stored
+            _ = try access.service.repository.insert(&copy)
+        }
+        #expect(MenuActions.perform("settings.exportAdifRange", app: model) == nil)
+        let window: AdifRangeModel = try #require(model.dialogs.adifRange)
+        window.first = Self.t0
+        window.last = Self.t0
+        #expect(window.qsoCount == 1)
+        window.allContests = true
+        await window.settle()
+        #expect(window.qsoCount == 2)
+        #expect(window.suggestedName == "maccontestlogger-all-2026-11-28.adi")
+
+        let file: URL = app.dir.child("all-contests.adi")
+        await model.exports.exportAdif(to: file, range: window.range, allContests: true)
+        #expect(try Self.adifCalls(file).sorted() == ["DL1BBB", "DL9ZZZ"])
+        let text: String = try String(contentsOf: file, encoding: .utf8)
+        #expect(!text.contains("<CONTEST_ID"))
+        #expect(text.contains("<PFX:3>DL1 "))
+
+        // The open contest's export names its multipliers from the replay.
+        let own: URL = app.dir.child("own.adi")
+        await model.exports.exportAdif(to: own)
+        let ownText: String = try String(contentsOf: own, encoding: .utf8)
+        #expect(ownText.contains("<CONTEST_ID"))
+        #expect(ownText.contains("<APP_N1MM_MULT1:"))
+        #expect(ownText.contains("<APP_N1MM_POINTS:"))
+    }
+
+    @Test func theTextExportByBandListsBandByBand() async throws {
+        let app = try await TestApp.make()
+        let model: AppModel = app.model
+        try await app.startCqWwCw()
+        await app.logContestQso(call: "DL1ABC", zone: "14")
+        await app.logContestQso(call: "W1AW", zone: "5", freqKHz: "7010")
+        guard case .saveTextByBand(let name)? = MenuActions.perform("settings.exportByBand", app: model) else {
+            Issue.record("no save request")
+            return
+        }
+        #expect(name == "OK1XOE-by-band.txt")
+        let file: URL = app.dir.child(name)
+        await model.exports.exportTextByBand(to: file)
+        let text: String = try String(contentsOf: file, encoding: .utf8)
+        let w1: Range<String.Index> = try #require(text.range(of: "W1AW"))
+        let dl: Range<String.Index> = try #require(text.range(of: "DL1ABC"))
+        #expect(w1.lowerBound < dl.lowerBound)   // 40 m before 20 m although logged later
+        #expect(model.status.message == "Exportováno do " + file.path)
+    }
+
     @Test func aPeriodWithoutQsosWritesNoFile() async throws {
         let app = try await TestApp.make()
         try await app.startCqWwCw()

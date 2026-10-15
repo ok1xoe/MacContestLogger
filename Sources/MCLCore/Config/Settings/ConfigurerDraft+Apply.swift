@@ -291,6 +291,7 @@ extension ConfigurerDraft {
         config.nPlusOneEnabled = nPlusOneEnabled
         config.preferredCallbook = CallbookService(configValue: preferredCallbook).rawValue
         config.dupesheetSortBySuffix = dupesheetSortBySuffix
+        config.ccCabrilloToScp = ccCabrilloToScp
         config.showSentCw = showSentCw
         config.cwSpeedStepSecondary = Self.clamped(cwSpeedStepSecondary, 1, 10) ?? 1
         config.clearPrefilledExchange = clearPrefilledExchange

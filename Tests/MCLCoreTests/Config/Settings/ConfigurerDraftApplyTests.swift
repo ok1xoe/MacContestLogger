@@ -401,6 +401,6 @@ import Testing
                                "spotFilterPreferredSpotters",
                                "blacklistEnabled",
                                "spotsEnabled", "spotsTargets", "lookupEnabled", "lookupTargets", "allQsosEnabled",
-                               "sharePort"])
+                               "sharePort", "ccCabrilloToScp"])
     }
 }

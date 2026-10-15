@@ -222,7 +222,11 @@ public final class DialogsModel {
             if !open {
                 adifRange = nil
             } else if adifRange == nil {
-                adifRange = AdifRangeModel(logbook: logbook, now: now())
+                adifRange = AdifRangeModel(logbook: logbook, now: now(), loadAll: { [database] in
+                    (try? await database.handle.run { access in
+                        try access.service.findAllIncludingDeleted().filter { !$0.deleted }
+                    }) ?? []
+                })
             }
         case .dxccOverrides:
             if !open {

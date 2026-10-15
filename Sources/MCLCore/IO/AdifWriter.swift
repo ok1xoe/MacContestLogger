@@ -14,6 +14,11 @@ public struct AdifWriter: Sendable {
 
     /// ADIF `CONTEST_ID` for all records; `nil` = omit.
     public let contestId: String?
+    /// N1MM's extra fields (Swift-only, the file export): `PFX`, `APP_N1MM_EXCHANGE1`, `APP_N1MM_POINTS`,
+    /// `APP_N1MM_ISRUNQSO` and `APP_N1MM_MULT1`–`3`. Off = the v1.1.1 record (Club Log, UDP).
+    public var n1mmFields: Bool = false
+    /// The multipliers a QSO counted as new (by `Qso.uuid`, in the definition's binding order) — `APP_N1MM_MULT1`–`3`.
+    public var multipliers: [String: [String]] = [:]
 
     /// - Parameter contestId: Cabrillo contest name; `nil` or blank (Java `isBlank`) = no contest.
     public init(contestId: String? = nil) {
@@ -99,6 +104,15 @@ public struct AdifWriter: Sendable {
         Self.field(&out, "CONT", q.continent)
         // N1MM extension: Run/S&P on the QSO.
         Self.field(&out, "APP_N1MM_RUNNING", q.runMode == .run ? "Y" : "N")
+        if n1mmFields {
+            Self.field(&out, "PFX", PrefixExtractor.wpx(q.call))
+            Self.field(&out, "APP_N1MM_EXCHANGE1", JavaText.trim(q.exchangeRcvd))
+            Self.field(&out, "APP_N1MM_POINTS", String(q.points))
+            Self.field(&out, "APP_N1MM_ISRUNQSO", q.runMode == .run ? "1" : "0")
+            for (index, value) in (multipliers[q.uuid] ?? []).prefix(3).enumerated() {
+                Self.field(&out, "APP_N1MM_MULT" + String(index + 1), value)
+            }
+        }
         Self.field(&out, "OPERATOR", q.operator)
         Self.field(&out, "COMMENT", q.comment)
         out += "<EOR>\n"
