@@ -198,8 +198,10 @@ import Testing
 
     /// The early config save of the quit is skipped while a profile load is in flight (an earlier save would
     /// overwrite the load's write with the old configuration). The held profile write makes the difference
-    /// visible: a save enqueued behind it would block `config.flush()`, so the transmit-release milestone would never
-    /// be reached while the write is held. The profile's configuration is what ends up on disk.
+    /// visible: a save enqueued behind it would block `config.flush()`, so the quit would suspend between its
+    /// `infoTools` step and the transmit-release milestone. Without the save nothing suspends in between, so the
+    /// milestone comes before any other main-actor job (no clock involved). The profile's configuration is what ends
+    /// up on disk.
     @Test func theEarlyQuitSaveIsSkippedDuringAProfileLoad() async throws {
         let harness = try await SettingsHarness.make()
         let model: AppModel = harness.model
@@ -209,19 +211,21 @@ import Testing
         await harness.writer.waitUntilHeld()
         #expect(model.profiles.isLoading)
 
-        // The latch opens at the milestone; the bound (failure path only) keeps a regression from hanging.
+        // The latch opens at the milestone, or — on the failure path — with the first main-actor job after the quit
+        // suspended past its `infoTools` step (only the early save's flush suspends there).
         let reached = FirstOutcome()
         model.onQuitMilestone = { reached.open(true) }
+        model.quitStepObserver = { name in
+            if name == "infoTools" {
+                Task { @MainActor in reached.open(false) }
+            }
+        }
         let quit = Task {
             await model.shutdown()
             reached.open(false)
         }
-        let bound = Task {
-            try? await Task.sleep(nanoseconds: 30_000_000_000)
-            reached.open(false)
-        }
         let atTheMilestone: Bool = await reached.value()
-        bound.cancel()
+        model.quitStepObserver = nil
         #expect(atTheMilestone, "the quit waited behind the held profile write: its early save was not skipped")
         harness.writer.release()
         await load.value

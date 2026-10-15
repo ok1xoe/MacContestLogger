@@ -392,7 +392,7 @@ import Testing
     /// passed it (`shutdown` awaited the commit task then too); it keeps that wait from being lost later. The write is
     /// held until the quit waits in `settings.settle()`, so a config save the quit enqueues anywhere before that (the
     /// old keyer-shutdown save) lands after the commit's write with the old call — deterministically.
-    @Test func shutdownWaitsForTheCommit() async throws {
+    @Test(.mainActorSafetyNet) func shutdownWaitsForTheCommit() async throws {
         let harness = try await SettingsHarness.make()
         let model: AppModel = harness.model
         var draft: ConfigurerDraft = try await harness.openWithDraft()
@@ -404,21 +404,17 @@ import Testing
         let commit = Task { await harness.settings.confirm() }
         await harness.writer.waitUntilHeld()
         harness.settings.cancel()
-        // No busy wait: the quit reaching `settings.settle()` (or ending, or a bound on the failure path only — the
-        // quit blocked behind the held write before the settle) opens the latch; the held write is released either
-        // way, so a regression fails instead of spinning forever.
+        // No busy wait and no clock: the quit reaching `settings.settle()` (or ending) opens the latch. A quit blocked
+        // behind the held write before the settle (the regression) never opens it and is ended by the safety net; a
+        // wall-clock bound here would fail a passing run on a loaded machine, where the quit's earlier steps (the
+        // transmit release, the keyers) may take long.
         let reached = FirstOutcome()
         model.beforeSettingsSettle = { reached.open(true) }
         let quit = Task {
             await model.shutdown()
             reached.open(false)
         }
-        let bound = Task {
-            try? await Task.sleep(nanoseconds: 60_000_000_000)
-            reached.open(false)
-        }
         let atTheSettle: Bool = await reached.value()
-        bound.cancel()
         #expect(atTheSettle, "the quit did not wait in settings.settle() while the commit's write was held")
         // The quit is suspended in `settings.settle()` (this test runs only while it waits).
         harness.writer.release()

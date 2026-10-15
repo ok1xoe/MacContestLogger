@@ -456,26 +456,16 @@ import Testing
         #expect(last == .exited(128 + SIGKILL))
     }
 
-    /// Waits for the end of `stream` (the `exited` event), telling `ready` when the plugin's `ready` came, or gives
-    /// up after a generous safety bound (a hang must fail, not stall the run; this is not a speed check).
+    /// Waits for the end of `stream` (the `exited` event), telling `ready` when the plugin's `ready` came. There is
+    /// no wall-clock bound here: on a loaded runner every hop through the cooperative pool may take long, and a hang
+    /// is caught by the suite's `.ioSafetyNet`.
     static func exitCode(_ stream: AsyncStream<Seen>, ready: AsyncStream<Void>.Continuation) async -> Int32? {
-        await withTaskGroup(of: Int32?.self) { group in
-            group.addTask {
-                var code: Int32?
-                for await seen in stream {
-                    if seen == .message(.ready) { ready.yield() }
-                    if case .exited(let value) = seen { code = value }
-                }
-                return code
-            }
-            group.addTask {
-                try? await Task.sleep(nanoseconds: 120_000_000_000)
-                return nil
-            }
-            let first: Int32? = await group.next() ?? nil
-            group.cancelAll()
-            return first
+        var code: Int32?
+        for await seen in stream {
+            if seen == .message(.ready) { ready.yield() }
+            if case .exited(let value) = seen { code = value }
         }
+        return code
     }
 
     /// The stop's `SIGKILL` fallback fires although nobody holds the process object any more.

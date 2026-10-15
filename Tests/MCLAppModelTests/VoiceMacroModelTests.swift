@@ -24,6 +24,9 @@ import Testing
             config.voiceKeyer.pttViaCat = false
         })
         app.entry.setMode(.ssb)
+        // A loaded runner may keep the main actor busy for longer than the hung-main-actor bound; the order of the
+        // actions against the audio is what these tests check, not that bound.
+        app.keyer.voice.actionHopTimeout = nil
         return app
     }
 

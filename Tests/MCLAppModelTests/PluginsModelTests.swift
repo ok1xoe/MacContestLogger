@@ -210,9 +210,16 @@ final class ListingRunner: PluginRunning, @unchecked Sendable {
     }
 
     /// The quit's wait for plugins is bounded as a whole — a plugin that would start after the deadline is not
-    /// started (the running one finishes within its own limit).
-    @Test func theQuitDoesNotStartPluginsPastTheDeadline() async throws {
-        let app = try await IntegrationApp.make()
+    /// started (the running one finishes within its own limit). The running plugin is ended by the test's gate only:
+    /// its own 10 s limit is lifted here, since on a loaded runner the test may take longer than that to open the gate
+    /// (the limit then killed it and started the next one before the deadline was set).
+    @Test(.mainActorSafetyNet) func theQuitDoesNotStartPluginsPastTheDeadline() async throws {
+        let app = try await IntegrationApp.make(adjust: { environment in
+            let ports: PluginsPorts = environment.network.plugins
+            environment.network.plugins = PluginsPorts(makeRunner: { root, _ in
+                ports.makeRunner(root, 3_600_000)
+            }, launchWindowPlugin: ports.launchWindowPlugin)
+        })
         let dir: URL = app.app.dir.child("marks")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         // Each plugin holds until the test releases the gate, so the first one is still running when the quit

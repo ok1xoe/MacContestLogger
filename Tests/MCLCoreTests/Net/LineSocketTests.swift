@@ -346,9 +346,19 @@ import Testing
         #expect(got == ["<null>", "ok", "EXC java.net.SocketException: Broken pipe"])
     }
 
-    /// RESET.read: peer RST → `Connection reset`, also on a further read.
+    /// RESET.read: peer RST → `Connection reset`, also on a further read. The server resets only after the client's
+    /// request: a reset sent right at the accept may reach the client before its `connect` has checked the socket's
+    /// error (a descheduled thread on a loaded machine), which is then a connect failure, not the read error tested.
     @Test func resetByPeer() async throws {
-        let got = try await Self.lines([.line("a"), .reset], reads: 3)
+        let server = try FakeLineServer(script: ["go": [.line("a"), .reset]])
+        defer { server.stop() }
+        let port = server.port
+        let got: String = try await onOwnThread {
+            let socket = try LineSocket.connect(host: "127.0.0.1", port: port, connectTimeoutMs: 2_000, readTimeoutMs: 10_000)
+            defer { socket.close() }
+            try socket.writeAscii("go\n")
+            return Self.readAll(socket, 3)
+        }
         #expect(got == "\"a\" | EXC java.net.SocketException: Connection reset | EXC java.net.SocketException: Connection reset")
     }
 
