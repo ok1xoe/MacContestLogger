@@ -10,7 +10,7 @@ struct IconButton: View {
     let label: String
     /// The fixed size of the face, `nil` = the symbol's own size.
     var size: CGSize?
-    /// A thin outline around the face (the band map's square buttons).
+    /// A thin, light outline around the face (the band map's compact square buttons).
     var outlined: Bool = false
     /// The symbol's font size, `nil` = the environment's.
     var symbolSize: CGFloat?
@@ -43,7 +43,7 @@ struct IconButton: View {
         if let size {
             if outlined {
                 image.frame(width: size.width, height: size.height)
-                    .overlay(Rectangle().stroke(Color.secondary, lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 3).stroke(Color.secondary.opacity(0.45), lineWidth: 1))
                     .contentShape(Rectangle())
             } else {
                 image.frame(width: size.width, height: size.height)

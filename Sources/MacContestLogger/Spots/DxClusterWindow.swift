@@ -260,9 +260,6 @@ struct DxClusterWindowView: View {
         let cluster: DxClusterModel = app.dxCluster
         let lines: [ConsoleLine] = consoleLines(app)
         return VStack(alignment: .leading, spacing: 0) {
-            WindowTopBar(size: $session.fontSize, language: language)
-                .padding(.horizontal, 8)
-                .padding(.top, 4)
             header(app: app, lines: lines)
             Text(verbatim: cluster.statusText)
                 .windowFont(11)
@@ -408,6 +405,7 @@ struct DxClusterWindowView: View {
                 Text(verbatim: "Vymazat").windowFont(13)
             }
         }
+        .trailingFontStepper(size: $session.fontSize, language: language)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
     }
@@ -427,7 +425,10 @@ struct DxClusterWindowView: View {
         } label: {
             Text(verbatim: title).windowFont(13)
         }
-        .frame(width: WindowFont.size(240, windowSize: session.fontSize))
+        // It gives up width first, so the buttons and the font stepper of the row keep their labels.
+        .frame(minWidth: WindowFont.size(120, windowSize: session.fontSize),
+               maxWidth: WindowFont.size(240, windowSize: session.fontSize))
+        .layoutPriority(-1)
         .disabled(labels.isEmpty || cluster.connected)
         .accessibilityLabel(title)
         .accessibilityIdentifier("dxcluster.favorite")

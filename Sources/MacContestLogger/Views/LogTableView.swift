@@ -36,10 +36,8 @@ struct LogWindowView: View {
         let logbook: LogbookModel = app.logbook
         let language: LanguageModel = app.language
         return VStack(spacing: 0) {
-            WindowTopBar(size: $session.fontSize, language: language)
-                .padding(.horizontal, 8)
-                .padding(.top, 4)
             LogSearchBar(app: app, table: table)
+                .trailingFontStepper(size: $session.fontSize, language: language, inset: 8)
             Divider()
             if table.showsSelectionBar {
                 LogSelectionBar(app: app, table: table)

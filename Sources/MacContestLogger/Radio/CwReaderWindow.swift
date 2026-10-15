@@ -48,14 +48,15 @@ struct CwReaderWindowView: View {
     private func content(_ app: AppModel, _ model: CwReaderModel) -> some View {
         let language: LanguageModel = app.language
         return VStack(alignment: .leading, spacing: 6) {
-            WindowTopBar(size: $session.fontSize, language: language)
             if radio == 1 {
                 Radio2InputRow(app: app) {
                     model.close()
                     Task { await model.open() }
                 }
+                .trailingFontStepper(size: $session.fontSize, language: language)
             }
             toneRow(language, model)
+                .trailingFontStepper(size: $session.fontSize, language: language, shown: radio != 1)
             if let error = model.error {
                 Text(verbatim: RadioWindowTexts.readerAudioError(error))
                     .windowFont(14)

@@ -32,9 +32,6 @@ struct CatLogWindowView: View {
     private func content(_ app: AppModel) -> some View {
         let language: LanguageModel = app.language
         return VStack(alignment: .leading, spacing: 0) {
-            WindowTopBar(size: $session.fontSize, language: language)
-                .padding(.horizontal, 8)
-                .padding(.top, 4)
             HStack(alignment: .center, spacing: 8) {
                 Text(verbatim: language.tr("CAT / sériový provoz"))
                     .windowFont(14, weight: .bold)
@@ -46,6 +43,7 @@ struct CatLogWindowView: View {
                         .windowFont(14)
                 }
             }
+            .trailingFontStepper(size: $session.fontSize, language: language)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             Divider()

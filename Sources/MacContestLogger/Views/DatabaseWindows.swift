@@ -7,7 +7,7 @@ struct NewDatabaseWindowView: View {
     let host: AppHost
 
     var body: some View {
-        DialogWindowView(host: host, dialog: .databaseNew, padding: 10, title: { app in
+        DialogWindowView(host: host, dialog: .databaseNew, padding: 10, stepperInContent: true, title: { app in
             app.language.tr("Nová databáze")
         }) { app in
             NewDatabaseContent(app: app)
@@ -22,6 +22,7 @@ private struct NewDatabaseContent: View {
         let dialogs: DialogsModel = app.dialogs
         VStack(alignment: .leading, spacing: 0) {
             Text(verbatim: app.language.tr("Název databáze:"))
+                .trailingFontStepper()
             TextField(text: Binding(get: { dialogs.newDatabaseName }, set: { dialogs.newDatabaseName = $0 })) {
                 EmptyView()
             }

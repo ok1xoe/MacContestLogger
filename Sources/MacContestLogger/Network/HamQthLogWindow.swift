@@ -41,9 +41,6 @@ struct HamQthLogWindowView: View {
     private func content(_ app: AppModel, _ model: HamQthLogModel) -> some View {
         let language: LanguageModel = app.language
         return VStack(alignment: .leading, spacing: 0) {
-            WindowTopBar(size: $session.fontSize, language: language)
-                .padding(.horizontal, 8)
-                .padding(.top, 4)
             HStack(alignment: .center, spacing: 6) {
                 Text(verbatim: language.tr("HamQTH — dohledávání gridu"))
                     .windowFont(14, weight: .bold)
@@ -58,6 +55,7 @@ struct HamQthLogWindowView: View {
                     .windowFont(13)
                     .accessibilityIdentifier("hamqthlog.clear")
             }
+            .trailingFontStepper(size: $session.fontSize, language: language)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             Divider()
