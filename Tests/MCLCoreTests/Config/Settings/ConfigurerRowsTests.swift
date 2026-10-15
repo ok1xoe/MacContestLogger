@@ -150,7 +150,8 @@ import Testing
         #expect(ConfigurerCatalogs.bandPlanModes == ["CW", "DIGI", "PHONE"])
         #expect(ConfigurerCatalogs.dataModes == ["DIGITAL", "FT8", "FT4", "RTTY", "PSK", "JT65"])
         #expect(ConfigurerCatalogs.footswitchPins == ["CTS", "DSR", "DCD"])
-        #expect(ConfigurerCatalogs.footswitchActions == ["PTT", "ENTER", "F1"])
+        #expect(ConfigurerCatalogs.footswitchActions == ["PTT", "ENTER", "F1", "F2", "F3", "F4", "F11", "F12", "ESC",
+                                                         "SWITCH_RADIOS"])
         #expect(ConfigurerCatalogs.accents.map(\.key) == ["TEAL", "BLUE", "ORANGE", "CONTRAST"])
         #expect(ConfigurerCatalogs.accentLabelKey("BLUE") == "Modrá")
         #expect(ConfigurerCatalogs.accentLabelKey("PINK") == "Tyrkysová")

@@ -127,6 +127,8 @@ private struct FootswitchGroup: View {
         SettingsGroup(title: language.tr("Nožní spínač (footswitch)")) {
             SettingsCaption(language.tr(
                 "Spínač na USB-RS232 převodníku: propojí RTS→CTS (nebo DTR→DSR / DCD). Akce: PTT drží vysílač po dobu sešlápnutí, ENTER = jako Enter (s ESM pošle zprávu), F1 = CQ."))
+            SettingsCaption(language.tr(
+                "F2–F4, F11, F12 = jako funkční klávesy, ESC = zastavit vysílání, SWITCH_RADIOS = druhé zadávací okno (SO2V / SO2R, jako \\). PTT spínače hlídá síťový Interlock jako každé vysílání (první vyhrává, zámek pásma)."))
             HStack(alignment: .top, spacing: 8) {
                 SettingsField(caption: "Port") {
                     SettingsDropdown(label: ifBlank(app.settingsTools.portLabel(draft.footswitchPort), "—"),

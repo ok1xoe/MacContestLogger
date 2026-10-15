@@ -44,6 +44,8 @@ public final class EntryModel {
     @ObservationIgnored var deferredGeneration: Int = 0
     /// N1MM „Send partial calls": the part of a corrected call the ESM send in progress carries (`nil` = the whole).
     @ObservationIgnored var partialCallSend: String?
+    /// N1MM AutoSend: the call as AutoSend has sent it so far in this QSO (`nil` = nothing).
+    @ObservationIgnored var autoSentCall: String?
     /// `{CTRLFn}`: cancels a pending return of the focus to this window.
     @ObservationIgnored var returnGeneration: Int = 0
     /// Program announcements for blind operators (`AnnouncementsModel.note`); `nil` = none.
@@ -285,6 +287,7 @@ public final class EntryModel {
             clearAutoFilledExchange()
         }
         setCallText(text)
+        autoSendIfDue()
     }
 
     /// N1MM „Clear auto-populated exchange on callsign change": the values the call history or a spot filled in and

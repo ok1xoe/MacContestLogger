@@ -150,6 +150,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var cwSpeedStepSecondary: String = ""
     public var clearPrefilledExchange: Bool = false
     public var resetRxAfterRunQso: Bool = false
+    /// `AppConfig.autoSendThreshold` as typed.
+    public var autoSendThreshold: String = ""
     /// The `{PGUP}`/`{PGDN}` QSY step (kHz), as typed.
     public var macroQsyStepKHz: String = ""
     public var functionKeysPerOperator: Bool = false
@@ -522,6 +524,7 @@ extension ConfigurerDraft {
         cwSpeedStepSecondary = String(config.cwSpeedStepSecondary)
         clearPrefilledExchange = config.clearPrefilledExchange
         resetRxAfterRunQso = config.resetRxAfterRunQso
+        autoSendThreshold = String(config.autoSendThreshold)
         macroQsyStepKHz = String(config.macroQsyStepKHz)
         functionKeysPerOperator = config.functionKeysPerOperator
         clEnabled = config.clubLog.enabled

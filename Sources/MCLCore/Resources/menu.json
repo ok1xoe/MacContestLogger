@@ -79,6 +79,7 @@
         { "id": "contest.rescoreHours", "label": "Přepočítat posledních N hodin…", "state": "enable" },
         { "id": "database.refillDxcc", "label": "Přepočítat DXCC v deníku…", "state": "enable" },
         { "id": "tools.addCallToCountry", "label": "Přiřadit volačku k zemi…", "state": "enable" },
+        { "id": "tools.tuneBeacon", "label": "Naladit maják NCDXF pro pásmo", "state": "enable" },
         { "id": "sep.tools.1", "state": "enable" },
         { "id": "settings.downloadScp", "label": "Stáhnout master.scp", "state": "enable" },
         { "id": "contest.updateDefinitions", "label": "Aktualizovat definice z internetu", "state": "enable" },
@@ -139,7 +140,8 @@
         { "id": "sep.settings.1", "state": "enable" },
         { "id": "settings.callHistoryLookup", "label": "Zapnout dohledávání v call history", "state": "enable" },
         { "id": "settings.exchangeAbbreviations", "label": "Zkratky výměny…", "state": "enable" },
-        { "id": "settings.announcements", "label": "Hlášení pro nevidomé (VoiceOver)", "state": "enable" }
+        { "id": "settings.announcements", "label": "Hlášení pro nevidomé (VoiceOver)", "state": "enable" },
+        { "id": "settings.autoSend", "label": "Práh AutoSend (CW)…", "state": "enable" }
       ]
     },
     {

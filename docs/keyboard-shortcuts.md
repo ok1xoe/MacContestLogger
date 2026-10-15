@@ -181,7 +181,8 @@ turned the Mission Control shortcuts off.
 ## Unsupported N1MM shortcuts
 
 SO2R/SO2V (**\\**, Pause, Ctrl+←/→, Alt+F5/F6, Ctrl+Alt+D), filters **Alt+'**, callsign stack
-**Alt+G / Ctrl+Alt+G**, multi-op **Ctrl+Alt+M / Alt+Z**, autosend **Ctrl+Shift+M**.
+**Alt+G / Ctrl+Alt+G**, multi-op **Ctrl+Alt+M / Alt+Z**, autosend **Ctrl+Shift+M** (the AutoSend threshold itself is
+set in Nastavení → Práh AutoSend (CW)…, see [ESM](esm.md#autosend-cw)).
 
 ## RIT
 

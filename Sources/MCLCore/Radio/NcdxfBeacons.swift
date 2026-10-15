@@ -10,20 +10,54 @@ extension NcdxfBeacons {
     public struct Beacon: Equatable, Sendable {
         public let call: String
         public let location: String
+        /// The beacon's published Maidenhead locator (for the bearing).
+        public let grid: String
+
+        public init(call: String, location: String, grid: String = "") {
+            self.call = call
+            self.location = location
+            self.grid = grid
+        }
     }
 
-    /// The beacons in transmit order (the published schedule).
+    /// The beacons in transmit order (the published schedule and locators).
     public static let beacons: [Beacon] = [
-        Beacon(call: "4U1UN", location: "United Nations NY"), Beacon(call: "VE8AT", location: "Canada"),
-        Beacon(call: "W6WX", location: "USA"), Beacon(call: "KH6RS", location: "Hawaii"),
-        Beacon(call: "ZL6B", location: "New Zealand"), Beacon(call: "VK6RBP", location: "Australia"),
-        Beacon(call: "JA2IGY", location: "Japan"), Beacon(call: "RR9O", location: "Russia"),
-        Beacon(call: "VR2B", location: "Hong Kong"), Beacon(call: "4S7B", location: "Sri Lanka"),
-        Beacon(call: "ZS6DN", location: "South Africa"), Beacon(call: "5Z4B", location: "Kenya"),
-        Beacon(call: "4X6TU", location: "Israel"), Beacon(call: "OH2B", location: "Finland"),
-        Beacon(call: "CS3B", location: "Madeira"), Beacon(call: "LU4AA", location: "Argentina"),
-        Beacon(call: "OA4B", location: "Peru"), Beacon(call: "YV5B", location: "Venezuela"),
+        Beacon(call: "4U1UN", location: "United Nations NY", grid: "FN30AS"),
+        Beacon(call: "VE8AT", location: "Canada", grid: "EQ79AX"),
+        Beacon(call: "W6WX", location: "USA", grid: "CM97BD"),
+        Beacon(call: "KH6RS", location: "Hawaii", grid: "BL10TS"),
+        Beacon(call: "ZL6B", location: "New Zealand", grid: "RE78TW"),
+        Beacon(call: "VK6RBP", location: "Australia", grid: "OF87AV"),
+        Beacon(call: "JA2IGY", location: "Japan", grid: "PM84JK"),
+        Beacon(call: "RR9O", location: "Russia", grid: "NO14KX"),
+        Beacon(call: "VR2B", location: "Hong Kong", grid: "OL72BG"),
+        Beacon(call: "4S7B", location: "Sri Lanka", grid: "NJ06CF"),
+        Beacon(call: "ZS6DN", location: "South Africa", grid: "KG44DE"),
+        Beacon(call: "5Z4B", location: "Kenya", grid: "KI88MX"),
+        Beacon(call: "4X6TU", location: "Israel", grid: "KM72JB"),
+        Beacon(call: "OH2B", location: "Finland", grid: "KP20BM"),
+        Beacon(call: "CS3B", location: "Madeira", grid: "IM12OR"),
+        Beacon(call: "LU4AA", location: "Argentina", grid: "GF05TJ"),
+        Beacon(call: "OA4B", location: "Peru", grid: "FH17MW"),
+        Beacon(call: "YV5B", location: "Venezuela", grid: "FJ69CC"),
     ]
+
+    /// N1MM Tools „Tune to beacon for this band": the beacon frequency of the band `freqHz` is on (20, 17, 15, 12
+    /// or 10 m); `nil` on any other band.
+    public static func beaconFrequency(forBandOf freqHz: Int64) -> Int64? {
+        guard let band = Band.from(frequencyHz: Int(clamping: freqHz)) else { return nil }
+        let bands: [Band] = [.m20, .m17, .m15, .m12, .m10]
+        guard let index = bands.firstIndex(of: band) else { return nil }
+        return Int64(frequenciesHz[index])
+    }
+
+    /// The bearing from `myGrid` to the beacon in whole degrees `0…359`; `nil` when a locator is invalid.
+    public static func bearing(from myGrid: String, to beacon: Beacon) -> Int? {
+        guard let mine = Maidenhead.centerLatLon(myGrid), let there = Maidenhead.centerLatLon(beacon.grid) else {
+            return nil
+        }
+        return Int(GreatCircle.bearingDeg(mine.lat, mine.lon, there.lat, there.lon).rounded()) % 360
+    }
 
     /// How far the tuned frequency may be from a beacon frequency (the CW passband).
     public static let toleranceHz: Int64 = 1_000

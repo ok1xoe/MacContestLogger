@@ -21,11 +21,33 @@ public final class Footswitch: Sendable {
         case dcd = "DCD"
     }
 
-    /// What the switch does (N1MM: PTT, ESM Enter, CQ; `config.json` `footswitchAction`).
+    /// What the switch does (N1MM Footswitch mode; `config.json` `footswitchAction`): PTT (N1MM „Normal"), ESM
+    /// Enter, the function keys F1–F4, F11 and F12, Esc, and in SO2V / SO2R the other entry window (N1MM „Typing
+    /// Focus" and „Switch Radios" — one action in MCL, whose `\` moves the focus and the rig together).
     public enum Action: String, Sendable, CaseIterable {
         case ptt = "PTT"
         case enter = "ENTER"
         case f1 = "F1"
+        case f2 = "F2"
+        case f3 = "F3"
+        case f4 = "F4"
+        case f11 = "F11"
+        case f12 = "F12"
+        case esc = "ESC"
+        case switchRadios = "SWITCH_RADIOS"
+
+        /// The function key index (0 = F1) of an F-key action.
+        public var functionKey: Int? {
+            switch self {
+            case .f1: 0
+            case .f2: 1
+            case .f3: 2
+            case .f4: 3
+            case .f11: 10
+            case .f12: 11
+            default: nil
+            }
+        }
     }
 
     /// Edge detection with debouncing: a new state applies once `stableSamples` reads confirm it (fewer than 1 = 1).

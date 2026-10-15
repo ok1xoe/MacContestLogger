@@ -64,6 +64,7 @@ enum ProfileMergeSchema {
             Property("graylineSpots", .int, .fieldDefault),
             Property("entryHiddenSections", .list(.string), .fieldDefault),
             Property("resetRxAfterRunQso", .boolean, .fieldDefault),
+            Property("autoSendThreshold", .int, .fieldDefault),
             Property("macroQsyStepKHz", .int, .fieldDefault),
             Property("functionKeysPerOperator", .boolean, .fieldDefault),
             Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
