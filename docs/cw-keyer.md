@@ -234,6 +234,11 @@ stations play from the speaker (tone = CW pitch, callers spread around it).
   the number of QSOs, errors, and for each QSO what was correct.
 - Callsigns are taken from master.scp (Database); without it they are made up.
 
+- **QSB (únik signálu)** — every caller fades slowly in and out (each station with its own period, the same
+  every time it calls); **QRM (rušící stanice)** — while the callers answer, a weak station 150–450 Hz away calls
+  CQ or finishes its own QSO. Both check boxes are off by default and can be switched while the simulation runs;
+  they change the sound only — the callers, their speeds and their order stay the same.
+
 QSOs are written to the **active contest**, so create a practice contest for
-training. The simulation is simpler than Morse Runner: no QSB, QRM or flutter, and
-the exchange is always RST + serial number.
+training. The simulation is simpler than Morse Runner: no flutter, and the exchange is always RST + serial
+number.

@@ -13,7 +13,7 @@ extension MenuActions {
     static let miscIds: Set<String> = [
         "view.qrz", "view.google", "tools.importCountryFile", "tools.removeCountryFile", "tools.programLogging",
         "tools.diagnosticsFolder", "tools.checkVersion", "tools.checkVersionAtStart", "help.checkUpdates",
-        "help.contestRules", "help.contestCalendar", "help.errorLog",
+        "help.contestRules", "help.contestCalendar", "help.errorLog", "settings.announcements",
     ]
 
     /// Runs one of `miscIds`; what the app layer must do is returned.
@@ -56,6 +56,10 @@ extension MenuActions {
                 return nil
             }
             app.callbook.openUrl(url.absoluteString)
+        case "settings.announcements":
+            let on: Bool = !app.announcements.isEnabled
+            app.announcements.isEnabled = on
+            app.status.show(on ? "Hlášení pro nevidomé zapnuta (VoiceOver)" : "Hlášení pro nevidomé vypnuta")
         case "help.contestCalendar":
             app.callbook.openUrl(contestCalendarUrl)
         case "help.errorLog":
@@ -77,6 +81,8 @@ extension MenuActions {
             return ProgramLog.shared.isEnabled
         case "tools.checkVersionAtStart":
             return app.updates.checksAtStart
+        case "settings.announcements":
+            return app.announcements.isEnabled
         default:
             return false
         }

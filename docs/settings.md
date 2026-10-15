@@ -233,7 +233,7 @@ Settings `Cmd+,` and Quit.
 | Zobrazení (View) | Show ? on unmatched calls, Look up the call on QRZ.com, Search the call on Google (the call typed in the active entry window, opened in the browser) |
 | Závod (Contest) | Late entry, Record contest, None (free logging) |
 | Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Assign call to country, Download master.scp, Update definitions, Update DXCC from Club Log, Import / Remove a country list ([DXCC data](dxcc-data.md#import-a-country-list-from-a-file)), Update call history, Clear call history, Load beacon file, Definition editor, Program execution logging, Open diagnostics folder, Check for new program version, Check for a new version at start (see below) |
-| Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles, Enable call history lookup (a check item, see [Call history](call-history.md#enabling-the-lookup)) |
+| Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles, Enable call history lookup (a check item, see [Call history](call-history.md#enabling-the-lookup)), Exchange abbreviations, Announcements for blind operators (VoiceOver, see [Entry window](entry-window.md#announcements-for-blind-operators-voiceover)) |
 | Okno (Window) | the application's windows, Multiplikátory (Multipliers) and, after a separator, **Vlastní** (Custom) with the windows of window plugins ([Plugin windows](plugin-windows.md)) |
 | Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Contest rules (the `officialUrl` of the open contest's definition), Contest calendar (WA7BNM), Report a bug (GitHub issues), View error log, Open data folder (honours `MCL_DATA_DIR`), Check for updates |
 

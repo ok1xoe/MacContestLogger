@@ -50,6 +50,10 @@ public final class SimulatorModel {
     /// What the last start said, for the window: the refusal („nejdřív vypni …"), the audio failure or the running
     /// hint — the same text as the status line. Cleared by a stop.
     public private(set) var startNotice: String?
+    /// QSB: every caller fades slowly in and out (`SimConditions`, off by default; the callers stay the same).
+    public var qsb: Bool = false
+    /// QRM: another station transmits near the frequency while the callers answer (off by default).
+    public var qrm: Bool = false
 
     /// The name of an outward service that is live (cluster session, score reporting, N1MM broadcast, Club Log), `nil`
     /// = none; wired by the app model. A simulation does not start while one is: its QSOs stay in the log and would reach
@@ -70,6 +74,10 @@ public final class SimulatorModel {
     /// The uuids of the QSOs logged while a session ran: never published, not even after it stopped.
     @ObservationIgnored private var simulatedUuids: Set<String> = []
     @ObservationIgnored private var closed: Bool = false
+    /// The reply batches of the session so far (the QRM rotation).
+    @ObservationIgnored private var replyBatches: Int = 0
+    /// When the session's band started (the QSB phase of a reply).
+    @ObservationIgnored private var bandStart = Date()
     /// While a session runs: once a second, a service that was switched on meanwhile (cluster, score reporting, N1MM
     /// broadcast, Club Log) stops the simulation — the start refusal only covers the services that are live at the start.
     @ObservationIgnored private var serviceWatch: RepeatingTick?
@@ -150,6 +158,8 @@ public final class SimulatorModel {
             sink = output
             let scp: ScpDatabase = deps.callData.scp
             session = SimulatorSession(settings: settings, scp: scp, random: random)
+            replyBatches = 0
+            bandStart = Date()
             checks = []
             qsos = 0
             errors = 0
@@ -256,12 +266,28 @@ public final class SimulatorModel {
         guard keyer.finishSimulatedCw(token) else { return }
         pendingToken = nil
         let rate: Float = SimAudioPlayer.sampleRate
-        for reply in expected.onSent(text) {
+        let replies: [SimulatorSession.Reply] = expected.onSent(text)
+        let elapsed: Double = Date().timeIntervalSince(bandStart)
+        for reply in replies {
             let from: PileupSimulator.Caller = reply.transmission.from
-            let samples: [Float] = CwSynth.render(reply.transmission.text, wpm: from.wpm,
+            var samples: [Float] = CwSynth.render(reply.transmission.text, wpm: from.wpm,
                                                   pitchHz: pitch + Double(from.pitchOffsetHz),
                                                   amplitude: reply.amplitude, sampleRate: rate)
+            if qsb {
+                let start: Double = elapsed + Double(reply.transmission.delayMs) / 1000
+                samples = SimConditions.applyQsb(samples, call: from.call, sampleRate: rate, startSeconds: start)
+            }
             output.play(samples, delayMs: reply.transmission.delayMs)
+        }
+        if qrm && !replies.isEmpty {
+            let interference: SimConditions.Qrm = SimConditions.qrm(replyBatches)
+            output.play(CwSynth.render(interference.text, wpm: SimConditions.qrmWpm,
+                                       pitchHz: pitch + Double(interference.pitchOffsetHz),
+                                       amplitude: SimConditions.qrmAmplitude, sampleRate: rate),
+                        delayMs: interference.delayMs)
+        }
+        if !replies.isEmpty {
+            replyBatches += 1
         }
     }
 

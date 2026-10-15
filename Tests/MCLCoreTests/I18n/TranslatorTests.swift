@@ -179,10 +179,11 @@ import Testing
         // 25 keys of the Available window's columns, summary panel, focus-radio filter, row marks, rotator and other-radio items and the Alt+A keys and
         // the colours, fonts and skins and
         // the window layouts, the settings backups, the data folder and the digital radio mode and
-        // 37 keys of the program menu items (update check, country list, diagnostics, contest rules).
-        #expect(map.count == 2_143)
+        // 37 keys of the program menu items (update check, country list, diagnostics, contest rules) and
+        // the simulator's QSB/QRM and the VoiceOver announcements.
+        #expect(map.count == 2_154)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_143)
+        #expect(german.count == 2_154)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

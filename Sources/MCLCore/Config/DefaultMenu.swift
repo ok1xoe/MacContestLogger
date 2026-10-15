@@ -56,6 +56,7 @@ public enum DefaultMenu {
         "help.contestCalendar": "Kalendář závodů (WA7BNM)",
         "help.errorLog": "Zobrazit chybový log",
         "help.checkUpdates": "Zkontrolovat aktualizace…",
+        "settings.announcements": "Hlášení pro nevidomé (VoiceOver)",
         "settings.keys": "Klávesy…",
         "settings": "Nastavení",
         "settings.open": "Nastavení…",
@@ -189,7 +190,7 @@ public enum DefaultMenu {
         ])
         let settings = node("settings", [
             settingsOpen, leaf("settings.keys"), leaf("settings.profiles"), leaf("sep.settings.1"),
-            leaf("settings.callHistoryLookup"), leaf("settings.exchangeAbbreviations"),
+            leaf("settings.callHistoryLookup"), leaf("settings.exchangeAbbreviations"), leaf("settings.announcements"),
         ])
         let help = node("help", [
             leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("help.contestRules"),

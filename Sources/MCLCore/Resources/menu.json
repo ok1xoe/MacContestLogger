@@ -138,7 +138,8 @@
         { "id": "settings.profiles", "label": "Profily nastavení…", "state": "enable" },
         { "id": "sep.settings.1", "state": "enable" },
         { "id": "settings.callHistoryLookup", "label": "Zapnout dohledávání v call history", "state": "enable" },
-        { "id": "settings.exchangeAbbreviations", "label": "Zkratky výměny…", "state": "enable" }
+        { "id": "settings.exchangeAbbreviations", "label": "Zkratky výměny…", "state": "enable" },
+        { "id": "settings.announcements", "label": "Hlášení pro nevidomé (VoiceOver)", "state": "enable" }
       ]
     },
     {

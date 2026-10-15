@@ -27,7 +27,7 @@ enum ProfileMergeSchema {
     /// and special calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
     /// switches and extra
-    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
+    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
     /// `contestSetups.*.functionKeyFiles`) its first serial and master.scp (`contestSetups.*.firstSerial`, `contestSetups.*.scpFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
@@ -76,6 +76,7 @@ enum ProfileMergeSchema {
             Property("digiRadioMode", .string, .fieldDefault),
             Property("stationPerDatabase", .boolean, .fieldDefault),
             Property("checkUpdatesAtStart", .boolean, .fieldDefault),
+            Property("accessibilityAnnouncements", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ContestSetup": [
             Property("callHistoryFile", .string, .fieldDefault),

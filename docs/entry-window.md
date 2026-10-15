@@ -81,3 +81,18 @@ last one starts again from the first.
   ([self-spot](dx-cluster.md)), and the status line warns that the QSO was not logged.
 - **Sent CW** — with *Settings → CW klíč → Zobrazovat odesílané CW ve stavovém řádku* the status line shows the
   text of every CW message as it is sent (`CW: 5NN 001`).
+
+## Announcements for blind operators (VoiceOver)
+
+Equivalent of N1MM's program announcements for blind operators. **Nastavení → Hlášení pro nevidomé (VoiceOver)**
+(Settings → Announcements for blind operators, a check item, off by default, saved) makes the logger announce
+through VoiceOver, in VoiceOver's own voice and the language of the user interface:
+
+- the typed call becoming a **dupe** („Dupe") or a **new / double multiplier** („Nový násobič", „Dvojitý
+  násobič") — once per change, not at every keystroke;
+- a QSO that **cannot be logged** yet: an incomplete exchange („Neúplná výměna, QSO nezapsáno") or a missing time
+  in post-contest entry („Chybí čas QSO");
+- the rig's **split** going on or off („Split zapnut" / „Split vypnut").
+
+The announcements are accessibility notifications: VoiceOver must be running to hear them, and the logger itself
+never opens an audio device for them.

@@ -60,6 +60,17 @@ private struct SimulatorContent: View {
             }), in: 0...0.6)
                 .accessibilityLabel(Text(verbatim: SimulatorSession.noiseText(Float(form.noise))))
                 .accessibilityIdentifier("simulator.noise")
+            HStack(spacing: 16) {
+                Toggle(isOn: Binding(get: { model.qsb }, set: { model.qsb = $0 })) {
+                    Text(verbatim: language.tr("QSB (únik signálu)")).windowFont(13)
+                }
+                .accessibilityIdentifier("simulator.qsb")
+                Toggle(isOn: Binding(get: { model.qrm }, set: { model.qrm = $0 })) {
+                    Text(verbatim: language.tr("QRM (rušící stanice)")).windowFont(13)
+                }
+                .accessibilityIdentifier("simulator.qrm")
+            }
+            .toggleStyle(.checkbox)
             controls(model)
             if let notice = model.startNotice {
                 Text(verbatim: notice)
