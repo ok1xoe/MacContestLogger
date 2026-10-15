@@ -32,6 +32,11 @@ Three important things follow from this:
    time, ...) travel over the network; each station computes the points itself from the same
    contest definition.
 
+An edited contact travels whole: the other stations replace their copy with it, so a field
+the edit cleared (a comment, an operator, a received number) is cleared on every computer
+too. Run / S&P is not sent over the network; each station keeps the value of the contacts it
+logged itself, also when another station edits them.
+
 The network has one extra computer, the **hub**. It receives the contacts, reconciles them
 and sends the canonical ("official") form to everyone. It can easily be an old laptop or a
 Raspberry Pi.

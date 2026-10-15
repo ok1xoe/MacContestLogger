@@ -2418,6 +2418,7 @@
  "CW Reader 2": "CW Reader 2",
  "Dostupné multiplikátory 2 (rádio 2)": "Available multipliers 2 (radio 2)",
  "Dostupné multiplikátory 2": "Available multipliers 2",
+ "Z": "o",
  "Vestavěný (MMTTY, jen RTTY)": "Built-in (MMTTY, RTTY only)",
  "Vestavěný modem (MMTTY přes RYRY) dekóduje zvuk přijímače přímo v programu: Digitální rozhraní 1 a 2 mají každé svůj přijímač s vodopádem. Obvyklé zapojení: jeden stereo vstup, levý kanál = rádio 1, pravý = rádio 2.": "The built-in modem (MMTTY via RYRY) decodes the receiver audio inside the program: Digital Interface 1 and 2 each have their own receiver with a waterfall. Usual setup: one stereo input, left channel = radio 1, right = radio 2.",
  "Přijímač 1 (DI1):": "Receiver 1 (DI1):",
