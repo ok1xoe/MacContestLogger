@@ -34,6 +34,8 @@ public final class MenuModel {
         "tools.diagnosticsFolder", "tools.checkVersion", "tools.checkVersionAtStart", "help.checkUpdates",
         "help.contestRules", "help.contestCalendar", "help.errorLog", "settings.announcements", "tools.tuneBeacon",
         "settings.autoSend", "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2",
+        "so2r.dueling", "so2r.duelingTime", "so2r.focusOther", "so2r.focusOtherAlways", "so2r.ctrlFx", "so2r.stereoMacros",
+        "so2r.so2vRepeat",
     ]
 
     /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key

@@ -266,6 +266,8 @@ public final class AppModel {
     public let vfoB: EntryPanel
     /// The CQ repeat loop of the VFO B window (Kotlin: one loop per panel; idle while the window is hidden).
     @ObservationIgnored var cqRepeatRunnerB: CqRepeatRunner?
+    /// Dueling CQs and FocusOther (SO2R).
+    @ObservationIgnored var so2rAutomation: So2rAutomation?
     @ObservationIgnored public let geometry: WindowGeometryStore
     /// The refresh clock of the radio tool windows (`Environment.radioWindowClock`).
     @ObservationIgnored var radioWindowClock: any RescoreClock = MainQueueRescoreClock()
@@ -530,16 +532,27 @@ public final class AppModel {
         let runnerB: CqRepeatRunner = Self.wireVfoB(model, radio: radio,
                                                     clock: environment.keyerClock ?? MainQueueRescoreClock())
         model.cqRepeatRunnerB = runnerB
+        let automation = So2rAutomation(
+            operating: operating, keyer: radio.keyer, rig: radio.rig, config: config, status: status,
+            clock: environment.keyerClock ?? MainQueueRescoreClock()) { [weak model] index in
+            guard let entry = model?.panel(vfo: index).entry, entry.isWindowShown else { return nil }
+            return entry
+        }
+        model.so2rAutomation = automation
+        entry.so2rAutomation = automation
+        vfoB.entry.so2rAutomation = automation
         Self.wireInfoStrip(model)
         model.shutdownServices.releaseTransmit = { [weak runner, weak runnerB, weak rig = radio.rig,
-                                                    weak keyer = radio.keyer] in
+                                                    weak keyer = radio.keyer, weak automation] in
             rig?.closeTransmit()
+            automation?.stop()
             runner?.stop()
             runnerB?.stop()
             await keyer?.shutdown()
             await rig?.settle()
         }
-        model.shutdownServices.keyers = { [weak runner, weak runnerB, weak keyer = radio.keyer] in
+        model.shutdownServices.keyers = { [weak runner, weak runnerB, weak keyer = radio.keyer, weak automation] in
+            automation?.stop()
             runner?.stop()
             runnerB?.stop()
             await keyer?.shutdown()
@@ -574,6 +587,7 @@ public final class AppModel {
         Self.startRadio(radio)
         runner.start()
         runnerB.start()
+        automation.start()
         model.extraMenuActions["settings.downloadScp"] = { [weak callData] in
             callData?.downloadScp()
         }

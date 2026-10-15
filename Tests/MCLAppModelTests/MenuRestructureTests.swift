@@ -73,7 +73,9 @@ import Testing
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
                                              "settings.callHistoryLookup", "settings.exchangeAbbreviations",
                                              "settings.announcements", "settings.autoSend", "settings.so2r"])
-        #expect(try children("settings.so2r") == ["so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2"])
+        #expect(try children("settings.so2r") == ["so2r.dueling", "so2r.duelingTime", "so2r.focusOther",
+                                                  "so2r.focusOtherAlways", "so2r.ctrlFx", "so2r.stereoMacros",
+                                                  "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2", "so2r.so2vRepeat"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.contestRules",
                                          "help.contestCalendar", "help.report", "help.errorLog", "help.dataFolder",

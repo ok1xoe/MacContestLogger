@@ -109,6 +109,14 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case swapRadios
     /// N1MM Alt+F6 (SO2R): like Alt+F5 without moving the focus.
     case swapRadiosKeepFocus
+    /// N1MM Ctrl+B (SO2R): Dueling CQs on / off.
+    case duelingCq
+    /// N1MM Ctrl+Shift+K (SO2R): Focus on Other Radio on / off.
+    case focusOther
+    /// N1MM Ctrl+Shift+L: the `{CTRLFx}` macro on / off.
+    case toggleCtrlFx
+    /// N1MM „Toggle Stereo/OTRSP Macro" (Ctrl+`): `{STEREOON}` / `{STEREOOFF}` and `{OTRSP RX}` on / off.
+    case toggleStereoMacros
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -198,12 +206,16 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .focusSwap: Spec(name: "FOCUS_SWAP", id: "focus_swap", label: "SO2V/SO2R: oba fokusy (RX i TX) na druhé okno (Pause)", defaultKeys: "F15")
         case .swapRadios: Spec(name: "SWAP_RADIOS", id: "swap_radios", label: "SO2V/SO2R: prohodit rádia (frekvence, mód, volačka) a fokus", defaultKeys: "Alt+F5")
         case .swapRadiosKeepFocus: Spec(name: "SWAP_RADIOS_KEEP_FOCUS", id: "swap_radios_keep", label: "SO2R: prohodit rádia bez změny fokusu", defaultKeys: "Alt+F6")
+        case .duelingCq: Spec(name: "DUELING_CQ", id: "dueling_cq", label: "SO2R: Dueling CQ zap / vyp", defaultKeys: "Ctrl+B")
+        case .focusOther: Spec(name: "FOCUS_OTHER", id: "focus_other", label: "SO2R: FocusOther zap / vyp", defaultKeys: "Ctrl+Shift+K")
+        case .toggleCtrlFx: Spec(name: "TOGGLE_CTRLFX", id: "toggle_ctrlfx", label: "Makro {CTRLFx} zap / vyp", defaultKeys: "Ctrl+Shift+L")
+        case .toggleStereoMacros: Spec(name: "TOGGLE_STEREO_MACROS", id: "toggle_stereo_macros", label: "Makra stereo / OTRSP RX zap / vyp", defaultKeys: "Ctrl+BACK_QUOTE")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode, .focusSwap, .swapRadios, .swapRadiosKeepFocus]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode, .focusSwap, .swapRadios, .swapRadiosKeepFocus, .duelingCq, .focusOther, .toggleCtrlFx, .toggleStereoMacros]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

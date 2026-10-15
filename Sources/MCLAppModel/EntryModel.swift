@@ -173,6 +173,8 @@ public final class EntryModel {
     @ObservationIgnored weak var callStack: CallStackModel?
     /// The Digital Interface's Grab window (Alt+G, `{GRAB}`, `{LOGTHENGRAB}`, Insert); wired by the app.
     @ObservationIgnored weak var grabList: GrabListModel?
+    /// Dueling CQs and FocusOther (SO2R), shared by both entry windows.
+    @ObservationIgnored weak var so2rAutomation: So2rAutomation?
     /// The QTC window (WAE: Ctrl+Z, `{DIGQTCR}`, `{DIGQTCS}`, `{QTC}`); wired by the app.
     @ObservationIgnored weak var qtc: QtcModel?
     /// The call history (`{NAME}`); wired by the app.
@@ -291,6 +293,15 @@ public final class EntryModel {
         }
         setCallText(text)
         autoSendIfDue()
+        endRepeatOnVfoBEntry(text)
+    }
+
+    /// N1MM „Repeating CQ Ends With VFOB Window Entry" (SO2V dual receive): typing into the VFO B window ends the
+    /// CQ repeat.
+    private func endRepeatOnVfoBEntry(_ text: String) {
+        guard vfo == 1, operating.cqRepeat, !KotlinStrings.isBlank(text), rig?.vfo.so2v == true,
+              config.config.so2r.flag(.so2vRepeatEndsWithVfoB) else { return }
+        operating.setCqRepeat(false)
     }
 
     /// N1MM „Clear auto-populated exchange on callsign change": the values the call history or a spot filled in and

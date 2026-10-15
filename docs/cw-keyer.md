@@ -239,7 +239,7 @@ CAT commands are rig-specific and are sent as written: check them against your r
 | `{JUMPRX}` / `{JUMPRXTX}` | the other entry window becomes the active one (in this app the active window has the receive and the transmit focus together) |
 | `{CONDJUMP}` | the same, only when not in split |
 | `{FKEY(r1%r2)}` | a different message per radio: the part before `%` on radio 1 (VFO A), the part after it on radio 2 (VFO B); with one entry window the first part. A part that is a key name sends that key's message (`{FKEY(F1%F9)}`), anything else is message text with its own macros (`{FKEY(CQ {MYCALL} UP%CQ {MYCALL} TEST)}`). Works in CW, digital and voice messages |
-| `{CTRLF1}`…`{CTRLF12}` | sends that F-key of the other entry window on its radio (`TU {CTRLF1}` thanks here and calls CQ on the other radio). With a call typed in this window the focus comes back once the message has been sent; with an empty call field it stays on the other radio |
+| `{CTRLF1}`…`{CTRLF12}` | sends that F-key of the other entry window on its radio (`TU {CTRLF1}` thanks here and calls CQ on the other radio). In SO2R only the transmit focus moves (the entry focus stays here); in SO2V, with a call typed in this window, the focus comes back once the message has been sent. Switched off by Ctrl+Shift+L (Nastavení → SO2R → Makro {CTRLFx}) |
 | `{STOPTX}` | releases the PTT (a `{TX}` or a tune carrier) |
 | `{STEREOON}` / `{STEREOOFF}` | SO2R stereo headphones on / off (OTRSP `RXnS` / `RXn`) |
 | `{OTRSP cmd}` / `{OTRSPOTHER RX}` | a command to the OTRSP device as written (`{OTRSP AUX13}`); `RX` alone is the RX command of the active / the inactive radio |
