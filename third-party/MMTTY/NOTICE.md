@@ -19,6 +19,7 @@ port in **RYRY**.
 | `Sources/RTTYModem/` | the Swift RTTY modem over the C API | RYRY |
 | `Sources/RTTYSignalKit/` | an independent AFSK test-signal generator and deterministic noise | RYRY |
 | `Tests/RTTYModemTests/` (except `DecodeAccuracyTests.swift`) | the core and modem tests | RYRY |
+| `Sources/MCLCore/Digital/Builtin/BuiltinWaterfall.swift`, `BuiltinSignalDetector.swift`, `BuiltinChannelBank.swift` | the waterfall renderer, the signal detector and the multi-channel receiver, adapted to MacContestLogger (marked in their headers) | RYRY |
 
 Every vendored file keeps its copyright notice. Changes made for MacContestLogger: the provenance header of
 the Swift files, the build settings in `Package.swift`, and `RTTYModem.eventSink` (a synchronous event receiver

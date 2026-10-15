@@ -62,6 +62,9 @@ public final class BuiltinEngineModel {
 
     public func stop() {
         open = false
+        if channelsOn {
+            setChannels(false)
+        }
         timer?.cancel()
         timer = nil
         if xyEnabled {
@@ -83,6 +86,12 @@ public final class BuiltinEngineModel {
         if let spectrum = snapshot.spectrum, !snapshot.transmitting {
             waterfall.push(spectrum, fromHz: fromHz, toHz: toHz)
             frame &+= 1
+        }
+        if channelsOn {
+            let rows: [BuiltinChannelBank.Row] = modem.banks[side].snapshot
+            if rows != channelRows {
+                channelRows = rows
+            }
         }
         if xyEnabled, let points = channel.xyPoints() {
             xyPoints = points
@@ -144,6 +153,33 @@ public final class BuiltinEngineModel {
         let value: Double = min(max(squelchLevel + Double(steps) * 1_024, 0), 32_768)
         channel.set("squelchLevel", number: value)
         squelchLevel = value
+    }
+
+    /// The multi-channel receiver (RTTY browser) of this receiver: on, and its channels.
+    public private(set) var channelsOn = false
+    public private(set) var channelRows: [BuiltinChannelBank.Row] = []
+
+    public func setChannels(_ on: Bool) {
+        modem.setChannels(side, on: on)
+        channelsOn = on
+        if !on {
+            channelRows = []
+        }
+    }
+
+    /// The main receiver onto a channel's signal (its mark).
+    public func tuneTo(_ row: BuiltinChannelBank.Row) {
+        modem.tune(side) { $0.markHz = row.markHz }
+        tuning = channel.tuning
+    }
+
+    /// The calls in a channel's text (for the click into the entry window).
+    public static func calls(in text: String) -> [String] {
+        var seen: [String] = []
+        for hit in CallsignScanner.scan(text) where !seen.contains(hit.call) {
+            seen.append(hit.call)
+        }
+        return seen
     }
 
     /// The demodulator (MMTTY: `iir`, `fir`, `pll`, `fft`).

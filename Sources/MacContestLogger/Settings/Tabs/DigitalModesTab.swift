@@ -410,6 +410,16 @@ private struct BuiltinModemOptions: View {
                 .frame(width: 130)
             }
             SettingsCheckbox(label: language.tr("PTT přes CAT (jinak VOX)"), isOn: flag(.pttViaCat))
+            HStack(alignment: .bottom, spacing: 12) {
+                SettingsField(caption: language.tr("Vícekanálový příjem: nejvýše kanálů (1–8)")) {
+                    SettingsTextField(text: text(.channelCount), filter: .digits(limit: 1))
+                }
+                .frame(width: 220)
+                SettingsField(caption: language.tr("Kanál zmizí po (s) bez signálu")) {
+                    SettingsTextField(text: text(.channelTimeout), filter: .digits(limit: 3))
+                }
+                .frame(width: 200)
+            }
             SettingsCaption(language.tr(
                 "Vysílání: AFSK zvukem na zvolený výstup. FSK přes TinyFSK nebo WinKeyer nastavíte níže v „RTTY: rozhraní pro vysílání\" (vestavěný modem pak jen přijímá)."))
         }

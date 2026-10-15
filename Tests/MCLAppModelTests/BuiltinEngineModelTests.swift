@@ -105,4 +105,36 @@ import Testing
         one.stop()
         two.stop()
     }
+
+    /// The receiver's channel panel: on, the signals of its audio get channels; a click on a call fills that radio's
+    /// entry window (through the Digital Interface); a click on the mark tunes the main receiver there; off on close.
+    @Test func channelPanel() async throws {
+        let app = try await Self.make()
+        let digital: DigitalInterfaceModel = app.model.makeDigitalInterface()
+        digital.open()
+        await app.model.builtinModem.attach(0)
+        let engine: BuiltinEngineModel = app.model.makeBuiltinEngine(side: 0)
+        engine.start()
+        engine.setChannels(true)
+        var audio = [Double](repeating: 0, count: 0)
+        let a = RTTYSignalGenerator(sampleRate: 12_000, markHz: 1115, amplitude: 0.2)
+            .generate(text: "RYRYRYRYRYRYRYRY CQ DL2BBB DL2BBB\r\n", leadIn: 1.5)
+        let b = RTTYSignalGenerator(sampleRate: 12_000, markHz: 1915, amplitude: 0.2)
+            .generate(text: "RYRYRYRYRYRYRYRY CQ W3CCC W3CCC\r\n", leadIn: 1.5)
+        audio = (0..<max(a.count, b.count)).map { index in
+            Double(index < a.count ? a[index] : 0) + Double(index < b.count ? b[index] : 0)
+        }
+        try RadioSignals.feed(app, audio)
+        app.model.builtinModem.banks[0].flush()
+        app.radioClock.advance(by: 100)
+        #expect(engine.channelRows.count == 2, "\(engine.channelRows)")
+        let row = try #require(engine.channelRows.first { BuiltinEngineModel.calls(in: $0.text).contains("W3CCC") })
+        digital.take("W3CCC")
+        #expect(app.entry.form.call == "W3CCC")
+        engine.tuneTo(row)
+        #expect(abs(engine.tuning.markHz - row.markHz) < 1)
+        engine.stop()
+        #expect(!app.model.builtinModem.banks[0].configuration.enabled, "closing the pane stops the channels")
+        digital.close()
+    }
 }

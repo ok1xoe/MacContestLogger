@@ -11,6 +11,8 @@ import SwiftUI
 struct BuiltinEnginePane: View {
     let engine: BuiltinEngineModel
     let language: LanguageModel
+    /// A call clicked in a channel goes into this receiver's entry window.
+    var onCall: (String) -> Void = { _ in }
     /// The slot a profile is being saved into (the name prompt is shown), `nil` = none.
     @State private var savingSlot: Int?
     @State private var profileName: String = ""
@@ -44,6 +46,9 @@ struct BuiltinEnginePane: View {
                     xyScope
                         .frame(width: 126, height: 126)
                 }
+            }
+            if engine.channelsOn {
+                channelList
             }
         }
         .onAppear { engine.start() }
@@ -157,6 +162,12 @@ struct BuiltinEnginePane: View {
             .toggleStyle(.button)
             .help(language.tr("Squelch: text jen při signálu nad prahem (kolečko nad vodopádem mění práh)"))
             .accessibilityLabel(language.tr("Squelch"))
+            Toggle(isOn: Binding(get: { engine.channelsOn }, set: { engine.setChannels($0) })) {
+                Text(verbatim: language.tr("Kanály")).windowFont(12)
+            }
+            .toggleStyle(.button)
+            .help(language.tr("Vícekanálový příjem: další dekodéry na signálech nalezených ve spektru (počet a výdrž v Nastavení → Digitální módy)"))
+            .accessibilityIdentifier("builtin.channels")
             Toggle(isOn: Binding(get: { engine.xyEnabled }, set: { engine.setXY($0) })) {
                 Text(verbatim: "XY").windowFont(12)
             }
@@ -200,6 +211,44 @@ struct BuiltinEnginePane: View {
         .accessibilityElement()
         .accessibilityLabel(language.tr("Úroveň signálu"))
         .accessibilityValue(Text(verbatim: String(Int(fraction * 100)) + " %"))
+    }
+
+    /// The multi-channel receiver: a row per channel — its mark (a click tunes the main receiver there), its text
+    /// and its calls (a click puts the call into the entry window).
+    private var channelList: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if engine.channelRows.isEmpty {
+                Text(verbatim: language.tr("Hledám signály RTTY ve spektru…"))
+                    .windowFont(11)
+                    .foregroundStyle(.secondary)
+            }
+            ForEach(engine.channelRows) { row in
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Button {
+                        engine.tuneTo(row)
+                    } label: {
+                        Text(verbatim: String(Int(row.markHz)) + " Hz").windowFont(11, design: .monospaced)
+                    }
+                    .buttonStyle(.borderless)
+                    .help(language.tr("Naladit hlavní přijímač na tento signál"))
+                    ForEach(BuiltinEngineModel.calls(in: row.text), id: \.self) { call in
+                        Button {
+                            onCall(call)
+                        } label: {
+                            Text(verbatim: call).windowFont(11, weight: .semibold).underline()
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                    Text(verbatim: String(row.text.suffix(90)))
+                        .windowFont(11, design: .monospaced)
+                        .lineLimit(1)
+                        .truncationMode(.head)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(language.tr("Kanál") + " " + String(Int(row.markHz)) + " Hz")
+            }
+        }
     }
 
     // MARK: - displays

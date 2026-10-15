@@ -23,6 +23,8 @@ public final class BuiltinModemModel {
     }
 
     @ObservationIgnored let hub: BuiltinModemHub
+    /// The multi-channel receivers, one per receiver (fed with the receiver's audio).
+    @ObservationIgnored public let banks: [BuiltinChannelBank]
     @ObservationIgnored private let audio: AudioModel
     @ObservationIgnored private let audio2: AudioModel
     @ObservationIgnored private let setup: @MainActor () -> BuiltinModemSetup
@@ -33,6 +35,7 @@ public final class BuiltinModemModel {
     init(hub: BuiltinModemHub, audio: AudioModel, audio2: AudioModel, dataDir: URL,
          setup: @escaping @MainActor () -> BuiltinModemSetup) {
         profileStore = BuiltinModemProfiles(directory: dataDir)
+        banks = hub.channels.map { BuiltinChannelBank(source: $0) }
         self.hub = hub
         self.audio = audio
         self.audio2 = audio2
@@ -111,6 +114,12 @@ public final class BuiltinModemModel {
                 self.hub.configure(BuiltinModemHub.Settings(
                     level: now.outputLevel, devices: [now.outputDevice(side: 0), now.outputDevice(side: 1)],
                     linked: now.flag(.linkedTuning)))
+                for bank in self.banks where bank.configuration.enabled {
+                    var config: BuiltinChannelBank.Config = bank.configuration
+                    config.maxChannels = now.channelCount
+                    config.timeout = now.channelTimeout
+                    bank.configure(config)
+                }
                 for side in 0...1 where now.input(side: side) != before.input(side: side)
                     || now.channel(side: side) != before.channel(side: side) {
                     Task { await self.reattach(side) }
@@ -142,8 +151,11 @@ public final class BuiltinModemModel {
         let source: AudioModel = options.input(side: side) == .radio2 ? audio2 : audio
         let pick: BuiltinModemSetup.Channel = options.channel(side: side)
         let channel: BuiltinRttyChannel = hub.channels[side]
+        let bank: BuiltinChannelBank = banks[side]
         let listener: AudioCapture.ListenerID = source.addStereoListener { left, right in
-            channel.receive(pick.pick(left, right))
+            let samples: [Double] = pick.pick(left, right)
+            channel.receive(samples)
+            bank.feed(samples)
         }
         let attachment = Attachment(audio: source, listener: listener)
         attached[side] = attachment
@@ -171,6 +183,16 @@ public final class BuiltinModemModel {
         guard isAttached(side) else { return }
         detach(side)
         await attach(side)
+    }
+
+    /// The multi-channel receiver of a side on or off, with the configured limits.
+    public func setChannels(_ side: Int, on: Bool) {
+        let options: BuiltinModemSetup = setup()
+        var config = BuiltinChannelBank.Config()
+        config.enabled = on
+        config.maxChannels = options.channelCount
+        config.timeout = options.channelTimeout
+        banks[Self.clamp(side)].configure(config)
     }
 
     /// A tuning change made in the window (mark, shift, speed, the switches); with linked tuning both receivers.

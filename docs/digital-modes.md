@@ -354,6 +354,12 @@ The engine pane:
 - **SQ** — the squelch (text only above the threshold, the red line in the level meter).
 - **XY** — MMTTY's XY scope: mark against space; a correctly tuned signal is a cross.
 - The display range (300–3000, 1000–2500, 1700–2700 or 0–6000 Hz).
+- **Kanály** (Channels) — MMTTY's multi-channel receive (N1MM's RTTY browser): further decoders start on the
+  RTTY signals found in this receiver's spectrum (a pair of tones the receiver's shift apart), each follows its
+  signal with AFC and uses the receiver's shift, speed and Rev. A row per channel shows its mark, its calls and
+  its latest text: a **click on a call** puts it into this radio's entry window, a click on the **mark** tunes the
+  receiver there. *Settings → Digital modes*: at most 1–8 channels (default 4) and the seconds a channel stays
+  without a signal (default 15). The channels only receive; they stop when the window closes.
 
 **AFC**, **NET** and **Rev** next to the TX line switch the window's receiver, **Align** works as with
 fldigi (the carrier is the centre between mark and space, so the default alignment frequency 2210 Hz is

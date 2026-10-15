@@ -2471,5 +2471,12 @@
  "Profil": "Profile",
  "Profily modemu: posun, rychlost, demodulátor, AFC/NET, filtry (makro {PROFILEn})": "Modem profiles: shift, speed, demodulator, AFC/NET, filters (macro {PROFILEn})",
  "Demodulátor MMTTY (IIR, FIR, PLL, FFT)": "MMTTY demodulator (IIR, FIR, PLL, FFT)",
- "Profil modemu %s je prázdný": "Modem profile %s is empty"
+ "Profil modemu %s je prázdný": "Modem profile %s is empty",
+ "Kanály": "Channels",
+ "Kanál": "Channel",
+ "Vícekanálový příjem: další dekodéry na signálech nalezených ve spektru (počet a výdrž v Nastavení → Digitální módy)": "Multi-channel receive: more decoders on the signals found in the spectrum (count and hold time in Settings → Digital modes)",
+ "Hledám signály RTTY ve spektru…": "Looking for RTTY signals in the spectrum…",
+ "Naladit hlavní přijímač na tento signál": "Tune the main receiver to this signal",
+ "Vícekanálový příjem: nejvýše kanálů (1–8)": "Multi-channel receive: at most channels (1–8)",
+ "Kanál zmizí po (s) bez signálu": "A channel goes after (s) without a signal"
 }

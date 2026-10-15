@@ -137,7 +137,8 @@ struct DigitalInterfaceWindowView: View {
             }
             if model.usesBuiltin {
                 // N1MM: the receiver's engine window (MMTTY) under its text.
-                BuiltinEnginePane(engine: engineHolder.model { app.makeBuiltinEngine(side: index) }, language: language)
+                BuiltinEnginePane(engine: engineHolder.model { app.makeBuiltinEngine(side: index) }, language: language,
+                                  onCall: { model.take($0) })
             }
             indicators(model, language: language)
             txArea(app, model, language: language)

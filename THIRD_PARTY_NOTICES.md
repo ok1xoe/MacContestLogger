@@ -11,7 +11,8 @@ macOS key table (a numeric mapping, see below).
 
 - **Files:** `Sources/MMTTYCore/`, `Sources/ModemKit/`, `Sources/RTTYModem/`, `Sources/RTTYSignalKit/` and
   the tests in `Tests/RTTYModemTests/` (except `DecodeAccuracyTests.swift`) — compiled into the
-  application as its built-in RTTY modem.
+  application as its built-in RTTY modem; and the files adapted from RYRY listed in
+  `third-party/MMTTY/NOTICE.md` (waterfall, signal detector, multi-channel receiver).
 - **Source:** MMTTY by Makoto Mori, JE3HHT, and Nobuyuki Oba, JA7UDE (<https://github.com/n5ac/mmtty>),
   through the macOS port RYRY by Tomáš Kaplan, OK1XOE (<https://github.com/ok1xoe/RYRY>).
 - **Licence:** GNU Lesser General Public License v3 — `third-party/MMTTY/COPYING.LESSER`; details and the

@@ -24,6 +24,10 @@ public struct BuiltinModemSetup: Equatable, Sendable {
         /// input: left = radio 1, right = radio 2 (the defaults).
         case channel1
         case channel2
+        /// The multi-channel receiver: at most this many channels (1…8) and the seconds a channel stays without a
+        /// signal.
+        case channelCount
+        case channelTimeout
     }
 
     /// The audio input of a receiver.
@@ -48,6 +52,15 @@ public struct BuiltinModemSetup: Equatable, Sendable {
                 return mixed
             }
         }
+    }
+
+    /// The multi-channel receiver's limits (clamped).
+    public var channelCount: Int {
+        min(BuiltinChannelBank.maxChannelLimit, max(1, Int(text(.channelCount)) ?? 4))
+    }
+
+    public var channelTimeout: Double {
+        min(600, max(1, Double(text(.channelTimeout)) ?? 15))
     }
 
     public func input(side: Int) -> Input {
@@ -80,6 +93,8 @@ public struct BuiltinModemSetup: Equatable, Sendable {
         case .input1, .input2: Input.radio1.rawValue
         case .channel1: Channel.left.rawValue
         case .channel2: Channel.right.rawValue
+        case .channelCount: "4"
+        case .channelTimeout: "15"
         }
     }
 
