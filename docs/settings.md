@@ -18,7 +18,7 @@ All Settings tabs are functional (the earlier mock-ups of the N1MM layout have b
 | Klávesy (Keys) | remapping of shortcuts |
 | Digital Modes | how to log the rig's data mode (PKTUSB → FT8 / RTTY / DIGITAL...) |
 | Other | CW speed step and secondary step (Shift+PgUp/PgDn), tuning and RIT step (CW / phone), the QSY step of the `{PGUP}`/`{PGDN}`/`{FREQUP}`/`{FREQDN}` macros, separate function key files for each operator, RIT clearing after a QSO, resetting RX to the TX frequency after a Run QSO in split, dupe beep |
-| CW klíč (CW keyer) | Winkeyer / CAT keying; *Zobrazovat odesílané CW ve stavovém řádku* (N1MM *Display Sent CW*) |
+| CW klíč (CW keyer) | Winkeyer / CAT keying; *Zobrazovat odesílané CW ve stavovém řádku* (N1MM *Display Sent CW*); CW weight and contest word spacing; DTR/RTS keying with PTT line, PTT delay and CAT PTT; the sound-card CW monitor; the Winkeyer settings (N1MM Winkey tab, see [CW keyer](cw-keyer.md#winkeyer-settings)) |
 | Mode Control | mode in the log taken from the rig / band plan / always fixed; RTTY sent to the rig as FSK or AFSK |
 | Antennas | antenna table, rotator (rotctld, UDP) |
 | Score Reporting | online scoreboard, Club Log Live Stream, DXCC from Club Log ([DXCC data](dxcc-data.md)) |

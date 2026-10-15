@@ -129,10 +129,11 @@ Ctrl+Alt+Shift+0…Z), see [DX cluster → Band map top bar](dx-cluster.md#band-
 
 | Key | Action |
 |---|---|
-| **Alt+J** | rotator to the callsign in the field (otherwise the last QSO), short path |
+| **Alt+J** | rotator to the callsign in the field (otherwise the last QSO), short path; a number 0–360 in the call field turns to that heading |
 | **Alt+L** | the same via the long path |
 | **Ctrl+Alt+J** | stop the rotator |
 | **Ctrl+Alt+A** | next antenna for the band |
+| **F1–F10** (Rotator window active) | the rotor setup's preset bearings |
 
 ## Other
 

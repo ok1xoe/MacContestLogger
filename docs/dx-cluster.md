@@ -228,6 +228,9 @@ Sunrise/Sunset*) are in the band map's spot menu (**right click on a spot → Do
 Cluster window's right click on a spot line. They go to the main connection, formatted for the node's software; the
 answer shows in the DX Cluster window.
 
+The band map's spot menu also has **Natočit rotátor na CALL** (N1MM *Turn Rotor*): the rotator turns to the station,
+by the spot's grid when it is known, otherwise by the call's country (see [Antennas → Rotator](antennas.md#rotator)).
+
 | Item | Command (DXSpider / AR-Cluster, CC Cluster) |
 |---|---|
 | Posledních 10 spotů | `SH/DX 10 CALL` / `SH/DX/10 CALL` |

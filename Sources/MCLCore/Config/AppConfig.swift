@@ -309,6 +309,15 @@ public struct AppConfig: Codable, Equatable, Sendable {
         get { QtcSetup(qtcSetup) }
         set { qtcSetup = newValue.values }
     }
+    /// N1MM Rotor program setup: the named rotors, the F1–F10 preset bearings, the network rotor display and the
+    /// automatic antenna choice by bearing (`RotorSetup.Key` → value; only non-default values are kept). Swift-only key.
+    public var rotorSetup: [String: String] = [:]
+
+    /// The rotor setup.
+    public var rotor: RotorSetup {
+        get { RotorSetup(rotorSetup) }
+        set { rotorSetup = newValue.values }
+    }
 
     public var databasesDir = ""
     public var lastDatabase = ""
@@ -357,7 +366,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
-        case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup
+        case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup, rotorSetup
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -507,6 +516,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         checkUpdatesAtStart = c.value(.checkUpdatesAtStart, default: d.checkUpdatesAtStart)
         accessibilityAnnouncements = c.value(.accessibilityAnnouncements, default: d.accessibilityAnnouncements)
         qtcSetup = QtcSetup(c.value(.qtcSetup, default: d.qtcSetup)).values
+        rotorSetup = RotorSetup(c.value(.rotorSetup, default: d.rotorSetup)).values
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

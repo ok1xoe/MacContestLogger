@@ -64,6 +64,9 @@ public final class RigModel {
     @ObservationIgnored private var entries: [WeakEntry] = []
     /// The call typed in the active entry window (Kotlin `typedCall`, the antenna's azimuth).
     @ObservationIgnored var typedCall: @MainActor () -> String = { "" }
+    /// The typed station's grid: the contest's grid field, else the call history's grid (`nil` = unknown). With it
+    /// the bearing goes from my grid to that grid instead of the country's centre (VHF).
+    @ObservationIgnored var typedGrid: @MainActor () -> String? = { nil }
     /// `cwKeyer?.close(); cwKeyer = null` of `resetInterfaces` (the keyer).
     @ObservationIgnored public var resetKeyer: @MainActor () -> Void = {}
     /// The keyer's release before a user disconnect of rig `index` (a CAT carrier, a voice message's PTT).

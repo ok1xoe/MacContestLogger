@@ -302,9 +302,28 @@ extension RigModel {
         show(plan.status)
     }
 
-    /// Kotlin `azimuthTo(call)`.
+    /// Kotlin `azimuthTo(call)`; for the typed call with a known grid (the grid field, the call history) the bearing
+    /// between the grids (N1MM: the locator's bearing, not the country's).
     public func azimuthTo(_ call: String) -> Int? {
-        RotorAzimuth.to(call: call, grid: config.config.station.gridSquare, dxcc: contest.runtime.dxccLookup)
+        let myGrid: String = config.config.station.gridSquare
+        if !KotlinStrings.isBlank(call),
+           KotlinStrings.uppercase(KotlinStrings.trim(call)) == KotlinStrings.uppercase(KotlinStrings.trim(typedCall())),
+           let bearing = RotorPlan.gridBearing(from: myGrid, to: typedGrid()) {
+            return bearing
+        }
+        return RotorAzimuth.to(call: call, grid: myGrid, dxcc: contest.runtime.dxccLookup)
+    }
+
+    /// The bearing to a station whose grid may be known (a spot's grid): the grids' bearing, else the call's.
+    public func azimuthTo(_ call: String, grid: String?) -> Int? {
+        RotorPlan.gridBearing(from: config.config.station.gridSquare, to: grid) ?? azimuthTo(call)
+    }
+
+    /// The call was entered (Space leaves the call field): with N1MM „Auto-select antenna based on azimuth" on, the
+    /// band's antenna is chosen again by the bearing to that station.
+    func callEntered() {
+        guard config.config.rotor.autoAntenna, let band = currentBand else { return }
+        autoSelectAntenna(band)
     }
 
     // MARK: - footswitch

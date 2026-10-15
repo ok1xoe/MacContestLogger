@@ -525,6 +525,9 @@ extension EntryModel {
         esmProgress = EsmFlow.jumpToExchange(esmProgress, esmEnabled: operating.esmEnabled, mode: form.mode,
                                              run: operating.isRun, call: form.call)
         exchangeFocusRequest += 1
+        if isActivePanel {
+            rig?.callEntered()
+        }
         integrations?.callLookedUp(call: form.call, freqHz: Int(form.freqHz), mode: form.mode,
                                    radioNr: rig?.vfo.so2r == true ? (rig?.vfo.catIndex(for: vfo) ?? 0) + 1 : 1)
     }

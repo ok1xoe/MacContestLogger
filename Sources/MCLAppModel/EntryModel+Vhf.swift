@@ -13,6 +13,20 @@ extension EntryModel {
         return fields.first { $0.type == .LOCATOR }?.id
     }
 
+    /// The typed station's grid for the rotor and antenna bearing: the contest's grid field when it holds a locator,
+    /// else the first call history grid of the typed call; `nil` when unknown.
+    var typedGrid: String? {
+        if let id = gridFieldId {
+            let grid: String = KotlinStrings.uppercase(KotlinStrings.trim(form.contestExchange[id] ?? ""))
+            if QsoSearch.isLocator(grid) {
+                return grid
+            }
+        }
+        let call: String = CallStack.normalize(form.call)
+        guard !call.isEmpty else { return nil }
+        return GridToggle.historyGrids(callHistory?().lookup(call)).first
+    }
+
     /// N1MM Alt+=: the Check window opens with the reverse call history lookup on, so the typed call and grid are
     /// searched in the call history and the log. Nothing typed, or a contest without a grid field, says so.
     func gridSearch() {

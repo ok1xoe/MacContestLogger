@@ -15,6 +15,11 @@ public enum CwTiming {
         0x2F: "-..-.", 0x3F: "..--..", 0x2E: ".-.-.-", 0x2C: "--..--", 0x2D: "-....-",
     ]
 
+    /// The Morse code of a character (`.`/`-`), `nil` = not sent.
+    static func code(_ unit: UInt16) -> String? {
+        morse[JavaChar.toUpperCase(unit)]
+    }
+
     /// Character length in dits including gaps inside the character (without the gap after it); Java
     /// `Character.toUpperCase(char)` — `ı` (U+0131) and `ſ` (U+017F) have the length of `I` and `S`.
     static func dits(_ unit: UInt16) -> Int {
