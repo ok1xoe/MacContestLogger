@@ -964,14 +964,28 @@ public final class LogbookModel {
     public func setHiddenColumns(_ hidden: Set<LogTableColumns.Column>) {
         guard hidden != hiddenColumns else { return }
         hiddenColumns = hidden
-        visibleColumns = contestColumns.filter { !hidden.contains($0) }
+        visibleColumns = shownColumns(contestColumns)
         scheduleView()
+    }
+
+    /// The network log is in use: the Op and Stn columns are shown (N1MM's Op and R# columns in multi-op).
+    public func setMultiOpColumns(_ on: Bool) {
+        guard on != multiOpColumns else { return }
+        multiOpColumns = on
+        visibleColumns = shownColumns(contestColumns)
+        scheduleView()
+    }
+
+    @ObservationIgnored private var multiOpColumns = false
+
+    private func shownColumns(_ columns: [LogTableColumns.Column]) -> [LogTableColumns.Column] {
+        (columns + (multiOpColumns ? LogTableColumns.multiOpColumns : [])).filter { !hiddenColumns.contains($0) }
     }
 
     /// The contest changed: visible columns, the marks and the warnings follow it.
     public func setContestColumns(_ columns: [LogTableColumns.Column]) {
         contestColumns = columns
-        visibleColumns = columns.filter { !hiddenColumns.contains($0) }
+        visibleColumns = shownColumns(columns)
         scheduleView()
         scheduleMarks()
         dropWarningsSession()

@@ -112,6 +112,24 @@ the runner's own [call stack](call-stacking.md) — one stack of at most 10 call
 duplicates and without dupes, in the order chosen in Settings → Function Keys → Call stacking; with
 the Next Call key, ESM works them one after the other (`{LOGTHENPOP}`).
 
+When the runner logs a callsign the partner put on its stack, the callsign is wiped from the
+partner's entry windows (N1MM: wipe the callsign when it is logged by the stack target).
+
+## Log and export
+
+While the network logbook is in use, the Log window shows two more columns: **Op** (the operator
+of the QSO) and **Stn** (the station ID that logged it; N1MM's Op and R# columns).
+
+**Soubor → Export → ADIF podle data…** (File → Export → ADIF by date) has a **Stanice sítě** (Network station) choice
+when the log holds QSOs of several stations: the ADIF then contains only the QSOs of that
+station (N1MM *Export ADIF by multi-user station name*).
+
+## Multi-user macros
+
+The function key messages can use N1MM's multi-user macros `{MESSAGE}`, `{PASS …}`,
+`{PASSMSG …}` and `{LASTPASSEDFREQ}` (see [CW keyer → macros](cw-keyer.md)). They work only
+while the network logbook is connected; the text after `{MESSAGE}` is never transmitted.
+
 ## Interlock / TX lockout
 
 **Nastavení → Cluster → TX interlock** (Settings → Cluster → TX interlock):

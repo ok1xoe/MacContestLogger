@@ -18,6 +18,9 @@ public final class AdifRangeModel {
             }
         }
     }
+    /// N1MM „Export ADIF by multi-user station name": only the QSOs logged by this station of the network log
+    /// (`Qso.stationId`); `""` = every station.
+    public var station: String = ""
     /// The database's QSOs of every contest (read when `allContests` is first switched on; `nil` until then).
     public private(set) var allRows: [Qso]?
 
@@ -40,7 +43,17 @@ public final class AdifRangeModel {
 
     /// QSOs of the open log in the period (the preview).
     public var qsoCount: Int {
-        range.map { $0.filter(rows).count } ?? 0
+        range.map { Self.byStation($0.filter(rows), station).count } ?? 0
+    }
+
+    /// The station ids of the network log found in the QSOs (sorted), for the station picker.
+    public var stations: [String] {
+        Set(rows.map(\.stationId).filter { !$0.isEmpty }).sorted()
+    }
+
+    /// The QSOs of one station (`""` = all).
+    public nonisolated static func byStation(_ qsos: [Qso], _ station: String) -> [Qso] {
+        station.isEmpty ? qsos : qsos.filter { $0.stationId == station }
     }
 
     /// The QSOs the window counts: the open log, or every contest's once read.
@@ -68,6 +81,8 @@ public final class AdifRangeModel {
 
     /// The save panel's suggested name.
     public var suggestedName: String {
-        range?.fileName(base: allContests ? "maccontestlogger-all" : "maccontestlogger") ?? ExportNames.adifDefaultName
+        let base: String = (allContests ? "maccontestlogger-all" : "maccontestlogger")
+            + (station.isEmpty ? "" : "-" + station.filter { $0.isLetter || $0.isNumber })
+        return range?.fileName(base: base) ?? ExportNames.adifDefaultName
     }
 }

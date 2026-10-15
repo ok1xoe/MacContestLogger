@@ -44,7 +44,7 @@ public enum MenuActions {
         /// The data directory in the Finder (`help.dataFolder`; honours `MCL_DATA_DIR`).
         case openDataFolder(URL)
         /// The ADIF of the QSOs in `range` (Export → ADIF by date) → `exportAdif(to:range:)`.
-        case saveAdifRange(suggestedName: String, range: AdifDateRange, allContests: Bool = false)
+        case saveAdifRange(suggestedName: String, range: AdifDateRange, allContests: Bool = false, station: String = "")
         /// N1MM „Export to file (generic) sorted by band" → `exportTextByBand(to:)`.
         case saveTextByBand(suggestedName: String)
         /// N1MM's generic text output in the contest's layout → `exportFormattedText(to:)`.

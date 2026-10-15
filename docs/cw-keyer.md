@@ -179,6 +179,10 @@ CAT commands are rig-specific and are sent as written: check them against your r
 | `{SWAPCONTESTS}` | opens the contest opened before this one (File → Open recent); the call and exchange typed move along |
 | `{SWAPCONTESTS3}`…`{SWAPCONTESTS6}` | cycles through the last 3–6 contests opened |
 | `{SWAPCONTESTS name}` | opens the recent contest whose title holds the name |
+| `{MESSAGE}` | multi-user: the rest of the message is not sent on the air but as a talk message over the network log; a first word naming a station sends it to that station only, `-` to all (`{MESSAGE} OP2 need 20m mult {CALL}`). Off the network the rest is dropped |
+| `{PASS name}` / `{PASS kHz}` | multi-user: the pass frequency (rounded to kHz; the station's frequency when it announced none) of the named station, or of the station on the band of that frequency (the run station first, then one with a pass frequency); it becomes the last passed frequency |
+| `{PASSMSG name}` / `{PASSMSG kHz}` | multi-user: passes the last logged call to that station (as Ctrl+Alt+P) |
+| `{LASTPASSEDFREQ}` | multi-user: the frequency of the station last passed to (`{PASS …}`, Ctrl+Alt+P, Předat), R for the decimal point (`14025R5`) |
 Other N1MM interface-control macros (`{KEYBOARD}`...) are not sent and are reported in the status line as unknown.
 
 ## CW from the keyboard

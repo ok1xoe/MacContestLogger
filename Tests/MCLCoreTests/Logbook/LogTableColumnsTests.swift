@@ -8,19 +8,24 @@ import Testing
 
     private typealias Column = LogTableColumns.Column
 
+    /// The Kotlin columns (the Swift-only multi-op columns Op and Stn follow them).
+    private static let kotlin: [Column] = Column.allCases.filter { !LogTableColumns.multiOpColumns.contains($0) }
+
     @Test func columnsMatchKotlin() {
-        let titles: [String] = Column.allCases.map(\.title)
+        #expect(Column.allCases.suffix(2) == [.op, .station])
+        #expect(Column.allCases.suffix(2).map(\.title) == ["Op", "Stn"])
+        let titles: [String] = Self.kotlin.map(\.title)
         #expect(titles == [
             "Čas UTC", "Volačka", "Pásmo", "Mód", "RST tx", "RST rx", "Nr tx", "Nr rx",
             "Exchange", "Pozn.", "X", "⚠", "Body", "Mult",
         ])
-        let weights: [Double] = Column.allCases.map(\.weight)
+        let weights: [Double] = Self.kotlin.map(\.weight)
         #expect(weights == [2.0, 1.3, 0.9, 0.9, 0.8, 0.8, 0.7, 0.7, 1.6, 1.4, 0.35, 0.35, 0.5, 1.0])
-        #expect(Column.allCases.map(\.rawValue) == Array(0..<14))
+        #expect(Self.kotlin.map(\.rawValue) == Array(0..<14))
     }
 
     @Test func sortKeysMatchKotlin() {
-        let keys: [QsoSort.Key] = Column.allCases.map { LogTableColumns.sortKey(for: $0) }
+        let keys: [QsoSort.Key] = Self.kotlin.map { LogTableColumns.sortKey(for: $0) }
         #expect(keys == [
             .time, .call, .band, .mode, .rstSent, .rstRcvd, .serialSent, .serialRcvd, .exchange, .note,
             .note, .note, .note, .note,
@@ -29,7 +34,7 @@ import Testing
 
     @Test func visibility() {
         let all = LogTableColumns.visible(usesSerial: true, usesExchangeBeyondRst: true, contestActive: true)
-        #expect(all == Column.allCases)
+        #expect(all == Self.kotlin)
         let free = LogTableColumns.visible(usesSerial: false, usesExchangeBeyondRst: false, contestActive: false)
         #expect(free == [.time, .call, .band, .mode, .rstSent, .rstRcvd, .note, .xqso, .warning])
         let cqww = LogTableColumns.visible(usesSerial: false, usesExchangeBeyondRst: true, contestActive: true)
@@ -81,7 +86,7 @@ import Testing
     @Test func cellTextsMatchKotlin() throws {
         for (iso, time, full) in Self.measuredTimes {
             let q = try Self.qso(iso)
-            let cells: [String] = Column.allCases.map { LogTableColumns.cellText(q, column: $0, marks: nil) }
+            let cells: [String] = Self.kotlin.map { LogTableColumns.cellText(q, column: $0, marks: nil) }
             let xqso: String = (iso?.hasPrefix("2026") ?? false) ? "X" : ""
             #expect(cells == [time, "OK1ABC/P", "20m", "CW", "599", "579", "7", "", "15", "note", xqso, "", "", ""],
                     "\(String(describing: iso))")
@@ -89,7 +94,12 @@ import Testing
             #expect(LogTableColumns.editTimeText(q.timestampUtc) == full)
         }
         let empty: [String] = Column.allCases.map { LogTableColumns.cellText(Qso(), column: $0, marks: nil) }
-        #expect(empty == Array(repeating: "", count: 14))
+        #expect(empty == Array(repeating: "", count: 16))
+        var multi = Qso()
+        multi.operator = "OK1XOE"
+        multi.stationId = "OP2"
+        #expect(LogTableColumns.cellText(multi, column: .op, marks: nil) == "OK1XOE")
+        #expect(LogTableColumns.cellText(multi, column: .station, marks: nil) == "OP2")
     }
 
     /// The `date:` search and the edit text share one formatter (`QsoSearch.timestamp`).

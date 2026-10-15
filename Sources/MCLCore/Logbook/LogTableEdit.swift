@@ -57,7 +57,7 @@ public enum LogTableEdit {
         case .note:
             let trimmed: String = KotlinText.trim(text)
             edited.comment = KotlinText.isBlank(trimmed) ? "" : trimmed
-        case .band, .mode, .xqso, .warning, .points, .mult:
+        case .band, .mode, .xqso, .warning, .points, .mult, .op, .station:
             break
         }
         return edited

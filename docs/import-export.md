@@ -38,6 +38,10 @@ QSOs of the active contest (or of free logging). A period without a QSO writes n
 and exports the QSOs of every contest stored in the open database (and of free logging) in that period. Such a file
 has no `CONTEST_ID` (the QSOs belong to different contests); the suggested name starts with `maccontestlogger-all-`.
 
+**Stanice sítě** (Network station) — N1MM *Export ADIF by multi-user station name* — appears when the QSOs come from
+several stations of the network logbook: only the QSOs logged by the chosen station are exported (the station ID is
+added to the suggested name).
+
 ## EDI (REG1TEST, VHF)
 
 **"Soubor → Export → Export EDI (VKV)…"** (File → Export → Export EDI (VHF)...) writes, for

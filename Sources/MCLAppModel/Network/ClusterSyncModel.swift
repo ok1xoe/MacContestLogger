@@ -258,6 +258,7 @@ public final class ClusterSyncModel {
                                  coordinator: coordinator)
         session = opened
         stationId = cluster.stationId
+        logbook.setMultiOpColumns(true)
         let host: String = cluster.brokerHost
         let port: Int = cluster.port
         lane.submit { [weak self] in
@@ -611,9 +612,12 @@ public final class ClusterSyncModel {
 
     /// QSOs the re-read brought from other stations (N1MM „All QSOs" forwarding); wired by the app.
     @ObservationIgnored public var onRemoteQsos: (@MainActor ([Qso]) -> Void)?
+    /// More takers of the QSOs the re-read brought from other stations (the network model).
+    @ObservationIgnored var remoteQsoObservers: [@MainActor ([Qso]) -> Void] = []
 
     private func refreshLog() async {
-        let known: Set<String> = onRemoteQsos == nil ? [] : Set(logbook.rows.map(\.uuid))
+        let wanted: Bool = onRemoteQsos != nil || !remoteQsoObservers.isEmpty
+        let known: Set<String> = wanted ? Set(logbook.rows.map(\.uuid)) : []
         do {
             try await reload()
         } catch {
@@ -623,11 +627,14 @@ public final class ClusterSyncModel {
             return
         }
         contest.requestRescore()
-        if let onRemoteQsos {
+        if wanted {
             let own: String = logbook.syncStationId ?? ""
             let fresh: [Qso] = logbook.rows.filter { !known.contains($0.uuid) && !$0.uuid.isEmpty && $0.stationId != own }
             if !fresh.isEmpty {
-                onRemoteQsos(fresh)
+                onRemoteQsos?(fresh)
+                for observer in remoteQsoObservers {
+                    observer(fresh)
+                }
             }
         }
     }

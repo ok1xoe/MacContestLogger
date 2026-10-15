@@ -22,6 +22,10 @@ public final class NetworkModel {
     /// The pass frequency this station announced last (Alt+Z), 0 = none.
     public private(set) var ownPassFrequencyHz: Int = 0
 
+    /// `{LASTPASSEDFREQ}`: the frequency of the station last alerted to expect a pass (`{PASS …}`, a PASS sent), 0 =
+    /// none.
+    public var lastPassedFreqHz: Int = 0
+
     /// The message trace, the stations' setups and the master's time (Network Status Messages / Actions).
     public internal(set) var tools = NetworkToolsState()
 
@@ -43,6 +47,11 @@ public final class NetworkModel {
     /// `chat.stack`.
     @ObservationIgnored var stackReceived: (@MainActor (String) -> Void)?
     /// This station's setup for the others (version, contest, category, master); set by the app.
+    /// Wipes the entry windows holding this call (N1MM: the partner's call is wiped once the stack target logs it);
+    /// set by the app.
+    @ObservationIgnored var wipeCall: @MainActor (String) -> Void = { _ in }
+    /// Calls this station put on another station's stack, by call → target station.
+    @ObservationIgnored var stackedCalls: [String: String] = [:]
     @ObservationIgnored var ownProfile: @MainActor () -> StationProfile = { StationProfile() }
     /// The alert of a call for help (the system beep; silent in tests); set by the app.
     @ObservationIgnored var alert: @MainActor () -> Void = {}
@@ -69,6 +78,9 @@ public final class NetworkModel {
         }
         cluster.onTick = { [weak self] in
             self?.tick()
+        }
+        cluster.remoteQsoObservers.append { [weak self] qsos in
+            self?.remoteLogged(qsos)
         }
     }
 
@@ -166,6 +178,9 @@ public final class NetworkModel {
         guard let message = NetMessages.passMessage(to: to, call: passed, peers: peers(), myFreqHz: ownFrequency(),
                                                     translator: language.translator,
                                                     passFrequencyHz: chat.passFrequencies[to]) else { return }
+        if message.freqHz > 0 {
+            lastPassedFreqHz = message.freqHz
+        }
         cluster.send(type: NetMessageWire.pass, to: message.to, text: message.note, call: message.call,
                      freqHz: message.freqHz, mode: message.mode) { [weak self] result in
             self?.passSent(result, to: to, call: passed)
@@ -219,9 +234,20 @@ public final class NetworkModel {
     private func stackSent(_ result: Result<NetMessageWire, any Error>, to: String, call: String) {
         switch result {
         case .success:
+            stackedCalls[call] = to
             show(NetMessages.sentStack(call: call, to: to))
         case .failure(let error):
             show(NetMessages.failure("Partner", message: ErrorText.message(error)))
+        }
+    }
+
+    /// The stack target logged a call this station stacked for it: the call is wiped from the entry windows here.
+    func remoteLogged(_ qsos: [Qso]) {
+        for qso in qsos {
+            let call: String = KotlinStrings.uppercase(qso.call)
+            guard let target = stackedCalls[call], target == qso.stationId else { continue }
+            stackedCalls[call] = nil
+            wipeCall(call)
         }
     }
 
@@ -237,6 +263,43 @@ public final class NetworkModel {
     /// The partner window's call field (Kotlin `it.uppercase().filter { c -> c.isLetterOrDigit() || c == '/' }`).
     public static func partnerCallFilter(_ text: String) -> String {
         String(KotlinStrings.uppercase(text).filter { $0.isLetter || $0.isNumber || $0 == "/" })
+    }
+
+    // MARK: - multi-user macros
+
+    /// The network log is connected (the multi-user macros are substituted only then).
+    public var isConnected: Bool {
+        cluster.isRunning
+    }
+
+    /// The online stations for `{PASS …}` / `{PASSMSG …}`.
+    public func macroPassTargets() -> [MacroPassTarget] {
+        (peers() ?? []).filter(\.online).compactMap { peer in
+            guard let id = peer.status.stationId else { return nil }
+            let run: Bool = peer.status.runMode == "RUN" || (peer.status.stationType ?? "").hasPrefix("RUN")
+            return MacroPassTarget(station: id, freqHz: peer.status.freqHz, passHz: chat.passFrequencies[id] ?? 0,
+                                   run: run)
+        }
+    }
+
+    /// `{MESSAGE}`: the talk message to the named station or to all.
+    public func sendMacroMessage(_ text: String) {
+        let stations: [String] = macroPassTargets().map(\.station)
+        let (to, body) = MultiUserMacro.messageTarget(text, stations: stations)
+        sendChat(to: to, text: body)
+    }
+
+    /// `{PASSMSG …}`: the last QSO's call passed to the named station or to the run station of the band.
+    public func passLastQso(_ argument: String, call: String) {
+        guard !KotlinStrings.isBlank(call) else {
+            show(.tr(NetTexts.passNeedCallKeyPublic))
+            return
+        }
+        guard let target = MultiUserMacro.target(argument, in: macroPassTargets()) else {
+            show(.tr(NetworkMacroTexts.noTargetKey, .string(argument)))
+            return
+        }
+        passCall(to: target.station, call: call)
     }
 
     // MARK: - the station table
