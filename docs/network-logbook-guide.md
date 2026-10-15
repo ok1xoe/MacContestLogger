@@ -86,6 +86,16 @@ Raspberry Pi.
 When the authority is up, it prints something like:
 `Cluster app běží. Broker localhost:1883, REST :8080, 0 událostí.`
 
+3. **Optional: announce the broker in the LAN (Bonjour)**, so the stations can find it
+   without typing its address (N1MM's zero-config networking). On a Mac hub, keep this running
+   next to Mosquitto:
+   ```bash
+   dns-sd -R "MCL broker" _mqtt._tcp local 1883
+   ```
+   (with TLS: `dns-sd -R "MCL broker" _secure-mqtt._tcp local 8883`). On Linux / Raspberry Pi,
+   an Avahi service file `/etc/avahi/services/mqtt.service` with the type `_mqtt._tcp` and
+   port `1883` does the same.
+
 ---
 
 ## 5. Setting up an operating station
@@ -95,7 +105,11 @@ At **every** position in MacContestLogger:
 1. Open **Nastavení → Připojení ke clusteru…** (Settings → Connection to the cluster).
 2. Tick **"Zapnout síťový multi-op deník"** (Enable the network multi-op logbook).
 3. Fill in:
-   - **Broker**: the IP or hostname of the **hub** (for example `192.168.1.10`).
+   - **Broker**: the IP or hostname of the **hub** (for example `192.168.1.10`). If the hub
+     announces itself (section 4, step 3), **Najít broker v LAN (Bonjour)** (Find a broker in
+     the LAN) lists it after a few seconds; a click fills the broker, port and TLS. The search
+     runs only when you press the button. Bonjour does not cross VPNs such as Tailscale: for a
+     remote station type the hub's VPN address or name (e.g. its MagicDNS name).
    - **Port**: `1883` (or `8883` if you use TLS; see section 7).
    - **ID stanice** (Station ID): a short unique name of the position, for example `OP1`,
      `OP2`, `RUN`, `MULT`. **Every position must have a different ID!**

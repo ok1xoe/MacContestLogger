@@ -448,6 +448,41 @@ public final class ClusterSyncModel {
         timer.cancel()
     }
 
+    // MARK: - broker discovery (Bonjour)
+
+    /// The brokers the last search found (Settings → Cluster).
+    public private(set) var discoveredBrokers: [DiscoveredBroker] = []
+    /// A search runs.
+    public private(set) var discovering = false
+    /// How long a search listens.
+    public static let discoveryMs = 3_000
+
+    /// N1MM's zero-config network: looks for MQTT brokers that announce themselves in the LAN (Bonjour). Only on the
+    /// operator's request; under `MCL_INERT_NETWORK` nothing is searched.
+    public func discoverBrokers() {
+        guard !discovering, !closed else { return }
+        if network.isInert {
+            appLog.notice("Broker discovery: \(NetworkPorts.disabledMessage, privacy: .public)")
+            discoveredBrokers = []
+            status.show(BrokerTexts.noneFoundKey)
+            return
+        }
+        discovering = true
+        network.discoverBrokers(Self.discoveryMs) { [weak self] found in
+            MainHop.post { self?.discovered(found) }
+        }
+    }
+
+    private func discovered(_ found: [DiscoveredBroker]) {
+        discovering = false
+        discoveredBrokers = found
+        if found.isEmpty {
+            status.show(BrokerTexts.noneFoundKey)
+        } else {
+            status.show(BrokerTexts.foundKey, .int(found.count))
+        }
+    }
+
     // MARK: - NETON and NETOFF
 
     /// Kotlin `networkOn()`.

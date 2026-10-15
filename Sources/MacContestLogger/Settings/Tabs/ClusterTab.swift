@@ -23,6 +23,7 @@ struct ClusterTab: View {
                 }
                 .frame(width: 160)
             }
+            discovery
             SettingsField(caption: language.tr("ID stanice (= Client ID + původ QSO, např. OP1)")) {
                 SettingsTextField(text: $draft.stationId, filter: .trim)
             }
@@ -55,6 +56,32 @@ struct ClusterTab: View {
                 .windowFont(12)
                 .accessibilityIdentifier("settings.cluster.status")
             SettingsCaption(language.tr("Uložení restartuje spojení ke clusteru."))
+        }
+    }
+
+    /// The Bonjour search for a broker in the LAN: a found one fills the host, the port and TLS.
+    @ViewBuilder private var discovery: some View {
+        let cluster: ClusterSyncModel = app.cluster
+        HStack(spacing: 8) {
+            Button(language.tr("Najít broker v LAN (Bonjour)")) {
+                cluster.discoverBrokers()
+            }
+            .disabled(cluster.discovering)
+            .accessibilityIdentifier("settings.cluster.discover")
+            if cluster.discovering {
+                ProgressView()
+                    .controlSize(.small)
+                    .accessibilityLabel(Text(verbatim: language.tr("Hledám…")))
+            }
+        }
+        ForEach(cluster.discoveredBrokers, id: \.self) { broker in
+            Button(broker.label) {
+                draft.brokerHost = broker.host
+                draft.clusterPort = String(broker.port)
+                draft.tls = broker.tls
+            }
+            .buttonStyle(.link)
+            .accessibilityIdentifier("settings.cluster.broker." + broker.name)
         }
     }
 

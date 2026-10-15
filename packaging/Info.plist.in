@@ -29,7 +29,12 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MacContestLogger používá mikrofon k nahrávání hlasových zpráv, pro CW reader, vodopád a nahrávání závodu.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>MacContestLogger komunikuje v místní síti: N1MM multicast a broadcast, WSJT-X a MQTT broker v LAN.</string>
+	<string>MacContestLogger komunikuje v místní síti: N1MM multicast a broadcast, WSJT-X a MQTT broker v LAN (na požádání ho najde přes Bonjour).</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_mqtt._tcp</string>
+		<string>_secure-mqtt._tcp</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

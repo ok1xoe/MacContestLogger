@@ -95,6 +95,8 @@ public struct NetworkPorts: Sendable {
     public var isInert: Bool
     /// Starts an external program (WSJT-X / JTDX): the application path and its arguments. Inert = refused.
     public var launchApp: @Sendable (_ path: String, _ arguments: [String]) throws -> Void = NetworkPorts.inertLaunch
+    /// The Bonjour search for MQTT brokers in the LAN (Settings → Cluster). Inert = finds nothing.
+    public var discoverBrokers: BrokerDiscoverer = BonjourBrokerBrowser.inert
 
     /// The network services default to inert, so a test that passes only the spot ports opens nothing else.
     public init(makeSession: @escaping @Sendable (ClusterHooks) -> any ClusterSessionPort, http: any HttpGetter,
@@ -163,10 +165,14 @@ public struct NetworkPorts: Sendable {
     }
 
     /// The running app: telnet to the configured clusters, HTTPS to the callbooks, the system browser.
-    public static let live = NetworkPorts(makeSession: sessions(), http: URLSessionHttpGetter(),
-                                          urlOpener: .workspace, makeSyncTransport: liveTransport, udp: .live,
-                                          online: .live, clock: LiveClockProbe.probe, plugins: .live,
-                                          clubLogCty: URLSessionDataFetcher(), launchApp: liveLaunch)
+    public static let live: NetworkPorts = {
+        var ports = NetworkPorts(makeSession: sessions(), http: URLSessionHttpGetter(),
+                                 urlOpener: .workspace, makeSyncTransport: liveTransport, udp: .live,
+                                 online: .live, clock: LiveClockProbe.probe, plugins: .live,
+                                 clubLogCty: URLSessionDataFetcher(), launchApp: liveLaunch)
+        ports.discoverBrokers = BonjourBrokerBrowser.live
+        return ports
+    }()
 
     /// `live`, unless `MCL_INERT_NETWORK` is set (the reading of `HardwarePorts.isInert`). The plugins stay inert
     /// under `MCL_INERT_HARDWARE` as well (they run local executables).
