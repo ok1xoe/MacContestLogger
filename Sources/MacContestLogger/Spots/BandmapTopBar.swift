@@ -3,49 +3,58 @@ import MCLCore
 import SwiftUI
 
 /// The band map's top bar (N1MM Logger+ Bandmap window): SH/DX, Wide/Narrow, CQ, the RIT offset (a click clears it),
-/// the mode (a click picks another one) and the editor of the programmable buttons.
+/// the mode (a click picks another one) and the editor of the programmable buttons. The buttons wrap onto another
+/// line in a narrow window instead of being cut off.
 struct BandmapTopBar: View {
-    let model: BandmapModel
+    let model: any BandmapBarSource
     let language: LanguageModel
 
     var body: some View {
-        HStack(alignment: .center, spacing: 6) {
-            textButton("SH/DX", help: language.tr("Pošle SH/DX do DX clusteru"), id: "bandmap.shdx") {
-                model.showDx()
+        HStack(alignment: .top, spacing: 6) {
+            FlowLayout(spacing: 6) {
+                buttons
             }
-            textButton(filterLabel, help: language.tr("Přepne šířku filtru rigu (Wide/Narrow)"), id: "bandmap.filter") {
-                model.toggleFilterWidth()
-            }
-            textButton("CQ", help: language.tr("Zpět na CQ frekvenci"), id: "bandmap.cq") {
-                model.jumpToCq()
-            }
-            .disabled(!model.canJumpToCq)
-            textButton(model.ritText, help: language.tr("Klik vynuluje RIT"), id: "bandmap.rit") {
-                model.clearRit()
-            }
-            Menu {
-                ForEach(BandmapModel.modeCommands, id: \.self) { mode in
-                    Button(mode) { model.setMode(mode) }
-                }
-            } label: {
-                Text(verbatim: model.modeText.isEmpty ? "–" : model.modeText)
-                    .windowFont(12, design: .monospaced)
-            }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-            .accessibilityLabel(language.tr("Mód"))
-            .accessibilityValue(model.modeText)
-            .help(language.tr("Klik vybere mód"))
-            .accessibilityIdentifier("bandmap.mode")
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
             IconButton(symbol: "slider.horizontal.3", label: language.tr("Uživatelská tlačítka…"),
-                       size: CGSize(width: 24, height: 24), outlined: true) {
-                model.editButtons()
+                       size: BandmapLayout.zoomButton, outlined: true, symbolSize: 10, secondary: true) {
+                model.editButtons(0)
             }
             .buttonStyle(.plain)
+            .fixedSize()
         }
         .padding(.horizontal, 8)
         .padding(.bottom, 4)
+    }
+
+    @ViewBuilder
+    private var buttons: some View {
+        textButton("SH/DX", help: language.tr("Pošle SH/DX do DX clusteru"), id: "bandmap.shdx") {
+            model.showDx()
+        }
+        textButton(filterLabel, help: language.tr("Přepne šířku filtru rigu (Wide/Narrow)"), id: "bandmap.filter") {
+            model.toggleFilterWidth()
+        }
+        textButton("CQ", help: language.tr("Zpět na CQ frekvenci"), id: "bandmap.cq") {
+            model.jumpToCq()
+        }
+        .disabled(!model.canJumpToCq)
+        textButton(model.ritText, help: language.tr("Klik vynuluje RIT"), id: "bandmap.rit") {
+            model.clearRit()
+        }
+        Menu {
+            ForEach(BandmapModel.modeCommands, id: \.self) { mode in
+                Button(mode) { model.setMode(mode) }
+            }
+        } label: {
+            Text(verbatim: model.modeText.isEmpty ? "–" : model.modeText)
+                .windowFont(12, design: .monospaced)
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .accessibilityLabel(language.tr("Mód"))
+        .accessibilityValue(model.modeText)
+        .help(language.tr("Klik vybere mód"))
+        .accessibilityIdentifier("bandmap.mode")
     }
 
     private var filterLabel: String {

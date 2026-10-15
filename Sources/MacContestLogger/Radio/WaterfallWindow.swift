@@ -54,12 +54,13 @@ struct WaterfallWindowView: View {
         let info: (text: EntryStatus, isError: Bool) = model.infoLine
         let infoText: String = info.text.text(language.translator, decimalSeparator: language.decimalSeparator)
         return VStack(alignment: .leading, spacing: 6) {
-            WindowTopBar(size: $session.fontSize, language: language)
-            if radio == 1 && app.rig.vfo.so2r {
+            let radio2Row: Bool = radio == 1 && app.rig.vfo.so2r
+            if radio2Row {
                 Radio2InputRow(app: app) {
                     model.close()
                     Task { await model.open() }
                 }
+                .trailingFontStepper(size: $session.fontSize, language: language)
             }
             HStack(spacing: 8) {
                 Text(verbatim: infoText)
@@ -102,6 +103,7 @@ struct WaterfallWindowView: View {
                     showingOptions = true
                 }
             }
+            .trailingFontStepper(size: $session.fontSize, language: language, shown: !radio2Row)
             panes(model, language: language, infoText: infoText)
         }
         .padding(8)

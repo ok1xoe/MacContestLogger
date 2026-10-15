@@ -16,20 +16,29 @@ struct EntryPanelView: View {
     let wheel: TuningWheelMonitor
 
     var body: some View {
+        let accepts: Bool = app.acceptsEntryInput
         VStack(alignment: .leading, spacing: 6) {
+            // The window's font stepper sits at the end of the first row (the VFO header with two entry windows,
+            // otherwise the frequency strip) and stays enabled while the entry is not.
             EntryWindowHeader(app: app, vfo: panel.vfo)
+                .disabled(!accepts)
+                .trailingFontStepper(shown: app.rig.vfo.twoEntryWindows)
             FrequencyStripView(app: app, panel: panel, focus: focus)
-            StationCallWarning(app: app)
-            HStack(alignment: .top, spacing: 8) {
-                if panel.entry.isShown(.bandButtons) {
-                    BandGridView(app: app, entry: panel.entry)
+                .disabled(!accepts)
+                .trailingFontStepper(shown: !app.rig.vfo.twoEntryWindows)
+            Group {
+                StationCallWarning(app: app)
+                HStack(alignment: .top, spacing: 8) {
+                    if panel.entry.isShown(.bandButtons) {
+                        BandGridView(app: app, entry: panel.entry)
+                    }
+                    EntryColumn(app: app, panel: panel, focus: focus)
                 }
-                EntryColumn(app: app, panel: panel, focus: focus)
             }
+            .disabled(!accepts)
         }
         .padding(8)
         .background(TuningWheelArea(monitor: wheel))
-        .disabled(!app.acceptsEntryInput)
         .contextMenu {
             EntryViewMenu(app: app, entry: panel.entry)
         }

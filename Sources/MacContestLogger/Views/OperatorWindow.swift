@@ -10,7 +10,7 @@ struct OperatorWindowView: View {
     let host: AppHost
 
     var body: some View {
-        DialogWindowView(host: host, dialog: .operatorLogin, padding: 10, title: { app in
+        DialogWindowView(host: host, dialog: .operatorLogin, padding: 10, stepperInContent: true, title: { app in
             app.language.tr("Operátor u klíče")
         }) { app in
             OperatorContent(app: app)
@@ -37,6 +37,7 @@ private struct OperatorContent: View {
                                focus: focusHolder.controller) { form.text = $0 }
                     .frame(height: WindowFont.size(26, windowSize: size))
             }
+            .trailingFontStepper()
             Toggle(isOn: $form.persist) {
                 Text(verbatim: language.tr("Uložit do nastavení stanice"))
                     .windowFont(12)

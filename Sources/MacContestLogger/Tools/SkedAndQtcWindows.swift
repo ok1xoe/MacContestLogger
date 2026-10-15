@@ -32,6 +32,7 @@ struct SkedWindowView: View {
     var body: some View {
         ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("Skedy") },
                         size: CGSize(width: 640, height: 420), minSize: CGSize(width: 480, height: 260),
+                        stepperInContent: true,
                         content: { app, _ in SkedContent(app: app) })
     }
 }
@@ -45,6 +46,7 @@ private struct SkedContent: View {
         let language: LanguageModel = app.language
         VStack(alignment: .leading, spacing: 6) {
             formRow(model, language: language)
+                .trailingFontStepper()
             ToolHint(text: language.tr(
                 "Čas HHmm = nejbližší takový čas (dnes, jinak zítra), nebo 2026-11-28 1430. Klik na sked = QSY."))
             Divider()

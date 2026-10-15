@@ -82,15 +82,19 @@ extension View {
     }
 }
 
-/// The shared font-size stepper (Kotlin `FontStepper`): −, the size, +; bounds 8–28, not persisted.
+/// The shared font-size stepper (Kotlin `FontStepper`): −, the size, +; bounds 8–28, not persisted. `stepped` gets
+/// every press (−1 or +1), also at a bound: a window that sizes a second text with it (the band map's spots) moves
+/// that one too.
 struct WindowFontStepper: View {
     @Binding var size: Int
     let language: LanguageModel
+    var stepped: (@MainActor (Int) -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 2) {
             IconButton(symbol: "minus", label: language.tr("Zmenšit písmo"), size: CGSize(width: 16, height: 16)) {
                 size = WindowFont.clamp(size - 1)
+                stepped?(-1)
             }
             Text(verbatim: String(size))
                 .font(.system(size: 12))
@@ -99,6 +103,7 @@ struct WindowFontStepper: View {
                 .accessibilityHidden(true)
             IconButton(symbol: "plus", label: language.tr("Zvětšit písmo"), size: CGSize(width: 16, height: 16)) {
                 size = WindowFont.clamp(size + 1)
+                stepped?(1)
             }
         }
         .buttonStyle(.borderless)
@@ -127,5 +132,91 @@ struct WindowTopBar<Leading: View>: View {
 extension WindowTopBar where Leading == EmptyView {
     init(size: Binding<Int>, language: LanguageModel) {
         self.init(size: size, language: language) { EmptyView() }
+    }
+}
+
+/// The window's font size and language, handed down so the first row of a window's content can carry the stepper
+/// (`ToolWindowShell(stepperInContent: true)` sets it).
+struct WindowFontControl {
+    let size: Binding<Int>
+    let language: LanguageModel
+}
+
+private struct WindowFontControlKey: EnvironmentKey {
+    static var defaultValue: WindowFontControl? { nil }
+}
+
+extension EnvironmentValues {
+    var windowFontControl: WindowFontControl? {
+        get { self[WindowFontControlKey.self] }
+        set { self[WindowFontControlKey.self] = newValue }
+    }
+}
+
+/// A row with the stepper at its right end: the row keeps its own controls on the left and gives up width first,
+/// the stepper stays whole.
+private struct TrailingFontStepperModifier: ViewModifier {
+    let size: Binding<Int>
+    let language: LanguageModel
+    var shown: Bool = true
+    var inset: CGFloat = 0
+    var stepped: (@MainActor (Int) -> Void)? = nil
+
+    func body(content: Content) -> some View {
+        if shown {
+            HStack(alignment: .center, spacing: 8) {
+                content
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                WindowFontStepper(size: size, language: language, stepped: stepped)
+                    .fixedSize()
+                    .padding(.trailing, inset)
+                    .layoutPriority(1)
+            }
+        } else {
+            content
+        }
+    }
+}
+
+/// The same with the window's `WindowFontControl`; nothing is added when there is none.
+private struct EnvironmentFontStepperModifier: ViewModifier {
+    @Environment(\.windowFontControl) private var control
+    let shown: Bool
+
+    func body(content: Content) -> some View {
+        if let control {
+            content.modifier(TrailingFontStepperModifier(size: control.size, language: control.language, shown: shown))
+        } else {
+            content
+        }
+    }
+}
+
+extension View {
+    /// Puts the window's font stepper at the right end of this row (the first row of the window), so the stepper
+    /// does not need a row of its own; `shown: false` leaves the row as it is (another row carries the stepper),
+    /// `inset` keeps the stepper off the window edge when the row has no padding of its own on that side.
+    func trailingFontStepper(size: Binding<Int>, language: LanguageModel, shown: Bool = true, inset: CGFloat = 0,
+                             stepped: (@MainActor (Int) -> Void)? = nil) -> some View {
+        modifier(TrailingFontStepperModifier(size: size, language: language, shown: shown, inset: inset,
+                                             stepped: stepped))
+    }
+
+    /// The same inside a `ToolWindowShell(stepperInContent: true)`; `shown: false` leaves the row as it is (another
+    /// row of the window carries the stepper).
+    func trailingFontStepper(shown: Bool = true) -> some View {
+        modifier(EnvironmentFontStepperModifier(shown: shown))
+    }
+}
+
+/// The stepper alone, right-aligned, for a state of a `ToolWindowShell(stepperInContent: true)` window that has no
+/// row to put it on.
+struct WindowFontStepperRow: View {
+    @Environment(\.windowFontControl) private var control
+
+    var body: some View {
+        if let control {
+            WindowTopBar(size: control.size, language: control.language)
+        }
     }
 }
