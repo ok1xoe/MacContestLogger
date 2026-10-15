@@ -260,6 +260,12 @@ public final class CallbookModel {
         open("https://www.qrz.com/db/" + CallbookPolicy.key(call))
     }
 
+    /// N1MM View → „Show Google (Internet)": a web search for the call (nothing for a blank one).
+    public func openGoogle(_ call: String) {
+        guard let url = WebSearch.googleURL(call: call) else { return }
+        open(url)
+    }
+
     /// Kotlin `openHamqth(call)`.
     public func openHamQth(_ call: String) {
         open("https://www.hamqth.com/" + CallbookPolicy.key(call))

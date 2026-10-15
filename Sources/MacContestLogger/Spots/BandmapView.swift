@@ -503,6 +503,9 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
             addItem(menu, language.tr("Dohledat na %s", .string(CallbookService.qrz.displayName))) {
                 model.openQrz(spot)
             }
+            addItem(menu, language.tr("Dohledat na %s", .string(WebSearch.displayName))) {
+                model.openGoogle(spot)
+            }
             // N1MM's cluster queries about the station (View menu) and its Telnet history.
             menu.addItem(queryItem(model: model, language: language, call: spot.dxCall))
             addItem(menu, language.tr("Historie spotů %s", .string(spot.dxCall))) { model.showHistory(of: spot.dxCall) }

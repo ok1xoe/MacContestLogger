@@ -59,7 +59,9 @@
     {
       "id": "view", "label": "Zobrazení", "state": "enable",
       "children": [
-        { "id": "view.unmatchedMark", "label": "Zobrazovat ? u neznámých volaček", "state": "enable" }
+        { "id": "view.unmatchedMark", "label": "Zobrazovat ? u neznámých volaček", "state": "enable" },
+        { "id": "view.qrz", "label": "Hledat volačku na QRZ.com", "state": "enable" },
+        { "id": "view.google", "label": "Hledat volačku na Google", "state": "enable" }
       ]
     },
     {
@@ -81,13 +83,20 @@
         { "id": "settings.downloadScp", "label": "Stáhnout master.scp", "state": "enable" },
         { "id": "contest.updateDefinitions", "label": "Aktualizovat definice z internetu", "state": "enable" },
         { "id": "database.updateClubLogDxcc", "label": "Aktualizovat DXCC z Club Logu", "state": "enable" },
+        { "id": "tools.importCountryFile", "label": "Importovat seznam zemí ze souboru…", "state": "enable" },
+        { "id": "tools.removeCountryFile", "label": "Odstranit importovaný seznam zemí", "state": "enable" },
         { "id": "contest.updateCallHistory", "label": "Aktualizovat call history z deníku", "state": "enable" },
         { "id": "callhistory.clear", "label": "Vymazat call history…", "state": "enable" },
         { "id": "beacons.load", "label": "Načíst soubor majáků…", "state": "enable" },
         { "id": "layout.save", "label": "Uložit rozložení oken…", "state": "enable" },
         { "id": "layout.restore", "label": "Obnovit rozložení oken…", "state": "enable" },
         { "id": "sep.tools.2", "state": "enable" },
-        { "id": "contest.editor", "label": "Editor definic…", "state": "enable" }
+        { "id": "contest.editor", "label": "Editor definic…", "state": "enable" },
+        { "id": "sep.tools.3", "state": "enable" },
+        { "id": "tools.programLogging", "label": "Logování běhu programu (diagnostika)", "state": "enable" },
+        { "id": "tools.diagnosticsFolder", "label": "Otevřít složku diagnostiky", "state": "enable" },
+        { "id": "tools.checkVersion", "label": "Zkontrolovat novou verzi programu…", "state": "enable" },
+        { "id": "tools.checkVersionAtStart", "label": "Kontrolovat novou verzi při spuštění", "state": "enable" }
       ]
     },
     {
@@ -194,9 +203,13 @@
         { "id": "help.docs", "label": "Dokumentace", "state": "enable" },
         { "id": "help.shortcuts", "label": "Klávesové zkratky", "state": "enable" },
         { "id": "help.commands", "label": "Textové příkazy", "state": "enable" },
+        { "id": "help.contestRules", "label": "Pravidla závodu", "state": "enable" },
+        { "id": "help.contestCalendar", "label": "Kalendář závodů (WA7BNM)", "state": "enable" },
         { "id": "sep.help.1", "state": "enable" },
         { "id": "help.report", "label": "Nahlásit chybu…", "state": "enable" },
-        { "id": "help.dataFolder", "label": "Otevřít datovou složku", "state": "enable" }
+        { "id": "help.errorLog", "label": "Zobrazit chybový log", "state": "enable" },
+        { "id": "help.dataFolder", "label": "Otevřít datovou složku", "state": "enable" },
+        { "id": "help.checkUpdates", "label": "Zkontrolovat aktualizace…", "state": "enable" }
       ]
     },
     { "id": "buffer", "label": "Nezařazené", "state": "hidden", "children": [] }

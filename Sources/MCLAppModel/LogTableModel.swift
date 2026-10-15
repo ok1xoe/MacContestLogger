@@ -94,6 +94,7 @@ public final class LogTableModel {
 
     /// „Dohledat na …": opens a call's page on a callbook in the browser.
     @ObservationIgnored private let openCallPage: @MainActor (String, CallbookService) -> Void
+    @ObservationIgnored private let openSearch: @MainActor (String) -> Void
     /// What the row actions need from the rest of the app (fakes in tests).
     @ObservationIgnored let actions: RowActions
 
@@ -117,9 +118,11 @@ public final class LogTableModel {
     public init(logbook: LogbookModel, windows: WindowsModel, status: StatusModel,
                 playRecording: @escaping @MainActor (Qso) -> Void = { _ in },
                 openCallPage: @escaping @MainActor (String, CallbookService) -> Void = { _, _ in },
+                openSearch: @escaping @MainActor (String) -> Void = { _ in },
                 actions: RowActions = RowActions()) {
         self.actions = actions
         self.openCallPage = openCallPage
+        self.openSearch = openSearch
         self.logbook = logbook
         self.windows = windows
         self.status = status
@@ -132,6 +135,7 @@ public final class LogTableModel {
                   openCallPage: { [weak callbook = app.callbook] call, service in
                       callbook?.openPage(call, on: service)
                   },
+                  openSearch: { [weak callbook = app.callbook] call in callbook?.openGoogle(call) },
                   actions: Self.rowActions(app))
     }
 
@@ -442,23 +446,29 @@ public final class LogTableModel {
         guard let id, let qso = row(id) else { return [] }
         let hasCall: Bool = !KotlinStrings.isBlank(qso.call)
         return CallbookService.allCases.map { LookupItem(service: $0, isEnabled: hasCall, call: qso.call) }
+            + [LookupItem(service: nil, isEnabled: hasCall, call: qso.call)]
     }
 
-    /// One lookup entry of the context menu.
+    /// One lookup entry of the context menu: a callbook's page, or (`service == nil`) a Google search (N1MM View →
+    /// „Show Google (Internet)").
     public struct LookupItem: Equatable, Sendable {
-        public let service: CallbookService
+        public let service: CallbookService?
         public let isEnabled: Bool
         public let call: String
 
         public var title: ContestMessage {
-            ContestMessage("Dohledat na %s", .string(service.displayName))
+            ContestMessage("Dohledat na %s", .string(service?.displayName ?? WebSearch.displayName))
         }
     }
 
     /// Runs a lookup entry of the context menu.
     public func perform(_ item: LookupItem) {
         guard item.isEnabled else { return }
-        openCallPage(item.call, item.service)
+        if let service = item.service {
+            openCallPage(item.call, service)
+        } else {
+            openSearch(item.call)
+        }
     }
 
     /// Runs a context menu item chosen on the row `id`.

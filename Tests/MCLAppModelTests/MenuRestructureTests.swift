@@ -65,14 +65,17 @@ import Testing
         #expect(try children("tools") == ["contest.rescore", "contest.rescoreHours", "database.refillDxcc",
                                           "tools.addCallToCountry", "settings.downloadScp",
                                           "contest.updateDefinitions", "database.updateClubLogDxcc",
+                                          "tools.importCountryFile", "tools.removeCountryFile",
                                           "contest.updateCallHistory", "callhistory.clear", "beacons.load",
                                           "layout.save", "layout.restore",
-                                          "contest.editor"])
+                                          "contest.editor", "tools.programLogging", "tools.diagnosticsFolder",
+                                          "tools.checkVersion", "tools.checkVersionAtStart"])
         #expect(try children("settings") == ["settings.open", "settings.keys", "settings.profiles",
                                              "settings.callHistoryLookup", "settings.exchangeAbbreviations"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
-        #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.report",
-                                         "help.dataFolder"])
+        #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.contestRules",
+                                         "help.contestCalendar", "help.report", "help.errorLog", "help.dataFolder",
+                                         "help.checkUpdates"])
         let file: MenuEntry = try #require(Self.entry("file", in: entries))
         #expect(file.children.filter(\.isSeparator).count == 3)
         #expect(MenuShape(entries) == MenuShape(entries))

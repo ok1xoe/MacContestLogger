@@ -44,6 +44,18 @@ public enum DefaultMenu {
         "help.commands": "Textové příkazy",
         "help.report": "Nahlásit chybu…",
         "help.dataFolder": "Otevřít datovou složku",
+        "view.qrz": "Hledat volačku na QRZ.com",
+        "view.google": "Hledat volačku na Google",
+        "tools.importCountryFile": "Importovat seznam zemí ze souboru…",
+        "tools.removeCountryFile": "Odstranit importovaný seznam zemí",
+        "tools.programLogging": "Logování běhu programu (diagnostika)",
+        "tools.diagnosticsFolder": "Otevřít složku diagnostiky",
+        "tools.checkVersion": "Zkontrolovat novou verzi programu…",
+        "tools.checkVersionAtStart": "Kontrolovat novou verzi při spuštění",
+        "help.contestRules": "Pravidla závodu",
+        "help.contestCalendar": "Kalendář závodů (WA7BNM)",
+        "help.errorLog": "Zobrazit chybový log",
+        "help.checkUpdates": "Zkontrolovat aktualizace…",
         "settings.keys": "Klávesy…",
         "settings": "Nastavení",
         "settings.open": "Nastavení…",
@@ -164,22 +176,25 @@ public enum DefaultMenu {
             leaf("edit.wipe"), leaf("edit.wipeUndo"), leaf("edit.incrementNr"), leaf("edit.note"),
             leaf("edit.find"), leaf("edit.deleteLast"),
         ])
-        let view = node("view", [leaf("view.unmatchedMark")])
+        let view = node("view", [leaf("view.unmatchedMark"), leaf("view.qrz"), leaf("view.google")])
         let contest = node("contest", [leaf("contest.postcontest"), leaf("contest.record"), leaf("contest.none")])
         let tools = node("tools", [
             leaf("contest.rescore"), leaf("contest.rescoreHours"), leaf("database.refillDxcc"), leaf("tools.addCallToCountry"), leaf("sep.tools.1"),
             leaf("settings.downloadScp"), leaf("contest.updateDefinitions"), leaf("database.updateClubLogDxcc"),
+            leaf("tools.importCountryFile"), leaf("tools.removeCountryFile"),
             leaf("contest.updateCallHistory"), leaf("callhistory.clear"), leaf("beacons.load"),
             leaf("layout.save"), leaf("layout.restore"), leaf("sep.tools.2"),
-            leaf("contest.editor"),
+            leaf("contest.editor"), leaf("sep.tools.3"), leaf("tools.programLogging"), leaf("tools.diagnosticsFolder"),
+            leaf("tools.checkVersion"), leaf("tools.checkVersionAtStart"),
         ])
         let settings = node("settings", [
             settingsOpen, leaf("settings.keys"), leaf("settings.profiles"), leaf("sep.settings.1"),
             leaf("settings.callHistoryLookup"), leaf("settings.exchangeAbbreviations"),
         ])
         let help = node("help", [
-            leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("sep.help.1"),
-            leaf("help.report"), leaf("help.dataFolder"),
+            leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("help.contestRules"),
+            leaf("help.contestCalendar"), leaf("sep.help.1"), leaf("help.report"), leaf("help.errorLog"),
+            leaf("help.dataFolder"), leaf("help.checkUpdates"),
         ])
         let window = node("window", [
             leaf("window.log"),

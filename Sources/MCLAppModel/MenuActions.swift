@@ -60,6 +60,8 @@ public enum MenuActions {
         case openFile(URL)
         /// N1MM's recovery of a lost window: every window off the connected displays moves onto the main one.
         case gatherWindows
+        /// N1MM Import country list from downloaded file: a `cty.dat` → `DataToolsModel.importCountryFile`.
+        case openCountryFile
     }
 
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to
@@ -79,6 +81,10 @@ public enum MenuActions {
 
     /// Runs the action of a menu item; `nil` = done (or not an action handled here).
     public static func perform(_ id: String, app: AppModel) -> Request? {
+        ProgramLog.shared.trace("menu", id)
+        if miscIds.contains(id) {
+            return performMisc(id, app: app)
+        }
         if id == "beacons.load" {
             return .openBeacons
         }
@@ -320,7 +326,7 @@ public enum MenuActions {
         case "view.unmatchedMark":
             return app.check.showsUnmatchedMark
         default:
-            return false
+            return isMiscChecked(id, app: app)
         }
     }
 

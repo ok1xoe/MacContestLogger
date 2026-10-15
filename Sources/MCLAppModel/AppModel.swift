@@ -73,6 +73,11 @@ public final class AppModel {
         public var mapData: any MapDataPort = EmptyMapData()
         /// The system pasteboard of „Kopírovat text zpráv"; nothing by default, `production` writes the pasteboard.
         public var clipboard: @MainActor (String) -> Void = { _ in }
+        /// The program's error and diagnostics log (`ProgramLog.shared` in the app, pointed at `<data>/diagnostics`);
+        /// `nil` = none (tests).
+        public var programLog: ProgramLog?
+        /// Program execution logging from the start (`MCL_DIAGNOSTICS=1`).
+        public var diagnosticsAtStart = false
 
         public init(dataDir: URL, dxccDir: URL?, decimalSeparator: String = LanguageModel.systemDecimalSeparator,
                     rescoreClock: any RescoreClock, geometryClock: any RescoreClock,
@@ -111,6 +116,8 @@ public final class AppModel {
             // serial or CoreAudio listing).
             environment.settingsToolPorts = environment.hardware.isInert ? SettingsToolPorts() : .live
             environment.network = .production(environment: processEnvironment)
+            environment.programLog = .shared
+            environment.diagnosticsAtStart = processEnvironment["MCL_DIAGNOSTICS"] == "1"
             environment.catLog = .shared
             environment.mapData = LocalMapData()
             environment.clipboard = { text in
@@ -245,6 +252,8 @@ public final class AppModel {
     @ObservationIgnored public internal(set) var check: CheckModel!
     /// The Digital Interface's Grab window.
     @ObservationIgnored public internal(set) var grabList: GrabListModel!
+    /// Tools / Help → check for a new program version.
+    @ObservationIgnored public internal(set) var updates: UpdateCheckModel!
     /// The CQ repeat loop of the main entry window.
     @ObservationIgnored var cqRepeatRunner: CqRepeatRunner?
     /// The VFO B / rig 2 entry window (`entry-vfob`, SO2V/SO2R).
@@ -566,6 +575,7 @@ public final class AppModel {
             recording?.toggle()
         }
         registerToolActions(model)
+        Self.wireMisc(model, environment: environment)
         model.dialogs.makeScoreSubmit = { [weak model] in
             guard let model else { return nil }
             return ScoreSubmitModel(contest: model.contest, config: model.config, language: model.language,

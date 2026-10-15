@@ -101,6 +101,10 @@ enum ExportPanels {
             gatherWindows(app: app)
         case .openFile(let file):
             NSWorkspace.shared.open(file)
+        case .openCountryFile:
+            openFile(message: app.language.tr("Seznam zemí (cty.dat)")) { file in
+                app.dataTools.importCountryFile(file)
+            }
         case .openCallHistoryImport:
             openFiles(message: app.language.tr("Importovat call history (lze vybrat více souborů)")) { files in
                 app.dataTools.importCallHistoryFiles(files)

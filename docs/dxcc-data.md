@@ -10,6 +10,7 @@ and the spot analysis.
 | Source | Where | Used when |
 |--------|-------|-----------|
 | Your own assignments | `<data folder>/dxcc-overrides.json` (see below) | always, for the calls in it |
+| Imported country list | `<data folder>/country/cty.dat` (see below) | the file exists (it replaces the sources below) |
 | Club Log `cty.xml` | `<data folder>/clublog/` (downloaded by the app) | the switch below is on **and** a copy has been downloaded |
 | `cty.dat` (AD1C) | `~/dxcc-json/cty.dat` | otherwise, when the file exists |
 | `dxcc.json` | `~/dxcc-json/dxcc.json` | otherwise |
@@ -55,6 +56,21 @@ přiřazení** (Own assignments) below shows every assignment with **Odebrat** (
   **Nástroje → Přepočítat DXCC v deníku…** (the window offers it as a button), and the score of an open contest
   follows when it is rescored.
 - An assignment naming a DXCC number the country data does not have is ignored.
+
+## Import a country list from a file
+
+Equivalent of N1MM **Import country list from downloaded file**. **"Nástroje → Importovat seznam zemí ze
+souboru…"** (Tools → Import country list from file...) asks for a `cty.dat` file in the AD1C / country-files.com
+format (for example a contest's own `wl_cty.dat`).
+
+- The file is checked first: a file without any country record is refused and the data in use stay.
+- An accepted file is copied to `<data folder>/country/cty.dat` and becomes the DXCC source at once, before Club
+  Log's `cty.xml` and the `~/dxcc-json` data (which are left untouched). The entity numbers still come from
+  `~/dxcc-json/dxcc.json`. Your own assignments are still asked first.
+- **"Nástroje → Odstranit importovaný seznam zemí"** (Remove imported country list) deletes the copy and returns
+  to Club Log / the local data.
+- Either way the contest data are reloaded and the log's country stamp is compared as described above; refill the
+  log with **Nástroje → Přepočítat DXCC v deníku…** when you want the logged QSOs to follow.
 
 ## Club Log `cty.xml`
 
