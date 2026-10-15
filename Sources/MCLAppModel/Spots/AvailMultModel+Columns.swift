@@ -202,9 +202,11 @@ extension AvailMultModel {
         return true
     }
 
-    /// „Natočit rotátor": the rotator to the spotted station (short path), as Alt+J does with the call.
+    /// „Natočit rotátor": the rotator to the spotted station (short path), as Alt+J does with the call — by the spot's
+    /// grid when one is known (the comment, the grid database, the callbook).
     public func turnRotor(_ row: SpotRow) {
-        rotorTurner(row.call)
+        let grid: String? = feed.buffer.find(row.call).flatMap { analysis.current().gridForSpot($0.spot) }
+        rotorTurner(row.call, grid)
     }
 
     /// The other radio or VFO exists (SO2V, SO2R): the row menu offers its QSY.

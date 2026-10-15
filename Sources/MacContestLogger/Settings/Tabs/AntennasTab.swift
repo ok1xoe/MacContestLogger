@@ -19,7 +19,10 @@ struct AntennasTab: View {
                 SettingsCaption(language.tr("Anténa")).frame(maxWidth: .infinity, alignment: .leading)
                     .layoutPriority(1.4)
                 SettingsCaption(language.tr("Pásma")).frame(maxWidth: .infinity, alignment: .leading)
-                SettingsCaption("Sektor").frame(width: 110, alignment: .leading)
+                SettingsCaption("Sektor").frame(width: 90, alignment: .leading)
+                SettingsCaption(language.tr("Rotátory")).frame(width: 110, alignment: .leading)
+                SettingsCaption("Offset").frame(width: 56, alignment: .leading)
+                SettingsCaption(language.tr("Obousm.")).frame(width: 56, alignment: .leading)
                 Color.clear.frame(width: 24, height: 1)
             }
             ForEach($draft.antennas) { $row in
@@ -27,6 +30,8 @@ struct AntennasTab: View {
                     draft.antennas.removeAll { $0.id == row.id }
                 }
             }
+            SettingsCaption(language.tr(
+                "Rotátory = jména rotátorů antény (z Nastavení rotátoru v okně Rotátor, nebo jak je zná rotátorový program), víc oddělených čárkou otočí stack; prázdné = výchozí rotátor. Offset = o kolik stupňů hlavní lalok míří vedle směru rotátoru. Obousměrná anténa (SteppIR, dipól) se natočí nejvýš o 180°."))
             SettingsButton(language.tr("Přidat anténu")) {
                 let entry = AntennaEntry(code: draft.antennas.count, name: "", bands: "", sector: "")
                 draft.antennas.append(AntennaDraft(entry))
@@ -38,6 +43,9 @@ struct AntennasTab: View {
                 label: language.tr("Přepínat i anténní konektor rigu (kódy 1–4 = ANT1–ANT4, hamlib)"),
                 isOn: $draft.antennaViaRig)
                 .padding(.top, 4)
+            SettingsCheckbox(
+                label: language.tr("Vybírat anténu podle směru ke stanici i po zadání volačky (mezerník), nejen při změně pásma"),
+                isOn: $draft.antennaAutoByAzimuth)
         }
     }
 
@@ -86,7 +94,17 @@ private struct AntennaRow: View {
             SettingsTextField(text: $row.bands)
                 .frame(maxWidth: .infinity)
             SettingsTextField(text: $row.sector)
+                .frame(width: 90)
+            SettingsTextField(text: $row.rotors)
                 .frame(width: 110)
+            SettingsTextField(text: $row.offset, filter: .digitsAnd(extra: "-"))
+                .frame(width: 56)
+            Toggle(isOn: $row.bidirectional) {
+                Text(verbatim: language.tr("Obousměrná"))
+            }
+            .toggleStyle(.checkbox)
+            .labelsHidden()
+            .frame(width: 56)
             SettingsDeleteButton(help: language.tr("Smazat anténu"), action: onDelete)
                 .frame(width: 24)
         }

@@ -74,6 +74,16 @@ public enum RotorAzimuth {
         .tr("Rotátor UDP: %s", .string(message))
     }
 
+    /// A rotor with limits could not reach the heading and went to its nearer limit.
+    public static func clamped(rotor: String, limit: Double) -> EntryStatus {
+        .tr("Rotátor %s: směr je mimo rozsah, natočeno na mez %s°", .string(rotor), .int(Int(JavaMath.d2i(limit))))
+    }
+
+    /// The network rotor display could not listen.
+    public static func networkFailure(_ message: String?) -> EntryStatus {
+        .tr("Rotátory v síti: %s", .string(message))
+    }
+
     public static let udpStopped = EntryStatus.tr("Rotátor (UDP) zastaven")
     public static let stopped = EntryStatus.tr("Rotátor zastaven")
 }

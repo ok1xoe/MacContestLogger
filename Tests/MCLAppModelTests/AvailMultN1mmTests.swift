@@ -166,7 +166,7 @@ import Testing
         let spot = try await AvailMultModelTests.app()
         let avail: AvailMultModel = spot.model.availMult
         var turned: [String] = []
-        avail.rotorTurner = { turned.append($0) }
+        avail.rotorTurner = { call, _ in turned.append(call) }
         let row: SpotRow = try #require(avail.snapshot().rows.first { $0.call == "W1AW" })
         avail.turnRotor(row)
         #expect(turned == ["W1AW"])

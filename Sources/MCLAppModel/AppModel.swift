@@ -715,11 +715,22 @@ public final class AppModel {
         rig.typedCall = { [weak entry] in
             entry?.form.call ?? ""
         }
+        rig.typedGrid = { [weak entry] in
+            entry?.typedGrid
+        }
         rig.rotator.currentBand = { [weak rig] in
             rig?.currentBand
         }
         rig.rotator.azimuthTo = { [weak rig] call in
             rig?.azimuthTo(call)
+        }
+        rig.rotator.currentAntenna = { [weak rig] in
+            // The chosen antenna, while it serves the tuned band.
+            guard let rig, let antenna = rig.antenna.current else { return nil }
+            if let band = rig.currentBand, AntennaSelector.forBand([antenna], band: band).isEmpty {
+                return nil
+            }
+            return antenna
         }
         rig.rotator.lastQsoCall = { [weak logbook] in
             logbook?.rows.last?.call
@@ -903,8 +914,11 @@ public final class AppModel {
         model.contest.onDefaultSpotFilters = { [weak availMult = model.availMult] bands, modes in
             availMult?.setDefaults(bands: bands, modes: modes)
         }
-        model.availMult.rotorTurner = { [weak rotator = model.rotator] call in
-            rotator?.turnToCall(call, longPath: false)
+        model.availMult.rotorTurner = { [weak rotator = model.rotator] call, grid in
+            rotator?.turnToStation(call, grid: grid)
+        }
+        model.bandmap.rotorTurner = { [weak rotator = model.rotator] call, grid in
+            rotator?.turnToStation(call, grid: grid)
         }
     }
 

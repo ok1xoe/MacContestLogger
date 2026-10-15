@@ -112,6 +112,10 @@ public struct HardwarePorts: Sendable {
     }
     /// `FldigiClient(host, port)` (called on the keyer lane).
     public var makeFldigi: @Sendable (String, Int) throws -> any FldigiPort = { _, _ in throw InertHardwareError() }
+    /// The N1MM Rotor heading broadcast receiver on a UDP port (blocks while binding; called on the rotator lane). Only
+    /// receives; started only when the operator switched the network rotor display on.
+    public var listenRotorNetwork: @Sendable (_ port: Int, _ handler: @escaping @Sendable (String, Double) -> Void)
+        throws -> RotorNetworkListener = { _, _ in throw InertHardwareError() }
     /// `capture.start(deviceName)` — the receiver audio input (blocks; called on the audio lane).
     public var startAudio: @Sendable (AudioCapture, String?) throws(AudioIOError) -> Void = { _, _ throws(AudioIOError) in
         throw AudioIOError(InertHardwareError.message)
@@ -167,6 +171,9 @@ public struct HardwarePorts: Sendable {
         ports.openSerial = { path, baud in try SerialPort.open(path: path, settings: SerialPort.Settings(baud: baud)) }
         ports.startAudio = { capture, device throws(AudioIOError) in try capture.start(deviceName: device) }
         ports.makeSimAudio = { noise in try SimAudioPlayer(noiseLevel: noise) }
+        ports.listenRotorNetwork = { port, handler in
+            try RotorNetworkListener(bindHost: "0.0.0.0", port: port, handler: handler)
+        }
         return ports
     }()
 
