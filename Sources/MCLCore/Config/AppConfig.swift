@@ -309,6 +309,16 @@ public struct AppConfig: Codable, Equatable, Sendable {
         get { QtcSetup(qtcSetup) }
         set { qtcSetup = newValue.values }
     }
+    /// N1MM Spectrum Display: the display options and the mouse-wheel levels of the spectrum window
+    /// (`SpectrumSetup.Key` → value; only non-default values are kept). Swift-only key.
+    public var spectrumSetup: [String: String] = [:]
+
+    /// The spectrum display options.
+    public var spectrum: SpectrumSetup {
+        get { SpectrumSetup(spectrumSetup) }
+        set { spectrumSetup = newValue.values }
+    }
+
     /// N1MM Rotor program setup: the named rotors, the F1–F10 preset bearings, the network rotor display and the
     /// automatic antenna choice by bearing (`RotorSetup.Key` → value; only non-default values are kept). Swift-only key.
     public var rotorSetup: [String: String] = [:]
@@ -366,7 +376,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
-        case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup, rotorSetup
+        case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup, rotorSetup, spectrumSetup
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -517,6 +527,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         accessibilityAnnouncements = c.value(.accessibilityAnnouncements, default: d.accessibilityAnnouncements)
         qtcSetup = QtcSetup(c.value(.qtcSetup, default: d.qtcSetup)).values
         rotorSetup = RotorSetup(c.value(.rotorSetup, default: d.rotorSetup)).values
+        spectrumSetup = SpectrumSetup(c.value(.spectrumSetup, default: d.spectrumSetup)).values
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

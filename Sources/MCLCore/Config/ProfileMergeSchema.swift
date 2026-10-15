@@ -27,7 +27,7 @@ enum ProfileMergeSchema {
     /// and special calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
     /// switches and extra
-    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`), the WAE QTC setup (`qtcSetup`), the rotor setup (`rotorSetup`), the antenna table's rotor columns (`antennas.*.rotors`, `offset`, `bidirectional`), the N1MM per-radio options of `rig`/`rig2` (`civAddress`, `pollRate`, `reverseCw`, `muteMicOnVoice`, `subReceiverOn`, `timeoutSeconds`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
+    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`), the WAE QTC setup (`qtcSetup`), the rotor setup (`rotorSetup`), the spectrum display options (`spectrumSetup`), the antenna table's rotor columns (`antennas.*.rotors`, `offset`, `bidirectional`), the N1MM per-radio options of `rig`/`rig2` (`civAddress`, `pollRate`, `reverseCw`, `muteMicOnVoice`, `subReceiverOn`, `timeoutSeconds`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
     /// `contestSetups.*.functionKeyFiles`) its first serial and master.scp (`contestSetups.*.firstSerial`, `contestSetups.*.scpFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
@@ -80,6 +80,7 @@ enum ProfileMergeSchema {
             Property("accessibilityAnnouncements", .boolean, .fieldDefault),
             Property("qtcSetup", .map(.string), .fieldDefault),
             Property("rotorSetup", .map(.string), .fieldDefault),
+            Property("spectrumSetup", .map(.string), .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.AntennaEntry": [
             Property("rotors", .string, .fieldDefault),

@@ -78,6 +78,16 @@ public enum RadioWindowTexts {
         .tr("Zvukový vstup: %s (Nastavení → Audio → Vstup přijímače)", .string(message))
     }
 
+    /// The spectrum display's stats box (N1MM: the noise floor, the threshold, the signal count and the resolution).
+    public static func spectrumStats(floorDb: Double, thresholdDb: Double, signals: Int, hzPerBin: Double)
+        -> EntryStatus {
+        .tr("šum %s dB · práh +%s dB · signálů %s · %s Hz/bin",
+            .string(JavaFormat.format("%.0f", .double(floorDb))),
+            .string(JavaFormat.format("%.0f", .double(thresholdDb))),
+            .string(String(signals)),
+            .string(JavaFormat.format("%.1f", .double(hzPerBin))))
+    }
+
     /// The CW pitch line is drawn only when the rig's raw mode starts with `CW` (`raw.uppercase().startsWith("CW")`).
     public static func showsPitchLine(rawMode: String) -> Bool {
         JavaText.toUpperCase(rawMode).hasPrefix("CW")
