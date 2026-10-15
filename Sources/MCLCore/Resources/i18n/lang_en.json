@@ -2161,5 +2161,20 @@
  "Call history nezná pro tuto volačku žádný lokátor": "The call history has no grid for this call",
  "%s uložen do bandmapy na %s": "%s stored in the band map on %s",
  "Pass: na pásmu %s není žádná stanice sítě": "Pass: no network station on %s",
- "Poslední stanici na toto pásmo": "Last station to this band"
+ "Poslední stanici na toto pásmo": "Last station to this band",
+ "Mapa lokátorových čtverců": "Grid square map",
+ "Pracované čtverce: %s": "Squares worked: %s",
+ "QSO: %s": "QSOs: %s",
+ "Čtverec %s": "Square %s",
+ "Azimut %s°, vzdálenost %s km (od %s)": "Bearing %s°, distance %s km (from %s)",
+ "Všechna pásma": "All bands",
+ "Očekávané": "Expected",
+ "Střed na vlastní čtverec": "Centre on own square",
+ "Vymazat očekávané násobiče": "Clear expected multipliers",
+ "pracováno": "worked",
+ "spotováno": "spotted",
+ "očekáváno": "expected",
+ "Nastavit střed mapy sem": "Set map centre here",
+ "Azimut ke středu čtverce": "Beam heading to square centre",
+ "Jeden čtverec na řádek (např. JN79).": "One square per line (e.g. JN79)."
 }

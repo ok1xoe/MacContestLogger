@@ -53,6 +53,34 @@ Which category a multiplier belongs to is decided by the set type and the exchan
 contest definition — a new contest with districts or states appears in the windows by itself. Spotted cells
 are supported only for DXCC, zones and squares (a district or state cannot be inferred from a spot).
 
+## Grid square map (VHF and up)
+
+An equivalent of the N1MM **Grid Square Map**
+([VHF and up](https://n1mmwp.hamdocs.com/manual-operating/vhf-and-up-contesting/)). Open via
+**Multiplikátory → Mapa lokátorových čtverců** (Multipliers → Grid square map).
+
+The window is a matrix of 4-character Maidenhead squares (`JN79`), north up, centred on the station's own
+square (Settings → Station → grid square); as many squares as fit the window are shown, the longitude wraps
+around the globe. A square is **blue** when worked (a received locator of a QSO in the log, not deleted, not an
+X-QSO), **red** when spotted and not worked (the grid of a spot is taken from its comment, the grid database or
+the callbook), **brown** when it is on the expected list and neither, empty otherwise. **Pásmo** (Band) shows
+one band only; *Všechna pásma* (All bands) is the default. The headline counts the worked squares, the
+mouse-over of a square shows its heading and distance and the number of QSOs in it.
+
+**Right-click a square**:
+
+- **Pracované stanice a spoty** (Calls worked and spots) — the QSOs in the square on all bands and its spots.
+- **Natočit anténu** (Turn antenna) — turns the rotator to the heading of the square's centre (it needs a
+  rotator set up in Settings; without one nothing turns).
+- **Nastavit rover QTH** (Set rover QTH) — in a contest with a rover QTH, makes the square the rover's location.
+- **Nastavit střed mapy sem** (Set map centre here) — the square becomes the centre;
+  **Střed na vlastní čtverec** (Centre on own square) above the map goes back.
+- **Azimut ke středu čtverce** (Beam heading to square centre) — the bearing and distance from your locator.
+
+**The ⋯ menu** holds **Očekávané násobiče…** (the expected squares, one per line; import and export of a plain
+text file), **Vymazat očekávané násobiče** (clear the list) and **Exportovat pracované násobiče…** — the worked
+squares with their bands in MHz (`JN79 144 432`), readable back as an expected list.
+
 ## Move Multipliers
 
 ![Move Multipliers — where to invite a station](img/move-multipliers.png)

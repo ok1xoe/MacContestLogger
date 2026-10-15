@@ -184,6 +184,7 @@
             { "id": "mult.dxcc",      "label": "DXCC",            "state": "enable" },
             { "id": "mult.grid",      "label": "Velké čtverce",   "state": "enable" },
             { "id": "mult.map",       "label": "Čtverce v mapě",  "state": "enable" },
+            { "id": "mult.gridmap",   "label": "Mapa lokátorových čtverců", "state": "enable" },
             { "id": "mult.districts", "label": "Okresy",          "state": "enable" },
             { "id": "mult.other",     "label": "Ostatní",         "state": "enable" },
             { "id": "mult.sections",  "label": "Section/States",  "state": "enable" },

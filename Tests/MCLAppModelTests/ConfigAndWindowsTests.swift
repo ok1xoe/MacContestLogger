@@ -90,7 +90,7 @@ import Testing
             "log", "defeditor", "profiles", "catLog", "rotator", "cwkeyboard", "cwreader", "digitalinterface", "digitalinterface2",
             "waterfall", "dxCluster", "bandmap", "availMult", "blacklist", "netstatus", "chat", "partner", "wsjtxdecodes",
             "hamqthLog", "rate", "goals", "goals-from-log", "statistics", "score", "dupesheet", "dupesheet2", "skeds", "qtc",
-            "simulator", "check", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc", "mult:dxcc",
+            "simulator", "check", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc", "gridmap", "mult:dxcc",
             "mult:grid", "mult:itu", "mult:cq", "mult:districts", "mult:other", "mult:sections",
         ])
         let dir = try TempDir()

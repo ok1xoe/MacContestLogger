@@ -270,7 +270,7 @@ private struct MultRowMenu: View {
 }
 
 /// The list of „calls worked and spots" or „countries in zone".
-private struct MultDetailsSheet: View {
+struct MultDetailsSheet: View {
     let details: MultGridDetails
     let language: LanguageModel
     let close: () -> Void
@@ -367,7 +367,7 @@ private struct ExpectedMultsSheet: View {
 
 /// Plain text files of the expected list.
 @MainActor
-private enum ExpectedMultsFiles {
+enum ExpectedMultsFiles {
 
     static func open() -> String? {
         let panel = NSOpenPanel()
