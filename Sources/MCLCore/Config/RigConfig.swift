@@ -29,9 +29,27 @@ public struct RigConfig: Codable, Equatable, Sendable {
     public var dtr: PinState = .unset
     public var rts: PinState = .unset
 
+    // N1MM per-radio options (Swift-only keys)
+    /// N1MM „Icom Addr (hex)": the rig's CI-V address without the `H` suffix (`94`); empty = hamlib's default.
+    /// Passed to a `rigctld` the app starts as `civaddr`.
+    public var civAddress: String = ""
+    /// N1MM „Radio polling rate": normal, 50 % or 100 % slower.
+    public var pollRate: PollRate = .normal
+    /// N1MM „Use Reverse CW": the rig is put into CW-R instead of CW whenever the app selects CW.
+    public var reverseCw: Bool = false
+    /// N1MM „Mute mic on supported radios": the rig's microphone gain is set to 0 while a voice message keys it
+    /// over CAT and restored afterwards (hamlib `MICGAIN`; opt-in).
+    public var muteMicOnVoice: Bool = false
+    /// N1MM „Sub receiver always on": hamlib `DUAL_WATCH` is switched on whenever the rig connects.
+    public var subReceiverOn: Bool = false
+    /// N1MM band map „Transceiver timeout": seconds without contact with the rig before the band map shows the
+    /// radio problem alert; 0 = no alert.
+    public var timeoutSeconds: Int = 15
+
     enum CodingKeys: String, CodingKey {
         case mode, model, modelLabel, device, baud, host, port
         case dataBits, stopBits, parity, flowControl, dtr, rts
+        case civAddress, pollRate, reverseCw, muteMicOnVoice, subReceiverOn, timeoutSeconds
     }
 
     public init() {}
@@ -52,5 +70,55 @@ public struct RigConfig: Codable, Equatable, Sendable {
         flowControl = c.value(.flowControl, default: d.flowControl)
         dtr = c.value(.dtr, default: d.dtr)
         rts = c.value(.rts, default: d.rts)
+        civAddress = c.value(.civAddress, default: d.civAddress)
+        pollRate = c.value(.pollRate, default: d.pollRate)
+        reverseCw = c.value(.reverseCw, default: d.reverseCw)
+        muteMicOnVoice = c.value(.muteMicOnVoice, default: d.muteMicOnVoice)
+        subReceiverOn = c.value(.subReceiverOn, default: d.subReceiverOn)
+        timeoutSeconds = c.value(.timeoutSeconds, default: d.timeoutSeconds)
+    }
+
+    /// The CI-V address as hamlib takes it (`0x94`), `nil` when empty or not a hex byte. Accepts `94`, `94H`,
+    /// `0x94` in any case.
+    public var civAddressHamlib: String? {
+        Self.civAddressHamlib(civAddress)
+    }
+
+    public static func civAddressHamlib(_ text: String) -> String? {
+        var t: String = text.trimmingCharacters(in: .whitespaces).uppercased()
+        if t.hasPrefix("0X") { t.removeFirst(2) }
+        if t.hasSuffix("H") { t.removeLast() }
+        guard (1...2).contains(t.count), let value = UInt8(t, radix: 16) else { return nil }
+        return "0x" + String(format: "%02x", value)
+    }
+
+    /// The model label names an Icom rig (the CI-V address field is offered for it).
+    public var isIcom: Bool {
+        modelLabel.range(of: "icom", options: .caseInsensitive) != nil
+    }
+}
+
+/// N1MM „Radio polling rate": how often the rig is read.
+public enum PollRate: String, Codable, Equatable, Sendable, CaseIterable {
+    case normal = "NORMAL"
+    case slower50 = "SLOWER_50"
+    case slower100 = "SLOWER_100"
+
+    /// The poll interval for the base one (50 % slower = 1.5×, 100 % slower = 2×).
+    public func interval(base ms: Int64) -> Int64 {
+        switch self {
+        case .normal: ms
+        case .slower50: ms + ms / 2
+        case .slower100: ms * 2
+        }
+    }
+
+    /// The UI label (Czech key, translated by the view).
+    public var label: String {
+        switch self {
+        case .normal: "Normální"
+        case .slower50: "O 50 % pomalejší"
+        case .slower100: "O 100 % pomalejší"
+        }
     }
 }

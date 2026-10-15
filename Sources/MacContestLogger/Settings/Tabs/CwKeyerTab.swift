@@ -42,9 +42,10 @@ struct CwKeyerTab: View {
                 draft.cwOptions.serialKeying = false
             }
             SettingsField(caption: "Port Winkeyeru") {
-                SettingsDropdown(label: ifBlank(draft.cwPort, noPort), options: ports, language: language,
-                                 enabled: !serial && draft.cwMethod == .winkeyer) { draft.cwPort = $0 }
+                SettingsDropdown(label: ifBlank(app.settingsTools.portLabel(draft.cwPort), noPort), options: ports,
+                                 language: language, enabled: !serial && draft.cwMethod == .winkeyer) { draft.cwPort = $0 }
             }
+            MissingPortNote(app: app, port: draft.cwPort)
             SettingsRadio(label: language.tr("Linka DTR/RTS sériového portu (jednoduché rozhraní)"), selected: serial) {
                 draft.cwOptions.serialKeying = true
             }

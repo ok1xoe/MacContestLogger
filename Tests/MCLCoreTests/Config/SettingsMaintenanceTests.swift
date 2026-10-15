@@ -4,7 +4,9 @@ import Testing
 
 /// N1MM's daily settings backups, the window layouts (Save / Restore Window Positions), the separate data folder,
 /// the station per database and the radio mode of the digital modes.
-@Suite struct SettingsMaintenanceTests {
+/// Main actor: in a Swift 6.1 debug build these tests' frames hold many `AppConfig` / `ConfigurerDraft` copies
+/// (up to ~480 KB), which together with the callees overflows a 512 KB worker thread stack; the main thread has 8 MB.
+@MainActor @Suite struct SettingsMaintenanceTests {
 
     static func tempDir() throws -> URL {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("mcl-maint-" + UUID().uuidString)

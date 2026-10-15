@@ -4,7 +4,9 @@ import Testing
 /// `ConfigurerDraft(config)` and `applyTo` (`ui/configurer/ConfigurerDraft.kt:23-317, 330-533`). Values marked
 /// "probe" are measured on the JVM by a maintainer-only probe (`settings-probe.tsv`); the
 /// rest is read from the source.
-@Suite struct ConfigurerDraftApplyTests {
+/// Main actor: in a Swift 6.1 debug build these tests' frames hold many `AppConfig` / `ConfigurerDraft` copies
+/// (up to ~480 KB), which together with the callees overflows a 512 KB worker thread stack; the main thread has 8 MB.
+@MainActor @Suite struct ConfigurerDraftApplyTests {
 
     static let defaultDir = "/data/contest-data"
     static let now = JavaInstant.ofEpochSecond(1_790_000_000, 123_000_000)!
@@ -315,6 +317,8 @@ import Testing
                                "checkUpdatesAtStart", "accessibilityAnnouncements", "qtcSetup", "rotorSetup",
                                "rotors", "offset", "bidirectional",
                                "callHistoryFile", "functionKeyFiles", "firstSerial", "scpFile", "goalFile",
+                               "civAddress", "pollRate", "reverseCw", "muteMicOnVoice", "subReceiverOn",
+                               "timeoutSeconds",
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",
                                "checkReverseThreshold", "checkReverseFromStart", "showUnmatchedCallMark",

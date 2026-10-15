@@ -88,7 +88,9 @@ import Testing
 
     // MARK: - Every field
 
-    @Test func everyFieldIsWiredBothWays() {
+    /// Main actor: in a Swift 6.1 debug build the wiring frames hold many `AppConfig` / `ConfigurerDraft` copies,
+    /// too close to a 512 KB worker thread stack; the main thread has 8 MB.
+    @MainActor @Test func everyFieldIsWiredBothWays() {
         let wiring = Self.wireEverything()
         let repeated = Dictionary(grouping: wiring.texts) { $0 }.filter { $0.value.count > 1 }.keys.sorted()
         #expect(repeated.isEmpty, "values are not distinct: \(repeated)")
@@ -96,7 +98,8 @@ import Testing
 
     /// The whole non-default configuration survives `draft → applied` unchanged, applied onto itself or onto the
     /// default configuration.
-    @Test func fullConfigurationRoundTrips() {
+    /// Main actor: see `everyFieldIsWiredBothWays`.
+    @MainActor @Test func fullConfigurationRoundTrips() {
         let full = Self.fullConfig()
         #expect(full != Self.base())
         #expect(Self.draft(full).applied(to: full, now: Self.now) == full)
@@ -105,7 +108,8 @@ import Testing
 
     /// The probe's input is exactly this configuration (so the v1.1.1 identity measured there is about the same
     /// values).
-    @Test func probeFixtureIsTheFullConfiguration() throws {
+    /// Main actor: see `everyFieldIsWiredBothWays`.
+    @MainActor @Test func probeFixtureIsTheFullConfiguration() throws {
         let url = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Fixtures/jvm-probes/full-config.json")

@@ -9,7 +9,9 @@ import Testing
 /// `StationConfigTest.savesAndReloadsAllStationFields`, `ContestSetupTest.appConfigStoresSetup`,
 /// `ConfigProfilesTest.saveListLoadDelete`), plus three new tests securing the behaviour
 /// from the Global Constraints (a missing/corrupt file → the default configuration).
-@Suite struct ConfigStoreTests {
+/// Main actor: in a Swift 6.1 debug build these tests' frames hold many `AppConfig` / `ConfigurerDraft` copies
+/// (up to ~480 KB), which together with the callees overflows a 512 KB worker thread stack; the main thread has 8 MB.
+@MainActor @Suite struct ConfigStoreTests {
 
     private func tempFile() -> URL {
         FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).json")
