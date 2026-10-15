@@ -147,7 +147,9 @@ public final class DigitalKeyerModel {
                 return
             }
             self.sides[index].modem = name
-            self.status.show(DigitalTexts.modemSetKey, .string(name))
+            let key: String = self.config.config.digital.engine == .builtin
+                ? DigitalTexts.builtinModemSetKey : DigitalTexts.modemSetKey
+            self.status.show(key, .string(name))
         })
     }
 
@@ -165,7 +167,18 @@ public final class DigitalKeyerModel {
         let setup: BuiltinModemSetup = config.config.builtinModem
         lane.builtin.configure(BuiltinModemHub.Settings(
             level: setup.outputLevel, devices: [setup.outputDevice(side: 0), setup.outputDevice(side: 1)],
-            linked: setup.flag(.linkedTuning)))
+            linked: setup.flag(.linkedTuning), fsk: BuiltinModemHub.fsk(setup)))
+    }
+
+    /// `{PROFILEn}`: the built-in modem's profile onto the receiver of the side the F-keys act on now (wired by the app).
+    @ObservationIgnored var profileApplier: (@MainActor (Int, Int) -> Bool)?
+
+    /// `{PROFILEn}` (slot from 0); nothing with fldigi or an empty slot (a status line says so).
+    public func applyProfile(_ slot: Int) {
+        guard config.config.digital.engine == .builtin else { return }
+        if profileApplier?(slot, current) != true {
+            status.show("Profil modemu %s je prázdný", .string(String(slot + 1)))
+        }
     }
 
     /// Kotlin `digitalReady`: a digital modem is configured.

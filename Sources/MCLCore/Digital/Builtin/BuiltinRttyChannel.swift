@@ -209,7 +209,13 @@ public final class BuiltinRttyChannel: @unchecked Sendable {
     /// A raw numeric modem parameter (squelch level, filters: RYRY's parameter ids); `false` = refused.
     @discardableResult
     public func set(_ id: String, number: Double) -> Bool {
-        lock.withLock { (try? modem.set(parameter: id, value: .double(number))) != nil }
+        lock.withLock {
+            let integer: Bool = modem.parameters.contains { descriptor in
+                if case .int = descriptor.kind { descriptor.id == id } else { false }
+            }
+            let value: ParameterValue = integer ? .int(Int(number.rounded())) : .double(number)
+            return (try? modem.set(parameter: id, value: value)) != nil
+        }
     }
 
     /// A raw switch of the modem (`squelch`, `atc`, `bpf`, `lms`…); `false` = refused.
@@ -244,6 +250,48 @@ public final class BuiltinRttyChannel: @unchecked Sendable {
     public func choice(_ id: String) -> String? {
         lock.withLock {
             if case .string(let value)? = modem.get(parameter: id) { value } else { nil }
+        }
+    }
+
+    /// The modem's demodulators (MMTTY: IIR, FIR, PLL, FFT).
+    public static let demodulators: [String] = ["iir", "fir", "pll", "fft"]
+
+    /// Every modem parameter for a profile (the TX echo is the program's, not the profile's).
+    public func profileValues() -> [String: BuiltinModemProfile.Value] {
+        lock.withLock {
+            var values: [String: BuiltinModemProfile.Value] = [:]
+            for descriptor in modem.parameters where descriptor.id != "echo" {
+                switch modem.get(parameter: descriptor.id) {
+                case .double(let value)?: values[descriptor.id] = .number(value)
+                case .int(let value)?: values[descriptor.id] = .number(Double(value))
+                case .bool(let value)?: values[descriptor.id] = .flag(value)
+                case .string(let value)?: values[descriptor.id] = .choice(value)
+                case nil: break
+                }
+            }
+            return values
+        }
+    }
+
+    /// Applies a profile's values (unknown or out-of-range values are skipped); the shift before the mark, so the
+    /// mark keeps its place.
+    public func apply(profile values: [String: BuiltinModemProfile.Value]) {
+        lock.withLock {
+            let integers: Set<String> = Set(modem.parameters.compactMap { descriptor in
+                if case .int = descriptor.kind { descriptor.id } else { nil }
+            })
+            let order: [String] = ["baud", "shift"] + values.keys.filter { $0 != "baud" && $0 != "shift" && $0 != "mark" }
+                .sorted() + ["mark"]
+            for id in order where id != "echo" {
+                guard let value = values[id] else { continue }
+                let converted: ParameterValue
+                switch value {
+                case .number(let number): converted = integers.contains(id) ? .int(Int(number.rounded())) : .double(number)
+                case .flag(let flag): converted = .bool(flag)
+                case .choice(let choice): converted = .string(choice)
+                }
+                try? modem.set(parameter: id, value: converted)
+            }
         }
     }
 

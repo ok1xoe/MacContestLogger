@@ -62,6 +62,9 @@ public final class BuiltinEngineModel {
 
     public func stop() {
         open = false
+        if channelsOn {
+            setChannels(false)
+        }
         timer?.cancel()
         timer = nil
         if xyEnabled {
@@ -79,9 +82,16 @@ public final class BuiltinEngineModel {
         transmitting = snapshot.transmitting
         squelchLevel = channel.number("squelchLevel") ?? squelchLevel
         squelchOn = channel.flag("squelch") ?? squelchOn
+        demodulator = channel.choice("demodType") ?? demodulator
         if let spectrum = snapshot.spectrum, !snapshot.transmitting {
             waterfall.push(spectrum, fromHz: fromHz, toHz: toHz)
             frame &+= 1
+        }
+        if channelsOn {
+            let rows: [BuiltinChannelBank.Row] = modem.banks[side].snapshot
+            if rows != channelRows {
+                channelRows = rows
+            }
         }
         if xyEnabled, let points = channel.xyPoints() {
             xyPoints = points
@@ -143,6 +153,73 @@ public final class BuiltinEngineModel {
         let value: Double = min(max(squelchLevel + Double(steps) * 1_024, 0), 32_768)
         channel.set("squelchLevel", number: value)
         squelchLevel = value
+    }
+
+    /// The multi-channel receiver (RTTY browser) of this receiver: on, and its channels.
+    public private(set) var channelsOn = false
+    public private(set) var channelRows: [BuiltinChannelBank.Row] = []
+
+    public func setChannels(_ on: Bool) {
+        modem.setChannels(side, on: on)
+        channelsOn = on
+        if !on {
+            channelRows = []
+        }
+    }
+
+    /// The main receiver onto a channel's signal (its mark).
+    public func tuneTo(_ row: BuiltinChannelBank.Row) {
+        modem.tune(side) { $0.markHz = row.markHz }
+        tuning = channel.tuning
+    }
+
+    /// The calls in a channel's text (for the click into the entry window).
+    public static func calls(in text: String) -> [String] {
+        var seen: [String] = []
+        for hit in CallsignScanner.scan(text) where !seen.contains(hit.call) {
+            seen.append(hit.call)
+        }
+        return seen
+    }
+
+    /// The demodulator (MMTTY: `iir`, `fir`, `pll`, `fft`).
+    public private(set) var demodulator: String = "iir"
+
+    public func setDemodulator(_ name: String) {
+        guard BuiltinRttyChannel.demodulators.contains(name) else { return }
+        channel.set("demodType", choice: name)
+        if modem.hub.currentSettings.linked {
+            modem.channel(1 - side).set("demodType", choice: name)
+        }
+        demodulator = channel.choice("demodType") ?? demodulator
+    }
+
+    /// The profile slots (names) for the menu.
+    public var profiles: [BuiltinModemProfile?] {
+        modem.profileSlots
+    }
+
+    /// The last profile action's error (`nil` = fine).
+    public private(set) var profileError: String?
+
+    public func loadProfile(_ slot: Int) {
+        modem.applyProfile(slot, side: side)
+        refreshTuning()
+    }
+
+    public func saveProfile(_ slot: Int, name: String) {
+        profileError = modem.saveProfile(slot, name: name, side: side)
+    }
+
+    public func deleteProfile(_ slot: Int) {
+        profileError = modem.deleteProfile(slot)
+    }
+
+    private func refreshTuning() {
+        tuning = channel.tuning
+        demodulator = channel.choice("demodType") ?? demodulator
+        squelchLevel = channel.number("squelchLevel") ?? squelchLevel
+        squelchOn = channel.flag("squelch") ?? squelchOn
     }
 
     public func setSquelch(_ on: Bool) {

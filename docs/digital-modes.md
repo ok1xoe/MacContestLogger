@@ -1,10 +1,19 @@
 # Digital modes
 
+MCL works with two sound-card modems behind the same Digital Interface window:
+
+- the **built-in RTTY modem** (MMTTY's decoder and modulator, like N1MM's embedded MMTTY) — see
+  [The built-in RTTY modem (MMTTY)](#the-built-in-rtty-modem-mmtty);
+- **fldigi** for RTTY, PSK and the other modes, controlled over XML-RPC.
+
+Everything described below for the Digital Interface — clicking calls and exchange words, the Grab
+window, F-keys, ESM, Esc, Align/AFC/NET/Rev, AutoTRXUpdate, the TX window, message buttons, two
+interfaces for SO2V/SO2R — works the same with either modem.
+
 ## fldigi as a modem (RTTY, PSK...)
 
-MCL has no built-in audio modem for transmitting — like N1MM with fldigi, it
-leaves modulation/demodulation to **fldigi** and controls it through its XML-RPC
-interface.
+Like N1MM with fldigi, MCL can leave modulation/demodulation to **fldigi** and control it through its
+XML-RPC interface.
 
 1. Start fldigi (XML-RPC is enabled by default on port **7362**).
 2. In MCL: **"Nastavení → Digitální módy → Modem pro RTTY / PSK → fldigi"**
@@ -190,6 +199,9 @@ window, transmits and puts the cursor into the TX line (in CW it still opens the
 | `{FILE:name}` | the text of a file in `FunctionKeyMessages` in the data folder (at most 64 kB, line breaks kept) |
 | `{DI1}`…`{DI24}` | the text of a message button |
 | `{NAME}` | the other station's name from the [call history](call-history.md) |
+| `{ESC}` | stops the transmission in progress before this message goes out (as Esc) |
+| `{PROFILE1}`…`{PROFILE16}` | the built-in modem's profile n onto the transmitting receiver, before the text goes out (an empty slot leaves the setup and says so) |
+| `{Hxx}` / `{Hxxxx}` | the character with that hexadecimal code, e.g. `{H0D}` (CR) or `{H2B}` (`+`); control codes other than CR/LF are not sent |
 
 `{TX}`, `{RX}`, `{CLRTX}` and `{ALT-T}` do nothing in CW and SSB.
 
@@ -225,8 +237,8 @@ starts from the beginning, but the history in the window stays. The polling
 interval is 300 ms — compared with MMTTY embedded directly in N1MM, the text lags
 by that fraction of a second.
 
-Who decodes does not change: the modem is still fldigi. MCL has its own RTTY
-decoder only in the separate proof of concept `digimode-poc`.
+With the built-in modem the window reads its receiver's text the same way every 300 ms, from memory instead of
+over XML-RPC.
 
 ## SO2V / SO2R: two Digital Interfaces
 
@@ -291,15 +303,90 @@ font of the received text (empty = the system's monospaced font), its colour and
 (`#RRGGBB`); the size follows the window's font stepper. *Barva volačky jako pozadí* in the window's
 menu puts the status colours behind the callsigns.
 
-## Built-in decoder
+## The built-in RTTY modem (MMTTY)
 
-N1MM ships MMVARI as a built-in decoder; MacContestLogger keeps decoding in fldigi (or a TNC). A
-built-in RTTY/PSK decoder is **deferred**: doing it robustly means a sound-card capture with sample-rate
-correction, an FSK demodulator with AFC/ATC and squelch for RTTY, a PSK31/63 Costas-loop demodulator
-with Varicode for PSK, a waterfall to click on, and a TX modulator with the same PTT/Esc safety as the
-keyers — a module the size of fldigi's core that cannot be verified without real signals. The
-design keeps it pluggable: the Digital Interface reads any text source (fldigi, a TNC), so a decoder
-would become one more source behind the same window, Grab window and macros.
+N1MM embeds MMTTY; MCL builds MMTTY's RTTY core in. The decoder and modulator are MMTTY's (Makoto Mori,
+JE3HHT, and Nobuyuki Oba, JA7UDE), taken over unchanged through the macOS port **RYRY**; the licences are
+in `third-party/MMTTY/NOTICE.md` and in the About box.
+
+**Settings → Digital modes → Modem for RTTY / PSK → "Vestavěný (MMTTY, jen RTTY)"** (Built-in, RTTY
+only). PSK and the other modes still need fldigi.
+
+### Two receivers, one stereo input
+
+Each Digital Interface has its own receiver: **DI1** = radio 1 / VFO A, **DI2** = radio 2 / VFO B. The
+usual SO2R / SO2V setup is one **stereo** sound-card input with radio 1's audio on the left channel and
+radio 2's on the right (N1MM: "2 RX: audio left, audio right"). For each receiver you choose in the
+settings:
+
+| Option | Choices | Default |
+|---|---|---|
+| Input | the receiver input of **Settings → Audio**, or radio 2's own input (the one chosen in the radio 2 windows, e.g. CW Reader 2) | the receiver input |
+| Channel | left, right, both (mixed) | receiver 1 left, receiver 2 right |
+
+A mono input gives the same audio on both channels. A receiver listens only while its Digital Interface
+window is open, and shares the input with the waterfall, the CW Reader and the contest recorder.
+
+**Tuning is independent per receiver** (mark, shift, speed, AFC, NET, Rev): each window tunes its own
+receiver. *Společné ladění obou přijímačů* (Link the tuning of both receivers) makes a change on one
+receiver happen on the other too.
+
+### The receiver windows
+
+As in N1MM, each receiver is a group: its decoded text on top and its **RTTY engine pane** (MMTTY's
+engine window) under it. DI1 opens on the left half of the screen and DI2 on the right half; both are
+in the Windows menu (*Digitální rozhraní*, *Digitální rozhraní 2*) and remember where you put them. A
+click on a call or exchange word goes to that radio's entry window.
+
+The engine pane:
+
+- **Spectrum and waterfall** with the **mark** (yellow) and **space** (orange) markers. A **click** puts the
+  mark under the pointer (the shift stays); the **right button** sets MMTTY's notch there; the **wheel**
+  moves the squelch threshold.
+- **M / S** — the mark and space frequencies; with AFC on they follow the signal.
+- **Posun** (shift: 170, 200, 425, 850 Hz) and the **speed** (45.45, 50, 75, 100, 110 Bd; also the Op Mode
+  menu: `RTTY` = 45.45, `RTTY-50`, `RTTY-75`…).
+- The **demodulator** (MMTTY's IIR, FIR, PLL or FFT; IIR by default).
+- **Profil** (Profile) — MMTTY's modem profiles: 16 slots in `RttyProfiles.json` of the data folder. *Uložit do*
+  (Save to) stores this receiver's whole setup — shift, speed, demodulator, AFC/NET/Rev, squelch, filters, the
+  AA6YQ/LMS/notch options — under a name; *Načíst* (Load) puts a profile onto this receiver (onto both with linked
+  tuning); *Smazat* (Delete) clears a slot. A profile file that cannot be read is never overwritten.
+- **SQ** — the squelch (text only above the threshold, the red line in the level meter).
+- **XY** — MMTTY's XY scope: mark against space; a correctly tuned signal is a cross.
+- The display range (300–3000, 1000–2500, 1700–2700 or 0–6000 Hz).
+- **Kanály** (Channels) — MMTTY's multi-channel receive (N1MM's RTTY browser): further decoders start on the
+  RTTY signals found in this receiver's spectrum (a pair of tones the receiver's shift apart), each follows its
+  signal with AFC and uses the receiver's shift, speed and Rev. A row per channel shows its mark, its calls and
+  its latest text: a **click on a call** puts it into this radio's entry window, a click on the **mark** tunes the
+  receiver there. *Settings → Digital modes*: at most 1–8 channels (default 4) and the seconds a channel stays
+  without a signal (default 15). The channels only receive; they stop when the window closes.
+
+**AFC**, **NET** and **Rev** next to the TX line switch the window's receiver, **Align** works as with
+fldigi (the carrier is the centre between mark and space, so the default alignment frequency 2210 Hz is
+mark 2125 + 85). AutoTRXUpdate logs and spots dial ± that centre in USB/LSB.
+
+### Transmitting
+
+- **AFSK**: the modulator's audio goes to the chosen sound output (*Výstup AFSK*; radio 2 can have its own,
+  empty = radio 1's) at *Úroveň AFSK* (default 50 %). **PTT** is keyed over CAT on the rig of the
+  transmitting side (*PTT přes CAT*, on by default; off = VOX or the rig's own data PTT).
+- **FSK, built in** (MMTTY's EXTFSK without a plugin; off by default): *FSK přes sériový port* names the serial
+  port whose **DTR** or **RTS** line keys the rig's FSK input (the rig in RTTY/FSK mode). The modulator's Baudot
+  characters are keyed with precise timing on a real-time thread (1 start bit, 5 data bits, 1.5 stop bits at the
+  receiver's speed; idle = mark, active line = space, *obrácená polarita* swaps them). PTT goes on the port's other
+  line, or — with *CAT / VOX* — as for AFSK. No audio is sent; the own text is still decoded back as the echo. The
+  TX line of the port (break) is not used.
+- **FSK through a keyer**: choose TinyFSK or WinKeyer 3.1 under **RTTY: transmit interface** — the messages then go
+  to the keyer and the built-in modem only receives (as with fldigi).
+- The F-keys, ESM, the CQ repeat, the TX window, `{TX}`/`{RX}` and the message buttons work as with
+  fldigi; **Esc** stops at once (the output stops, PTT is released). Your own text is decoded back from
+  the modulator (shown dimmed, never grabbed).
+- With two receivers, the side that has the transmit focus transmits; *TX lockout mezi DI1 a DI2* applies.
+- The CW ID (Settings → Digital modes) needs fldigi's CW modem and is skipped with the built-in modem.
+- Each new receiver starts at mark 2125 Hz, shift 170 Hz, 45.45 Bd with AFC and NET on.
+
+Nothing transmits unless you send a message, press TX or Alt+T; the built-in modem is off until you
+choose it in the settings.
 
 ## Sharing CAT with fldigi
 

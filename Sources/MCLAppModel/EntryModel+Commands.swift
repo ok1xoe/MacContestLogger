@@ -697,6 +697,13 @@ extension EntryModel {
         if let keys = outcome.lastSentKeys {
             operating.lastSentKeys = keys
         }
+        // `{ESC}` and `{PROFILEn}` act before the message goes out: the old transmission stops, the new one uses
+        // the profile.
+        if outcome.actions.contains(.escape) {
+            _ = digitalKeyer?.abort()
+        }
+        let early: [MacroCommand] = outcome.commands.filter { if case .modemProfile = $0 { true } else { false } }
+        performMacroCommands(early)
         var keyerStatus: EntryStatus?
         if let transmission = outcome.transmission {
             // N1MM: the transmit focus moves to the window the message is sent from (SO2R).
@@ -715,7 +722,7 @@ extension EntryModel {
             operating.noteVaryUsed(outcome.varyUsed)
         }
         // The parameterized macros first: a `{COMMENT}` belongs to the QSO a `{LOG}` of the same message logs.
-        performMacroCommands(outcome.commands)
+        performMacroCommands(outcome.commands.filter { if case .modemProfile = $0 { false } else { true } })
         scheduleDeferred(outcome)
         for action in outcome.actions {
             if action == .logThenPop {
@@ -863,6 +870,9 @@ extension EntryModel {
             popNeeded(forward: action == .popNextNeeded)
         case .qtcReceive, .qtcSend:
             openQtcWindow(send: action == .qtcSend)
+        case .escape:
+            // Performed before the message's transmission (`apply`).
+            break
         }
     }
 
@@ -1083,6 +1093,8 @@ extension EntryModel {
                 network?.lastPassedFreqHz = hz
             case .passLastQso(let argument):
                 network?.passLastQso(argument, call: logbook.rows.last?.call ?? "")
+            case .modemProfile(let slot):
+                digitalKeyer?.applyProfile(slot)
             }
         }
     }

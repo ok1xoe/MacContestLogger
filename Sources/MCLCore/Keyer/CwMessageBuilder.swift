@@ -166,7 +166,7 @@ public enum CwMessageBuilder {
         "{FORCELOG}": .forceLog, "{FORCELOGNOTE}": .forceLogNote, "{SPACE}": .space,
         "{PGUP}": .pageUp, "{PGDN}": .pageDown, "{FREQUP}": .freqUp, "{FREQDN}": .freqDown,
         "{TURNROTOR}": .turnRotor, "{LONGPATH}": .longPath, "{STOPROTOR}": .stopRotor,
-        "{DIGQTCR}": .qtcReceive, "{DIGQTCS}": .qtcSend,
+        "{DIGQTCR}": .qtcReceive, "{DIGQTCS}": .qtcSend, "{ESC}": .escape,
     ].merging(radioActions) { first, _ in first }
 
     /// The two-radio, audio and needed-QSO actions (N1MM), shared with the voice messages.
@@ -178,6 +178,19 @@ public enum CwMessageBuilder {
         "{INACTIVEAUDIOON}": .inactiveAudioOn, "{INACTIVEAUDIOOFF}": .inactiveAudioOff,
         "{POPPREVNEEDEDQ}": .popPrevNeeded, "{POPNEXTNEEDEDQ}": .popNextNeeded,
     ]
+
+    /// `{Hxx}` / `{Hxxxx}` (two or four hexadecimal digits, upper-cased macro): the UTF-16 unit, `nil` = not this
+    /// macro (or a control code other than CR / LF).
+    static func hexCharacter(_ macro: String) -> UInt16? {
+        let units = Array(macro.utf16)
+        guard units.count == 5 || units.count == 7, units[0] == 0x7B, units[1] == 0x48, units.last == 0x7D else {
+            return nil
+        }
+        let digits = String(decoding: units[2..<(units.count - 1)], as: UTF16.self)
+        guard digits.allSatisfy({ $0.isHexDigit }), let value = UInt16(digits, radix: 16) else { return nil }
+        guard value >= 0x20 || value == 0x0A || value == 0x0D else { return nil }
+        return value
+    }
 
     /// Builds the message (`nil` template = empty message, like Java `null`).
     public static func build(_ template: String?, _ ctx: Context) -> CwMessage {
@@ -336,6 +349,15 @@ public enum CwMessageBuilder {
                 }
                 if let action = actions[macro] {
                     actionList.append(action)
+                    continue
+                }
+                if let character = hexCharacter(macro) {
+                    // `{Hxx}` / `{Hxxxx}` (N1MM / MMTTY): the character with that code.
+                    if network != nil {
+                        network?.append(character)
+                    } else {
+                        text.append(character)
+                    }
                     continue
                 }
                 if let command = MacroCommand.parse(JavaChar.string(raw)) {

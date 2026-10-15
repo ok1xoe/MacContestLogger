@@ -1,6 +1,8 @@
 /// The texts of the Digital Interface and fldigi control (Czech keys of `lang_*.json`).
 public enum DigitalTexts {
     public static let modemSetKey = "fldigi: mód %s"
+    /// The same for the built-in RTTY modem (its speed).
+    public static let builtinModemSetKey = "Vestavěný modem: mód %s"
     /// The hardware routes' errors (verbatim, technical).
     public static let noSerialPort = "no serial port set (Settings → Digital modes)"
     /// The built-in modem asked for a mode it does not have (fldigi's PSK, CW…).

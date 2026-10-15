@@ -20,6 +20,8 @@
 	<string>@VERSION@</string>
 	<key>CFBundleVersion</key>
 	<string>@VERSION@</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Tomáš Kaplan, OK1XOE. GNU GPL v3 or later. Built-in RTTY modem: MMTTY by JE3HHT and JA7UDE via RYRY, GNU LGPL v3.</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
 	<key>NSHighResolutionCapable</key>

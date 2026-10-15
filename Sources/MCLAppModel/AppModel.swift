@@ -1177,9 +1177,13 @@ public final class AppModel {
             (model?.activeEntry ?? model?.entry)?.band?.adif ?? ""
         }
         model.builtinModem = BuiltinModemModel(hub: model.keyer.lane.builtin, audio: model.audio, audio2: model.audio2,
+                                               dataDir: model.dataDir,
                                                setup: { [weak config = model.config] in
                                                    config?.config.builtinModem ?? BuiltinModemSetup()
                                                })
+        model.keyer.digital.profileApplier = { [weak modem = model.builtinModem] slot, side in
+            modem?.applyProfile(slot, side: side) ?? false
+        }
         model.keyer.digital.activeMode = { [weak model] in
             (model?.activeEntry ?? model?.entry)?.form.mode
         }
