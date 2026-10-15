@@ -27,6 +27,12 @@ struct EntryWindowHeader: View {
                                          language: app.language))
                     .windowFont(12, weight: .medium)
                     .foregroundStyle(active ? AnyShapeStyle(.mclPrimary) : AnyShapeStyle(Color.secondary))
+                // N1MM: each window has its own Run/S&P.
+                let run: Bool = app.operating.isRun(window: vfo)
+                Text(verbatim: run ? "Run" : "S&P")
+                    .windowFont(11, weight: .semibold)
+                    .padding(.horizontal, 5)
+                    .background(Capsule().fill(run ? Color.accentColor.opacity(0.25) : Color.secondary.opacity(0.15)))
             }
             .accessibilityElement(children: .combine)
         }

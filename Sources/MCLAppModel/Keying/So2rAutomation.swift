@@ -92,7 +92,9 @@ final class So2rAutomation {
         }
         operating.applyCqRepeat(false)
         operating.duelingCq = true
-        operating.runMode = .run
+        // Both radios are run radios.
+        operating.setRunMode(.run, window: 0)
+        operating.setRunMode(.run, window: 1)
         next = rig.vfo.activeVfo
         startFreqHz = [first.form.freqHz, second.form.freqHz]
         startedAt = now()

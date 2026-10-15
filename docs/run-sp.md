@@ -38,3 +38,10 @@ On a Mac, Alt is the **Option** key.
 - **Návrat na CQ frekvenci přepne do Run** (Returning to the CQ frequency switches to Run) (on by default). Turning it off is useful
   in sprints: QSY away still switches to S&P, but you return to Run only with F1 or
   Alt+Q (N1MM "Do not automatically switch to Run on CQ-frequency").
+
+## Two entry windows (SO2V / SO2R)
+
+As in N1MM, each entry window has its **own** Run / S&P — Run on one radio and S&P on the other, S&P on both, or
+Run on both (Dueling CQs). F1 or Alt+U in a window changes only that window; the window's F-keys, ESM and the
+messages sent from it on the alternate radio (Ctrl+F1–F12) use its own set. The top row of each window shows its
+state (**Run** / **S&P**) next to the focus LEDs; the radio buttons in the window set it.

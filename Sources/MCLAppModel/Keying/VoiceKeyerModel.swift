@@ -115,7 +115,9 @@ public final class VoiceKeyerModel {
     /// Kotlin `functionKeyMessages(opposite)`: the Run set in Run (Shift = the other).
     func messages(opposite: Bool) -> [FunctionKeyMessage] {
         let keys = FunctionKeySet(run: config.config.voiceKeyer.runMessages, sp: config.config.voiceKeyer.spMessages)
-        return keys.messages(run: operating.isRun, opposite: opposite)
+        // The message set of the transmitting window (N1MM: each entry window has its own Run/S&P).
+        let window: Int = keyer?.rig?.vfo.txVfo ?? 0
+        return keys.messages(run: operating.isRun(window: window), opposite: opposite)
     }
 
     // MARK: - playing

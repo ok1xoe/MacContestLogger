@@ -107,10 +107,15 @@ public final class EntryModel {
         operating.operatorCall
     }
 
-    /// Kotlin `state.runMode`.
+    /// Kotlin `state.runMode` — this window's (N1MM: with two entry windows each has its own Run/S&P).
     public var runMode: RunMode {
-        get { operating.runMode }
-        set { operating.runMode = newValue }
+        get { operating.runMode(window: vfo) }
+        set { operating.setRunMode(newValue, window: vfo) }
+    }
+
+    /// This window is in Run.
+    var isRunHere: Bool {
+        operating.isRun(window: vfo)
     }
 
     @ObservationIgnored let contest: ContestModel
@@ -858,7 +863,7 @@ extension EntryModel {
     /// The entry window's frequency or mode changed: Run/S&P follows, and the active window's radio is reported
     /// (the plugins' band, mode and frequency events).
     func reportTuned(_ freqHz: Int64) {
-        operating.tuned(freqHz, mode: form.mode)
+        operating.tuned(freqHz, mode: form.mode, window: vfo)
         if isActivePanel {
             operating.onOperating?(vfo, freqHz, form.mode)
         }

@@ -34,7 +34,7 @@ extension EntryModel {
         }
         qtc.begin(send: role == .send, partner: call.isEmpty ? nil : call)
         windows.setOpen(QtcModel.windowId, true)
-        if role == .receive, operating.isRun, form.mode == .cw, qtc.setup.flag(.ctrlZSendsAsk) {
+        if role == .receive, isRunHere, form.mode == .cw, qtc.setup.flag(.ctrlZSendsAsk) {
             qtc.press(.ask)
         }
     }

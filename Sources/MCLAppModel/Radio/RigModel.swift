@@ -48,6 +48,8 @@ public final class RigModel {
     @ObservationIgnored var pendingSwapTailMs: Int = 0
     /// The transmit focus moved to the other radio (wired to the keyer: each radio keeps its CW speed).
     @ObservationIgnored var onTxSwap: @MainActor () -> Void = {}
+    /// The entry focus moved to window `index` (wired to the operating model: each window's Run/S&P).
+    @ObservationIgnored var onFocusMoved: @MainActor (Int) -> Void = { _ in }
     /// Kotlin `focusVfoRequest`: the entry window `vfo` takes the focus (the view clears it).
     public var focusVfoRequest: Int?
     /// With `focusVfoRequest`: the caret goes after the call's text instead of selecting it (typing that came from
