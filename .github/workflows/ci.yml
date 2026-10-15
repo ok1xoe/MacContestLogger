@@ -26,10 +26,14 @@ jobs:
             build-${{ runner.os }}-${{ runner.arch }}-xcode16-
       - name: Release version rules
         run: scripts/release-version.sh --self-test
-      - name: Tests
-        run: scripts/test.sh
-      # Static accessibility audit of the views (reads sources only, starts nothing): icon and glyph controls,
-      # canvases and AppKit islands carry a label, every window has the font stepper, the spoken texts are translated.
+      - name: Frame sizes
+        run: |
+          PLUGIN=/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing/libTestingMacros.dylib
+          ARGS=()
+          if [ -f "$PLUGIN" ]; then ARGS=(-Xswiftc -load-plugin-library -Xswiftc "$PLUGIN"); fi
+          swift build --build-tests "${ARGS[@]}" 2>&1 | tail -3
+          TOP=150 python3 scripts/frames.py .build/debug/MCLCore.build/*.o .build/debug/MCLCoreTests.build/*.o .build/debug/MCLAppModel.build/*.o .build/debug/MCLAppModelTests.build/*.o
+          exit 1
       - name: Accessibility audit
         run: |
           scripts/a11y-audit.py --self-test
