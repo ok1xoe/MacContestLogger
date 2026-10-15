@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: mi-qrp-sprint
+metadata:
+  name: "Michigan QRP Labor Day CW Sprint"
+  organizer: "Michigan QRP Club"
+  description: "First Monday of September (US Labor Day), 2300 UTC Monday to 0300 UTC Tuesday, CW, 160-6 m without WARC. Members send RST + state/province/country + MI-QRP member number, non-members RST + state/province/country + power. Each station once per band. Points: member 5, non-member W/VE 2, non-member DX 4. Multipliers: states, provinces and countries per band. Bonus 25 points per band for working the club station WQ8RP. Simplified: the rules compute QSOs x SPC per band and add the per-band results; here the total is QSO points x all SPC multipliers + bonus. A member is recognised by an all-digit number, so log a non-member's power with W (5W)."
+  officialUrl: "https://miqrp.net/contest"
+period: { durationHours: 4, startWeekday: MON, startTime: "2300" }
+bands: [160m, 80m, 40m, 20m, 15m, 10m, 6m]
+modes: [CW]
+
+stationClasses:
+  # W/VE (USA incl. Alaska and Hawaii, Canada)
+  - { id: wve, when: { entityIn: [291, 6, 110, 1] } }
+  - { id: dx,  when: { not: { entityIn: [291, 6, 110, 1] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,  source: AUTO_RST }
+    - { id: spc, type: TEXT, source: FROM_STATION }   # state / province / country
+    - { id: nr,  type: TEXT, source: FROM_STATION }   # member number or power (5W)
+  received:
+    - { id: rst, type: RST,  required: true }
+    - { id: spc, type: TEXT, required: true }
+    - { id: nr,  type: TEXT, required: true }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 4
+    rules:
+      - { when: { expr: "matches(nr, '^[0-9]+$')" }, value: { fixed: 5 } }
+      - { when: { workedClass: wve },                value: { fixed: 2 } }
+  bonuses:
+    # 25 points per band for working WQ8RP
+    - { id: wq8rp, when: { expr: "matches(call, '^WQ8RP(/.*)?$')" }, value: { fixed: 25 }, scope: PER_BAND }
+  total: "qsoPoints * multTotal + bonusPoints"
+
+multipliers:
+  - { id: spc, set: arci_spc, from: spc, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: MI-QRP-LABOR-DAY, sentOrder: [rst, spc, nr], receivedOrder: [rst, spc, nr] }
+ui:
+  entryOrder: [call, spc, nr]
+  logColumns: [time, call, band, mode, rst, spc, nr, points, mult]

@@ -1,0 +1,42 @@
+schemaVersion: 1
+id: ddfm-50
+metadata:
+  name: "REF DDFM 50 MHz Contest"
+  organizer: "REF (Réseau des Émetteurs Français)"
+  description: "Second Saturday of June, 1400 UTC Saturday to 1400 UTC Sunday, 6 m, SSB, CW and FM. Stations in metropolitan France send RS(T) + department + 6-character locator (e.g. 59 75 JN18DU), all others RS(T) + serial + 6-character locator. 1 point per QSO. Multipliers: French departments + 4-character grid squares (JN18, IN96...). Score = points x multipliers. Simplified: the rules give no dupe rule - each station is taken once; multipliers count once in the contest (single band); Corsica (TK) is treated as metropolitan France."
+  officialUrl: "https://concours.r-e-f.org/reglements/actuels/reg_ddfm50_fr_20250312.pdf"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1400" }
+bands: [6m]
+modes: [CW, SSB, FM]
+
+stationClasses:
+  # metropolitan France and Corsica
+  - { id: f,  when: { entityIn: [227, 214] } }
+  - { id: dx, when: { not: { entityIn: [227, 214] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,     source: AUTO_RST }
+    - { id: nr,  type: SERIAL,  source: AUTO_SERIAL }   # French stations: department (change the source)
+    - { id: loc, type: LOCATOR, source: FROM_STATION }
+  received:
+    - { id: rst,  type: RST,      required: true }
+    - { id: dept, type: DISTRICT, required: true, appliesWhen: { workedClass: f },
+        validation: { regex: "^([0-9]{2}|2[AB])$" } }
+    - { id: nr,   type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+    - { id: loc,  type: LOCATOR,  required: true, validation: { regex: "^[A-Ra-r]{2}[0-9]{2}[A-Xa-x]{2}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: departments, set: ref_departments, from: dept, scope: ONCE, appliesWhen: { workedClass: f } }
+  - { id: squares,     set: grid_squares,    from: loc,  scope: ONCE }
+
+dupe: { scope: ONCE }
+
+cabrillo: { contestName: DDFM-50, sentOrder: [rst, nr, loc], receivedOrder: [rst, dept, nr, loc] }
+ui:
+  entryOrder: [call, dept, nr, loc]
+  logColumns: [time, call, band, mode, rst, dept, nr, loc, points, mult]

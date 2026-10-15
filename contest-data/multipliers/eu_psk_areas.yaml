@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: eu_psk_areas
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "EPC EU Areas (EU PSK DX Contest, open)"
+  description: "Open set: EU Area code of the European PSK Club sent by European stations, written without spaces or dots (e.g. NOTMSE for Seljord, Norway). The list is published by the club (eupsk.club, euareas.xls) and was not verified here, so any 2-8 letters/digits are accepted."
+validation: { keyPattern: "^[A-Z0-9]{2,8}$" }

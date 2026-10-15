@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: uba_section_codes
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "UBA section codes incl. XXX (UBA Spring Contest)"
+  description: "Open set: any three-letter group sent by Belgian stations - the UBA section abbreviation, UBA for the national stations and XXX for non-members. In the UBA Spring Contest XXX counts as a multiplier, so unlike uba_sections it is accepted here."
+validation: { keyPattern: "^[A-Z]{3}$" }

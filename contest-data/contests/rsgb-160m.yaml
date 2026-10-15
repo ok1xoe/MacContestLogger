@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: rsgb-160m
+metadata:
+  name: "RSGB 1.8 MHz Contest"
+  organizer: "RSGB HF Contest Committee"
+  description: "Two events a year, 2000-2300 UTC on Saturday: February (CW and SSB; 2026: 14 February) and November (CW only; 2026: 21 November). Exchange RST + serial; UK&CD stations (G, GD, GI, GJ, GM, GU, GW) add their 2-letter RSGB district code. Everyone works everyone: each QSO 2 points (in February a station may be worked on both CW and SSB). Bonus 5 points for the first QSO with every UK&CD district and with every DXCC entity outside the UK&CD, regardless of mode. Score = QSO points + bonus points. The district codes are those of the UK/EI DX Contest list without the Irish counties (the same codes as the RSGB HF district list). For the November event log CW only. DX entrants: leave the own-district field empty (written as '-') or enter '--'."
+  officialUrl: "https://www.rsgbcc.org/hf/rules/2026/r160m.shtml"
+period: { durationHours: 3, startWeekday: SAT, startTime: "2000" }
+bands: [160m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: uk, when: { entityIn: [223, 114, 265, 122, 279, 106, 294] } }
+  - { id: dx, when: { not: { entityIn: [223, 114, 265, 122, 279, 106, 294] } } }
+
+exchange:
+  sent:
+    - { id: rst,    type: RST,    source: AUTO_RST }
+    - { id: nr,     type: SERIAL, source: AUTO_SERIAL }
+    - { id: mydist, type: TEXT,   source: FROM_STATION }   # UK&CD: own district code; DX: --
+  received:
+    - { id: rst,      type: RST,      required: true }
+    - { id: nr,       type: SERIAL,   required: true }
+    - { id: district, type: DISTRICT, required: true, appliesWhen: { workedClass: uk },
+        validation: { regex: "^[A-Z]{2}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 2 }
+  # 5 bonus points per district / DXCC entity, counted once regardless of mode
+  total: "qsoPoints + 5 * multTotal"
+
+multipliers:
+  - { id: districts, set: ukei_districts, from: district, scope: ONCE, appliesWhen: { workedClass: uk },
+      label: "UK&CD districts (bonus)" }
+  - { id: countries, set: dxcc_entities,  from: callsign, scope: ONCE, appliesWhen: { workedClass: dx },
+      label: "DXCC entities (bonus)" }
+
+dupe: { scope: PER_MODE }
+
+cabrillo: { contestName: RSGB-160, sentOrder: [rst, nr, mydist], receivedOrder: [rst, nr, district] }
+ui:
+  entryOrder: [call, nr, district]
+  logColumns: [time, call, band, mode, rst, nr, district, points, mult]

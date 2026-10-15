@@ -1,0 +1,40 @@
+schemaVersion: 1
+id: rsgb-club-calls
+metadata:
+  name: "RSGB Club Calls (AFS 160)"
+  organizer: "RSGB HF Contest Committee"
+  description: "Saturday in November, 2000-2300 UTC (2026: 14 November), 160 m, SSB-only or mixed CW & SSB sections, maximum 32 W. Club team contest for RSGB affiliated societies (UK&CD stations). Exchange RS(T) + serial + status (HQ = Club HQ, CM = Club Member, NC = No Club) + the four-letter club abbreviation for HQ and CM stations (NC stations: ----). Points: 3 per QSO, plus 5 for a Club Member, 25 for a Club HQ station and 50 for the RSGB HQ station (logged as HQ with club RSGB). No multipliers. In the mixed section a station may be worked once on SSB and once on CW. Simplified: the rule that QSOs with non-entrants and 'unique' QSOs earn QSO points only is applied by the adjudicators."
+  officialUrl: "https://www.rsgbcc.org/hf/rules/2026/rclubcalls.shtml"
+period: { durationHours: 3, startWeekday: SAT, startTime: "2000" }
+bands: [160m]
+modes: [CW, SSB]
+
+exchange:
+  sent:
+    - { id: rst,    type: RST,    source: AUTO_RST }
+    - { id: nr,     type: SERIAL, source: AUTO_SERIAL }
+    - { id: status, type: TEXT,   source: FROM_STATION }   # HQ, CM or NC
+    - { id: club,   type: TEXT,   source: FROM_STATION }   # four-letter club abbreviation (NC: ----)
+  received:
+    - { id: rst,    type: RST,    required: true }
+    - { id: nr,     type: SERIAL, required: true }
+    - { id: status, type: TEXT,   required: true, validation: { regex: "^(HQ|CM|NC)$" } }
+    - { id: club,   type: TEXT,   required: false }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 3
+    rules:
+      - { when: { allOf: [ { fieldEquals: { field: status, value: HQ } }, { fieldEquals: { field: club, value: RSGB } } ] },
+          value: { fixed: 53 } }
+      - { when: { fieldEquals: { field: status, value: HQ } }, value: { fixed: 28 } }
+      - { when: { fieldEquals: { field: status, value: CM } }, value: { fixed: 8 } }
+  total: "qsoPoints"
+
+dupe: { scope: PER_MODE }
+
+cabrillo: { contestName: RSGB-CLUB-CALLS, sentOrder: [rst, nr], receivedOrder: [rst, nr, status, club] }
+ui:
+  entryOrder: [call, nr, status, club]
+  logColumns: [time, call, band, mode, rst, nr, status, club, points]

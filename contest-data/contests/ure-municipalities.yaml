@@ -1,0 +1,39 @@
+schemaVersion: 1
+id: ure-municipalities
+metadata:
+  name: "Spanish Municipalities Contest (CME)"
+  organizer: "URE"
+  description: "Second full weekend of August (2026: 8-9 August), Saturday 1200-2259 UTC and Sunday 0500-1159 UTC, SSB, 80-10 m. Spanish stations send RS + DME municipality reference (EA4URE sends HQ); DX stations RS + serial. 1 point per QSO, each station once per band. Multipliers per band: Spanish municipalities + EA4URE (HQ). Score = points x multipliers. Simplified: the night break 2300-0500 UTC is not enforced (the period covers the whole 24 hours); a QSO must appear in two logs - applied by the log checkers."
+  officialUrl: "https://concursos.ure.es/en/cme/bases/"
+period: { durationHours: 24, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [SSB]
+
+stationClasses:
+  # Spain, Balearic, Canary, Ceuta & Melilla
+  - { id: ea, when: { entityIn: [281, 21, 29, 32] } }
+  - { id: dx, when: { not: { entityIn: [281, 21, 29, 32] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }   # EA stations: DME reference (change the source)
+  received:
+    - { id: rst, type: RST,      required: true }
+    - { id: dme, type: DISTRICT, required: true, appliesWhen: { workedClass: ea },
+        validation: { regex: "^([0-9]{5}|HQ)$" } }
+    - { id: nr,  type: SERIAL,   required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: municipalities, set: dme_municipalities, from: dme, scope: PER_BAND, appliesWhen: { workedClass: ea } }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: EA-CME, sentOrder: [rst, nr], receivedOrder: [rst, dme, nr] }
+ui:
+  entryOrder: [call, dme, nr]
+  logColumns: [time, call, band, mode, rst, dme, nr, points, mult]

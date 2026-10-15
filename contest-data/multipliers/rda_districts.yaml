@@ -1,0 +1,9 @@
+schemaVersion: 1
+id: rda_districts
+kind: FIXED
+keyType: TEXT
+enumerable: false
+metadata:
+  name: "RDA districts (Russian Districts Award, open)"
+  description: "Open set: RDA district number sent by Russian stations - two letters of the oblast + two digits (e.g. TB02, CB02; DO00, HE00, LU00, ZP00 for the control numbers of the RDA Contest). The official list is kept by the RDA award (rdaward.org)."
+validation: { keyPattern: "^[A-Z]{2}[0-9]{2}$" }

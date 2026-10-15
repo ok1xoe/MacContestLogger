@@ -1,0 +1,47 @@
+schemaVersion: 1
+id: uba-on-contest
+metadata:
+  name: "UBA ON Contest — HF"
+  organizer: "UBA (section MCL, Mechelen)"
+  description: "Autumn, two separate parts on Sunday 0600-1000 UTC: SSB (2026: 4 October) and CW (2026: 11 October), 80 and 40 m; one mode per part. Belgian stations send RS(T) + serial + UBA section (XXX for non-members, UBA for the national stations ON4UB, ON4UBA, ON4DIG, ON4YLC); others RS(T) + serial. Stations outside Belgium may only work Belgian stations (also ON stations operating abroad). 3 points per QSO. Multipliers: Belgian entrants - UBA sections per band and DXCC entities except ON per band and mode; others - UBA sections per band and mode; XXX is not a multiplier. Score = QSO points x multipliers. Simplified: a maximum of 10 QSOs per band with members of your own section count for points - not enforced; for Belgian entrants sections count per band and mode, which is the same as per band in a single-mode part."
+  officialUrl: "https://www.uba.be/en/hf/contest-rules/on-contest"
+period: { durationHours: 4, startWeekday: SUN, startTime: "0600" }
+bands: [80m, 40m]
+modes: [CW, SSB]
+
+stationClasses:
+  - { id: on, when: { entityIn: [209] } }
+  - { id: dx, when: { not: { entityIn: [209] } } }
+
+# foreign stations: only QSOs with Belgian stations are valid
+workable:
+  anyOf:
+    - { ownEntityIn: [209] }
+    - { workedClass: on }
+
+exchange:
+  sent:
+    - { id: rst,       type: RST,    source: AUTO_RST }
+    - { id: nr,        type: SERIAL, source: AUTO_SERIAL }
+    - { id: mysection, type: TEXT,   source: FROM_STATION }   # Belgian stations: own UBA section
+  received:
+    - { id: rst,     type: RST,    required: true }
+    - { id: nr,      type: SERIAL, required: true }
+    - { id: section, type: TEXT,   required: true, appliesWhen: { workedClass: on },
+        validation: { regex: "^[A-Z]{3}$" } }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 3 }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: sections,  set: uba_sections,  from: section,  scope: PER_BAND_MODE, appliesWhen: { workedClass: on } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND_MODE,
+      when: { allOf: [ { ownEntityIn: [209] }, { not: { entityIn: [209] } } ] } }
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: ON-CONTEST, sentOrder: [rst, nr, mysection], receivedOrder: [rst, nr, section] }
+ui:
+  entryOrder: [call, nr, section]
+  logColumns: [time, call, band, mode, rst, nr, section, points, mult]

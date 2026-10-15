@@ -1,0 +1,43 @@
+schemaVersion: 1
+id: xe-rtty
+metadata:
+  name: "Mexico RTTY International Contest"
+  organizer: "FMRE (Federación Mexicana de Radioexperimentadores)"
+  description: "February, 1200 UTC Saturday to 2359 UTC Sunday (36 hours; 2026: 7-8 February), Baudot RTTY only, 80-10 m without WARC. Mexican stations send RST + state, others RST + serial. Points: QSO in the same country 2, with a different country 3, with any XE station 4. Multipliers per band: the 32 Mexican states (incl. Ciudad de México) and DXCC countries. Score = points x multipliers. Simplified: the state abbreviation list of the rules was not verified, so any 2-4 letter code is accepted (open set xe_states); an XE entrant working XE is taken as 4 points."
+  officialUrl: "https://rtty.fmre.mx/reglas.html"
+period: { durationHours: 36, startWeekday: SAT, startTime: "1200" }
+bands: [80m, 40m, 20m, 15m, 10m]
+modes: [RTTY]
+
+stationClasses:
+  - { id: xe, when: { entityIn: [50] } }
+  - { id: dx, when: { not: { entityIn: [50] } } }
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }   # Mexican stations: state (change the source)
+  received:
+    - { id: rst,   type: RST,    required: true }
+    - { id: state, type: STATE,  required: true, appliesWhen: { workedClass: xe } }
+    - { id: nr,    type: SERIAL, required: true, appliesWhen: { workedClass: dx } }
+
+scoring:
+  qsoPoints:
+    mode: FIRST_MATCH
+    default: 3
+    rules:
+      - { when: { workedClass: xe },  value: { fixed: 4 } }
+      - { when: { ownDxcc: true },    value: { fixed: 2 } }
+  total: "qsoPoints * multTotal"
+
+multipliers:
+  - { id: states,    set: xe_states,     from: state,    scope: PER_BAND, appliesWhen: { workedClass: xe } }
+  - { id: countries, set: dxcc_entities, from: callsign, scope: PER_BAND }
+
+dupe: { scope: PER_BAND }
+
+cabrillo: { contestName: XE-RTTY, sentOrder: [rst, nr], receivedOrder: [rst, state, nr] }
+ui:
+  entryOrder: [call, state, nr]
+  logColumns: [time, call, band, mode, rst, state, nr, points, mult]

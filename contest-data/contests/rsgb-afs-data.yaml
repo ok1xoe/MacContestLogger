@@ -1,0 +1,29 @@
+schemaVersion: 1
+id: rsgb-afs-data
+metadata:
+  name: "RSGB AFS Contest — Data"
+  organizer: "RSGB HF Contest Committee"
+  description: "January (2026: Sunday 11 January), 1300-1700 UTC, 80 m and 40 m, RTTY and PSK63; each station once per band on each of the two modes, the score is the sum of both. Club team contest between RSGB affiliated societies (teams of up to four UK&CD stations; power sections maximum, 100 W, 10 W). Exchange RS(T) + serial (one sequence for both bands). 1 point per valid QSO, no multipliers. Team scores are summed by the adjudicators."
+  officialUrl: "https://www.rsgbcc.org/hf/rules/2026/rafs.shtml"
+period: { durationHours: 4, startWeekday: SUN, startTime: "1300" }
+bands: [80m, 40m]
+modes: [RTTY, PSK]
+
+exchange:
+  sent:
+    - { id: rst, type: RST,    source: AUTO_RST }
+    - { id: nr,  type: SERIAL, source: AUTO_SERIAL }
+  received:
+    - { id: rst, type: RST,    required: true }
+    - { id: nr,  type: SERIAL, required: true }
+
+scoring:
+  qsoPoints: { mode: FIRST_MATCH, default: 1 }
+  total: "qsoPoints"
+
+dupe: { scope: PER_BAND_MODE }
+
+cabrillo: { contestName: RSGB-AFS-DATA, sentOrder: [rst, nr], receivedOrder: [rst, nr] }
+ui:
+  entryOrder: [call, nr]
+  logColumns: [time, call, band, mode, rst, nr, points]
