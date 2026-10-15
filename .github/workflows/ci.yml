@@ -27,7 +27,19 @@ jobs:
       - name: Release version rules
         run: scripts/release-version.sh --self-test
       - name: Tests
-        run: scripts/test.sh
+        run: |
+          ulimit -s; ulimit -c
+          set +e
+          scripts/test.sh
+          rc=$?
+          sleep 30
+          for d in ~/Library/Logs/DiagnosticReports /Library/Logs/DiagnosticReports; do
+            ls -la "$d" 2>/dev/null
+            find "$d" -newer Package.swift \( -name '*.ips' -o -name '*.crash' \) 2>/dev/null | while read -r f; do
+              echo "=== CRASH REPORT $f"; head -c 400000 "$f"; echo
+            done
+          done
+          exit $rc
       # Static accessibility audit of the views (reads sources only, starts nothing): icon and glyph controls,
       # canvases and AppKit islands carry a label, every window has the font stepper, the spoken texts are translated.
       - name: Accessibility audit
