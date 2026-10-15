@@ -167,10 +167,11 @@ import Testing
         // 12 keys of the Grayline layers, spot count and clearing, the MULT/RUN indicator and the contest goal file and
         // 5 keys of the transaction file recovery and
         // 3 keys of the Spots, Lookup and All QSOs broadcast and the shared receive port and
-        // 3 keys of the ADIF export from all contests, the text export by band and the Cabrillo copy to supercheckpartial.com.
-        #expect(map.count == 1_925)
+        // 3 keys of the ADIF export from all contests, the text export by band and the Cabrillo copy to supercheckpartial.com and
+        // the free-form exchange.
+        #expect(map.count == 1_927)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_925)
+        #expect(german.count == 1_927)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

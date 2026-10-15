@@ -48,17 +48,21 @@ public enum QsoAssembly {
     }
 
     /// The QSO copies of one contest entry: with a county line in a contest that uses the rover QTH,
-    /// one copy per county (N1MM COUNTYLINE), otherwise one copy with `roverQthForDupe`. All copies carry
+    /// one copy per county (N1MM COUNTYLINE), otherwise one copy with `roverQthForDupe`; each of them once per part
+    /// of a received `split` field (`ORDES/JEF`, N1MM 7QP). All copies carry
     /// the same serial number (the one that was sent); `sentFlat` is asked for every copy's QTH.
     public static func contestQsos(form: EntryForm, fields: [ContestDefinition.ExchangeField],
                                    rstFieldIds: [String?], serial: Int, runMode: RunMode, countyLine: [String],
                                    usesRoverQth: Bool, roverQth: String, note: String?, at: Date?,
                                    sentFlat: (String?) -> String?) -> [(qth: String?, qso: Qso)] {
         let qths = loggingQths(countyLine: countyLine, usesRoverQth: usesRoverQth, roverQth: roverQth)
-        return qths.map { qth in
-            let qso = contest(form: form, fields: fields, rstFieldIds: rstFieldIds, serial: serial, runMode: runMode,
-                              sentFlat: sentFlat(qth), note: note, at: at)
-            return (qth: qth, qso: qso)
+        let forms: [EntryForm] = ExchangeSplit.forms(form, fields: fields)
+        return qths.flatMap { qth in
+            forms.map { received in
+                let qso = contest(form: received, fields: fields, rstFieldIds: rstFieldIds, serial: serial,
+                                  runMode: runMode, sentFlat: sentFlat(qth), note: note, at: at)
+                return (qth: qth, qso: qso)
+            }
         }
     }
 

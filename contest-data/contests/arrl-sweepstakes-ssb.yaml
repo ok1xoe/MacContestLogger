@@ -3,13 +3,14 @@ id: arrl-sweepstakes-ssb
 metadata:
   name: "ARRL November Sweepstakes — SSB"
   organizer: "ARRL"
-  description: "third full weekend of November, 2100 UTC Saturday to 0259 UTC Monday, 24 of the 30 hours. W/VE (incl. US territories) work W/VE only, each station once regardless of band. Exchange: serial number, precedence (Q, A, B, U, M, S), call sign, check (2-digit year first licensed), ARRL/RAC section. 2 points per QSO, multipliers are ARRL/RAC sections once per contest. The exchange is entered field by field (the call sign in the exchange is not logged separately)."
+  description: "third full weekend of November, 2100 UTC Saturday to 0259 UTC Monday, 24 of the 30 hours. W/VE (incl. US territories) work W/VE only, each station once regardless of band. Exchange: serial number, precedence (Q, A, B, U, M, S), call sign, check (2-digit year first licensed), ARRL/RAC section. 2 points per QSO, multipliers are ARRL/RAC sections once per contest. The exchange is typed into one box in any order (e.g. `123 A 72 OH`, `123A K1ABC 72OH`); a call sign in it corrects the logged call."
   officialUrl: "https://www.arrl.org/sweepstakes"
 period: { durationHours: 30, startWeekday: SAT, startTime: "2100" }
 bands: [160m, 80m, 40m, 20m, 15m, 10m]
 modes: [SSB]
 
 exchange:
+  freeForm: true   # one box, any order (N1MM); a call typed in it corrects the logged call
   sent:
     - { id: nr,   type: SERIAL,  source: AUTO_SERIAL }
     - { id: prec, type: TEXT,    source: FROM_STATION }

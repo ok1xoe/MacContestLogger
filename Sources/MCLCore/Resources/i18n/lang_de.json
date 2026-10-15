@@ -1923,5 +1923,7 @@
  "Sdílet port s dalšími aplikacemi": "Port mit anderen Anwendungen teilen",
  "Ze všech závodů v databázi": "Aus allen Contesten der Datenbank",
  "Po exportu Cabrilla připravit e-mail s kopií na logs@supercheckpartial.com (pro master.scp)": "Nach dem Cabrillo-Export eine E-Mail mit einer Kopie an logs@supercheckpartial.com vorbereiten (für master.scp)",
- "Text podle pásma…": "Text nach Band sortiert…"
+ "Text podle pásma…": "Text nach Band sortiert…",
+ "Výklad výměny: %s": "Auswertung des Austauschs: %s",
+ "Části výměny v libovolném pořadí; volačka ve výměně opraví zapsanou volačku": "Teile des Austauschs in beliebiger Reihenfolge; ein Rufzeichen im Austausch korrigiert das geloggte Rufzeichen"
 }

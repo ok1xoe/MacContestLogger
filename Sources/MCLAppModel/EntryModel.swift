@@ -51,6 +51,8 @@ public final class EntryModel {
     /// The exchange values the call history or a spot filled in (field id → value), for N1MM „Clear auto-populated
     /// exchange on callsign change".
     @ObservationIgnored var autoFilled: [String?: String] = [:]
+    /// The free-form exchange box as typed (`exchange.freeForm`), `nil` = not typed since the last wipe.
+    var freeFormRaw: String?
     /// The serial number a sent message of this QSO carried (N1MM's serial sequence warning).
     @ObservationIgnored var serialSentInQso: Int?
     /// What `bandStatuses` were computed for (a CAT poll with nothing new recomputes nothing).
@@ -356,9 +358,13 @@ public final class EntryModel {
     }
 
     /// The received field typed in last (the Check window's exchange pane follows it).
-    public private(set) var lastEditedField: String?
+    public internal(set) var lastEditedField: String?
 
     public func editContestField(_ id: String?, _ text: String) {
+        if id == ExchangeFreeForm.boxId {
+            editFreeForm(text)
+            return
+        }
         autoFilled[id] = nil
         if lastEditedField != id {
             lastEditedField = id
@@ -388,6 +394,8 @@ public final class EntryModel {
             editRstRcvd(value)
         case .exchange:
             editExchange(value)
+        case .contest(let id) where id == ExchangeFreeForm.boxId:
+            appendFreeForm(value)
         case .contest(let id):
             editContestField(id, value)
         case .time:
@@ -455,6 +463,7 @@ public final class EntryModel {
         form = form.wiped(contestActive: contest.isActive, rstFieldIds: EntryForm.rstFieldIds(fields))
         esmProgress = .empty
         autoFilled = [:]
+        freeFormRaw = nil
         serialSentInQso = nil
         wasDupe = isDupe
         updateBandStatuses()
@@ -565,6 +574,10 @@ public final class EntryModel {
             at = parsed
         }
         let contestPath: Bool = contest.isActive
+        if contestPath, let corrected = freeFormCall, corrected != form.call {
+            // N1MM Sweepstakes: a call typed in the exchange is the one logged.
+            form.call = corrected
+        }
         if contestPath {
             // N1MM exchange abbreviations: the QSO is logged with the replacements.
             let replaced: JavaLinkedMap<String> = effectiveExchange
@@ -589,6 +602,7 @@ public final class EntryModel {
             let usesRover: Bool = contest.usesRoverQth
             let units: Int = QsoAssembly.loggingQths(countyLine: countyLine, usesRoverQth: usesRover,
                                                      roverQth: config.config.station.roverQth).count
+                * ExchangeSplit.forms(logged, fields: fields).count
             copies = contestCopies(logged, serial: logbook.reserveSerial(units: units, band: band), note: note,
                                    at: at)
         } else {

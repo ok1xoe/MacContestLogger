@@ -99,7 +99,7 @@ private struct EntryFieldsRow: View {
             if app.contest.isActive {
                 WeightedField(label: "SentNr", weight: 0.8,
                               content: Readout(text: String(format: "%03ld", app.logbook.nextSerial)))
-                ContestFieldsView(entry: entry, focus: focus)
+                ContestFieldsView(app: app, entry: entry, focus: focus)
             } else {
                 // Free logging: reports only — no serial number and no exchange field.
                 WeightedField(label: "Rcv", weight: 0.8, content: field(.rstRcvd, text: entry.form.rstRcvd,
@@ -152,10 +152,34 @@ private struct EntryFieldsRow: View {
 
 /// The received fields of the active contest (Kotlin `cfields.forEachIndexed`).
 private struct ContestFieldsView: View {
+    let app: AppModel
     let entry: EntryModel
     let focus: EntryFocusController
 
     var body: some View {
+        if entry.freeFormExchange {
+            freeFormBox
+        } else {
+            fieldBoxes
+        }
+    }
+
+    /// N1MM Sweepstakes: one box for the whole exchange, its interpretation next to the label.
+    private var freeFormBox: some View {
+        let preview: String = entry.freeFormPreview
+        let label: String = app.language.tr("Výměna")
+        return WeightedField(label: label, weight: Double(max(3, entry.fields.count)),
+                             accent: preview.isEmpty ? nil : FieldAccent(
+                                text: preview, accessibilityLabel: app.language.tr("Výklad výměny: %s", .string(preview)),
+                                help: app.language.tr("Části výměny v libovolném pořadí; volačka ve výměně opraví zapsanou volačku")),
+                             content: EntryFieldBox(key: .contest(ExchangeFreeForm.boxId), text: entry.freeFormText,
+                                                    transform: .uppercase, big: false, label: label,
+                                                    isError: false, focus: focus,
+                                                    onChange: { entry.editFreeForm($0) },
+                                                    tinted: entry.quickEdit != nil))
+    }
+
+    private var fieldBoxes: some View {
         ForEach(Array(entry.fields.enumerated()), id: \.offset) { _, contestField in
             let id: String? = contestField.id
             WeightedField(label: id ?? "null", weight: 1,

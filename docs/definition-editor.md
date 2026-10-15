@@ -72,7 +72,17 @@ ui: { entryOrder: [call, rst, nr], logColumns: [time, call, band, mode, rst, nr]
 | `numbering: { perBand: true }` | the serial number runs on each band separately; with `multiOpOnly: true` only in a multi-transmitter category (`MULTI-OP` with `UNLIMITED` / `DISTRIBUTED`) | `QsoNumbersByBand 1` / `2` |
 | `workable: { continentIs: EU }` | who may be worked (any condition); a QSO outside it is logged with a warning and scores no points and no multipliers | `IsWorkable` |
 | sent field `source: DERIVED` with `derive: lastCall2L` / `lastCallSuffix` | the last two letters / the suffix of the previous QSO's call (anything after `/` is ignored) is sent | `Last2L`, `LastCallSuff` |
+| `exchange: { freeForm: true, … }` | the entry window has one exchange box instead of a box per field; the words are assigned to the fields by their shape in any order (see below) | Sweepstakes exchange |
+| received field `split: true` | a value `A/B/C` (a station on a county line) logs one QSO per part; a shorter part takes the first part's leading characters (`ORDES/JEF` = `ORDES` + `ORJEF`) | 7QP county line |
 | `period: { startWeekday: SAT, startTime: "1200" }` | the New contest dialog proposes the next such date as the start (unless the saved start is still running) | `StartOfContest` |
+
+**Free-form exchange** (`freeForm: true`, ARRL Sweepstakes): type the exchange into the one box as it is heard, e.g.
+`123 A 72 OH`, `A 123 OH 72` or `123A 72OH`. Each word goes to the first field it fits that is still empty: fields
+with a shape of their own (a number, a report, a zone, a locator or a `validation`) first, free text fields last;
+a word mixing digits and letters is split (`123A` = `123` + `A`). A word typed again corrects the earlier value
+(`123 A 72 OH 73` → check 73), and a callsign in the box (`K1ABC`) is logged instead of the call field's. The
+interpretation is shown above the box (`nr 123 · prec A · ck 72 · sec OH`, `?` = a word that fits nowhere). Give
+the serial before the check when both are numbers.
 
 A received or sent field of type `IOTA` is written to Cabrillo with the dash (`EU123` → `EU-123`).
 

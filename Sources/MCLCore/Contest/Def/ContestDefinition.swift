@@ -259,15 +259,20 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
     public struct Exchange: YamlRecord, Equatable, Sendable {
         public var sent: [ExchangeField?]?
         public var received: [ExchangeField?]?
+        /// `freeForm: true` (Swift-only key, N1MM Sweepstakes): the entry window has one exchange box, its words
+        /// are assigned to the received fields by what they look like, in any order (`ExchangeFreeForm`).
+        public var freeForm: Bool
 
-        public init(sent: [ExchangeField?]?, received: [ExchangeField?]?) {
+        public init(sent: [ExchangeField?]?, received: [ExchangeField?]?, freeForm: Bool = false) {
             self.sent = sent
             self.received = received
+            self.freeForm = freeForm
         }
 
         public init(yaml object: YamlObject) {
             sent = object.list("sent", of: ExchangeField.self)
             received = object.list("received", of: ExchangeField.self)
+            freeForm = object.bool("freeForm") ?? false
         }
     }
 
@@ -284,11 +289,15 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         /// A `DERIVED` sent field's value (Swift-only key): `lastCall2L` = the last two letters, `lastCallSuffix` =
         /// the suffix of the previous QSO's call (N1MM `Last2L` / `LastCallSuff`).
         public var derive: String?
+        /// `split: true` (Swift-only key, N1MM 7QP county line): a received value `A/B/C` logs one QSO per part;
+        /// a shorter part takes the leading characters of the first one (`ORDES/JEF` = `ORDES` + `ORJEF`).
+        public var split: Bool
 
         public init(id: String?, type: FieldType?, required: Bool, source: FieldSource?,
                     appliesWhen: AppliesWhen?, validation: FieldValidation?, estimate: String? = nil,
-                    derive: String? = nil) {
+                    derive: String? = nil, split: Bool = false) {
             self.derive = derive
+            self.split = split
             self.id = id
             self.type = type
             self.required = required
@@ -307,6 +316,7 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             validation = object.decode("validation", as: FieldValidation.self)
             estimate = object.string("estimate")
             derive = object.string("derive")
+            split = object.bool("split") ?? false
         }
 
         /// `derive: lastCall2L` / `lastCallSuffix` (case-insensitive) of a `DERIVED` field.

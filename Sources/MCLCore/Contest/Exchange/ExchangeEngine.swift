@@ -64,11 +64,29 @@ public struct ExchangeEngine: Sendable {
 
     /// Parses and validates a field value (type + `field.validation`).
     public func parse(_ field: ContestDefinition.ExchangeField, _ raw: String?) throws(ExchangeError) -> ExchangeValue {
+        if field.split, let raw, raw.contains("/") {
+            return try parseSplit(field, raw)
+        }
         let value = try handler(for: field.type).parse(raw)
         if !value.valid {
             return value
         }
         return Self.applyValidation(field, value)
+    }
+
+    /// `split: true` with `A/B/C`: every part (shorthand expanded) is checked on its own; valid when all are.
+    private func parseSplit(_ field: ContestDefinition.ExchangeField, _ raw: String) throws(ExchangeError) -> ExchangeValue {
+        var single = field
+        single.split = false
+        var canonical: [String] = []
+        for part in ExchangeSplit.parts(raw) {
+            let value = try parse(single, part)
+            if !value.valid {
+                return .invalid(raw, value.error)
+            }
+            canonical.append(value.canonical ?? part)
+        }
+        return canonical.isEmpty ? .invalid(raw, "prázdné") : .valid(raw, canonical.joined(separator: "/"))
     }
 
     /// Order of checks as in Java: `regex` (whole string) → `length` (UTF-16) → `min`/`max`
