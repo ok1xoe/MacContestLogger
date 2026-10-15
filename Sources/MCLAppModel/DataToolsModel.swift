@@ -53,6 +53,8 @@ public final class DataToolsModel {
     public internal(set) var clubLogCtyResult: ContestMessage?
     /// A Club Log DXCC update is running (the Settings button is off meanwhile).
     public internal(set) var clubLogCtyRunning: Bool = false
+    /// The published DX cluster list of Settings → DX Cluster („Vybrat ze seznamu").
+    @ObservationIgnored public let clusterDirectory: ClusterDirectoryModel
     @ObservationIgnored private var definitionChain: Task<Void, Never>?
     @ObservationIgnored private var tasks: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored private var nextTaskId: Int = 0
@@ -69,6 +71,7 @@ public final class DataToolsModel {
         let now: @Sendable () -> Date
         let definitionSource: DefinitionSource
         var clubLogFetcher: (any DataFetcher)? = nil
+        var clusterListFetcher: (any DataFetcher)? = nil
     }
 
     init(_ dependencies: Dependencies) {
@@ -83,6 +86,8 @@ public final class DataToolsModel {
         now = dependencies.now
         definitionSource = dependencies.definitionSource
         clubLogFetcher = dependencies.clubLogFetcher
+        clusterDirectory = ClusterDirectoryModel(dataDir: dependencies.dataDir,
+                                                 fetcher: dependencies.clusterListFetcher)
     }
 
     // MARK: - DXCC refill

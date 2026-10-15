@@ -187,10 +187,11 @@ import Testing
         // the sub receiver texts and
         // the radio 2 audio texts and
         // the second Available window and
-        // the Multipliers window's modes shown.
-        #expect(map.count == 2_420)
+        // the Multipliers window's modes shown and
+        // the cluster list chooser.
+        #expect(map.count == 2_442)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_420)
+        #expect(german.count == 2_442)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)
