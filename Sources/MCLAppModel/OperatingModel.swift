@@ -48,8 +48,26 @@ public final class OperatingModel {
     }
     /// N1MM `{SETWAVDIR}`: the value of `{WAVDIR}` when it is not the operator's call (`nil`).
     public private(set) var wavDirName: String?
-    /// Kotlin `lastSentKeys` (`=` in ESM resends them).
-    public var lastSentKeys: [Int] = []
+    /// Kotlin `lastSentKeys` (`=` in ESM resends them), one list per entry window: with two entry windows (SO2R
+    /// 2BSIQ) each window repeats its own last message, not the one the other radio sent meanwhile.
+    public private(set) var windowLastSentKeys: [[Int]] = [[], []]
+
+    /// The last keys of the first entry window (the only one with one radio).
+    public var lastSentKeys: [Int] {
+        get { windowLastSentKeys[0] }
+        set { windowLastSentKeys[0] = newValue }
+    }
+
+    /// The last keys sent from entry window `window` (0 / 1).
+    public func lastSentKeys(window: Int) -> [Int] {
+        windowLastSentKeys.indices.contains(window) ? windowLastSentKeys[window] : []
+    }
+
+    /// Remembers the keys entry window `window` sent last.
+    public func setLastSentKeys(_ keys: [Int], window: Int) {
+        guard windowLastSentKeys.indices.contains(window) else { return }
+        windowLastSentKeys[window] = keys
+    }
     /// N1MM `{VARYMSG1}` / `{VARYMSG2}`: how many times each was sent (shared by every mode and entry window).
     public private(set) var varyCounts: [Int] = [0, 0]
     /// Kotlin `tunedFreqHz`: the frequency the entry window is on.

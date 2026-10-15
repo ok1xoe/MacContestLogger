@@ -2483,5 +2483,6 @@
  "FSK:": "FSK:",
  "CAT / VOX": "CAT / VOX",
  "FSK obrácená polarita (aktivní linka = mark)": "FSK inverted polarity (active line = mark)",
- "Vestavěné FSK klíčuje linku DTR nebo RTS sériového portu s přesným časováním (náhrada EXTFSK); rig v režimu RTTY/FSK. Zvuk se pak nevysílá.": "Built-in FSK keys the DTR or RTS line of a serial port with precise timing (an EXTFSK replacement); the rig in RTTY/FSK mode. No audio is sent then."
+ "Vestavěné FSK klíčuje linku DTR nebo RTS sériového portu s přesným časováním (náhrada EXTFSK); rig v režimu RTTY/FSK. Zvuk se pak nevysílá.": "Built-in FSK keys the DTR or RTS line of a serial port with precise timing (an EXTFSK replacement); the rig in RTTY/FSK mode. No audio is sent then.",
+ "Opakování CQ ukončeno vysíláním na rádiu %s": "CQ repeat ended by a transmission on radio %s"
 }
