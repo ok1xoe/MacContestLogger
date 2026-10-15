@@ -27,7 +27,9 @@ jobs:
       - name: Release version rules
         run: scripts/release-version.sh --self-test
       - name: Tests
-        run: scripts/test.sh
+        run: |
+          (while true; do echo "MON $(date +%T) $(df -h / | tail -1) | $(du -sh .build 2>/dev/null | cut -f1) | $(vm_stat | grep -E 'free|swapouts' | tr -s ' ' | tr '\n' ' ')"; sleep 15; done) &
+          scripts/test.sh
       # Static accessibility audit of the views (reads sources only, starts nothing): icon and glyph controls,
       # canvases and AppKit islands carry a label, every window has the font stepper, the spoken texts are translated.
       - name: Accessibility audit
