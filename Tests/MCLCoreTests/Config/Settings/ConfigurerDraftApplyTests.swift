@@ -314,7 +314,7 @@ import Testing
                                "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",
                                "colorOverrides", "fontFamily", "fixedFontFamily", "spotTooltips",
                                "digiRadioMode", "stationPerDatabase",
-                               "checkUpdatesAtStart", "accessibilityAnnouncements", "qtcSetup", "rotorSetup", "spectrumSetup", "so2rSetup", "builtinModemSetup", "builtinModem",
+                               "checkUpdatesAtStart", "accessibilityAnnouncements", "qtcSetup", "rotorSetup", "spectrumSetup", "so2rSetup", "builtinModemSetup", "windowSetup", "builtinModem",
                                "rotors", "offset", "bidirectional",
                                "callHistoryFile", "functionKeyFiles", "firstSerial", "scpFile", "goalFile",
                                "civAddress", "pollRate", "reverseCw", "muteMicOnVoice", "subReceiverOn",

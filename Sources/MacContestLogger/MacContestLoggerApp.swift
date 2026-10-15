@@ -71,6 +71,9 @@ struct MacContestLoggerApp: App {
         toolWindow("Rotátor", id: RotatorWindowView.id, size: CGSize(width: 360, height: 460)) {
             RotatorWindowView(host: host)
         }
+        toolWindow("Dvě klávesnice", id: TwoKeyboardsWindowView.id, size: CGSize(width: 560, height: 380)) {
+            TwoKeyboardsWindowView(host: host)
+        }
         toolWindow("CW z klávesnice", id: CwKeyboardWindowView.id, size: CGSize(width: 560, height: 220)) {
             CwKeyboardWindowView(host: host)
         }

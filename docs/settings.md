@@ -147,6 +147,20 @@ N1MM's Tools → Save / Restore Window Positions:
 - N1MM's Ctrl+Tab rotation between the windows is the macOS **Cmd+`** (and Cmd+Shift+`); Ctrl+Tab in the entry
   window keeps its N1MM meaning.
 
+### Snapping windows and grabbing the focus
+
+Two switches in the **Nastavení** (Settings) menu, both off by default and remembered between runs:
+
+- **Přichytávat okna k okrajům** (N1MM "Snap windows to edges"): a window you drag and let go within 12 points of
+  a screen edge (the menu bar and the Dock excluded) or of another MacContestLogger window snaps to it — side by
+  side or aligned with the other window's edge. The snap happens when you release the mouse; windows the app moves
+  itself (restoring a layout) are left alone. N1MM's title bar fonts have no macOS counterpart.
+- **Převzít fokus od jiných aplikací při ladění rádia** (N1MM "Grab Focus From Other Apps When Radio Is Tuned"):
+  when you turn the knob of a radio the app controls while another application is in front, MacContestLogger comes
+  to the front with the entry window of that radio (in SO2R the rig 2 window for rig 2). A frequency change the app
+  made itself (a QSY, a spot, the arrows, a VFO swap) never does, and nothing happens while a dialog or a sheet is
+  open or when the app already has the focus. macOS may still refuse to switch applications in some cases.
+
 ## Appearance
 
 **Nastavení → Other → Vzhled** (Settings → Other → Appearance):
@@ -262,7 +276,7 @@ Settings `Cmd+,` and Quit.
 | Zobrazení (View) | Show ? on unmatched calls, Look up the call on QRZ.com, Search the call on Google (the call typed in the active entry window, opened in the browser) |
 | Závod (Contest) | Late entry, Record contest, None (free logging) |
 | Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Assign call to country, Download master.scp, Update definitions, Update DXCC from Club Log, Import / Remove a country list ([DXCC data](dxcc-data.md#import-a-country-list-from-a-file)), Update call history, Clear call history, Load beacon file, Definition editor, Program execution logging, Open diagnostics folder, Check for new program version, Check for a new version at start (see below) |
-| Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles, Enable call history lookup (a check item, see [Call history](call-history.md#enabling-the-lookup)), Exchange abbreviations, Announcements for blind operators (VoiceOver, see [Entry window](entry-window.md#announcements-for-blind-operators-voiceover)) |
+| Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles, Enable call history lookup (a check item, see [Call history](call-history.md#enabling-the-lookup)), Exchange abbreviations, Announcements for blind operators (VoiceOver, see [Entry window](entry-window.md#announcements-for-blind-operators-voiceover)), AutoSend threshold, Grab focus when a radio is tuned, Snap windows to edges ([above](#snapping-windows-and-grabbing-the-focus)), SO2R |
 | Okno (Window) | the application's windows, Multiplikátory (Multipliers) and, after a separator, **Vlastní** (Custom) with the windows of window plugins ([Plugin windows](plugin-windows.md)) |
 | Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Contest rules (the `officialUrl` of the open contest's definition), Contest calendar (WA7BNM), Report a bug (GitHub issues), View error log, Open data folder (honours `MCL_DATA_DIR`), Check for updates |
 

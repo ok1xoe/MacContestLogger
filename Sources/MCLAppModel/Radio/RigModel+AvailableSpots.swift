@@ -51,6 +51,7 @@ extension RigModel {
             show(.tr("Rig %s: připoj TRX (CAT)", .int(rig + 1)))
             return
         }
+        noteAppTune(rig: rig, freqHz: freqHz)
         lanes[rig].run { cat in
             try? cat.tune(freqHz)
         }
