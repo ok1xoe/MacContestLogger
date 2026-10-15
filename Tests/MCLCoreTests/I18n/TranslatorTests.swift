@@ -188,10 +188,11 @@ import Testing
         // the radio 2 audio texts and
         // the second Available window and
         // the Multipliers window's modes shown and
+        // the cluster list chooser and
         // 27 keys of the built-in RTTY modem.
-        #expect(map.count == 2_443)
+        #expect(map.count == 2_465)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_443)
+        #expect(german.count == 2_465)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

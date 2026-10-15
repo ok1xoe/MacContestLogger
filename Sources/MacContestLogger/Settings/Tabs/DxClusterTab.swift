@@ -8,6 +8,7 @@ import SwiftUI
 struct DxClusterTab: View {
     let app: AppModel
     @Binding var draft: ConfigurerDraft
+    @StateObject private var showChooserState = ViewState<Bool>(false)
 
     private var language: LanguageModel { app.language }
 
@@ -27,6 +28,8 @@ struct DxClusterTab: View {
             }
             HStack(spacing: 8) {
                 SettingsButton(language.tr("Přidat cluster")) { draft.addDxFavorite() }
+                SettingsButton(language.tr("Vybrat ze seznamu…")) { showChooserState.value = true }
+                    .accessibilityIdentifier("settings.dxcluster.choose")
                 SettingsButton(language.tr("Importovat seznam…")) { importList() }
                     .accessibilityIdentifier("settings.dxcluster.import")
                 SettingsButton(language.tr("Exportovat seznam…")) { exportList() }
@@ -57,6 +60,9 @@ struct DxClusterTab: View {
                             items: $draft.blacklistedCalls)
             BlacklistEditor(language: language, title: language.tr("Blacklist spotterů"),
                             items: $draft.blacklistedSpotters)
+        }
+        .sheet(isPresented: $showChooserState.value) {
+            ClusterChooserSheet(app: app, draft: $draft) { showChooserState.value = false }
         }
     }
 

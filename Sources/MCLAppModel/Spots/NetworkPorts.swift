@@ -97,6 +97,8 @@ public struct NetworkPorts: Sendable {
     public var launchApp: @Sendable (_ path: String, _ arguments: [String]) throws -> Void = NetworkPorts.inertLaunch
     /// The Bonjour search for MQTT brokers in the LAN (Settings → Cluster). Inert = finds nothing.
     public var discoverBrokers: BrokerDiscoverer = BonjourBrokerBrowser.inert
+    /// The opt-in download of the published DX cluster list (Settings → DX Cluster); `nil` = nothing is downloaded.
+    public var clusterList: (any DataFetcher)?
 
     /// The network services default to inert, so a test that passes only the spot ports opens nothing else.
     public init(makeSession: @escaping @Sendable (ClusterHooks) -> any ClusterSessionPort, http: any HttpGetter,
@@ -171,6 +173,7 @@ public struct NetworkPorts: Sendable {
                                  online: .live, clock: LiveClockProbe.probe, plugins: .live,
                                  clubLogCty: URLSessionDataFetcher(), launchApp: liveLaunch)
         ports.discoverBrokers = BonjourBrokerBrowser.live
+        ports.clusterList = BoundedDataFetcher()
         return ports
     }()
 

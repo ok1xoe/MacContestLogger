@@ -102,4 +102,16 @@ extension ConfigurerDraft {
         dxFavorites += added.map { DxFavoriteDraft($0) }
         return added.count
     }
+
+    /// „Vybrat ze seznamu": a cluster of the published list as a new favorite, logging in with the station's
+    /// callsign. `false` (nothing added) when the draft already has its `host:port`.
+    @discardableResult
+    public mutating func addDxFavorite(from entry: ClusterDirectory.Entry) -> Bool {
+        let login: String = KotlinText.trim(call).uppercased()
+        let existing: [DxClusterFavorite] = dxFavorites.map { $0.toFavorite() }
+        let merged: [DxClusterFavorite] = ClusterListFile.merge(existing, [entry.favorite(login: login)])
+        guard merged.count > existing.count, let added = merged.last else { return false }
+        dxFavorites.append(DxFavoriteDraft(added))
+        return true
+    }
 }
