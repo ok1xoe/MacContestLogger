@@ -2237,5 +2237,21 @@
  "Zobrazit spoty nad spektrem": "Show spots over the spectrum",
  "Jen spoty, které je slyšet": "Only spots that can be heard",
  "Neznámé signály jako spoty @frekvence (bandmapa, Dostupné)": "Unknown signals as @frequency spots (band map, Available)",
- "Citlivost na statiku": "Static sensitivity"
+ "Citlivost na statiku": "Static sensitivity",
+ "Příjem spektra (UDP): %s": "Spectrum reception (UDP): %s",
+ "Příjem spektra přes UDP je vypnutý (Volby spektra → Zdroj a síť)": "Receiving the spectrum over UDP is off (Spectrum options → Source and network)",
+ "Čekám na spektrum přes UDP…": "Waiting for a spectrum over UDP…",
+ "Čekám na spektrum „%s“ přes UDP…": "Waiting for the spectrum “%s” over UDP…",
+ "Spektrum přes UDP: %s": "Spectrum over UDP: %s",
+ "Zdroj a síť": "Source and network",
+ "Zdroj spektra": "Spectrum source",
+ "Audio přijímače": "Receiver audio",
+ "Externí přes UDP (SDR, CW Skimmer…)": "External over UDP (SDR, CW Skimmer…)",
+ "Jméno zdroje (prázdné = první slyšený)": "Source name (empty = the first heard)",
+ "Slyšené zdroje": "Heard sources",
+ "Přijímat spektrum přes UDP (N1MM, port 13064)": "Receive spectrum data over UDP (N1MM, port 13064)",
+ "Adresa příjmu (host:port)": "Receive address (host:port)",
+ "Přeposílat zobrazené spektrum přes UDP": "Relay the shown spectrum over UDP",
+ "Cíle (host:port, oddělené čárkou)": "Targets (host:port, comma separated)",
+ "Jméno tohoto zdroje": "Name of this source"
 }

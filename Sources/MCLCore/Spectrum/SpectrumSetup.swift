@@ -45,6 +45,20 @@ public struct SpectrumSetup: Equatable, Sendable {
         case staticSensitivity
         /// Unknown signals go into the band map and the Available window as `@frequency` spots (off by default).
         case unknownAsSpots
+        /// `audio` (the receiver audio) or `external` (an SDR program over UDP; N1MM „Spectrum Source").
+        case source
+        /// The external source's name (N1MM „External Source Name"; empty = the first one heard).
+        case externalName
+        /// Listen for spectrum datagrams (N1MM port 13064; off by default).
+        case udpReceive
+        /// Where to listen, `host:port`.
+        case udpBind
+        /// Relay the shown spectrum to other stations (N1MM „Broadcast on IP port(s)"; off by default).
+        case relayEnabled
+        /// The relay targets, `host:port` separated by spaces or commas.
+        case relayTargets
+        /// The name the relayed spectrum goes under (N1MM „Name of this source").
+        case relayName
     }
 
     /// The stored values (non-default ones).
@@ -66,6 +80,11 @@ public struct SpectrumSetup: Equatable, Sendable {
         case .reverseScale, .noiseAsLine, .reduceSmearing, .onlyHeardSpots, .unknownAsSpots: "false"
         case .snapToSignal, .showWaterfall, .showInstant, .showMarkers, .showSpots: "true"
         case .markerFilter: SpectrumMarkerFilter.all.rawValue
+        case .source: SpectrumSourceKind.audio.rawValue
+        case .externalName, .relayTargets: ""
+        case .udpReceive, .relayEnabled: "false"
+        case .udpBind: "0.0.0.0:" + String(SpectrumPacket.defaultPort)
+        case .relayName: "MCL"
         case .staticSensitivity: "50"
         case .decaySpeed: SpectrumDecaySpeed.medium.rawValue
         case .background: SpectrumBackground.black.rawValue
@@ -125,6 +144,20 @@ public struct SpectrumSetup: Equatable, Sendable {
         set { set(.sizeFactor, String(Swift.min(80, Swift.max(20, newValue)))) }
     }
 
+    public var source: SpectrumSourceKind {
+        get { SpectrumSourceKind(rawValue: text(.source)) ?? .audio }
+        set { set(.source, newValue.rawValue) }
+    }
+
+    /// The receive bind address as host and port (`nil` = unreadable).
+    public var udpBindAddress: (host: String, port: Int)? {
+        let text: String = self.text(.udpBind).trimmingCharacters(in: .whitespaces)
+        guard let colon = text.lastIndex(of: ":"), let port = Int(text[text.index(after: colon)...]),
+              (0...65_535).contains(port) else { return nil }
+        let host = String(text[..<colon])
+        return (host.isEmpty ? "0.0.0.0" : host, port)
+    }
+
     public var markerFilter: SpectrumMarkerFilter {
         get { SpectrumMarkerFilter(rawValue: text(.markerFilter)) ?? .all }
         set { set(.markerFilter, newValue.rawValue) }
@@ -181,4 +214,9 @@ public enum SpectrumDecaySpeed: String, CaseIterable, Sendable {
 /// N1MM „Toggle Background Color".
 public enum SpectrumBackground: String, CaseIterable, Sendable {
     case black, white, gray
+}
+
+/// N1MM „Spectrum Source": the receiver audio or an external program's UDP spectrum.
+public enum SpectrumSourceKind: String, CaseIterable, Sendable {
+    case audio, external
 }

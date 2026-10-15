@@ -88,6 +88,30 @@ public enum RadioWindowTexts {
             .string(JavaFormat.format("%.1f", .double(hzPerBin))))
     }
 
+    /// The UDP spectrum receiver could not bind.
+    public static func spectrumReceiveError(_ message: String) -> EntryStatus {
+        .tr("Příjem spektra (UDP): %s", .string(message))
+    }
+
+    /// The hover text of an external spectrum: the frequency on the band.
+    public static func spectrumHover(rfHz: Int64) -> String {
+        JavaFormat.format("%.2f kHz", .double(Double(rfHz) / 1000.0))
+    }
+
+    /// The external source has sent nothing yet (or receiving is off).
+    public static func spectrumWaiting(name: String, receiving: Bool) -> EntryStatus {
+        guard receiving else {
+            return .tr("Příjem spektra přes UDP je vypnutý (Volby spektra → Zdroj a síť)")
+        }
+        return KotlinStrings.isBlank(name) ? .tr("Čekám na spektrum přes UDP…")
+            : .tr("Čekám na spektrum „%s“ přes UDP…", .string(name))
+    }
+
+    /// The info line of an external source: its name.
+    public static func spectrumExternalInfo(name: String) -> EntryStatus {
+        .tr("Spektrum přes UDP: %s", .string(name))
+    }
+
     /// The CW pitch line is drawn only when the rig's raw mode starts with `CW` (`raw.uppercase().startsWith("CW")`).
     public static func showsPitchLine(rawMode: String) -> Bool {
         JavaText.toUpperCase(rawMode).hasPrefix("CW")

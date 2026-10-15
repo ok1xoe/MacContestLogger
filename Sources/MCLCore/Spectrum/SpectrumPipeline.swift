@@ -166,6 +166,14 @@ public final class SpectrumPipeline: Sendable {
         }
     }
 
+    /// The newest line taken in (the whole frame, for the relay); `nil` before one.
+    public func currentFrame() -> SpectrumFrame? {
+        state.withLock { s in
+            guard let axis = s.trace.axis, !s.trace.instant.isEmpty else { return nil }
+            return SpectrumFrame(startHz: axis.startHz, stepHz: axis.stepHz, levelsDb: s.trace.instant)
+        }
+    }
+
     /// Clears the trace (a new source).
     public func reset() {
         state.withLock { $0 = State() }
