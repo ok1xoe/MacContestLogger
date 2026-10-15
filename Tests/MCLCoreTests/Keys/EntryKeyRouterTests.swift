@@ -240,11 +240,11 @@ import Testing
         #expect(equalsStroke.vk == 45)
         let esmSent = EntryKeyContext(bindings: Self.defaults, esmActive: true, hasLastSent: true)
         #expect(Self.route(equalsStroke, esmSent) == .passThrough)
-        // AZERTY: Ctrl on the US W key types "z" → Ctrl+Z (no binding).
+        // AZERTY: Ctrl on the US W key types "z" → Ctrl+Z (the WAE QTC mode, not Ctrl+W).
         let z = MacKeyEvent(kind: .keyDown, keyCode: 0x0D, characters: "\u{1A}", charactersIgnoringModifiers: "z",
                             modifierFlags: AwtKeyCodes.macControlFlag)
         let zStroke = try #require(AwtKeyCodes.translate(z))
-        #expect(Self.route(zStroke) == .passThrough)
+        #expect(Self.route(zStroke) == .action(.qtcMode))
         // The left Shift via flagsChanged.
         let shiftDown = MacKeyEvent(kind: .flagsChanged, keyCode: 56, modifierFlags: AwtKeyCodes.macShiftFlag)
         let shiftStroke = try #require(AwtKeyCodes.translate(shiftDown))

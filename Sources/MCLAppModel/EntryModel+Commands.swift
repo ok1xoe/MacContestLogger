@@ -336,6 +336,8 @@ extension EntryModel {
             incrementNumber()
         case .wipeOther:
             wipeOtherWindow()
+        case .qtcMode:
+            toggleQtcMode()
         case .stackCall:
             // Digital Call Stacking: Ctrl+Alt+G moves the Grab window's call onto the stack (N1MM).
             if form.mode.isDigital, config.config.digital.digitalCallStacking, let grabList,
@@ -789,6 +791,8 @@ extension EntryModel {
             rig?.setAudio(inactive: true, on: action == .inactiveAudioToggle ? nil : action == .inactiveAudioOn)
         case .popPrevNeeded, .popNextNeeded:
             popNeeded(forward: action == .popNextNeeded)
+        case .qtcReceive, .qtcSend:
+            openQtcWindow(send: action == .qtcSend)
         }
     }
 
@@ -1051,6 +1055,11 @@ extension EntryModel {
         }
     }
 
+    /// The outcome of a template send (a QTC message) applied as an F-key press's.
+    func applyTemplateOutcome(_ outcome: FunctionKeyOutcome) {
+        apply(outcome, opposite: false)
+    }
+
     /// A Digital Interface message button: its text through fldigi, as an F-key message would go.
     public func sendDigitalButton(_ index: Int) {
         let buttons: [FunctionKeyMessage] = config.config.digital.diMessages
@@ -1283,6 +1292,9 @@ extension EntryModel {
         context.radio = radioNumber
         context.cwBase.hisName = callHistoryName
         context.cwBase.digitalButtons = app.digital.diMessages.map(\.text)
+        if let qtc, windows.isOpen(QtcModel.windowId) {
+            context.cwBase.qtcHeader = qtc.header
+        }
         fillMacroData(&context.cwBase, app: app)
         let messagesDir: URL = dataDir.appendingPathComponent("FunctionKeyMessages")
         context.cwBase.fileText = { name in Self.readMessageFile(messagesDir, name) }

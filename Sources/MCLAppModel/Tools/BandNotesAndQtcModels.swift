@@ -88,11 +88,18 @@ public final class QtcModel {
     @ObservationIgnored private let status: StatusModel
     @ObservationIgnored private let language: LanguageModel
     @ObservationIgnored private let rig: RigModel
+    @ObservationIgnored private let appConfig: ConfigModel
     @ObservationIgnored private let now: @Sendable () -> Date
     /// Kotlin `state.typedCall` (wired by the app).
     @ObservationIgnored public var typedCall: @MainActor () -> String = { "" }
+    /// The mode of the active entry window (wired by the app).
+    @ObservationIgnored public var entryMode: @MainActor () -> Mode = { .cw }
+    /// Sends a QTC message through the active entry window (wired by the app); nothing without it.
+    @ObservationIgnored var send: @MainActor (QtcMessages.Outgoing) -> Void = { _ in }
     /// Set by the quit: nothing writes the database after it started closing.
     @ObservationIgnored var isShuttingDown: () -> Bool = { false }
+    /// `begin` set the partner: the window's opening keeps it.
+    @ObservationIgnored private var partnerPreset = false
 
     struct Dependencies {
         let contest: ContestModel
@@ -101,6 +108,7 @@ public final class QtcModel {
         let status: StatusModel
         let language: LanguageModel
         let rig: RigModel
+        let config: ConfigModel
         let now: @Sendable () -> Date
     }
 
@@ -111,6 +119,7 @@ public final class QtcModel {
         status = dependencies.status
         language = dependencies.language
         rig = dependencies.rig
+        appConfig = dependencies.config
         now = dependencies.now
     }
 
@@ -129,10 +138,117 @@ public final class QtcModel {
         return contest.runtime.qtcConfig
     }
 
-    /// The window opened: the partner is the typed call, else the last QSO's call.
+    /// The window opened: the partner is the typed call, else the last QSO's call (unless Ctrl+Z or a macro set it).
     public func open() {
+        if partnerPreset {
+            partnerPreset = false
+            return
+        }
         let typed: String = typedCall()
         partner = KotlinStrings.isBlank(typed) ? (logbook.rows.last?.call ?? "") : typed
+    }
+
+    /// Ctrl+Z, `{DIGQTCR}`, `{DIGQTCS}`: the window is about to open to receive or send a series with `partner`
+    /// (`nil` = the typed call, else the last QSO's call).
+    public func begin(send sending: Bool, partner call: String?) {
+        sendMode = sending
+        let typed: String = KotlinStrings.trim(call ?? typedCall())
+        partner = (typed.isEmpty ? (logbook.rows.last?.call ?? "") : typed).uppercased()
+        partnerPreset = true
+    }
+
+    // MARK: - setup and messages
+
+    /// The QTC setup (Config → WAE).
+    public var setup: QtcSetup {
+        appConfig.config.qtc
+    }
+
+    public func setSetup(_ key: QtcSetup.Key, _ value: String) {
+        var edited: QtcSetup = appConfig.config.qtc
+        edited.set(key, value)
+        guard edited != appConfig.config.qtc else { return }
+        appConfig.config.qtc = edited
+        appConfig.saveSilently()
+    }
+
+    public func setSetup(_ key: QtcSetup.Key, flag: Bool) {
+        setSetup(key, flag ? "true" : "false")
+    }
+
+    /// My station's side: Europe receives, the rest of the world sends.
+    public var stationRole: QtcRules.Role {
+        QtcRules.role(ownContinent: ownContinent)
+    }
+
+    var ownContinent: String? {
+        contest.runtime.dxccLookup?.resolve(appConfig.config.station.call)?.primaryContinent
+    }
+
+    /// The mode family of the active entry window.
+    public var family: QtcMessages.Family {
+        QtcMessages.Family(entryMode())
+    }
+
+    /// The header of the series in the window: the next sent series (`n/count`) or the one typed when receiving.
+    public var header: String {
+        if sendMode {
+            return QtcMessages.header(group: nextGroup, count: candidateLines.count)
+        }
+        return QtcMessages.receivedHeader(group, defaultCount: config.map { $0.groupSizeOrDefault } ?? 10)
+    }
+
+    /// The message buttons of the window for its side and the entry window's mode.
+    public var messageKinds: [QtcMessages.Kind] {
+        QtcMessages.kinds(sending: sendMode, family: family).map { kind in
+            if case .again = kind {
+                return .again(againNumber)
+            }
+            return kind
+        }
+    }
+
+    /// The QTC an Agn asks for: the one after the lines copied so far (at most the series size).
+    public var againNumber: Int {
+        let size: Int = config?.groupSizeOrDefault ?? 10
+        return min(max(1, parsedReceived.lines.count + 1), size)
+    }
+
+    /// The label of a message button (N1MM's names).
+    public func label(_ kind: QtcMessages.Kind) -> String {
+        switch kind {
+        case .ask: "QTC?"
+        case .ready: "QRV"
+        case .confirm: "Cfm"
+        case .again(let number): "Agn \(number)"
+        case .allAgain: "All Agn"
+        case .askReady: "RU QRV?"
+        case .receivedDone, .sentDone: family == .digital ? "Save QTC" : "TU"
+        }
+    }
+
+    /// A message button: its message goes out through the entry window (only on the press). A message that is not set
+    /// for this mode says so.
+    public func press(_ kind: QtcMessages.Kind) {
+        guard config != nil else { return }
+        guard let outgoing = QtcMessages.outgoing(kind, family: family, setup: setup, header: header) else {
+            status.show("QTC: zpráva %s není nastavená (Nastavení QTC)", .string(label(kind)))
+            return
+        }
+        send(outgoing)
+    }
+
+    /// Return in the header field when receiving: the QRV message, if the setup says so (CW).
+    public func headerSubmitted() {
+        guard !sendMode, family == .cw, setup.flag(.cwQrvOnHeader) else { return }
+        press(.ready)
+    }
+
+    /// N1MM RTTY „Send All": the heading, the lines and the ending of the next series through fldigi.
+    public func sendDigitalSeries() {
+        let lines: [QtcPlanner.Line] = candidateLines
+        guard !lines.isEmpty, family == .digital else { return }
+        send(.message(QtcMessages.digitalSeries(header: header, lines: lines, setup: setup)))
     }
 
     public func setPartner(_ text: String) {
@@ -154,8 +270,9 @@ public final class QtcModel {
     public var candidateLines: [QtcPlanner.Line] {
         guard let config else { return [] }
         let normalized: String = KotlinStrings.trim(partner)
+        let size: Int = min(config.groupSizeOrDefault, setup.number(.sendCount))
         let picked: [Qso] = QtcPlanner.candidates(logbook.rows, normalized, qtcs, config.maxPerStationOrDefault,
-                                                  config.groupSizeOrDefault)
+                                                  size)
         return picked.compactMap { QtcPlanner.toLine($0) }
     }
 

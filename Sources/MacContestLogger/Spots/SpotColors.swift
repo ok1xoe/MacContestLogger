@@ -18,6 +18,8 @@ enum SpotColors {
     static let oneMult: NSColor = DomainColors.dynamic("mcl.spot.one", light: rgb(0xE53935), dark: rgb(0xFF7B73))
     static let multiMult: NSColor = DomainColors.dynamic("mcl.spot.multi", light: rgb(0x43A047), dark: rgb(0x81C784))
     static let dupe: NSColor = DomainColors.dynamic("mcl.spot.dupe", light: rgb(0x9E9E9E), dark: rgb(0xB0B0B0))
+    /// WAE: a dupe that can still exchange QTCs (N1MM black; light in the dark appearance).
+    static let qtc: NSColor = DomainColors.dynamic("mcl.spot.qtc", light: rgb(0x212121), dark: rgb(0xF5F5F5))
 
     static let planCw: NSColor = DomainColors.dynamic("mcl.plan.cw", light: rgb(0x5C6BC0), dark: rgb(0x9FA8DA))
     static let planDigi: NSColor = DomainColors.dynamic("mcl.plan.digi", light: rgb(0xFFB300), dark: rgb(0xFFCA28))
@@ -35,6 +37,7 @@ enum SpotColors {
         case .good: good
         case .oneMult: oneMult
         case .multiMult: multiMult
+        case .qtc: qtc
         }
     }
 

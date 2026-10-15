@@ -159,9 +159,18 @@ extension AppModel {
                                       messages: model.messages, clock: clock, now: now)
         let qtc = QtcModel(QtcModel.Dependencies(
             contest: model.contest, logbook: model.logbook, database: model.database, status: model.status,
-            language: model.language, rig: model.rig, now: now))
+            language: model.language, rig: model.rig, config: model.config, now: now))
         qtc.typedCall = { [weak model] in
             model?.typedCall ?? ""
+        }
+        qtc.entryMode = { [weak model] in
+            (model?.activeEntry ?? model?.entry)?.form.mode ?? .cw
+        }
+        qtc.send = { [weak model] outgoing in
+            (model?.activeEntry ?? model?.entry)?.sendQtc(outgoing)
+        }
+        for panel in [model.panel(vfo: 0), model.vfoB] {
+            panel.entry.qtc = qtc
         }
         let bandNotes = BandNotesModel(config: model.config, status: model.status, language: model.language,
                                        rig: model.rig)

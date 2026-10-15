@@ -108,6 +108,9 @@ public struct CwMessage: Equatable, Sendable {
         case popNextNeeded = "POP_NEXT_NEEDED"
         /// `{TX}` in CW and SSB (N1MM): the active rig's PTT on until Esc (a manual PTT, with the tune's safeguard).
         case manualPtt = "MANUAL_PTT"
+        /// `{DIGQTCR}` / `{DIGQTCS}` (N1MM, WAE): the QTC window opens to receive / send a series (Swift-only).
+        case qtcReceive = "QTC_RECEIVE"
+        case qtcSend = "QTC_SEND"
     }
 
     /// Message parts in transmission order.

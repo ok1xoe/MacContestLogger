@@ -33,6 +33,10 @@ struct LiveKeyer: KeyerPort {
         }
     }
 
+    func playVoiceText(_ text: String, hisCall: String, freqHz: Int64) -> EntryStatus? {
+        model?.voice.playText(text, hisCall: hisCall, freqHz: freqHz)
+    }
+
     func stopSending() -> Bool {
         model?.stopSending() ?? false
     }

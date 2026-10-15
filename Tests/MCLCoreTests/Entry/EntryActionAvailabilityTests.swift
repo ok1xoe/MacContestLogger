@@ -17,7 +17,7 @@ import Testing
         // Swift-only (call stacking).
         "STACK_CALL", "GRAB_STACK", "INSERT_GRAB", "TOGGLE_TX", "DIGITAL_LEFT", "DIGITAL_RIGHT", "EDIT_LAST", "QUICK_EDIT_BACK", "QUICK_EDIT_FORWARD", "RESET_RX",
         "TOGGLE_FILTER", "CW_REVERSE", "WIPE_OTHER", "JUMP_LAST_CQ", "TOGGLE_STATION_TYPE", "PASS_FREQUENCY",
-        "AVAIL_NEXT", "AVAIL_PREVIOUS", "GRID_SEARCH", "GRID_TOGGLE",
+        "AVAIL_NEXT", "AVAIL_PREVIOUS", "GRID_SEARCH", "GRID_TOGGLE", "QTC_MODE",
     ]
 
     private static let expected: [String: EntryArea] = [
@@ -36,13 +36,13 @@ import Testing
         "DX_CLUSTER_WINDOW": .spots, "STACK_CALL": .local, "GRAB_STACK": .local, "INSERT_GRAB": .local, "TOGGLE_TX": .local, "DIGITAL_LEFT": .local, "DIGITAL_RIGHT": .local, "EDIT_LAST": .local, "QUICK_EDIT_BACK": .local, "QUICK_EDIT_FORWARD": .local, "RESET_RX": .radio,
         "TOGGLE_FILTER": .radio, "CW_REVERSE": .radio, "WIPE_OTHER": .local, "JUMP_LAST_CQ": .radio,
         "TOGGLE_STATION_TYPE": .network, "PASS_FREQUENCY": .network,
-        "AVAIL_NEXT": .spots, "AVAIL_PREVIOUS": .spots, "GRID_SEARCH": .local, "GRID_TOGGLE": .local,
+        "AVAIL_NEXT": .spots, "AVAIL_PREVIOUS": .spots, "GRID_SEARCH": .local, "GRID_TOGGLE": .local, "QTC_MODE": .local,
     ]
 
     @Test func everyShortcutActionHasAnArea() {
-        #expect(ShortcutAction.allCases.count == 75)
+        #expect(ShortcutAction.allCases.count == 76)
         #expect(Set(ShortcutAction.allCases.map(\.name)) == Set(Self.runShortcutOrder))
-        #expect(Self.runShortcutOrder.count == 75)
+        #expect(Self.runShortcutOrder.count == 76)
         for action in ShortcutAction.allCases {
             #expect(EntryActionAvailability.area(of: action) == Self.expected[action.name], "\(action.name)")
         }

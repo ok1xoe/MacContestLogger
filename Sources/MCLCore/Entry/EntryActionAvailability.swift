@@ -72,7 +72,7 @@ public enum EntryActionAvailability {
         case .sendCallExchange, .tuAndLog, .logWithoutSending, .forceLog, .wipe, .wipeUndo, .deleteLast, .note,
              .find, .incrementNr, .toggleEsm, .toggleCut, .yankScp, .operator, .toggleRun, .cqRepeat, .cqRepeatTime,
              .autoRunSp, .stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast,
-             .quickEditBack, .quickEditForward, .wipeOther, .gridSearch, .gridToggle:
+             .quickEditBack, .quickEditForward, .wipeOther, .gridSearch, .gridToggle, .qtcMode:
             return .local
         case .functionKeysSetup, .help:
             return .windows

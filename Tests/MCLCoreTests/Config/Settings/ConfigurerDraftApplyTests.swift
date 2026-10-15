@@ -312,7 +312,7 @@ import Testing
                                "callHistoryLookupEnabled", "callHistoryExtraFiles", "callHistoryShowUserInfo",
                                "colorOverrides", "fontFamily", "fixedFontFamily", "spotTooltips",
                                "digiRadioMode", "stationPerDatabase",
-                               "checkUpdatesAtStart", "accessibilityAnnouncements",
+                               "checkUpdatesAtStart", "accessibilityAnnouncements", "qtcSetup",
                                "callHistoryFile", "functionKeyFiles", "firstSerial", "scpFile", "goalFile",
                                "checkHiddenPanes", "checkPaneWeights", "checkYankOrder", "checkYankAllowDupes",
                                "checkFavorEndDifferences", "checkTelnetMinSpots", "checkReverseEnabled",

@@ -145,9 +145,44 @@ public final class VoiceKeyerModel {
                 performCommand?(command)
             }
         }
+        startPlan(text: texts.joined(separator: ","), hisCall: hisCall, freqHz: freqHz, keys: set, indices: indices,
+                  key: last)
+        return nil
+    }
+
+    /// A phone message that belongs to no F-key (N1MM WAE: the QTC window's QRV, Confirm, Again and TU wav files):
+    /// planned and played like an F-key message, without the key lamp. It does not queue behind a playing message.
+    public func playText(_ text: String, hisCall: String, freqHz: Int64) -> EntryStatus? {
+        guard let keyer, !closed else { return nil }
+        if studio.isRecording {
+            keyer.noteSendFailure()
+            return .tr("Zpráva se nahrává v Nastavení — nejdřív ji ukonči")
+        }
+        if recording != nil || recordingStarting {
+            keyer.noteSendFailure()
+            return .tr("Nahrává se — nejdřív ukonči záznam (Esc)")
+        }
+        if playingKey != nil || planning {
+            return .tr("Hlasový klíč právě hraje — Esc ho zastaví")
+        }
+        guard keyer.txAllowed() else {
+            keyer.noteSendFailure()
+            return nil
+        }
+        keyer.tx.announceTx()
+        let set: [String] = messages(opposite: false).map(\.text)
+        startPlan(text: text, hisCall: hisCall, freqHz: freqHz, keys: set, indices: [FunctionKeyRouter.qtcKey],
+                  key: -1)
+        return nil
+    }
+
+    /// Plans `text` on the voice lane and plays it (`planned`).
+    private func startPlan(text: String, hisCall: String, freqHz: Int64, keys set: [String], indices: [Int],
+                           key last: Int) {
+        guard let keyer else { return }
         let app: AppConfig = config.config
         let request = PlanRequest(
-            text: texts.joined(separator: ","), wavDir: wavDirectory, lettersPath: app.voiceKeyer.lettersPath,
+            text: text, wavDir: wavDirectory, lettersPath: app.voiceKeyer.lettersPath,
             context: planContext(hisCall: hisCall, freqHz: freqHz, keys: set),
             ttsVoice: app.ttsVoice, synthesize: hardware.synthesize)
         settings.update(outputDevice: outputDevice(app), pttDelayMs: app.voiceKeyer.pttDelayMs,
@@ -161,7 +196,6 @@ public final class VoiceKeyerModel {
             self.planning = false
             self.planned(outcome, indices: indices, key: last)
         })
-        return nil
     }
 
     /// N1MM advanced voicing of serial numbers: the files missing in the letters directory (all = not set up).

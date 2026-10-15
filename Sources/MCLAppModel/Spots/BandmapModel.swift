@@ -51,6 +51,8 @@ public final class BandmapModel {
     public var historyCall: String?
     /// Where the mouse last was over the map, in the canvas' coordinates; `nil` = outside.
     @ObservationIgnored private var pointer: Pointer?
+    /// The QTC counts per partner of the WAE colours, for the QTC list it was counted from.
+    @ObservationIgnored private var qtcCounts: (key: [Int64], counts: [String: Int])?
 
     private struct Pointer {
         let x: Float
@@ -272,11 +274,41 @@ public final class BandmapModel {
         BandmapLayout.place(spots: spots, viewport: viewport, height: height, rowH: rowH)
     }
 
-    /// Kotlin `spotColorOf(spot)`: outside a contest always „good", otherwise by dupe and new multipliers.
+    /// Kotlin `spotColorOf(spot)`: outside a contest always „good", otherwise by dupe and new multipliers; in a QTC
+    /// contest (WAE) N1MM's QTC colours.
     public func colorKey(_ spot: DxSpot, analyzer: SpotAnalyzer) -> SpotColorClassifier.SpotColorKey {
         guard contest.isActive else { return .good }
         let state: SpotStatus = analyzer.spotStatus(spot)
+        if let qtc = contest.runtime.qtcConfig {
+            return QtcRules.color(dupe: state.dupe, newMultCount: state.newMultCount,
+                                  qtcLeft: qtcLeft(spot.dxCall, config: qtc))
+        }
         return SpotColorClassifier.classify(dupe: state.dupe, newMultCount: state.newMultCount)
+    }
+
+    /// WAE: QTCs can still pass with the spotted station — the continents allow it and fewer than N1MM's „Max QTC
+    /// Number for callsign colors" (and the contest's limit) were exchanged with it.
+    func qtcLeft(_ call: String, config qtc: ContestDefinition.Qtc) -> Bool {
+        let lookup: (any DxccLookup)? = contest.runtime.dxccLookup
+        let own: String? = lookup?.resolve(config.config.station.call)?.primaryContinent
+        let other: String? = lookup?.resolve(call)?.primaryContinent
+        let modes: [String] = (contest.definition?.modes ?? []).compactMap { $0 }
+        let anyContinent: Bool = !modes.isEmpty && modes.allSatisfy { Mode(rawValue: $0.uppercased())?.isDigital == true }
+        guard QtcRules.canExchange(ownContinent: own, otherContinent: other, anyContinent: anyContinent) else {
+            return false
+        }
+        let qtcs: [QtcRecord] = contest.qtcs
+        // The list is replaced whole on every save or delete: its size and its first and last ids tell it apart.
+        let key: [Int64] = [Int64(qtcs.count), qtcs.first?.id ?? -1, qtcs.last?.id ?? -1]
+        let counts: [String: Int]
+        if let cached = qtcCounts, cached.key == key {
+            counts = cached.counts
+        } else {
+            counts = QtcRules.counts(qtcs)
+            qtcCounts = (key, counts)
+        }
+        let limit: Int = min(config.config.qtc.number(.colorMax), qtc.maxPerStationOrDefault)
+        return (counts[KotlinStrings.uppercase(KotlinStrings.trim(call))] ?? 0) < limit
     }
 
     /// The analysis to colour a frame with (one per redraw).
