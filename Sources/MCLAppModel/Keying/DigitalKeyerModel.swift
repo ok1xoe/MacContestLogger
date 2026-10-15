@@ -167,7 +167,7 @@ public final class DigitalKeyerModel {
         let setup: BuiltinModemSetup = config.config.builtinModem
         lane.builtin.configure(BuiltinModemHub.Settings(
             level: setup.outputLevel, devices: [setup.outputDevice(side: 0), setup.outputDevice(side: 1)],
-            linked: setup.flag(.linkedTuning)))
+            linked: setup.flag(.linkedTuning), fsk: BuiltinModemHub.fsk(setup)))
     }
 
     /// `{PROFILEn}`: the built-in modem's profile onto the receiver of the side the F-keys act on now (wired by the app).

@@ -2478,5 +2478,10 @@
  "Hledám signály RTTY ve spektru…": "Suche RTTY-Signale im Spektrum…",
  "Naladit hlavní přijímač na tento signál": "Hauptempfänger auf dieses Signal abstimmen",
  "Vícekanálový příjem: nejvýše kanálů (1–8)": "Mehrkanalempfang: höchstens Kanäle (1–8)",
- "Kanál zmizí po (s) bez signálu": "Ein Kanal verschwindet nach (s) ohne Signal"
+ "Kanál zmizí po (s) bez signálu": "Ein Kanal verschwindet nach (s) ohne Signal",
+ "FSK přes sériový port (prázdné = AFSK)": "FSK über eine serielle Schnittstelle (leer = AFSK)",
+ "FSK:": "FSK:",
+ "CAT / VOX": "CAT / VOX",
+ "FSK obrácená polarita (aktivní linka = mark)": "FSK umgekehrte Polarität (aktive Leitung = Mark)",
+ "Vestavěné FSK klíčuje linku DTR nebo RTS sériového portu s přesným časováním (náhrada EXTFSK); rig v režimu RTTY/FSK. Zvuk se pak nevysílá.": "Eingebautes FSK tastet die DTR- oder RTS-Leitung einer seriellen Schnittstelle mit genauem Timing (Ersatz für EXTFSK); das Funkgerät im RTTY/FSK-Modus. Dann wird kein Audio gesendet."
 }

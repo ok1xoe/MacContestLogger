@@ -28,6 +28,12 @@ public struct BuiltinModemSetup: Equatable, Sendable {
         /// signal.
         case channelCount
         case channelTimeout
+        /// Built-in FSK keying (MMTTY EXTFSK): the serial port (empty = off, AFSK), the line that keys FSK (`DTR`
+        /// or `RTS`), the line that keys PTT (`NONE` = PTT over CAT / VOX as for AFSK) and the inverted polarity.
+        case fskPort
+        case fskLine
+        case fskPttLine
+        case fskInvert
     }
 
     /// The audio input of a receiver.
@@ -63,6 +69,17 @@ public struct BuiltinModemSetup: Equatable, Sendable {
         min(600, max(1, Double(text(.channelTimeout)) ?? 15))
     }
 
+    /// The FSK keying line (DTR or RTS).
+    public var fskLine: CwKeyingOptions.SerialLine {
+        CwKeyingOptions.SerialLine(rawValue: text(.fskLine)) == .rts ? .rts : .dtr
+    }
+
+    /// The PTT line of the FSK port (`none` = PTT as for AFSK).
+    public var fskPttLine: CwKeyingOptions.SerialLine {
+        let line = CwKeyingOptions.SerialLine(rawValue: text(.fskPttLine)) ?? .none
+        return line == fskLine ? .none : line
+    }
+
     public func input(side: Int) -> Input {
         Input(rawValue: text(side == 1 ? .input2 : .input1)) ?? .radio1
     }
@@ -95,6 +112,10 @@ public struct BuiltinModemSetup: Equatable, Sendable {
         case .channel2: Channel.right.rawValue
         case .channelCount: "4"
         case .channelTimeout: "15"
+        case .fskPort: ""
+        case .fskLine: CwKeyingOptions.SerialLine.dtr.rawValue
+        case .fskPttLine: CwKeyingOptions.SerialLine.none.rawValue
+        case .fskInvert: "false"
         }
     }
 

@@ -193,10 +193,11 @@ import Testing
         // the built-in modem's mode status and
         // 6 keys of the modem profiles and
         // the empty modem profile and
-        // 7 keys of the multi-channel receiver.
-        #expect(map.count == 2_480)
+        // 7 keys of the multi-channel receiver and
+        // 5 keys of the built-in FSK.
+        #expect(map.count == 2_485)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_480)
+        #expect(german.count == 2_485)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

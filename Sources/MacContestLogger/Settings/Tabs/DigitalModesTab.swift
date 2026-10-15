@@ -386,6 +386,42 @@ private struct BuiltinModemOptions: View {
         }
     }
 
+    private static let lines: [(CwKeyingOptions.SerialLine, String)] = [(.dtr, "DTR"), (.rts, "RTS")]
+
+    /// Built-in FSK (MMTTY EXTFSK): the serial port and its lines.
+    private var fskOptions: some View {
+        let setup: BuiltinModemSetup = draft.builtinModem
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .bottom, spacing: 12) {
+                SettingsField(caption: language.tr("FSK přes sériový port (prázdné = AFSK)")) {
+                    SettingsTextField(text: text(.fskPort))
+                }
+                .frame(width: 260)
+                HStack(spacing: 8) {
+                    Text(verbatim: language.tr("FSK:")).windowFont(13)
+                    ForEach(Self.lines, id: \.0.rawValue) { line, label in
+                        SettingsRadio(label: label, selected: setup.fskLine == line) {
+                            text(.fskLine).wrappedValue = line.rawValue
+                        }
+                    }
+                    Text(verbatim: "· PTT:").windowFont(13)
+                    SettingsRadio(label: language.tr("CAT / VOX"), selected: setup.fskPttLine == .none) {
+                        text(.fskPttLine).wrappedValue = CwKeyingOptions.SerialLine.none.rawValue
+                    }
+                    ForEach(Self.lines, id: \.0.rawValue) { line, label in
+                        SettingsRadio(label: label, selected: setup.fskPttLine == line,
+                                      enabled: setup.fskLine != line) {
+                            text(.fskPttLine).wrappedValue = line.rawValue
+                        }
+                    }
+                }
+            }
+            SettingsCheckbox(label: language.tr("FSK obrácená polarita (aktivní linka = mark)"), isOn: flag(.fskInvert))
+            SettingsCaption(language.tr(
+                "Vestavěné FSK klíčuje linku DTR nebo RTS sériového portu s přesným časováním (náhrada EXTFSK); rig v režimu RTTY/FSK. Zvuk se pak nevysílá."))
+        }
+    }
+
     var body: some View {
         let tools: SettingsToolsModel = app.settingsTools
         VStack(alignment: .leading, spacing: 6) {
@@ -420,6 +456,7 @@ private struct BuiltinModemOptions: View {
                 }
                 .frame(width: 200)
             }
+            fskOptions
             SettingsCaption(language.tr(
                 "Vysílání: AFSK zvukem na zvolený výstup. FSK přes TinyFSK nebo WinKeyer nastavíte níže v „RTTY: rozhraní pro vysílání\" (vestavěný modem pak jen přijímá)."))
         }

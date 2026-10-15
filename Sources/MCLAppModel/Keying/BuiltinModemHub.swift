@@ -17,6 +17,16 @@ final class BuiltinModemHub: @unchecked Sendable {
         var devices: [String] = ["", ""]
         /// One tuning for both receivers (`BuiltinModemSetup.linkedTuning`).
         var linked: Bool = false
+        /// Built-in FSK keying on a serial port instead of AFSK (`nil` = AFSK).
+        var fsk: Fsk?
+    }
+
+    /// The FSK port, its keying and PTT lines and the polarity.
+    struct Fsk: Equatable, Sendable {
+        var port: String
+        var line: CwKeyingOptions.SerialLine
+        var pttLine: CwKeyingOptions.SerialLine
+        var invert: Bool
     }
 
     let channels: [BuiltinRttyChannel] = [BuiltinRttyChannel(), BuiltinRttyChannel()]
@@ -29,13 +39,25 @@ final class BuiltinModemHub: @unchecked Sendable {
     private let openOutput: @Sendable (String?, Double, @escaping @Sendable (UnsafeMutableBufferPointer<Float>) -> Void)
         throws -> any ModemAudioStream
     private let queue = DispatchQueue(label: "builtin-modem-tx")
+    private let openKeyLines: @Sendable (String, CwKeyingOptions.SerialLine, CwKeyingOptions.SerialLine) throws
+        -> any CwKeyLines
+    /// The FSK keyer's clock (tests: a clock that does not wait).
+    var fskClock: any FskClock = HostFskClock()
 
     init(hardware: HardwarePorts) {
         openOutput = hardware.openModemOutput
+        openKeyLines = hardware.openKeyLines
     }
 
     private static func clamp(_ side: Int) -> Int {
         min(max(side, 0), 1)
+    }
+
+    /// The FSK keying of the options (`nil` = no port set: AFSK).
+    static func fsk(_ setup: BuiltinModemSetup) -> Fsk? {
+        let port: String = setup.text(.fskPort).trimmingCharacters(in: .whitespaces)
+        guard !port.isEmpty else { return nil }
+        return Fsk(port: port, line: setup.fskLine, pttLine: setup.fskPttLine, invert: setup.flag(.fskInvert))
     }
 
     /// The fldigi-like port of a side.
@@ -84,6 +106,10 @@ final class BuiltinModemHub: @unchecked Sendable {
             generations[side] += 1
             return (self.settings, self.ptt, generations[side])
         }
+        if let fsk = settings.fsk {
+            try startFsk(side, fsk, channel: channel, ptt: ptt, generation: generation)
+            return
+        }
         do {
             try ptt?.set(true)
             let level = Float(settings.level)
@@ -103,6 +129,56 @@ final class BuiltinModemHub: @unchecked Sendable {
                 stream.stop()
             }
         } catch {
+            try? ptt?.set(false)
+            channel.finishTx()
+            throw error
+        }
+    }
+
+    /// FSK (MMTTY EXTFSK): the key line of the serial port keyed with the modulator's Baudot codes, PTT on the port's
+    /// PTT line or as for AFSK. No audio goes out.
+    private func startFsk(_ side: Int, _ fsk: Fsk, channel: BuiltinRttyChannel, ptt: VoicePtt?,
+                          generation: Int) throws {
+        var lines: (any CwKeyLines)?
+        do {
+            let opened: any CwKeyLines = try openKeyLines(fsk.port, fsk.line, fsk.pttLine)
+            lines = opened
+            if opened.hasPtt {
+                try opened.setPtt(true)
+            } else {
+                try ptt?.set(true)
+            }
+            let baud: Double = channel.tuning.baud
+            let keyer = SoftFskKeyer(lines: opened, baud: baud, invert: fsk.invert, clock: fskClock, source: {
+                var buffer = [Float](repeating: 0, count: 512)
+                let active: Bool = buffer.withUnsafeMutableBufferPointer { channel.generate(into: $0, level: 0) }
+                return (channel.takeFskCodes(), !active)
+            }, onEnd: { [weak self] in
+                self?.ended(side, generation: generation)
+            })
+            let stream = FskStream(keyer: keyer, lines: opened)
+            let current: Bool = lock.withLock {
+                guard generations[side] == generation else { return false }
+                streams[side] = stream
+                return true
+            }
+            guard current else {
+                stream.stop()
+                return
+            }
+            try keyer.start()
+        } catch {
+            if let lines {
+                if lines.hasPtt {
+                    try? lines.setPtt(false)
+                }
+                lines.close()
+            }
+            lock.withLock {
+                if generations[side] == generation {
+                    streams[side] = nil
+                }
+            }
             try? ptt?.set(false)
             channel.finishTx()
             throw error
@@ -148,6 +224,32 @@ final class BuiltinModemHub: @unchecked Sendable {
         abort(0)
         abort(1)
         settle()
+    }
+}
+
+/// The FSK keyer and its port as a transmit stream: stopping it stops the keyer, releases the port's PTT line and
+/// closes the port.
+final class FskStream: ModemAudioStream, @unchecked Sendable {
+    private let keyer: SoftFskKeyer
+    private let lines: any CwKeyLines
+    private let lock = NSLock()
+    private var stopped = false
+
+    init(keyer: SoftFskKeyer, lines: any CwKeyLines) {
+        self.keyer = keyer
+        self.lines = lines
+    }
+
+    func stop() {
+        guard lock.withLock({ () -> Bool in
+            defer { stopped = true }
+            return !stopped
+        }) else { return }
+        keyer.stop()
+        if lines.hasPtt {
+            try? lines.setPtt(false)
+        }
+        lines.close()
     }
 }
 

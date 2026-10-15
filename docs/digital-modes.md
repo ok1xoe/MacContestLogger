@@ -370,9 +370,14 @@ mark 2125 + 85). AutoTRXUpdate logs and spots dial ± that centre in USB/LSB.
 - **AFSK**: the modulator's audio goes to the chosen sound output (*Výstup AFSK*; radio 2 can have its own,
   empty = radio 1's) at *Úroveň AFSK* (default 50 %). **PTT** is keyed over CAT on the rig of the
   transmitting side (*PTT přes CAT*, on by default; off = VOX or the rig's own data PTT).
-- **FSK**: choose TinyFSK or WinKeyer 3.1 under **RTTY: transmit interface** — the messages then go to the
-  keyer and the built-in modem only receives (as with fldigi). Software FSK on a serial port's TXD line
-  (MMTTY's EXTFSK) is not available.
+- **FSK, built in** (MMTTY's EXTFSK without a plugin; off by default): *FSK přes sériový port* names the serial
+  port whose **DTR** or **RTS** line keys the rig's FSK input (the rig in RTTY/FSK mode). The modulator's Baudot
+  characters are keyed with precise timing on a real-time thread (1 start bit, 5 data bits, 1.5 stop bits at the
+  receiver's speed; idle = mark, active line = space, *obrácená polarita* swaps them). PTT goes on the port's other
+  line, or — with *CAT / VOX* — as for AFSK. No audio is sent; the own text is still decoded back as the echo. The
+  TX line of the port (break) is not used.
+- **FSK through a keyer**: choose TinyFSK or WinKeyer 3.1 under **RTTY: transmit interface** — the messages then go
+  to the keyer and the built-in modem only receives (as with fldigi).
 - The F-keys, ESM, the CQ repeat, the TX window, `{TX}`/`{RX}` and the message buttons work as with
   fldigi; **Esc** stops at once (the output stops, PTT is released). Your own text is decoded back from
   the modulator (shown dimmed, never grabbed).

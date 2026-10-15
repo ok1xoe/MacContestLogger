@@ -113,7 +113,7 @@ public final class BuiltinModemModel {
                 self.lastSetup = now
                 self.hub.configure(BuiltinModemHub.Settings(
                     level: now.outputLevel, devices: [now.outputDevice(side: 0), now.outputDevice(side: 1)],
-                    linked: now.flag(.linkedTuning)))
+                    linked: now.flag(.linkedTuning), fsk: BuiltinModemHub.fsk(now)))
                 for bank in self.banks where bank.configuration.enabled {
                     var config: BuiltinChannelBank.Config = bank.configuration
                     config.maxChannels = now.channelCount

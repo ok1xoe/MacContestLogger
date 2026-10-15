@@ -179,6 +179,42 @@ import Testing
         #expect(app.status == "Profil modemu 10 je prázdný")
     }
 
+    /// Built-in FSK (opt-in): the port's key line keyed with the text, PTT on the port's PTT line, no sound output,
+    /// the port closed at the end; Esc stops it. A clock that does not wait; fake key lines.
+    @Test func fskOverASerialPortLine() async throws {
+        let app = try await Self.make { config in
+            var setup = config.builtinModem
+            setup.set(.fskPort, "/dev/fake.fsk")
+            setup.set(.fskPttLine, "RTS")
+            config.builtinModem = setup
+        }
+        let hub: BuiltinModemHub = app.model.keyer.lane.builtin
+        hub.fskClock = InstantFskClock()
+        app.keyer.digital.send("CQ TEST", key: 0)
+        await app.settle()
+        for _ in 0..<2_000 where hub.channels[0].isTransmitting {
+            try await Task.sleep(for: .milliseconds(5))
+            hub.settle()
+        }
+        #expect(!hub.channels[0].isTransmitting, "the transmission ended")
+        #expect(app.keying.modemOutputs.isEmpty, "no sound output with FSK")
+        let events: [String] = app.keying.events.filter { $0.hasPrefix("key") || $0.hasPrefix("ptt") }
+        #expect(events.first == "key lines open /dev/fake.fsk DTR RTS")
+        #expect(events.dropFirst().first == "ptt on")
+        #expect(events.filter { $0 == "key down" }.count >= 9, "a start bit per character")
+        #expect(events.suffix(2) == ["ptt off", "key lines close"], "\(events.suffix(4))")
+        let echo: String = hub.channels[0].rxText(start: 0, length: hub.channels[0].rxLength)
+        #expect(echo.contains("CQ TEST"), "the echo of the FSK text: \(echo)")
+        // Esc during a long FSK transmission.
+        app.keyer.digital.send(String(repeating: "RY", count: 400), key: 0)
+        await app.settle()
+        #expect(app.keyer.digital.abort())
+        await app.settle()
+        hub.settle()
+        #expect(!hub.channels[0].isTransmitting)
+        #expect(app.keying.events.last == "key lines close")
+    }
+
     @Test func escStopsTheTransmissionAtOnce() async throws {
         let app = try await Self.make()
         app.keyer.digital.send("RYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRY", key: 0)
@@ -237,5 +273,19 @@ private extension Array {
     /// Consecutive slices of `size` elements.
     func chunked(_ size: Int) -> [[Element]] {
         stride(from: 0, to: count, by: size).map { Array(self[$0..<Swift.min($0 + size, count)]) }
+    }
+}
+
+/// The FSK keyer's clock without waiting.
+final class InstantFskClock: FskClock, @unchecked Sendable {
+    private let lock = NSLock()
+    private var time: UInt64 = 0
+
+    func now() -> UInt64 {
+        lock.withLock { time }
+    }
+
+    func sleep(untilNanos deadline: UInt64) {
+        lock.withLock { time = max(time, deadline) }
     }
 }
