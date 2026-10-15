@@ -263,7 +263,7 @@ public final class RigModel {
             cat2 = snapshot
         }
         pluginPttConnectionChanged(index, connected: snapshot.connected)
-        radioContact(index, snapshot)
+        // probe: radioContact(index, snapshot)
         // Kotlin `LaunchedEffect(state.cat.state, …)`: only a different state of the active rig is followed.
         if index == vfo.activeCatIndex && previous != snapshot.state {
             notifyEntries { $0.followRig() }
