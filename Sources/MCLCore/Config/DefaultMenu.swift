@@ -60,6 +60,8 @@ public enum DefaultMenu {
         "settings.announcements": "Hlášení pro nevidomé (VoiceOver)",
         "settings.keys": "Klávesy…",
         "settings.autoSend": "Práh AutoSend (CW)…",
+        "settings.grabFocus": "Převzít fokus od jiných aplikací při ladění rádia",
+        "settings.snapWindows": "Přichytávat okna k okrajům",
         "settings.so2r": "SO2R",
         "so2r.voice1": "Hlasové zprávy rádia 1",
         "so2r.voice2": "Hlasové zprávy rádia 2",
@@ -216,7 +218,7 @@ public enum DefaultMenu {
         let settings = node("settings", [
             settingsOpen, leaf("settings.keys"), leaf("settings.profiles"), leaf("sep.settings.1"),
             leaf("settings.callHistoryLookup"), leaf("settings.exchangeAbbreviations"), leaf("settings.announcements"),
-            leaf("settings.autoSend"),
+            leaf("settings.autoSend"), leaf("settings.grabFocus"), leaf("settings.snapWindows"),
             node("settings.so2r", [
                 leaf("so2r.dueling"), leaf("so2r.duelingTime"), leaf("so2r.focusOther"), leaf("so2r.focusOtherAlways"),
                 leaf("so2r.ctrlFx"), leaf("so2r.stereoMacros"), leaf("so2r.swapTail"), leaf("so2r.swapLead"),

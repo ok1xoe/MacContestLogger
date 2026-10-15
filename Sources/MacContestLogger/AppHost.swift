@@ -22,6 +22,8 @@ final class AppHost {
     @ObservationIgnored private var endsWithoutAppKit = false
     /// The menu bar from `menu.json`; built once the model exists.
     @ObservationIgnored private var menuBuilder: MenuBuilder?
+    /// N1MM „Snap windows to edges" (opt-in).
+    @ObservationIgnored private let windowSnapper = WindowSnapper()
 
     /// Bootstraps the app model (Kotlin start-up, `AppModel.bootstrap`). A failure is reported and ends the app
     /// (Kotlin would crash).
@@ -47,6 +49,7 @@ final class AppHost {
                 let builder = MenuBuilder(app: app)
                 builder.start()
                 menuBuilder = builder
+                windowSnapper.install(app: app)
                 QuitTrace.write("ready")
                 #if DEBUG
                 Self.smokeLanguageSwitch(app)

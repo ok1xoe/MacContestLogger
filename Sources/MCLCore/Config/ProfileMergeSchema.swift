@@ -27,7 +27,7 @@ enum ProfileMergeSchema {
     /// and special calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the built-in RTTY modem (`digital.builtinModem`), the call history
     /// switches and extra
-    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`), the WAE QTC setup (`qtcSetup`), the rotor setup (`rotorSetup`), the spectrum display options (`spectrumSetup`), the SO2R / SO2V options (`so2rSetup`), the built-in RTTY modem's options (`builtinModemSetup`), the antenna table's rotor columns (`antennas.*.rotors`, `offset`, `bidirectional`), the N1MM per-radio options of `rig`/`rig2` (`civAddress`, `pollRate`, `reverseCw`, `muteMicOnVoice`, `subReceiverOn`, `timeoutSeconds`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
+    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`), the WAE QTC setup (`qtcSetup`), the rotor setup (`rotorSetup`), the spectrum display options (`spectrumSetup`), the SO2R / SO2V options (`so2rSetup`), the window behaviour (`windowSetup`), the built-in RTTY modem's options (`builtinModemSetup`), the antenna table's rotor columns (`antennas.*.rotors`, `offset`, `bidirectional`), the N1MM per-radio options of `rig`/`rig2` (`civAddress`, `pollRate`, `reverseCw`, `muteMicOnVoice`, `subReceiverOn`, `timeoutSeconds`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
     /// `contestSetups.*.functionKeyFiles`) its first serial and master.scp (`contestSetups.*.firstSerial`, `contestSetups.*.scpFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
@@ -83,6 +83,7 @@ enum ProfileMergeSchema {
             Property("spectrumSetup", .map(.string), .fieldDefault),
             Property("so2rSetup", .map(.string), .fieldDefault),
             Property("builtinModemSetup", .map(.string), .fieldDefault),
+            Property("windowSetup", .map(.string), .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.AntennaEntry": [
             Property("rotors", .string, .fieldDefault),

@@ -142,6 +142,8 @@
         { "id": "settings.exchangeAbbreviations", "label": "Zkratky výměny…", "state": "enable" },
         { "id": "settings.announcements", "label": "Hlášení pro nevidomé (VoiceOver)", "state": "enable" },
         { "id": "settings.autoSend", "label": "Práh AutoSend (CW)…", "state": "enable" },
+        { "id": "settings.grabFocus", "label": "Převzít fokus od jiných aplikací při ladění rádia", "state": "enable" },
+        { "id": "settings.snapWindows", "label": "Přichytávat okna k okrajům", "state": "enable" },
         {
           "id": "settings.so2r", "label": "SO2R", "state": "enable",
           "children": [
