@@ -75,6 +75,9 @@ public final class OnlineServicesModel {
     @ObservationIgnored var afterScoreOutcome: (@MainActor () -> Void)?
     /// Test seam: runs after a clock check ended.
     @ObservationIgnored var afterClockCheck: (@MainActor () -> Void)?
+    /// `false` while the QSO time is corrected by the master station's clock: the NTP check still measures and shows
+    /// its offset but does not apply it (wired by the app to the network model).
+    @ObservationIgnored var appliesNtpOffset: @MainActor () -> Bool = { true }
 
     init(_ dependencies: Dependencies) {
         deps = dependencies
@@ -351,8 +354,10 @@ public final class OnlineServicesModel {
         clockOffsetMs = offsetMs
         let logbook: LogbookModel = deps.logbook
         let applied: Int64 = result.applyOffsetMs
-        Task { @MainActor in
-            await logbook.setClockOffset(milliseconds: applied)
+        if appliesNtpOffset() {
+            Task { @MainActor in
+                await logbook.setClockOffset(milliseconds: applied)
+            }
         }
         clockStatus = result.status
         if result.warn, let warning = result.warnStatus {

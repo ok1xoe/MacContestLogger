@@ -130,6 +130,12 @@ public final class ClusterSyncModel {
     @ObservationIgnored public var sources = Sources()
     /// A message for this station arrived (the network model takes it).
     @ObservationIgnored var onMessage: (@MainActor (NetMessageWire) -> Void)?
+    /// The session connected (the network model announces the station's setup).
+    @ObservationIgnored var onConnected: (@MainActor () -> Void)?
+    /// Every round of the state loop (the network model's periodic work: the setup, the master's time).
+    @ObservationIgnored var onTick: (@MainActor () -> Void)?
+    /// A message this station sent (the network model's trace).
+    @ObservationIgnored var onSent: (@MainActor (NetMessageWire) -> Void)?
 
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let status: StatusModel
@@ -275,6 +281,7 @@ public final class ClusterSyncModel {
         status.show("Připojeno ke clusteru %s:%s jako %s", .string(host), .string(String(port)),
                     .string(opened.stationId))
         tick(opened)
+        onConnected?()
     }
 
     private func connectFailed(_ id: Int, message: String) {
@@ -297,6 +304,7 @@ public final class ClusterSyncModel {
         ensureReservation()
         peers = opened.network.peers()
         revision += 1
+        onTick?()
         loopTimer = clock.schedule(afterMilliseconds: Self.stateIntervalMs) { [weak self] in
             self?.tick(opened)
         }
@@ -515,7 +523,12 @@ public final class ClusterSyncModel {
                 try opened.network.send(type, operator: operatorCall, to: to, text: text, call: call,
                                         freqHz: freqHz, mode: mode)
             }
-            MainHop.post { completion(result) }
+            MainHop.post { [weak self] in
+                if case .success(let sent) = result {
+                    self?.onSent?(sent)
+                }
+                completion(result)
+            }
         }
     }
 

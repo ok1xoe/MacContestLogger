@@ -65,6 +65,9 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var stationType: OperatingGuard.StationType = .none
     /// N1MM Multi-two Run1/Run2 (`cluster.runNumber`).
     public var runNumber: Int = 0
+    /// `cluster.master` / `cluster.timeFromMaster`.
+    public var clusterMaster: Bool = false
+    public var timeFromMaster: Bool = false
     public var ruleEnforcement: OperatingGuard.Enforcement = .warn
 
     // MARK: DX Cluster — `CD:78-103`
@@ -425,6 +428,8 @@ extension ConfigurerDraft {
         serialServer = cluster.serialServer
         stationType = cluster.stationType
         runNumber = cluster.runNumber
+        clusterMaster = cluster.master
+        timeFromMaster = cluster.timeFromMaster
         ruleEnforcement = cluster.ruleEnforcement
     }
 

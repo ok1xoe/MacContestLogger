@@ -45,6 +45,11 @@ struct ClusterTab: View {
                 label: language.tr(
                     "Pořadová čísla ze serial number serveru (autorita) — stanice nikdy nepošlou stejné číslo"),
                 isOn: $draft.serialServer)
+            SettingsCheckbox(label: language.tr("Master stanice (ostatní si od ní berou čas)"),
+                             isOn: $draft.clusterMaster)
+            SettingsCheckbox(
+                label: language.tr("Čas QSO podle hodin master stanice (místo vlastní kontroly NTP)"),
+                isOn: $draft.timeFromMaster)
             choices
             Text(verbatim: app.cluster.connected ? language.tr("Stav: připojeno") : "Stav: odpojeno")
                 .windowFont(12)
