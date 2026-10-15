@@ -12,12 +12,22 @@ Equivalent of N1MM+ **Configurer → Antennas** and the band decoder.
 | **Antenna** | name (shown in the entry window as `ANT ...`) |
 | **Bands** | `20m,15m` or in MHz `14, 21` |
 | **Sector** | where the antenna points, `270-360`, across north `300-60`; empty = omnidirectional |
+| **Rotátory** (Rotors) | N1MM *Rotor Description*: the rotor(s) turning the antenna, by name; several separated by commas turn a **stack** together; empty = the default rotator |
+| **Offset** | degrees the main lobe points away from the rotor heading (the rotor turns to bearing − offset) |
+| **Obousm.** (Bidirectional) | a SteppIR or a dipole: the rotor uses whichever end of the beam is nearer, so it turns at most 180° |
+
+A rotor name the setup does not know (see [Several rotors](#several-rotors-presets-and-limits)) is a rotor of the
+rotor program: Alt+J sends it the N1MM Rotor UDP message with that name, the offset and the bidirectional flag.
 
 ## Switching
 
 - After a **band change** the antenna for that band is selected; if the band has
   several antennas, the **azimuth** to the callsign being typed decides (the
   antenna whose sector it points into), otherwise the first in the table.
+- A **bidirectional** antenna's sector also covers its back end (a fixed dipole broadside `30-90` serves 210–270 too).
+- **Automatic choice by bearing** (N1MM *Auto-select antenna based on azimuth*, off by default): with
+  **"Vybírat anténu podle směru ke stanici i po zadání volačky"** checked below the table, Space in the call field
+  chooses the band's antenna again by the bearing to the typed station — handy with fixed directional antennas.
 - **Ctrl+Alt+A** switches to the next antenna of the band (remappable).
 - Outputs:
   - **OTRSP controller** (SO2R box) — `AUX<rig><code>`, BCD for the band decoder,
@@ -42,7 +52,31 @@ Equivalent of the N1MM **Rotor** program, through hamlib **rotctld**:
 | **Ctrl+Alt+J** / **"Stop"** | stop |
 
 The azimuth to the callsign is calculated from the station locator ("Nastavení →
-Stanice", Settings → Station) and the country position according to DXCC.
+Stanice", Settings → Station) and the country position according to DXCC. When the
+station's **grid** is known — the contest's grid field (VHF) or the call history — the
+bearing goes from your grid to that grid instead.
+
+- **A heading in the call field**: type a number 0–360 in the call field and press
+  **Alt+J** — the rotor turns to that heading (the long-path key adds 180°).
+- **Band map and Available**: right click on a spot → **"Natočit rotátor na …"**
+  (N1MM *Turn Rotor*); the spot's grid is used when known (spot comment, grid
+  database, callbook).
+- With an antenna chosen, a turn applies its rotor(s), offset and bidirectional flag
+  (see the antenna table above).
+
+### Several rotors, presets and limits
+
+Equivalent of the **N1MM Rotor** program's setup: **"Nastavení rotátoru…"** (Rotor setup) in the
+Rotator window's top bar.
+
+| Part | Meaning |
+|---|---|
+| **Rotátory** (Rotors) | up to 16 named rotors: name, rotctld host and port (empty host = only the UDP message with this name), **calibration** (degrees added to the position read; taken off what is sent) and the controller's **limits** (Min/Max: `0–360`; `0–450` for an overlap rotor, which then takes the shorter turn; `-180–180` for a south stop; a limited range turns to the nearer limit and says so) |
+| **Předvolby F1–F10** (Presets) | bearings of the ten preset buttons; with the Rotator window active, **F1–F10** press them |
+| **Rotátory ze sítě** (Network rotors) | off by default; shows the headings broadcast by N1MM Rotor on the network (UDP port 13010, lines `<rotor> @ <tenths of a degree>`); only receives |
+
+With named rotors the Rotator window gets a **rotor picker**: the compass, the field, the
+presets and Stop work on the picked rotor. Stop also stops the current antenna's rotors.
 
 ## Transverters
 

@@ -21,6 +21,10 @@ public protocol CwKeyer: AnyObject, Sendable {
     /// `default` method (`UnsupportedOperationException`).
     func tune(_ on: Bool) throws
 
+    /// Applies weight, word spacing and the keyer's own setup (Winkeyer). `potSpeed` receives the speed the
+    /// Winkeyer pot asks for when the pot is followed. The default does nothing (the rig keyer over CAT).
+    func configure(_ options: CwKeyingOptions, potSpeed: (@Sendable (Int) -> Void)?) throws
+
     /// Name for the status line ("Winkeyer v31", "CAT").
     func name() -> String
 
@@ -29,6 +33,8 @@ public protocol CwKeyer: AnyObject, Sendable {
 }
 
 extension CwKeyer {
+
+    public func configure(_ options: CwKeyingOptions, potSpeed: (@Sendable (Int) -> Void)?) throws {}
 
     public func tune(_ on: Bool) throws {
         throw CwKeyerError(.unsupportedOperation, "Tento klíč ladění nosnou neumí")

@@ -12,6 +12,8 @@ final class KeyerLane: Sendable {
         var keyer: (any CwKeyer)?
         /// Kotlin `cwKeyerSignature` (`"${method}|${winkeyerPort}"`).
         var signature: String?
+        /// The keying options the open keyer was configured with (`nil` = not yet).
+        var appliedOptions: CwKeyingOptions?
         /// Kotlin `fldigi`.
         var fldigi: (any FldigiPort)?
         /// Kotlin `fldigiSignature` (`"${host}:${port}"`).
@@ -29,6 +31,10 @@ final class KeyerLane: Sendable {
         let disabledText: String
         /// The translated `tr("Winkeyer: vyber port v Nastavení → CW klíč")`.
         let noPortText: String
+        /// Weight, word spacing and the Winkeyer setup.
+        var options: CwKeyingOptions = CwKeyingOptions()
+        /// Where a followed Winkeyer pot reports its speed.
+        var potSpeed: (@Sendable (Int) -> Void)?
     }
 
     private let lane = SerialLane(name: "cw-keyer")
@@ -65,10 +71,12 @@ final class KeyerLane: Sendable {
     func keyerOrOpen(_ devices: Devices, _ request: OpenRequest) throws -> any CwKeyer {
         let signature: String = KeyerSignature.of(method: request.method, port: request.port)
         if let keyer = devices.keyer, signature == devices.signature {
+            try configure(keyer, devices, request)
             return keyer
         }
         devices.keyer?.close()
         devices.keyer = nil
+        devices.appliedOptions = nil
         let keyer: any CwKeyer
         switch request.method {
         case .cat:
@@ -84,7 +92,17 @@ final class KeyerLane: Sendable {
         }
         devices.keyer = keyer
         devices.signature = signature
+        try configure(keyer, devices, request)
         return keyer
+    }
+
+    /// The keying options go to the keyer once, and again after every change.
+    private func configure(_ keyer: any CwKeyer, _ devices: Devices, _ request: OpenRequest) throws {
+        if devices.appliedOptions == request.options {
+            return
+        }
+        try keyer.configure(request.options, potSpeed: request.potSpeed)
+        devices.appliedOptions = request.options
     }
 
     /// The digital modes' serial device on `path` (reopened after a change of the path).

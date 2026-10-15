@@ -8,12 +8,15 @@ public enum N1mmRotorUdp {
 
     public static let defaultPort: Int32 = 12040
 
-    /// "Turn to azimuth" message for rotator `rotor` (band in MHz, 0 = unknown).
-    public static func turnMessage(rotor: String?, azimuth: Double, bandMhz: Int32) -> String {
+    /// "Turn to azimuth" message for rotator `rotor` (band in MHz, 0 = unknown). `offset` and `bidirectional` are the
+    /// antenna table's columns (N1MM sends them so the rotor program applies them; 0 = the v1.1.1 message).
+    public static func turnMessage(rotor: String?, azimuth: Double, bandMhz: Int32, offset: Int = 0,
+                                   bidirectional: Bool = false) -> String {
         JavaFormat.format(
-            "<N1MMRotor><rotor>%s</rotor><goazi>%.1f</goazi><offset>0</offset><bidirectional>0</bidirectional>"
+            "<N1MMRotor><rotor>%s</rotor><goazi>%.1f</goazi><offset>%d</offset><bidirectional>%d</bidirectional>"
                 + "<freqband>%d</freqband></N1MMRotor>",
-            .string(esc(rotor)), .double(RotctldClient.normalize(azimuth)), .int(Int(bandMhz)))
+            .string(esc(rotor)), .double(RotctldClient.normalize(azimuth)), .int(offset), .int(bidirectional ? 1 : 0),
+            .int(Int(bandMhz)))
     }
 
     public static func stopMessage(rotor: String?) -> String {

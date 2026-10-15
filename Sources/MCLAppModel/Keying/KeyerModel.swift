@@ -477,6 +477,12 @@ public final class KeyerModel {
         }
     }
 
+    /// The followed Winkeyer speed pot moved (N1MM "Use Winkey Speed Pot"): it becomes the CW speed.
+    func potSpeedChanged(_ wpm: Int) {
+        guard !closed, config.config.cwKeyer.options.wkPotMode == .follow else { return }
+        updateCwSpeed(wpm)
+    }
+
     // MARK: - Esc
 
     /// Kotlin `stopSending()` without the CQ repeat (the entry window clears it, `AS:1757-1765`): tuning first, then
@@ -511,6 +517,7 @@ public final class KeyerModel {
             devices.keyer?.close()
             devices.keyer = nil
             devices.signature = nil
+            devices.appliedOptions = nil
             devices.serial?.close()
             devices.serial = nil
         }
@@ -561,6 +568,7 @@ public final class KeyerModel {
             devices.keyer?.close()
             devices.keyer = nil
             devices.signature = nil
+            devices.appliedOptions = nil
             devices.fldigi = nil
             devices.fldigiSignature = nil
             devices.serial?.close()
@@ -654,9 +662,16 @@ public final class KeyerModel {
 
     func openRequest() -> KeyerLane.OpenRequest {
         let keyerConfig: CwKeyerConfig = config.config.cwKeyer
-        return KeyerLane.OpenRequest(method: keyerConfig.method, port: keyerConfig.winkeyerPort, wpm: cwSpeed,
-                                     disabledText: language.tr(KeyerTexts.cwDisabled),
-                                     noPortText: language.tr(KeyerTexts.winkeyerNoPort))
+        var request = KeyerLane.OpenRequest(method: keyerConfig.method, port: keyerConfig.winkeyerPort, wpm: cwSpeed,
+                                            disabledText: language.tr(KeyerTexts.cwDisabled),
+                                            noPortText: language.tr(KeyerTexts.winkeyerNoPort))
+        request.options = keyerConfig.options
+        request.potSpeed = { [weak self] wpm in
+            Task { @MainActor [weak self] in
+                self?.potSpeedChanged(wpm)
+            }
+        }
+        return request
     }
 }
 
