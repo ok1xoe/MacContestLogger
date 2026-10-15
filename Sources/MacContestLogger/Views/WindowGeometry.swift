@@ -51,6 +51,9 @@ final class WindowGeometryBinder {
     /// `false` for a window whose geometry is not kept (Kotlin `DialogWindow` with `rememberDialogState`): it opens
     /// centred at its default size and nothing is saved.
     let savesGeometry: Bool
+    /// Where a window without a saved place opens (the top-left corner in the main screen's visible frame, AppKit
+    /// coordinates); `nil` = the platform's default placement.
+    var defaultTopLeft: (@MainActor (CGRect) -> NSPoint)?
     /// Called when the user closes the window (not while the app quits).
     var onClose: (@MainActor () -> Void)?
     /// `true` while the app quits: closing windows then is not a user's close.
@@ -113,6 +116,8 @@ final class WindowGeometryBinder {
             } else {
                 window.setFrameTopLeftPoint(NSPoint(x: frame.minX, y: frame.maxY))
             }
+        } else if let defaultTopLeft, let visible = NSScreen.main?.visibleFrame {
+            window.setFrameTopLeftPoint(defaultTopLeft(visible))
         }
         topLeft = NSPoint(x: window.frame.minX, y: window.frame.maxY)
         window.alphaValue = 1

@@ -551,17 +551,30 @@ public final class DigitalInterfaceModel {
 
     /// The switch as last read or set (`nil` = unknown).
     public func isOn(_ toggle: FldigiClient.Switch) -> Bool? {
-        side.switches[toggle]
+        if usesBuiltin, let tuning = app?.builtinModem?.channel(index).tuning {
+            // The built-in modem: its state now (AFC, linked tuning and the engine pane change it too).
+            switch toggle {
+            case .afc: return tuning.afc
+            case .lock: return !tuning.net
+            case .reverse: return tuning.reverse
+            }
+        }
+        return side.switches[toggle]
+    }
+
+    /// The built-in RTTY modem decodes for this window (its engine pane is shown under the text).
+    public var usesBuiltin: Bool {
+        config.config.digital.engine == .builtin
     }
 
     /// A switch button pressed.
     public func toggle(_ toggle: FldigiClient.Switch) {
-        digital.set(toggle, !(side.switches[toggle] ?? false), side: index)
+        digital.set(toggle, !(isOn(toggle) ?? false), side: index)
     }
 
     /// NET (fldigi: Lock off).
     public var net: Bool? {
-        side.switches[.lock].map { !$0 }
+        isOn(.lock).map { !$0 }
     }
 
     /// The Align button.

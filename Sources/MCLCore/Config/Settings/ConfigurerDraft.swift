@@ -350,6 +350,13 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var cwRun: [FunctionKeyDraft] = []
     public var cwSp: [FunctionKeyDraft] = []
     public var digiEngine: DigitalConfig.Engine = .none
+    /// The built-in modem's options as typed.
+    public var builtinModem: BuiltinModemSetup {
+        get { BuiltinModemSetup(builtinModemSetup) }
+        set { builtinModemSetup = newValue.values }
+    }
+    /// `builtinModemSetup`: the built-in RTTY modem's options (one map, read through `BuiltinModemSetup`).
+    public var builtinModemSetup: [String: String] = [:]
     public var fldigiHost: String = ""
     public var fldigiPort: String = ""
     public var digiRun: [FunctionKeyDraft] = []
@@ -721,6 +728,7 @@ extension ConfigurerDraft {
         cwRun = config.cwKeyer.runMessages.map { FunctionKeyDraft($0) }
         cwSp = config.cwKeyer.spMessages.map { FunctionKeyDraft($0) }
         digiEngine = config.digital.engine
+        builtinModemSetup = config.builtinModemSetup
         fldigiHost = config.digital.fldigiHost
         fldigiPort = String(config.digital.fldigiPort)
         digiRun = config.digital.runMessages.map { FunctionKeyDraft($0) }

@@ -210,6 +210,11 @@ extension AppModel {
     }
 
     /// The Digital Interface window's model (`digitalinterface`).
+    /// The built-in RTTY modem's engine pane of a receiver (spectrum, waterfall, XY scope, tuning).
+    public func makeBuiltinEngine(side: Int) -> BuiltinEngineModel {
+        BuiltinEngineModel(side: side, modem: builtinModem, clock: radioWindowClock)
+    }
+
     public func makeDigitalInterface(index: Int = 0) -> DigitalInterfaceModel {
         DigitalInterfaceModel(DigitalInterfaceModel.Dependencies(
             index: index, config: config, contest: contest, digital: keyer.digital, lane: keyer.lane, clock: radioWindowClock,
