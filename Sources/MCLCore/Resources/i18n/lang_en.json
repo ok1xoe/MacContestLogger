@@ -1991,5 +1991,13 @@
  "Všechny stanice": "All stations",
  "Stanice sítě:": "Network station:",
  "Op": "Op",
- "Stn": "Stn"
+ "Stn": "Stn",
+ "TX LOCKOUT: vysílá %s — zastaveno": "TX LOCKOUT: %s is transmitting — stopped",
+ "TX LOCKOUT: DI%s vysílá — nevysílám": "TX LOCKOUT: DI%s is transmitting — not transmitting",
+ "TX LOCKOUT: DI%s zastaveno": "TX LOCKOUT: DI%s stopped",
+ "TX lockout mezi DI1 a DI2:": "TX lockout between DI1 and DI2:",
+ "První vyhrává": "First wins",
+ "Poslední vyhrává": "Last wins",
+ "První vyhrává (blokovat mé vysílání)": "First wins (block my transmitter)",
+ "Poslední vyhrává (zastavit ostatní stanice)": "Last wins (stop the other stations)"
 }

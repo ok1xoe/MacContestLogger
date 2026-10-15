@@ -341,6 +341,7 @@ extension RigModel {
         lanes[index].run { cat in
             try? cat.setPtt(pressed)
         }
+        footswitchKeyed()
     }
 
     /// The quit's transmit release: footswitch presses are refused from now on and a held PTT is released.
@@ -370,5 +371,6 @@ extension RigModel {
         }
         // A plugin release that waited for this transmission goes out behind its `T 0`.
         operatorTransmissionMayHaveEnded(index)
+        footswitchKeyed()
     }
 }

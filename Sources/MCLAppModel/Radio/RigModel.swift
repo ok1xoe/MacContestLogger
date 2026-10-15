@@ -131,6 +131,8 @@ public final class RigModel {
     /// The pileup simulator refuses the footswitch PTT while it starts or runs (a status text; a
     /// release is never gated); wired by the app model to `TxPorts.rigKeyingGate`.
     @ObservationIgnored var keyingGate: @MainActor () -> EntryStatus? = { nil }
+    /// The footswitch keyed or released the PTT (the network interlock announces it); wired by the app.
+    @ObservationIgnored var footswitchKeyed: @MainActor () -> Void = {}
     /// The spot buffer and the exchange prediction of `tuneToSpot` (wired by the app).
     @ObservationIgnored var spotSources = SpotSources()
 

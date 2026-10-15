@@ -34,4 +34,16 @@ public enum Interlock {
         }
         return nil
     }
+
+    /// N1MM „Force other station to stop" (last one wins): the first station that started transmitting since the
+    /// previous overview (`old`) and blocks under `scope` (as `lockedBy`); `nil` = none.
+    public static func newlyTransmitting(old: [StationNetwork.Peer], new: [StationNetwork.Peer], _ scope: Scope?,
+                                         _ myBand: String?) -> String? {
+        let before: Set<String> = Set(old.filter { $0.online && $0.status.transmitting }.compactMap(\.status.stationId))
+        let started: [StationNetwork.Peer] = new.filter { peer in
+            guard let id = peer.status.stationId else { return false }
+            return !before.contains(id)
+        }
+        return lockedBy(started, scope, myBand)
+    }
 }

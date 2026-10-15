@@ -139,6 +139,19 @@ while the network logbook is connected; the text after `{MESSAGE}` is never tran
 - **Na stejném pásmu** (On the same band): inband operation (DXLog "Interlock and inband
   operation"): only stations on the same band are blocked.
 
+Below the scope, choose what happens when two stations want to transmit (N1MM software TX
+lockouts):
+
+- **První vyhrává** (First wins; N1MM *Block my transmitter*, the default): while another
+  station transmits, this one does not start;
+- **Poslední vyhrává** (Last wins; N1MM *Force other station to stop*): this station may start
+  while another one transmits, and when another station starts transmitting while this one
+  does, this one stops (CW, voice, digital, tune and a footswitch PTT; the CQ repeat is
+  switched off) with "TX LOCKOUT: vysílá STN2 — zastaveno" (stopped).
+
+The **footswitch** PTT (Settings → footswitch action PTT) goes through the interlock like the
+keyer and counts as transmitting for the other stations.
+
 CW (function keys, ESM, CW from the keyboard), the voice keyer, digital transmission and
 tuning with a carrier are blocked; the status line shows "TX LOCKOUT: vysílá STN2"
 (transmitting). The start of a transmission is announced to the others immediately, the end

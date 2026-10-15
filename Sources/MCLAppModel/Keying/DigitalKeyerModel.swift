@@ -186,6 +186,10 @@ public final class DigitalKeyerModel {
             sendHardware(text, key: key, returnToRx: returnToRx, route: route)
             return
         }
+        guard so2rLockoutAllows() else {
+            keyer.noteSendFailure()
+            return
+        }
         keyer.tx.announceTx()
         let appending: Bool = isHolding
         let token: Int64 = keyer.beginDigital(key: key)
@@ -355,6 +359,10 @@ public final class DigitalKeyerModel {
             }
             return
         }
+        guard so2rLockoutAllows() else {
+            keyer.noteSendFailure()
+            return
+        }
         keyer.tx.announceTx()
         let token: Int64 = keyer.beginDigital(key: -1)
         heldToken = token
@@ -379,6 +387,33 @@ public final class DigitalKeyerModel {
             keyer.show(KeyerTexts.fldigiFailure(message, host: host, port: port))
             keyer.noteSendFailure()
         })
+    }
+
+    /// N1MM „TX lockout (digital)": the other Digital Interface transmits. First wins refuses this transmission (a
+    /// status text, nothing keyed); last wins stops the other one (fldigi `abort`) and lets this one go. Only
+    /// with a second fldigi: one fldigi cannot transmit twice.
+    private func so2rLockoutAllows() -> Bool {
+        guard let keyer, keyer.digitalSending, txSide != current, config.config.digital.hasSecondFldigi else {
+            return true
+        }
+        let other: Int = txSide
+        switch DigitalTxLockout.from(config.config.digital.so2rTxLockout) {
+        case .off:
+            return true
+        case .firstWins:
+            keyer.show(.tr("TX LOCKOUT: DI%s vysílá — nevysílám", .int(other + 1)))
+            return false
+        case .lastWins:
+            heldToken = nil
+            watchTimer?.cancel()
+            let (host, port): (String, Int) = endpoint(other)
+            let lane: KeyerLane = self.lane
+            lane.run { devices in
+                try? lane.fldigi(devices, host: host, port: port).abort()
+            }
+            keyer.show(.tr("TX LOCKOUT: DI%s zastaveno", .int(other + 1)))
+            return true
+        }
     }
 
     /// Text typed in the TX window while a transmission is held.

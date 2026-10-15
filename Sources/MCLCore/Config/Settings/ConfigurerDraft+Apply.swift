@@ -59,6 +59,7 @@ extension ConfigurerDraft {
         config.esm.callStackClearOnBandChange = callStackClearOnBandChange
         config.digital.digitalCallStacking = digitalCallStacking
         config.digital.rttyInterface = RttyInterface.from(rttyInterface).rawValue
+        config.digital.so2rTxLockout = DigitalTxLockout.from(so2rTxLockout).rawValue
         config.digital.tncType = TncType.from(tncType).rawValue
         config.digital.tncPort = tncPort
         config.digital.tncBaud = tncBaud > 0 ? tncBaud : 9600
@@ -210,6 +211,7 @@ extension ConfigurerDraft {
         cluster.runNumber = runNumber
         cluster.master = clusterMaster
         cluster.timeFromMaster = timeFromMaster
+        cluster.interlockLastWins = interlockLastWins
         cluster.ruleEnforcement = ruleEnforcement
     }
 

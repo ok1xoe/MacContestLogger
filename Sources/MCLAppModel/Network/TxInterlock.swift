@@ -17,16 +17,31 @@ public final class TxInterlock {
     private let cluster: ClusterSyncModel
     private let config: ConfigModel
 
+    /// This station transmits now (CW, voice, digital, the footswitch PTT); set by the app.
+    var isSending: @MainActor () -> Bool = { false }
+    /// Stops this station's transmission (Esc and the CQ repeat off) with the status to show; set by the app.
+    var stop: @MainActor (EntryStatus) -> Void = { _ in }
+
     public init(cluster: ClusterSyncModel, config: ConfigModel) {
         self.cluster = cluster
         self.config = config
+    }
+
+    /// The other stations' overview changed: with „last one wins" a station that starts transmitting stops this one
+    /// (N1MM „Force other station to stop"). Only stopping — nothing is ever keyed here.
+    func peersUpdated(old: [StationNetwork.Peer], new: [StationNetwork.Peer]) {
+        let cluster: ClusterConfig = config.config.cluster
+        guard cluster.interlockLastWins, cluster.interlock != .none, isSending() else { return }
+        guard let starter = Interlock.newlyTransmitting(old: old, new: new, cluster.interlock, self.cluster.ownBand())
+        else { return }
+        stop(.tr("TX LOCKOUT: vysílá %s — zastaveno", .string(starter)))
     }
 
     /// `nil` = transmitting is allowed; otherwise the status to show (`tr("TX LOCKOUT: vysílá %s — nevysílám")`).
     public func gate() -> EntryStatus? {
         guard let network = cluster.stationNetwork else { return nil }
         let scope: Interlock.Scope = config.config.cluster.interlock
-        if scope == .none {
+        if scope == .none || config.config.cluster.interlockLastWins {
             return nil
         }
         let band: String = cluster.ownBand()

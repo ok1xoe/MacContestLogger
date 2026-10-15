@@ -97,4 +97,50 @@ import Testing
         #expect(di1.recentCalls.contains("DL1ABC"))
         di1.close()
     }
+
+    // MARK: - TX lockout (digital)
+
+    /// DI1 transmits (its fldigi reports TX), then the VFO B window's F1 goes to DI2.
+    private static func secondWhileFirstSends(_ lockout: DigitalTxLockout)
+        async throws -> (app: KeyingApp, one: FakeFldigiServer, two: FakeFldigiServer) {
+        let first = Fldigi()
+        let second = Fldigi()
+        let one = try FakeFldigiServer()
+        let two = try FakeFldigiServer()
+        one.respond { first.answer($0) }
+        two.respond { second.answer($0) }
+        first.receive("", trx: "TX")
+        let app = try await Self.make(one, two) { $0.digital.so2rTxLockout = lockout.rawValue }
+        app.entry.handle(.functionKey(0, shift: false, ctrlShift: false))
+        await app.settle()
+        #expect(one.methods.contains("text.add_tx"))
+        #expect(app.keyer.digitalSending)
+        app.model.rig.activateVfo(1)
+        await runMainQueue()
+        app.model.vfoB.entry.handle(.functionKey(0, shift: false, ctrlShift: false))
+        await app.settle()
+        return (app, one, two)
+    }
+
+    @Test func firstWinsRefusesTheSecondInterface() async throws {
+        let (app, one, two) = try await Self.secondWhileFirstSends(.firstWins)
+        #expect(!two.methods.contains("text.add_tx"))
+        #expect(!one.methods.contains("main.abort"))
+        #expect(app.model.status.message == "TX LOCKOUT: DI1 vysílá — nevysílám")
+    }
+
+    @Test func lastWinsStopsTheFirstInterface() async throws {
+        let (app, one, two) = try await Self.secondWhileFirstSends(.lastWins)
+        #expect(one.methods.contains("main.abort"))
+        #expect(two.methods.contains("text.add_tx"))
+        #expect(app.keyer.digital.current == 1)
+    }
+
+    @Test func withoutTheLockoutBothTransmit() async throws {
+        let (_, one, two) = try await Self.secondWhileFirstSends(.off)
+        #expect(two.methods.contains("text.add_tx"))
+        #expect(!one.methods.contains("main.abort"))
+        #expect(DigitalTxLockout.from("last") == .lastWins)
+        #expect(DigitalTxLockout.from("bogus") == .off)
+    }
 }

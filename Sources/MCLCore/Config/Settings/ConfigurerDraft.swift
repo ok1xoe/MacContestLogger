@@ -68,6 +68,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     /// `cluster.master` / `cluster.timeFromMaster`.
     public var clusterMaster: Bool = false
     public var timeFromMaster: Bool = false
+    /// `cluster.interlockLastWins`.
+    public var interlockLastWins: Bool = false
     public var ruleEnforcement: OperatingGuard.Enforcement = .warn
 
     // MARK: DX Cluster — `CD:78-103`
@@ -251,6 +253,8 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var callStackClearOnBandChange: Bool = true
     public var digitalCallStacking: Bool = false
     public var rttyInterface: String = RttyInterface.fldigi.rawValue
+    /// `digital.so2rTxLockout`.
+    public var so2rTxLockout: String = DigitalTxLockout.off.rawValue
     public var tncType: String = TncType.pk232.rawValue
     public var tncPort: String = ""
     public var tncBaud: Int = 9600
@@ -430,6 +434,7 @@ extension ConfigurerDraft {
         runNumber = cluster.runNumber
         clusterMaster = cluster.master
         timeFromMaster = cluster.timeFromMaster
+        interlockLastWins = cluster.interlockLastWins
         ruleEnforcement = cluster.ruleEnforcement
     }
 
@@ -604,6 +609,7 @@ extension ConfigurerDraft {
         callStackClearOnBandChange = config.esm.callStackClearOnBandChange
         digitalCallStacking = config.digital.digitalCallStacking
         rttyInterface = config.digital.rttyInterface
+        so2rTxLockout = config.digital.so2rTxLockout
         tncType = config.digital.tncType
         tncPort = config.digital.tncPort
         tncBaud = config.digital.tncBaud

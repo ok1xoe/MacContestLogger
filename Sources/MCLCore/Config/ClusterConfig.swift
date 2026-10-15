@@ -41,11 +41,14 @@ public struct ClusterConfig: Codable, Equatable, Sendable {
     /// The time of the QSOs is corrected by the master station's clock (N1MM time sync from the master) instead of
     /// this computer's NTP check. Swift-only key.
     public var timeFromMaster: Bool = false
+    /// N1MM „Force other station to stop" (last one wins): this station may transmit while another one does, and
+    /// stops its own transmission when another station starts; off = „Block my TX" (first one wins). Swift-only key.
+    public var interlockLastWins: Bool = false
 
     enum CodingKeys: String, CodingKey {
         case enabled, brokerHost, port, username, password, stationId, tls, shareSpots
         case interlock, stationType, ruleEnforcement, serialServer
-        case runNumber, statusColumns, master, timeFromMaster
+        case runNumber, statusColumns, master, timeFromMaster, interlockLastWins
     }
 
     /// The station type the other stations see: `RUN1` / `RUN2` for a numbered RUN station (N1MM Multi-two).
@@ -78,5 +81,6 @@ public struct ClusterConfig: Codable, Equatable, Sendable {
         statusColumns = c.value(.statusColumns, default: d.statusColumns)
         master = c.value(.master, default: d.master)
         timeFromMaster = c.value(.timeFromMaster, default: d.timeFromMaster)
+        interlockLastWins = c.value(.interlockLastWins, default: d.interlockLastWins)
     }
 }

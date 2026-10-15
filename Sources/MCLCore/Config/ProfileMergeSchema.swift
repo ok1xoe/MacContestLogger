@@ -125,6 +125,7 @@ enum ProfileMergeSchema {
             Property("statusColumns", .list(.string), .fieldDefault),
             Property("master", .boolean, .fieldDefault),
             Property("timeFromMaster", .boolean, .fieldDefault),
+            Property("interlockLastWins", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.RunModeConfig": [
             Property("repeatMaxMinutes", .int, .fieldDefault),
@@ -188,6 +189,7 @@ enum ProfileMergeSchema {
             Property("extraRx", .string, .fieldDefault),
             Property("extraRxToGrab", .boolean, .fieldDefault),
             Property("rttyInterface", .string, .fieldDefault),
+            Property("so2rTxLockout", .string, .fieldDefault),
             Property("tncType", .string, .fieldDefault),
             Property("tncPort", .string, .fieldDefault),
             Property("tncBaud", .int, .fieldDefault),

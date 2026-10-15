@@ -34,8 +34,9 @@ extension AppModel {
         model.keyer.tx.rigKeyingGate = { [weak simulator] in
             simulator?.keyingRefusal
         }
+        let interlockGate: @MainActor () -> EntryStatus? = model.rig.keyingGate
         model.rig.keyingGate = { [weak simulator] in
-            simulator?.keyingRefusal
+            simulator?.keyingRefusal ?? interlockGate()
         }
         model.logbook.simulatorActive = { [weak simulator] in
             simulator?.isOn ?? false
