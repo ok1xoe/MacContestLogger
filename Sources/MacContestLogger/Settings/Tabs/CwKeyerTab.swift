@@ -15,29 +15,42 @@ struct CwKeyerTab: View {
             methodGroup
             speedGroup
             timingGroup
+            serialGroup
+            monitorGroup
             winkeyerGroup
         }
-        .onAppear { app.settingsTools.loadSerialPorts() }
+        .onAppear {
+            app.settingsTools.loadSerialPorts()
+            app.settingsTools.loadAudioDevices()
+        }
     }
 
     private var methodGroup: some View {
         let ports: [String] = app.settingsTools.serialPorts
         let noPort: String = ports.isEmpty ? language.tr("Žádný sériový port") : "Vyber port"
+        let serial: Bool = draft.cwOptions.serialKeying
         return SettingsGroup(title: language.tr("Způsob klíčování")) {
-            SettingsRadio(label: language.tr("Klíčovač rigu přes CAT (rigctld)"), selected: draft.cwMethod == .cat) {
+            SettingsRadio(label: language.tr("Klíčovač rigu přes CAT (rigctld)"), selected: !serial && draft.cwMethod == .cat) {
                 draft.cwMethod = .cat
+                draft.cwOptions.serialKeying = false
             }
             SettingsCaption(language.tr(
                 "Text posílá rig vestavěným klíčovačem (hamlib send_morse), např. Kenwood, Icom, Yaesu, Elecraft. TRX musí být připojený. Prosigny se pošlou jako dvojice písmen a změny rychlosti < > uvnitř zprávy rig neumí."))
-            SettingsRadio(label: language.tr("K1EL Winkeyer (sériový port)"), selected: draft.cwMethod == .winkeyer) {
+            SettingsRadio(label: language.tr("K1EL Winkeyer (sériový port)"),
+                          selected: !serial && draft.cwMethod == .winkeyer) {
                 draft.cwMethod = .winkeyer
+                draft.cwOptions.serialKeying = false
             }
             SettingsField(caption: "Port Winkeyeru") {
                 SettingsDropdown(label: ifBlank(draft.cwPort, noPort), options: ports, language: language,
-                                 enabled: draft.cwMethod == .winkeyer) { draft.cwPort = $0 }
+                                 enabled: !serial && draft.cwMethod == .winkeyer) { draft.cwPort = $0 }
             }
-            SettingsRadio(label: "Vypnuto", selected: draft.cwMethod == .none) {
+            SettingsRadio(label: language.tr("Linka DTR/RTS sériového portu (jednoduché rozhraní)"), selected: serial) {
+                draft.cwOptions.serialKeying = true
+            }
+            SettingsRadio(label: "Vypnuto", selected: !serial && draft.cwMethod == .none) {
                 draft.cwMethod = .none
+                draft.cwOptions.serialKeying = false
             }
         }
     }
@@ -79,6 +92,76 @@ struct CwKeyerTab: View {
                              isOn: $draft.cwOptions.contestSpacing)
             SettingsCaption(language.tr(
                 "Platí pro klíčovače, které tvoří značky samy (Winkeyer s posíláním nastavení). Klíčovač rigu přes CAT používá nastavení rigu."))
+        }
+    }
+
+    /// N1MM Hardware tab, CW/Other port: DTR/RTS set to CW / PTT, PTT delay; radio port "PTT via Radio Command".
+    private var serialGroup: some View {
+        let on: Bool = draft.cwOptions.serialKeying
+        let ports: [String] = app.settingsTools.serialPorts
+        let lines: [CwKeyingOptions.SerialLine] = [.dtr, .rts]
+        let pttLines: [CwKeyingOptions.SerialLine] = CwKeyingOptions.SerialLine.allCases
+        let noPort: String = ports.isEmpty ? language.tr("Žádný sériový port") : "Vyber port"
+        let none: String = language.tr("— žádný —")
+        return SettingsGroup(title: language.tr("Klíčování DTR/RTS a PTT")) {
+            SettingsCaption(language.tr(
+                "Jednoduché tranzistorové rozhraní na sériovém portu: jedna linka klíčuje CW, druhá (volitelně) PTT. Linky jsou po otevření portu v klidu a po Esc i zavření se vždy uvolní."))
+            HStack(alignment: .top, spacing: 16) {
+                SettingsField(caption: language.tr("Port")) {
+                    SettingsDropdown(label: ifBlank(draft.cwOptions.serialPort, noPort), options: ports,
+                                     language: language, enabled: on) { draft.cwOptions.serialPort = $0 }
+                }
+                .frame(width: 220, alignment: .leading)
+                SettingsField(caption: language.tr("Linka CW")) {
+                    SettingsDropdown(label: draft.cwOptions.serialKeyLine.rawValue, options: lines.map(\.rawValue),
+                                     language: language, enabled: on) { picked in
+                        draft.cwOptions.serialKeyLine = CwKeyingOptions.SerialLine(rawValue: picked) ?? .dtr
+                        if draft.cwOptions.serialPttLine == draft.cwOptions.serialKeyLine {
+                            draft.cwOptions.serialPttLine = .none
+                        }
+                    }
+                }
+                .frame(width: 100, alignment: .leading)
+                SettingsField(caption: language.tr("Linka PTT")) {
+                    SettingsDropdown(
+                        label: draft.cwOptions.serialPttLine == .none ? none : draft.cwOptions.serialPttLine.rawValue,
+                        options: pttLines.filter { $0 != draft.cwOptions.serialKeyLine }
+                            .map { $0 == .none ? none : $0.rawValue },
+                        language: language, enabled: on) { picked in
+                        draft.cwOptions.serialPttLine = CwKeyingOptions.SerialLine(rawValue: picked) ?? .none
+                    }
+                }
+                .frame(width: 120, alignment: .leading)
+            }
+            SettingsCheckbox(label: language.tr("PTT příkazem rádia (CAT) při CW"), isOn: $draft.cwOptions.cwPttViaCat,
+                             enabled: on)
+            CwStepperRow(label: language.tr("Zpoždění PTT před vysíláním (ms)"),
+                         value: $draft.cwOptions.serialPttDelayMs, range: CwKeyingOptions.serialPttRange, step: 10,
+                         enabled: on)
+            CwStepperRow(label: language.tr("Doběh PTT po vysílání (ms)"), value: $draft.cwOptions.serialPttTailMs,
+                         range: CwKeyingOptions.serialPttRange, step: 10, enabled: on)
+            SettingsCaption(language.tr(
+                "PTT příkazem rádia po módech: CW = volba výše (s klíčováním DTR/RTS; klíčovač rigu a Winkeyer klíčují PTT samy), SSB = Hlasový klíč → PTT přes CAT, digitální módy = PTT řídí fldigi, TinyFSK nebo TNC."))
+        }
+    }
+
+    /// The sound-card CW monitor.
+    private var monitorGroup: some View {
+        let on: Bool = draft.cwOptions.monitorEnabled
+        let fallback: String = language.tr(SettingsTools.systemDefaultDevice)
+        return SettingsGroup(title: language.tr("Příposlech CW zvukovou kartou")) {
+            SettingsCheckbox(label: language.tr("Přehrávat odesílané CW jako tón"), isOn: $draft.cwOptions.monitorEnabled)
+            SettingsField(caption: language.tr("Výstup")) {
+                SettingsDropdown(label: ifBlank(draft.cwOptions.monitorDevice, fallback),
+                                 options: app.settingsTools.outputDevices, language: language, enabled: on) {
+                    draft.cwOptions.monitorDevice = $0 == fallback ? "" : $0
+                }
+            }
+            .frame(width: 280, alignment: .leading)
+            CwStepperRow(label: language.tr("Výška tónu (Hz)"), value: $draft.cwOptions.monitorPitchHz,
+                         range: CwKeyingOptions.monitorPitchRange, step: 10, enabled: on)
+            CwStepperRow(label: language.tr("Hlasitost (%)"), value: $draft.cwOptions.monitorVolume,
+                         range: CwKeyingOptions.monitorVolumeRange, step: 5, enabled: on)
         }
     }
 

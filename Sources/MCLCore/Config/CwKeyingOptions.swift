@@ -41,6 +41,17 @@ public enum WinkeyerPotMode: String, Codable, CaseIterable, Equatable, Sendable 
 /// are the property names), every value normalised to its valid range. Swift-only keys.
 public struct CwKeyingOptions: Codable, Equatable, Sendable {
 
+    /// A modem line of the DTR/RTS keying port.
+    public enum SerialLine: String, Codable, CaseIterable, Equatable, Sendable {
+        case none = "NONE"
+        case dtr = "DTR"
+        case rts = "RTS"
+    }
+
+    public static let serialPttRange: ClosedRange<Int> = 0...2_000
+    public static let monitorPitchRange: ClosedRange<Int> = 300...1_200
+    public static let monitorVolumeRange: ClosedRange<Int> = 0...100
+
     public static let weightRange: ClosedRange<Int> = 30...70
     /// Winkeyer PTT lead and tail time: 10 ms units, at most 255 of them.
     public static let pttTimeRange: ClosedRange<Int> = 0...2_550
@@ -80,11 +91,32 @@ public struct CwKeyingOptions: Codable, Equatable, Sendable {
     public var wkFirstExtensionMs: Int = 0
     public var wkKeyCompensationMs: Int = 0
 
+    /// CW keyed on a serial port's DTR or RTS line (N1MM CW/Other port); overrides `CwKeyerConfig.method`.
+    public var serialKeying: Bool = false
+    public var serialPort: String = ""
+    public var serialKeyLine: SerialLine = .dtr
+    /// The PTT line (`.none` = no PTT line; never the key line).
+    public var serialPttLine: SerialLine = .none
+    /// N1MM "PTT Delay": PTT on → first element.
+    public var serialPttDelayMs: Int = 50
+    /// Last element → PTT off.
+    public var serialPttTailMs: Int = 30
+    /// N1MM "PTT via Radio Command" for CW: the rig's CAT PTT around DTR/RTS keying.
+    public var cwPttViaCat: Bool = false
+    /// The sound-card CW monitor (sidetone of the sent CW): off by default.
+    public var monitorEnabled: Bool = false
+    /// Output device name; empty = system default.
+    public var monitorDevice: String = ""
+    public var monitorPitchHz: Int = 600
+    public var monitorVolume: Int = 30
+
     enum CodingKeys: String, CodingKey, CaseIterable {
         case weight, contestSpacing
         case wkSendSettings, wkKeyMode, wkAutospace, wkSwapPaddles, wkSidetone, wkSidetonePaddleOnly, wkSidetoneHz
         case wkPotMode, wkPotMinWpm, wkPotRangeWpm, wkPtt, wkLeadMs, wkTailMs, wkHangTime, wkFirstExtensionMs
         case wkKeyCompensationMs
+        case serialKeying, serialPort, serialKeyLine, serialPttLine, serialPttDelayMs, serialPttTailMs, cwPttViaCat
+        case monitorEnabled, monitorDevice, monitorPitchHz, monitorVolume
     }
 
     public init() {}
@@ -110,6 +142,17 @@ public struct CwKeyingOptions: Codable, Equatable, Sendable {
         wkHangTime = c.value(.wkHangTime, default: d.wkHangTime)
         wkFirstExtensionMs = c.value(.wkFirstExtensionMs, default: d.wkFirstExtensionMs)
         wkKeyCompensationMs = c.value(.wkKeyCompensationMs, default: d.wkKeyCompensationMs)
+        serialKeying = c.value(.serialKeying, default: d.serialKeying)
+        serialPort = c.value(.serialPort, default: d.serialPort)
+        serialKeyLine = c.value(.serialKeyLine, default: d.serialKeyLine)
+        serialPttLine = c.value(.serialPttLine, default: d.serialPttLine)
+        serialPttDelayMs = c.value(.serialPttDelayMs, default: d.serialPttDelayMs)
+        serialPttTailMs = c.value(.serialPttTailMs, default: d.serialPttTailMs)
+        cwPttViaCat = c.value(.cwPttViaCat, default: d.cwPttViaCat)
+        monitorEnabled = c.value(.monitorEnabled, default: d.monitorEnabled)
+        monitorDevice = c.value(.monitorDevice, default: d.monitorDevice)
+        monitorPitchHz = c.value(.monitorPitchHz, default: d.monitorPitchHz)
+        monitorVolume = c.value(.monitorVolume, default: d.monitorVolume)
         self = normalized()
     }
 
@@ -125,6 +168,16 @@ public struct CwKeyingOptions: Codable, Equatable, Sendable {
         o.wkHangTime = Self.clamp(wkHangTime, Self.hangTimeRange)
         o.wkFirstExtensionMs = Self.clamp(wkFirstExtensionMs, Self.msByteRange)
         o.wkKeyCompensationMs = Self.clamp(wkKeyCompensationMs, Self.msByteRange)
+        if o.serialKeyLine == .none {
+            o.serialKeyLine = .dtr
+        }
+        if o.serialPttLine == o.serialKeyLine {
+            o.serialPttLine = .none
+        }
+        o.serialPttDelayMs = Self.clamp(serialPttDelayMs, Self.serialPttRange)
+        o.serialPttTailMs = Self.clamp(serialPttTailMs, Self.serialPttRange)
+        o.monitorPitchHz = Self.clamp(monitorPitchHz, Self.monitorPitchRange)
+        o.monitorVolume = Self.clamp(monitorVolume, Self.monitorVolumeRange)
         return o
     }
 
@@ -192,5 +245,20 @@ extension CwKeyingOptions {
             bytes.append(Self.getPotCommand)
         }
         return bytes
+    }
+}
+
+extension CwKeyingOptions {
+
+    /// DTR/RTS keying keys a PTT (a PTT line or the rig's CAT PTT), so the PTT delay goes before the first element.
+    public var serialHasPtt: Bool {
+        serialPttLine != .none || cwPttViaCat
+    }
+
+    /// The identity of the open DTR/RTS keyer: another port, line or PTT source reopens it.
+    public var serialSignature: String {
+        let o: CwKeyingOptions = normalized()
+        return ["SERIAL", o.serialPort, o.serialKeyLine.rawValue, o.serialPttLine.rawValue,
+                o.cwPttViaCat ? "CAT" : "-"].joined(separator: "|")
     }
 }
