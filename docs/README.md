@@ -45,6 +45,7 @@ version looks slightly different, but the controls and their meaning are the sam
 ## Network and multi-operator
 
 - [DX cluster](dx-cluster.md)
+- [Available window](available-window.md)
 - [Multi-op and the network](multi-op.md)
 - [Network logbook for multiple operators: a guide](network-logbook-guide.md)
 - [Connecting WSJT-X ⇄ RUMlogNG ⇄ MacContestLogger over UDP](interop-udp-setup.md)

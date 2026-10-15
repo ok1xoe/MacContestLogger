@@ -64,6 +64,13 @@ public struct VfoState: Sendable, Equatable {
         return VfoSwitch(tunedFreqHz: restored, hardware: hardware)
     }
 
+    /// The inactive VFO was tuned without being activated (the Available window's QSY of the other radio): the
+    /// frequency it gets back when it is activated. The active VFO's frequency is the tuned one, not kept here.
+    public mutating func setInactiveFrequency(_ freqHz: Int64, vfo index: Int) {
+        guard index != activeVfo, vfoFreq.indices.contains(index), freqHz > 0 else { return }
+        vfoFreq[index] = freqHz
+    }
+
     /// `toggleSo2rStereo` (`AS:2279-2283`): the new stereo state; the model sends OTRSP `rx(activeVfo + 1, stereo)`
     /// and shows `RigTexts.so2rStereo(_:)`.
     public mutating func toggleStereo() -> Bool {

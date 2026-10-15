@@ -127,7 +127,12 @@ extension AppModel {
 
     /// The waterfall window's model (`waterfall`).
     public func makeWaterfall() -> WaterfallModel {
-        WaterfallModel(audio: audio, rig: rig, config: config, clock: radioWindowClock)
+        let model = WaterfallModel(audio: audio, rig: rig, config: config, clock: radioWindowClock)
+        // The Available window's speaker column reads the newest waterfall (nothing while it is closed).
+        availMult.spectrum = { [weak model] in
+            model?.spectrum()
+        }
+        return model
     }
 
     /// The Digital Interface window's model (`digitalinterface`).

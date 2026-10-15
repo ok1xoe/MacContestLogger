@@ -134,7 +134,7 @@ import Testing
             "stack_call Ctrl+Alt+G", "grab_stack Alt+G", "insert_grab HELP", "toggle_tx Alt+T", "digital_left Alt+Cmd+LEFT", "digital_right Alt+Cmd+RIGHT",
             "edit_last Ctrl+Y", "quick_edit_back Ctrl+Q", "quick_edit_forward Ctrl+A", "reset_rx Alt+S",
             "filter_width Alt+QUOTE", "cw_reverse Ctrl+Alt+R", "wipe_other Ctrl+Shift+W", "jump_last_cq Ctrl+Alt+Q",
-            "run_mult Ctrl+Alt+M", "pass_freq Alt+Z",
+            "run_mult Ctrl+Alt+M", "pass_freq Alt+Z", "avail_next Alt+A", "avail_previous Alt+Shift+A",
         ]
         let actual: [String] = ShortcutAction.allCases.map { "\($0.id) \($0.defaultCombo().format())" }
         #expect(actual == expected)

@@ -149,6 +149,14 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
     public var specialCalls: [String] = []
     /// The active contest's bonus stations (BONUS) count as special calls.
     public var specialCallsIncludeBonus: Bool = true
+    /// The Available window's visible columns in their order (`AvailableColumn` ids; empty = the default order).
+    public var availColumns: [String] = []
+    /// The Available window's column widths (hundredths of a share, by column id; missing = the default).
+    public var availColumnWidths: [String: Int] = [:]
+    /// N1MM „Summary Panel Band Selection": the bands of the Available window's summary (ADIF; empty = the contest's).
+    public var availSummaryBands: [String] = []
+    /// N1MM „Show Summary Panel".
+    public var availShowSummary: Bool = true
     /// How many spots the band map's SH/DX asks for.
     public var showDxCount: Int = ClusterCommandFormat.defaultShowDxCount {
         didSet {
@@ -214,6 +222,7 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         case spotFilterHideBeacons, spotFilterRemoveBusted, spotFilterBustedTwoChars, spotFilterPreferredSpotters
         case blacklistEnabled
         case spotComment, spotAllSpQsos, specialCalls, specialCallsIncludeBonus
+        case availColumns, availColumnWidths, availSummaryBands, availShowSummary
     }
 
     public init() {}
@@ -281,6 +290,10 @@ public struct DxClusterConfig: Codable, Equatable, Sendable {
         spotAllSpQsos = c.value(.spotAllSpQsos, default: d.spotAllSpQsos)
         specialCalls = c.value(.specialCalls, default: d.specialCalls)
         specialCallsIncludeBonus = c.value(.specialCallsIncludeBonus, default: d.specialCallsIncludeBonus)
+        availColumns = c.value(.availColumns, default: d.availColumns)
+        availColumnWidths = c.value(.availColumnWidths, default: d.availColumnWidths)
+        availSummaryBands = c.value(.availSummaryBands, default: d.availSummaryBands)
+        availShowSummary = c.value(.availShowSummary, default: d.availShowSummary)
     }
 
     /// N1MM's band map has at most 36 programmable buttons.

@@ -108,6 +108,14 @@ public final class WaterfallModel {
         config.config.cwPitchHz
     }
 
+    /// What the waterfall shows now for the Available window's speaker column; `nil` while the window is closed
+    /// (the receiver audio is not held then).
+    public func spectrum() -> SignalHeard.Spectrum? {
+        guard isOpen else { return nil }
+        return SignalHeard.Spectrum(rows: waterfall.latestRows(SignalHeard.rowsToCheck), maxHz: waterfall.maxHz,
+                                    dialHz: dialHz, rawMode: rawMode, cwPitch: Int32(clamping: pitchHz))
+    }
+
     /// The line above the image: the audio error, otherwise the hover frequency, otherwise the mode and pitch.
     public var infoLine: (text: EntryStatus, isError: Bool) {
         if let error {

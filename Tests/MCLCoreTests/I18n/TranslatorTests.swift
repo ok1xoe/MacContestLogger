@@ -175,10 +175,11 @@ import Testing
         // 27 keys of the network tools and
         // 5 keys of the multi-user macros and the log's multi-op columns and
         // 8 keys of the TX lockouts and
-        // 4 keys of the broker discovery.
-        #expect(map.count == 2_005)
+        // 4 keys of the broker discovery and
+        // 25 keys of the Available window's columns, summary panel, focus-radio filter, row marks, rotator and other-radio items and the Alt+A keys.
+        #expect(map.count == 2_030)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_005)
+        #expect(german.count == 2_030)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

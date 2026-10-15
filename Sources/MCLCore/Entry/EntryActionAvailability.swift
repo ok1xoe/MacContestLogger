@@ -83,7 +83,8 @@ public enum EntryActionAvailability {
         case .cwKeyboard:
             return .keyer
         case .nextSpotUp, .nextSpotDown, .nextMultUp, .nextMultDown, .nextSelfUp, .nextSelfDown, .spotIt,
-             .spotWithComment, .store, .mark, .removeSpot, .removeSpotBlacklist, .dxClusterWindow:
+             .spotWithComment, .store, .mark, .removeSpot, .removeSpotBlacklist, .dxClusterWindow, .availNext,
+             .availPrevious:
             return .spots
         case .passCall, .popStack, .toggleStationType, .passFrequency:
             return .network

@@ -817,7 +817,7 @@ public final class AppModel {
             dialogs: dialogs, now: environment.now))
         let availMult = AvailMultModel(AvailMultModel.Dependencies(
             feed: spots.feed, analysis: spots.analysis, contest: contest, blacklist: spots.blacklist,
-            callbook: spots.callbook, rig: radio.rig))
+            callbook: spots.callbook, rig: radio.rig, config: config, status: status, now: environment.now))
         return SpotTools(navigation: navigation, bandmap: bandmap, availMult: availMult)
     }
 
@@ -836,6 +836,7 @@ public final class AppModel {
         for panel in [model.panel(vfo: 0), model.vfoB] {
             let entry: EntryModel = panel.entry
             entry.spotNavigation = model.spotNavigation
+            entry.availMult = model.availMult
             entry.bandmapControls = model.bandmap
             entry.clusterCommand = { [weak cluster = model.dxCluster] command in
                 guard let cluster, cluster.connected else { return false }
@@ -883,6 +884,9 @@ public final class AppModel {
         }
         model.contest.onDefaultSpotFilters = { [weak availMult = model.availMult] bands, modes in
             availMult?.setDefaults(bands: bands, modes: modes)
+        }
+        model.availMult.rotorTurner = { [weak rotator = model.rotator] call in
+            rotator?.turnToCall(call, longPath: false)
         }
     }
 
