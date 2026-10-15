@@ -14,11 +14,14 @@ extension SpotAnalyzer {
     /// multiplier), `spotted`, or `empty`. Spots of a determined non-contest mode are ignored. `spotAt` keeps the
     /// first spot of a cell. A non-enumerable set gets extra rows for spotted keys not yet worked, sorted by
     /// UTF-16 (Kotlin `sorted()`), with the key as label and empty prefix/continent.
-    /// `bands`: the band columns (N1MM „Set bands and modes to be displayed"; 160–10 m by default).
-    public func multiplierGrid(kind: String, spots: [DxSpot], bands: [Band] = multGridBands) -> MultGridView {
+    /// `bands`: the band columns (N1MM „Set bands and modes to be displayed"; 160–10 m by default). `modes`: the
+    /// contest modes shown (`nil` = the contest's first mode, Kotlin): a cell is worked when the key was worked in one
+    /// of them, and only spots of their mode categories (CW / phone / digital) are drawn.
+    public func multiplierGrid(kind: String, spots: [DxSpot], bands: [Band] = multGridBands,
+                               modes: [String]? = nil) -> MultGridView {
         guard let session else { return .unavailable }
         guard let selector = selector(kind: kind, definition: session.definition) else { return .unavailable }
-        guard let grid = try? session.multiplierGrid(bands: bands, matching: selector.matches),
+        guard let grid = try? session.multiplierGrid(bands: bands, modes: modes, matching: selector.matches),
               grid.available else {
             return .unavailable
         }
@@ -26,8 +29,12 @@ extension SpotAnalyzer {
         // Spotted layer: (key, band) → double multiplier? + the spot for tuning by a click.
         var spotted: [MultGridView.CellKey: Bool] = [:]
         var spotAt: [MultGridView.CellKey: DxSpot] = [:]
+        let categories: Set<String>? = modes.map { Set($0.map(SpotModeCategory.of)) }
         for spot in spots {
             if !isColorRelevant(spot) {
+                continue
+            }
+            if let categories, let category = spotModeCategory(spot), !categories.contains(category) {
                 continue
             }
             guard let key = selector.spotKey(spot), let band = Band.from(frequencyHz: spot.freqHz) else { continue }

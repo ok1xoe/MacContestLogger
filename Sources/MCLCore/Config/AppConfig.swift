@@ -234,7 +234,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var entryShowUtcClock: Bool = false
     /// N1MM „Show Mode Column" of the Log window. Swift-only key.
     public var logShowModeColumn: Bool = true
-    /// N1MM „Set bands to be displayed" of the Multipliers windows: kind → bands (`160m,40m`). Swift-only key.
+    /// N1MM „Set bands and modes to be displayed" of the Multipliers windows: kind → bands (`160m,40m`), and
+    /// `<kind>/modes` → the contest modes shown (`CW,SSB`). Swift-only key.
     public var multGridBands: [String: String] = [:]
     /// N1MM „Expected Multiplier List" of the Multipliers windows: kind → one multiplier per line. Swift-only key.
     public var multExpected: [String: String] = [:]
