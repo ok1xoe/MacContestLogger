@@ -259,14 +259,14 @@ public final class IntegrationsModel {
     }
 
     /// `contactData(qso)` of the active contest with N1MM's full field set; `radioNr` is the radio the QSO was
-    /// logged on (a live QSO: the active one in SO2R; otherwise 1).
-    func contactData(_ qso: Qso, radioNr: Int = 1) -> BroadcastXml.ContactData {
+    /// logged on (`nil` = the radio stored with the QSO, 1 when not known).
+    func contactData(_ qso: Qso, radioNr: Int? = nil) -> BroadcastXml.ContactData {
         var data: BroadcastXml.ContactData = BroadcastMapping.contactData(
             qso, contestName: deps.contest.activeName, contestNr: contestNr, stationCall: config.station.call)
         let fields: [ContestDefinition.ExchangeField] = deps.contest.isActive ? deps.contest.exchangeFields(call: qso.call) : []
         let prefix: String = deps.contest.runtime.dxccLookup?.resolve(qso.call)?.primaryPrefix ?? ""
         data.extras = BroadcastMapping.contactExtras(qso, receivedFields: fields, countryPrefix: prefix,
-                                                     radioNr: radioNr)
+                                                     radioNr: radioNr ?? max(1, qso.radioNr))
         return data
     }
 
@@ -278,7 +278,7 @@ public final class IntegrationsModel {
     /// A QSO logged here: the contact to the N1MM targets and the QSO to WSJT-X (never an import).
     func qsoLogged(_ qso: Qso) {
         if let service = broadcast {
-            let data: BroadcastXml.ContactData = contactData(qso, radioNr: liveRadioNr)
+            let data: BroadcastXml.ContactData = contactData(qso, radioNr: qso.radioNr > 0 ? qso.radioNr : liveRadioNr)
             lane.submit { service.sendContactInfo(data) }
         }
         if let sender = wsjtxSender {

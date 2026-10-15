@@ -128,6 +128,8 @@ enum WireJsonReader {
             var values: [WireValue] = fields.map { WireValue.missing($0.kind) }
             var seen = [Bool](repeating: false, count: fields.count)
             var seenCount = 0
+            // The Java record's components; a Swift-only extension field is outside the "all seen" rule.
+            let coreCount: Int = fields.filter { !$0.isExtension }.count
             skipWhitespace()
             if peek() == 0x7D {
                 pos += 1
@@ -142,11 +144,12 @@ enum WireJsonReader {
                 try expect(0x3A)
                 skipWhitespace()
                 if let index = fields.firstIndex(where: { $0.name.utf16.elementsEqual(name) }) {
-                    if seenCount == fields.count {
+                    let isExtension: Bool = fields[index].isExtension
+                    if seenCount == coreCount && !isExtension {
                         throw Failure()
                     }
                     values[index] = try parseValue(fields[index].kind)
-                    if !seen[index] {
+                    if !seen[index] && !isExtension {
                         seen[index] = true
                         seenCount += 1
                     }

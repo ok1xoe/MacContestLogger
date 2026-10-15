@@ -1422,6 +1422,16 @@ extension EntryModel {
         }
     }
 
+    /// The radio a QSO logged in this window is stored with (N1MM `RadioNr`): in SO2R the window's radio, in SO2V
+    /// the window's VFO (A = 1, B = 2), otherwise 1.
+    var loggingRadioNr: Int {
+        guard let rig else { return 1 }
+        if rig.vfo.so2r {
+            return rig.vfo.catIndex(for: vfo) + 1
+        }
+        return rig.vfo.twoEntryWindows && vfo == 1 ? 2 : 1
+    }
+
     /// `{FKEY(r1%r2)}`: 2 for the VFO B / radio 2 window while two entry windows are shown, otherwise 1.
     var radioNumber: Int {
         guard let rig, rig.vfo.twoEntryWindows else { return 1 }

@@ -298,7 +298,8 @@ public final class LogbookDatabase {
                 updated_at_utc INTEGER,
                 deleted        INTEGER NOT NULL DEFAULT 0,
                 contest_id     TEXT,
-                xqso           INTEGER NOT NULL DEFAULT 0
+                xqso           INTEGER NOT NULL DEFAULT 0,
+                radio_nr       INTEGER NOT NULL DEFAULT 0
             )
             """)
         try migrateSyncColumns(db)
@@ -353,9 +354,26 @@ public final class LogbookDatabase {
                 updated_at_utc INTEGER,
                 deleted        INTEGER NOT NULL DEFAULT 0,
                 contest_id     TEXT,
-                xqso           INTEGER NOT NULL DEFAULT 0
+                xqso           INTEGER NOT NULL DEFAULT 0,
+                radio_nr       INTEGER NOT NULL DEFAULT 0
             )
             """)
+        try addMissingColumn(db, table: "deleted_qso", name: "radio_nr", ddlType: "INTEGER NOT NULL DEFAULT 0")
+    }
+
+    /// Adds a column a table created by an older version lacks (idempotent).
+    private static func addMissingColumn(_ db: SQLiteDatabase, table: String, name: String, ddlType: String) throws {
+        let pragma = try db.prepare("PRAGMA table_info(\(table))")
+        var exists = false
+        while try pragma.step() {
+            if pragma.columnText(forName: "name")?.lowercased() == name {
+                exists = true
+            }
+        }
+        pragma.finalize()
+        if !exists {
+            try db.execute("ALTER TABLE \(table) ADD COLUMN \(name) \(ddlType)")
+        }
     }
 
     /// Adds the sync columns to an older DB created before cluster sync was introduced.
@@ -376,6 +394,7 @@ public final class LogbookDatabase {
             ("updated_at_utc", "INTEGER"),
             ("deleted", "INTEGER NOT NULL DEFAULT 0"),
             ("xqso", "INTEGER NOT NULL DEFAULT 0"),
+            ("radio_nr", "INTEGER NOT NULL DEFAULT 0"),
         ]
         for column in required where !existing.contains(column.name) {
             try db.execute("ALTER TABLE qso ADD COLUMN \(column.name) \(column.ddlType)")

@@ -25,11 +25,14 @@ public struct QsoWire: WireMessage {
     public var continent: String?
     /// `null` on older stations = not an X-QSO.
     public var xqso: Bool?
+    /// The radio the QSO was logged on (N1MM `RadioNr`); Swift-only extension, `null` = not known (omitted).
+    public var radioNr: Int32?
 
     public init(timestampUtc: JavaInstant?, call: String?, freqHz: Int, band: String?, mode: String?,
                 rstSent: String?, rstRcvd: String?, exchangeSent: String?, exchangeRcvd: String?,
                 serialSent: Int32?, serialRcvd: Int32?, operator: String?, comment: String?,
-                dxccEntity: Int32?, dxccName: String?, continent: String?, xqso: Bool? = nil) {
+                dxccEntity: Int32?, dxccName: String?, continent: String?, xqso: Bool? = nil, radioNr: Int32? = nil) {
+        self.radioNr = radioNr
         self.timestampUtc = timestampUtc
         self.call = call
         self.freqHz = freqHz
@@ -57,6 +60,7 @@ public struct QsoWire: WireMessage {
         WireField("serialSent", .intBox), WireField("serialRcvd", .intBox), WireField("operator", .string),
         WireField("comment", .string), WireField("dxccEntity", .intBox), WireField("dxccName", .string),
         WireField("continent", .string), WireField("xqso", .boolBox),
+        WireField("radioNr", .intBox, extension: true),
     ]
 
     public init(wireValues v: [WireValue]) {
@@ -64,14 +68,14 @@ public struct QsoWire: WireMessage {
                   mode: v[4].string, rstSent: v[5].string, rstRcvd: v[6].string, exchangeSent: v[7].string,
                   exchangeRcvd: v[8].string, serialSent: v[9].intBox, serialRcvd: v[10].intBox,
                   operator: v[11].string, comment: v[12].string, dxccEntity: v[13].intBox, dxccName: v[14].string,
-                  continent: v[15].string, xqso: v[16].boolBox)
+                  continent: v[15].string, xqso: v[16].boolBox, radioNr: v[17].intBox)
     }
 
     public var wireValues: [WireValue] {
         var v: [WireValue] = [.instant(timestampUtc), .string(call), .long(Int64(freqHz)), .string(band)]
         v += [.string(mode), .string(rstSent), .string(rstRcvd), .string(exchangeSent), .string(exchangeRcvd)]
         v += [.intBox(serialSent), .intBox(serialRcvd), .string(`operator`), .string(comment)]
-        v += [.intBox(dxccEntity), .string(dxccName), .string(continent), .boolBox(xqso)]
+        v += [.intBox(dxccEntity), .string(dxccName), .string(continent), .boolBox(xqso), .intBox(radioNr)]
         return v
     }
 }

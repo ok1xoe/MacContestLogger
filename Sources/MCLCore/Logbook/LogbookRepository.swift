@@ -84,8 +84,8 @@ public final class LogbookRepository {
             INSERT INTO qso (timestamp_utc, call, freq_hz, band, mode, rst_sent, rst_rcvd,
                              exchange_sent, exchange_rcvd, serial_sent, serial_rcvd, points,
                              multiplier, run_mode, operator, comment, dxcc_entity, dxcc_name, continent,
-                             uuid, station_id, version, updated_at_utc, deleted, contest_id, xqso)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                             uuid, station_id, version, updated_at_utc, deleted, contest_id, xqso, radio_nr)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """)
         defer { stmt.finalize() }
         try bind(stmt, qso)
@@ -104,7 +104,8 @@ public final class LogbookRepository {
             UPDATE qso SET timestamp_utc=?, call=?, freq_hz=?, band=?, mode=?, rst_sent=?, rst_rcvd=?,
                            exchange_sent=?, exchange_rcvd=?, serial_sent=?, serial_rcvd=?, points=?,
                            multiplier=?, run_mode=?, operator=?, comment=?, dxcc_entity=?, dxcc_name=?, continent=?,
-                           uuid=?, station_id=?, version=?, updated_at_utc=?, deleted=?, contest_id=?, xqso=?
+                           uuid=?, station_id=?, version=?, updated_at_utc=?, deleted=?, contest_id=?, xqso=?,
+                           radio_nr=?
             WHERE id=?
             """)
         defer { stmt.finalize() }
@@ -360,9 +361,9 @@ public final class LogbookRepository {
             INSERT INTO deleted_qso (timestamp_utc, call, freq_hz, band, mode, rst_sent, rst_rcvd,
                              exchange_sent, exchange_rcvd, serial_sent, serial_rcvd, points,
                              multiplier, run_mode, operator, comment, dxcc_entity, dxcc_name, continent,
-                             uuid, station_id, version, updated_at_utc, deleted, contest_id, xqso,
+                             uuid, station_id, version, updated_at_utc, deleted, contest_id, xqso, radio_nr,
                              deleted_at_utc, original_id)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """)
         defer { stmt.finalize() }
         for qso in qsos {
@@ -462,6 +463,7 @@ public final class LogbookRepository {
         try stmt.bindBool(qso.deleted, at: i); i += 1
         try stmt.bindText(Self.sqlContestId(qso.contestId), at: i); i += 1
         try stmt.bindBool(qso.xqso, at: i); i += 1
+        try stmt.bindInt(qso.radioNr, at: i); i += 1
         return i
     }
 
@@ -510,6 +512,7 @@ public final class LogbookRepository {
         q.deleted = stmt.columnInt(forName: "deleted") != 0
         q.contestId = stmt.columnText(forName: "contest_id") ?? ""
         q.xqso = stmt.columnInt(forName: "xqso") != 0
+        q.radioNr = Int(stmt.columnInt(forName: "radio_nr"))
         // q.imported is not mapped: in Java it is `transient`, there is no column for it.
         return q
     }

@@ -19,11 +19,12 @@ logging, the QSOs logged without a contest:
 | `APP_N1MM_EXCHANGE1` | the received exchange (N1MM's field) |
 | `APP_N1MM_POINTS`, `APP_N1MM_ISRUNQSO` | QSO points; Run (`1`) / S&P (`0`) |
 | `APP_N1MM_MULT1`–`3` | the multipliers the QSO counted as new (from a replay of the open contest) |
+| `APP_N1MM_RADIO_NR`, `APP_N1MM_RUN1RUN2` | the radio the QSO was logged on (1 / 2, see [SO2R](so2v.md#radio-number-of-a-qso)); left out when not known |
 
 Import (`IMPORT`) reads `SRX_STRING` / `STX_STRING` back into the exchange (the
 report at the start is not tripled), so export → import preserves the exchange
 also for score recalculation. A file from N1MM without `SRX_STRING` gives the exchange from
-`APP_N1MM_EXCHANGE1`, and `APP_N1MM_ISRUNQSO` sets Run / S&P.
+`APP_N1MM_EXCHANGE1`, `APP_N1MM_ISRUNQSO` sets Run / S&P and `APP_N1MM_RADIO_NR` the radio.
 
 ### ADIF by date
 
@@ -83,6 +84,11 @@ in time order within each band (suggested name `<CALLSIGN>-by-band.txt`).
 **"Soubor → Export → Export Cabrillo…"** writes Cabrillo 3.0. The contest setup offers the Cabrillo 3.0 categories,
 including `CATEGORY-TIME: 8-HOURS`, `CATEGORY-STATION: DISTRIBUTED / EXPLORER / ROVER-LIMITED / ROVER-UNLIMITED` and
 `CATEGORY-OVERLAY: YL / YOUTH / NOVICE-TECH / OVER-50`; `GRID-LOCATOR` comes from the station locator.
+
+**Multi-Two** (`CATEGORY-TRANSMITTER: TWO`) adds the transmitter number (0 / 1) to every QSO line. With several
+networked stations each station is one transmitter (in the order of their first QSO). When the whole log comes from
+one computer running two radios, the radio the QSO was logged on decides, as N1MM's Run1/Run2: radio 1 = 0,
+radio 2 = 1.
 
 **Copy for master.scp.** With *Settings → Other → After a Cabrillo export, prepare an e-mail with a copy to
 logs@supercheckpartial.com* (off by default; N1MM's *CC Cabrillo to logs@supercheckpartial.com*), a successful
