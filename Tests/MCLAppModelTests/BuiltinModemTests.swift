@@ -148,6 +148,37 @@ import Testing
         digital.close()
     }
 
+    /// `{PROFILEn}` switches the transmitting receiver's profile before the text goes out; `{ESC}` stops the
+    /// transmission in progress first.
+    @Test func profileAndEscMacros() async throws {
+        let app = try await Self.make { config in
+            config.digital.runMessages[0] = FunctionKeyMessage(label: "CQ", text: "{ESC}{PROFILE2}CQ TEST")
+            config.digital.spMessages[0] = FunctionKeyMessage(label: "CQ", text: "{ESC}{PROFILE2}CQ TEST")
+        }
+        let modem: BuiltinModemModel = app.model.builtinModem
+        modem.tune(0) { $0.baud = 50 }
+        #expect(modem.saveProfile(1, name: "50 Bd", side: 0) == nil)
+        modem.tune(0) { $0.baud = 45.45 }
+        app.keyer.digital.send("RYRYRYRYRYRYRYRYRYRYRYRYRYRYRY", key: 1)
+        await app.settle()
+        let first: FakeModemStream = try #require(app.keying.modemOutputs.first)
+        first.pull(2_000)
+        app.entry.handle(.functionKey(0, shift: false, ctrlShift: false))
+        await app.settle()
+        #expect(first.isStopped, "{ESC} stopped the transmission in progress")
+        #expect(modem.channel(0).tuning.baud == 50, "{PROFILE2} applied")
+        let second: FakeModemStream = try #require(app.keying.modemOutputs.last)
+        #expect(second !== first)
+        let audio: [Float] = Self.drain(app, second)
+        let decoder = BuiltinRttyChannel()
+        decoder.update { $0.baud = 50 }
+        decoder.receive((audio + [Float](repeating: 0, count: 6_000)).map { Double($0) })
+        #expect(decoder.rxText(start: 0, length: decoder.rxLength).contains("CQ TEST"))
+        // An empty slot: a status line, nothing changes.
+        app.keyer.digital.applyProfile(9)
+        #expect(app.status == "Profil modemu 10 je prázdný")
+    }
+
     @Test func escStopsTheTransmissionAtOnce() async throws {
         let app = try await Self.make()
         app.keyer.digital.send("RYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRYRY", key: 0)

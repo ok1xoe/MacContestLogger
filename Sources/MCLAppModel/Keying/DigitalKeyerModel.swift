@@ -170,6 +170,17 @@ public final class DigitalKeyerModel {
             linked: setup.flag(.linkedTuning)))
     }
 
+    /// `{PROFILEn}`: the built-in modem's profile onto the receiver of the side the F-keys act on now (wired by the app).
+    @ObservationIgnored var profileApplier: (@MainActor (Int, Int) -> Bool)?
+
+    /// `{PROFILEn}` (slot from 0); nothing with fldigi or an empty slot (a status line says so).
+    public func applyProfile(_ slot: Int) {
+        guard config.config.digital.engine == .builtin else { return }
+        if profileApplier?(slot, current) != true {
+            status.show("Profil modemu %s je prázdný", .string(String(slot + 1)))
+        }
+    }
+
     /// Kotlin `digitalReady`: a digital modem is configured.
     public var ready: Bool {
         config.config.digital.engine != .none || hardwareRoute != nil

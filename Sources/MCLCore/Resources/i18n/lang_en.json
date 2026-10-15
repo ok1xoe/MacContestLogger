@@ -2470,5 +2470,6 @@
  "Uložit do": "Save to",
  "Profil": "Profile",
  "Profily modemu: posun, rychlost, demodulátor, AFC/NET, filtry (makro {PROFILEn})": "Modem profiles: shift, speed, demodulator, AFC/NET, filters (macro {PROFILEn})",
- "Demodulátor MMTTY (IIR, FIR, PLL, FFT)": "MMTTY demodulator (IIR, FIR, PLL, FFT)"
+ "Demodulátor MMTTY (IIR, FIR, PLL, FFT)": "MMTTY demodulator (IIR, FIR, PLL, FFT)",
+ "Profil modemu %s je prázdný": "Modem profile %s is empty"
 }

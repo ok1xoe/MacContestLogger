@@ -1181,6 +1181,9 @@ public final class AppModel {
                                                setup: { [weak config = model.config] in
                                                    config?.config.builtinModem ?? BuiltinModemSetup()
                                                })
+        model.keyer.digital.profileApplier = { [weak modem = model.builtinModem] slot, side in
+            modem?.applyProfile(slot, side: side) ?? false
+        }
         model.keyer.digital.activeMode = { [weak model] in
             (model?.activeEntry ?? model?.entry)?.form.mode
         }

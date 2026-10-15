@@ -199,6 +199,9 @@ window, transmits and puts the cursor into the TX line (in CW it still opens the
 | `{FILE:name}` | the text of a file in `FunctionKeyMessages` in the data folder (at most 64 kB, line breaks kept) |
 | `{DI1}`…`{DI24}` | the text of a message button |
 | `{NAME}` | the other station's name from the [call history](call-history.md) |
+| `{ESC}` | stops the transmission in progress before this message goes out (as Esc) |
+| `{PROFILE1}`…`{PROFILE16}` | the built-in modem's profile n onto the transmitting receiver, before the text goes out (an empty slot leaves the setup and says so) |
+| `{Hxx}` / `{Hxxxx}` | the character with that hexadecimal code, e.g. `{H0D}` (CR) or `{H2B}` (`+`); control codes other than CR/LF are not sent |
 
 `{TX}`, `{RX}`, `{CLRTX}` and `{ALT-T}` do nothing in CW and SSB.
 

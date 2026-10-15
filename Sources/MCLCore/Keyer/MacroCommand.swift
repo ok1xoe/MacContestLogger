@@ -36,6 +36,9 @@ public enum MacroCommand: Equatable, Sendable {
     case passAlert(station: String, hz: Int)
     /// `{PASSMSG name}` / `{PASSMSG kHz}`: the last QSO's call is passed to that station (the argument as written).
     case passLastQso(String)
+    /// `{PROFILE1}`…`{PROFILE16}` (N1MM / MMTTY): the built-in RTTY modem's profile n onto the transmitting
+    /// receiver (index from 0).
+    case modemProfile(Int)
 
     /// The command of a parameterized macro (`raw` = the whole macro with its braces); `nil` = not a parameterized
     /// macro this app knows.
@@ -51,6 +54,9 @@ public enum MacroCommand: Equatable, Sendable {
         }
         if upper.hasPrefix("{CTRLF"), let number = Int(upper.dropFirst(6).dropLast()), (1...12).contains(number) {
             return .otherRadioKey(number - 1)
+        }
+        if upper.hasPrefix("{PROFILE"), let n = Int(upper.dropFirst(8).dropLast()), (1...16).contains(n) {
+            return .modemProfile(n - 1)
         }
         if upper == "{SWAPCONTESTS}" {
             return .swapContests(2)

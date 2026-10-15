@@ -191,10 +191,11 @@ import Testing
         // the cluster list chooser and
         // 27 keys of the built-in RTTY modem and
         // the built-in modem's mode status and
-        // 6 keys of the modem profiles.
-        #expect(map.count == 2_472)
+        // 6 keys of the modem profiles and
+        // the empty modem profile.
+        #expect(map.count == 2_473)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_472)
+        #expect(german.count == 2_473)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

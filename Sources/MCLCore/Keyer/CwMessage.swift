@@ -111,6 +111,8 @@ public struct CwMessage: Equatable, Sendable {
         /// `{DIGQTCR}` / `{DIGQTCS}` (N1MM, WAE): the QTC window opens to receive / send a series (Swift-only).
         case qtcReceive = "QTC_RECEIVE"
         case qtcSend = "QTC_SEND"
+        /// `{ESC}` (N1MM, digital): the transmission in progress stops before this message goes out (Swift-only).
+        case escape = "ESCAPE"
     }
 
     /// Message parts in transmission order.
