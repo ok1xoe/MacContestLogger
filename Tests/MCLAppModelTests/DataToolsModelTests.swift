@@ -345,7 +345,7 @@ import Testing
     @Test func aSecondDefinitionUpdateRunsAfterTheFirst() async throws {
         let yaml: String = try Self.definitionYaml("test-x")
         let server = try LocalHttpServer(routes: [
-            "/index.txt": .init(body: "contests/test-x.yaml\n"),
+            "/index-v2.txt": .init(body: "contests/test-x.yaml\n"),
             "/contests/test-x.yaml": .init(body: yaml),
         ])
         defer { server.stop() }
@@ -357,7 +357,8 @@ import Testing
         app.model.dataTools.updateDefinitions()
         await app.model.dataTools.settle()
 
-        #expect(server.requestedPaths == ["/index.txt", "/contests/test-x.yaml", "/index.txt", "/contests/test-x.yaml"])
+        #expect(server.requestedPaths == ["/index-v2.txt", "/contests/test-x.yaml", "/index-v2.txt",
+                                          "/contests/test-x.yaml"])
         // The second run found the file of the first one.
         #expect(app.model.status.message == "Definice závodů: nové 0, aktualizované 0, beze změny 1, "
             + "ponechané lokální úpravy 0, chyby 0")
