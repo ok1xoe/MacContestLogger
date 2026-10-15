@@ -23,6 +23,8 @@ final class FakeRigctld: @unchecked Sendable {
     private var split = false
     private var txHz: Int64 = 0
     private var azimuthText = "123.0"
+    /// The microphone gain (`+l MICGAIN` / `+L MICGAIN <v>`, the extended raw form).
+    private var micGainText = "0.300000"
     /// The next `f` closes the connection instead of answering (a lost rig).
     private var dropOnRead = false
     /// The next command line equal to this closes the connection instead of answering.
@@ -159,6 +161,10 @@ final class FakeRigctld: @unchecked Sendable {
 
     func reject(_ word: String) {
         lock.withLock { _ = rejected.insert(word) }
+    }
+
+    var micGain: String {
+        lock.withLock { micGainText }
     }
 
     func setAzimuth(_ text: String) {
@@ -298,6 +304,11 @@ final class FakeRigctld: @unchecked Sendable {
                     split = words[1] == "1"
                 }
                 return ["RPRT 0"]
+            case "+l" where words.count > 1 && words[1] == "MICGAIN":
+                return ["get_level: MICGAIN", micGainText, "RPRT 0"]
+            case "+L" where words.count > 2 && words[1] == "MICGAIN":
+                micGainText = String(words[2])
+                return ["set_level: MICGAIN " + micGainText, "RPRT 0"]
             default:
                 return ["RPRT 0"]
             }

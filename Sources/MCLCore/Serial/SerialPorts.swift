@@ -41,3 +41,19 @@ public enum SerialPorts {
         return value?.takeRetainedValue() as? String
     }
 }
+
+/// N1MM's COM port list marks a port that was configured but cannot be found now (an unplugged USB adapter, a
+/// virtual port whose software is not running) with an asterisk.
+public enum SerialPortChoice {
+
+    /// `port` is set but not among the `available` ones.
+    public static func isMissing(_ port: String, available: [String]) -> Bool {
+        let trimmed: String = port.trimmingCharacters(in: .whitespaces)
+        return !trimmed.isEmpty && !available.contains(trimmed)
+    }
+
+    /// The drop-down label: `* <port>` for a missing port, otherwise the port.
+    public static func label(_ port: String, available: [String]) -> String {
+        isMissing(port, available: available) ? "* " + port : port
+    }
+}

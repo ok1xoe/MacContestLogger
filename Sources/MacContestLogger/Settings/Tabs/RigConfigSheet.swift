@@ -43,6 +43,7 @@ struct RigConfigSheet: View {
                     RigChoiceGroup(app: app, draft: $draft, manufacturer: $manufacturerState.value,
                                    query: $queryState.value)
                     SerialLineGroup(app: app, draft: $draft)
+                    RigOptionsGroup(app: app, draft: $draft)
                     rigctldGroup
                 }
                 .padding(16)
@@ -219,10 +220,11 @@ private struct SerialLineGroup: View {
                     .foregroundStyle(.secondary)
             }
             SettingsField(caption: "Port") {
-                SettingsDropdown(label: ifBlank(draft.device, language.tr("— žádný —")),
+                SettingsDropdown(label: ifBlank(app.settingsTools.portLabel(draft.device), language.tr("— žádný —")),
                                  options: [""] + app.settingsTools.serialPorts, language: language,
                                  enabled: enabled) { draft.device = $0 }
             }
+            MissingPortNote(app: app, port: draft.device)
             lineRow(language, enabled: enabled)
             pinRow(language, enabled: enabled)
         }
@@ -279,6 +281,47 @@ private struct SerialLineGroup: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+/// The N1MM per-radio options: the Icom CI-V address, the polling rate, reverse CW, the microphone mute during voice
+/// messages, the sub receiver and the transceiver timeout of the band map's radio problem alert.
+private struct RigOptionsGroup: View {
+    let app: AppModel
+    @Binding var draft: ConfigurerDraft
+
+    var body: some View {
+        let language: LanguageModel = app.language
+        let rates: [PollRate] = PollRate.allCases
+        SettingsGroup(title: language.tr("Volby rádia")) {
+            HStack(alignment: .top, spacing: 8) {
+                if draft.rigModelLabel.range(of: "icom", options: .caseInsensitive) != nil
+                    || !KotlinStrings.isBlank(draft.civAddress) {
+                    SettingsField(caption: language.tr("Icom CI-V adresa (hex)")) {
+                        SettingsTextField(text: $draft.civAddress, filter: .digitsAnd(extra: "abcdefABCDEFxXhH"))
+                    }
+                    .frame(width: 150)
+                }
+                SettingsField(caption: language.tr("Dotazování rádia")) {
+                    SettingsDropdown(label: language.tr(draft.pollRate.label),
+                                     options: rates.map { language.tr($0.label) }, language: language) { picked in
+                        draft.pollRate = rates.first { language.tr($0.label) == picked } ?? draft.pollRate
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                SettingsField(caption: language.tr("Timeout TRX (s, 0 = bez upozornění)")) {
+                    SettingsTextField(text: $draft.rigTimeout, filter: .digits(limit: 3))
+                }
+                .frame(width: 190)
+            }
+            SettingsCheckbox(label: language.tr("Reverzní CW (CW-R) při přepnutí na CW"), isOn: $draft.reverseCw)
+            SettingsCheckbox(label: language.tr("Ztlumit mikrofon rádia během hlasových zpráv (MICGAIN, např. K3, Orion)"),
+                             isOn: $draft.muteMicOnVoice)
+            SettingsCheckbox(label: language.tr("Vedlejší přijímač stále zapnutý (dual watch po připojení)"),
+                             isOn: $draft.subReceiverOn)
+            SettingsCaption(language.tr(
+                "CI-V adresa se předá rigctld spuštěnému aplikací (prázdné = výchozí hamlib). Když spojení s rigem vypadne a do timeoutu se neobnoví, bandmapa ukáže upozornění s tlačítkem Reset Radio."))
         }
     }
 }

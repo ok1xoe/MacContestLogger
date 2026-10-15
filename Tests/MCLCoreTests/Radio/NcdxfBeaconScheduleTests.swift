@@ -54,3 +54,36 @@ import Testing
         #expect(InfoStrip.extras(input) == [.verbatim("NCDXF 4U1UN (United Nations NY)")])
     }
 }
+
+/// N1MM Tools „Tune to beacon for this band": the band's beacon frequency and the bearing to a beacon.
+@Suite struct NcdxfBeaconTuneTests {
+
+    @Test func beaconFrequencyOfTheBand() {
+        #expect(NcdxfBeacons.beaconFrequency(forBandOf: 14_025_000) == 14_100_000)
+        #expect(NcdxfBeacons.beaconFrequency(forBandOf: 18_080_000) == 18_110_000)
+        #expect(NcdxfBeacons.beaconFrequency(forBandOf: 21_300_000) == 21_150_000)
+        #expect(NcdxfBeacons.beaconFrequency(forBandOf: 24_900_000) == 24_930_000)
+        #expect(NcdxfBeacons.beaconFrequency(forBandOf: 28_500_000) == 28_200_000)
+        #expect(NcdxfBeacons.beaconFrequency(forBandOf: 7_025_000) == nil)
+        #expect(NcdxfBeacons.beaconFrequency(forBandOf: 0) == nil)
+    }
+
+    @Test func everyBeaconHasALocator() {
+        #expect(NcdxfBeacons.beacons.count == 18)
+        for beacon in NcdxfBeacons.beacons {
+            #expect(Maidenhead.centerLatLon(beacon.grid) != nil, "\(beacon.call)")
+            #expect(NcdxfBeacons.isBeacon(beacon.call))
+        }
+    }
+
+    /// From central Europe (JN79) OH2B lies to the north-east, LU4AA to the south-west.
+    @Test func bearingFromTheStation() throws {
+        let oh2b = try #require(NcdxfBeacons.beacons.first { $0.call == "OH2B" })
+        let lu4aa = try #require(NcdxfBeacons.beacons.first { $0.call == "LU4AA" })
+        let north: Int = try #require(NcdxfBeacons.bearing(from: "JN79", to: oh2b))
+        let southWest: Int = try #require(NcdxfBeacons.bearing(from: "JN79", to: lu4aa))
+        #expect((0...45).contains(north))
+        #expect((200...250).contains(southWest))
+        #expect(NcdxfBeacons.bearing(from: "", to: oh2b) == nil)
+    }
+}

@@ -27,7 +27,7 @@ enum ProfileMergeSchema {
     /// and special calls (`dxCluster.spotComment`, `spotAllSpQsos`, `specialCalls*`), the call stack
     /// (`esm.nextCallKey`, `esm.callStack*`), digital call stacking (`digital.digitalCallStacking`), the call history
     /// switches and extra
-    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`), the WAE QTC setup (`qtcSetup`), the spectrum display options (`spectrumSetup`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
+    /// files (`callHistory*`), the opt-in update check at start (`checkUpdatesAtStart`), the VoiceOver announcements (`accessibilityAnnouncements`), the WAE QTC setup (`qtcSetup`), the rotor setup (`rotorSetup`), the spectrum display options (`spectrumSetup`), the antenna table's rotor columns (`antennas.*.rotors`, `offset`, `bidirectional`), the N1MM per-radio options of `rig`/`rig2` (`civAddress`, `pollRate`, `reverseCw`, `muteMicOnVoice`, `subReceiverOn`, `timeoutSeconds`) and a contest's own call history and function key files (`contestSetups.*.callHistoryFile`,
     /// `contestSetups.*.functionKeyFiles`) its first serial and master.scp (`contestSetups.*.firstSerial`, `contestSetups.*.scpFile`).
     static let swiftOnlyProperties: [String: [Property]] = [
         root: [
@@ -64,6 +64,7 @@ enum ProfileMergeSchema {
             Property("graylineSpots", .int, .fieldDefault),
             Property("entryHiddenSections", .list(.string), .fieldDefault),
             Property("resetRxAfterRunQso", .boolean, .fieldDefault),
+            Property("autoSendThreshold", .int, .fieldDefault),
             Property("macroQsyStepKHz", .int, .fieldDefault),
             Property("functionKeysPerOperator", .boolean, .fieldDefault),
             Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
@@ -78,7 +79,21 @@ enum ProfileMergeSchema {
             Property("checkUpdatesAtStart", .boolean, .fieldDefault),
             Property("accessibilityAnnouncements", .boolean, .fieldDefault),
             Property("qtcSetup", .map(.string), .fieldDefault),
+            Property("rotorSetup", .map(.string), .fieldDefault),
             Property("spectrumSetup", .map(.string), .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.AntennaEntry": [
+            Property("rotors", .string, .fieldDefault),
+            Property("offset", .int, .fieldDefault),
+            Property("bidirectional", .boolean, .fieldDefault),
+        ],
+        "cz.ok1xoe.maccontestlogger.config.RigConfig": [
+            Property("civAddress", .string, .fieldDefault),
+            Property("pollRate", .string, .fieldDefault),
+            Property("reverseCw", .boolean, .fieldDefault),
+            Property("muteMicOnVoice", .boolean, .fieldDefault),
+            Property("subReceiverOn", .boolean, .fieldDefault),
+            Property("timeoutSeconds", .int, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ContestSetup": [
             Property("callHistoryFile", .string, .fieldDefault),
@@ -150,6 +165,35 @@ enum ProfileMergeSchema {
         ],
         "cz.ok1xoe.maccontestlogger.config.CwKeyerConfig": [
             Property("stackMessages", .boolean, .fieldDefault),
+            Property("weight", .int, .fieldDefault),
+            Property("contestSpacing", .boolean, .fieldDefault),
+            Property("wkSendSettings", .boolean, .fieldDefault),
+            Property("wkKeyMode", .string, .fieldDefault),
+            Property("wkAutospace", .boolean, .fieldDefault),
+            Property("wkSwapPaddles", .boolean, .fieldDefault),
+            Property("wkSidetone", .boolean, .fieldDefault),
+            Property("wkSidetonePaddleOnly", .boolean, .fieldDefault),
+            Property("wkSidetoneHz", .int, .fieldDefault),
+            Property("wkPotMode", .string, .fieldDefault),
+            Property("wkPotMinWpm", .int, .fieldDefault),
+            Property("wkPotRangeWpm", .int, .fieldDefault),
+            Property("wkPtt", .boolean, .fieldDefault),
+            Property("wkLeadMs", .int, .fieldDefault),
+            Property("wkTailMs", .int, .fieldDefault),
+            Property("wkHangTime", .int, .fieldDefault),
+            Property("wkFirstExtensionMs", .int, .fieldDefault),
+            Property("wkKeyCompensationMs", .int, .fieldDefault),
+            Property("serialKeying", .boolean, .fieldDefault),
+            Property("serialPort", .string, .fieldDefault),
+            Property("serialKeyLine", .string, .fieldDefault),
+            Property("serialPttLine", .string, .fieldDefault),
+            Property("serialPttDelayMs", .int, .fieldDefault),
+            Property("serialPttTailMs", .int, .fieldDefault),
+            Property("cwPttViaCat", .boolean, .fieldDefault),
+            Property("monitorEnabled", .boolean, .fieldDefault),
+            Property("monitorDevice", .string, .fieldDefault),
+            Property("monitorPitchHz", .int, .fieldDefault),
+            Property("monitorVolume", .int, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ClubLogConfig": [
             Property("ctyEnabled", .boolean, .fieldDefault),

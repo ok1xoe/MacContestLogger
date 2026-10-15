@@ -65,7 +65,9 @@ import Testing
 
     @Test func pinAndActionNamesMatchConfig() {
         #expect(Footswitch.Pin.allCases.map(\.rawValue) == ["CTS", "DSR", "DCD"])
-        #expect(Footswitch.Action.allCases.map(\.rawValue) == ["PTT", "ENTER", "F1"])
+        #expect(Footswitch.Action.allCases.map(\.rawValue) == ["PTT", "ENTER", "F1", "F2", "F3", "F4", "F11", "F12",
+                                                                "ESC", "SWITCH_RADIOS"])
+        #expect(Footswitch.Action.allCases.compactMap(\.functionKey) == [0, 1, 2, 3, 10, 11])
         #expect(Footswitch.Pin(rawValue: AppConfig().footswitchPin) == .cts)
         #expect(Footswitch.Action(rawValue: AppConfig().footswitchAction) == .ptt)
     }

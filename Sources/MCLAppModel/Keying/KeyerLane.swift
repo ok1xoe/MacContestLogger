@@ -12,6 +12,8 @@ final class KeyerLane: Sendable {
         var keyer: (any CwKeyer)?
         /// Kotlin `cwKeyerSignature` (`"${method}|${winkeyerPort}"`).
         var signature: String?
+        /// The keying options the open keyer was configured with (`nil` = not yet).
+        var appliedOptions: CwKeyingOptions?
         /// Kotlin `fldigi`.
         var fldigi: (any FldigiPort)?
         /// Kotlin `fldigiSignature` (`"${host}:${port}"`).
@@ -29,6 +31,14 @@ final class KeyerLane: Sendable {
         let disabledText: String
         /// The translated `tr("Winkeyer: vyber port v Nastavení → CW klíč")`.
         let noPortText: String
+        /// Weight, word spacing and the Winkeyer setup.
+        var options: CwKeyingOptions = CwKeyingOptions()
+        /// Where a followed Winkeyer pot reports its speed.
+        var potSpeed: (@Sendable (Int) -> Void)?
+        /// The translated `tr("Klíčování DTR/RTS: vyber port v Nastavení → CW klíč")`.
+        var noSerialPortText: String = ""
+        /// The error of PTT via CAT without a rig (the text of `CatCwKeyer`).
+        var noRigText: String = ""
     }
 
     private let lane = SerialLane(name: "cw-keyer")
@@ -63,13 +73,23 @@ final class KeyerLane: Sendable {
     /// Kotlin `cwKeyerOrOpen()` (`AS:1471-1490`), on the lane: the open keyer when the signature is unchanged,
     /// otherwise the old one is closed and the configured one opened (CAT over the active rig, Winkeyer on its port).
     func keyerOrOpen(_ devices: Devices, _ request: OpenRequest) throws -> any CwKeyer {
-        let signature: String = KeyerSignature.of(method: request.method, port: request.port)
+        let signature: String = request.options.serialKeying
+            ? request.options.serialSignature : KeyerSignature.of(method: request.method, port: request.port)
         if let keyer = devices.keyer, signature == devices.signature {
+            try configure(keyer, devices, request)
             return keyer
         }
         devices.keyer?.close()
         devices.keyer = nil
+        devices.appliedOptions = nil
         let keyer: any CwKeyer
+        if request.options.serialKeying {
+            keyer = try openSerialKeyer(request)
+            devices.keyer = keyer
+            devices.signature = signature
+            try configure(keyer, devices, request)
+            return keyer
+        }
         switch request.method {
         case .cat:
             let box: ActiveCatBox = activeCat
@@ -84,7 +104,42 @@ final class KeyerLane: Sendable {
         }
         devices.keyer = keyer
         devices.signature = signature
+        try configure(keyer, devices, request)
         return keyer
+    }
+
+    /// DTR/RTS keying on its port, with the PTT line and/or the active rig's CAT PTT.
+    private func openSerialKeyer(_ request: OpenRequest) throws -> any CwKeyer {
+        let options: CwKeyingOptions = request.options.normalized()
+        if KotlinStrings.isBlank(options.serialPort) {
+            throw KeyingFailure(message: request.noSerialPortText)
+        }
+        var catPtt: (@Sendable (Bool) throws -> Void)?
+        if options.cwPttViaCat {
+            let box: ActiveCatBox = activeCat
+            let noRig: String = request.noRigText
+            catPtt = { on in
+                guard let rig = box.cat?.rigOrNull() else {
+                    if on {
+                        throw KeyingFailure(message: noRig)
+                    }
+                    return
+                }
+                try rig.setPtt(on)
+            }
+        }
+        let lines: any CwKeyLines = try hardware.openKeyLines(options.serialPort, options.serialKeyLine,
+                                                              options.serialPttLine)
+        return SerialCwKeyer(lines: lines, catPtt: catPtt, sleeper: hardware.makeCwSleeper(), options: options)
+    }
+
+    /// The keying options go to the keyer once, and again after every change.
+    private func configure(_ keyer: any CwKeyer, _ devices: Devices, _ request: OpenRequest) throws {
+        if devices.appliedOptions == request.options {
+            return
+        }
+        try keyer.configure(request.options, potSpeed: request.potSpeed)
+        devices.appliedOptions = request.options
     }
 
     /// The digital modes' serial device on `path` (reopened after a change of the path).

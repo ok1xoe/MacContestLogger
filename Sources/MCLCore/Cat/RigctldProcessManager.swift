@@ -43,23 +43,16 @@ public final class RigctldProcessManager: @unchecked Sendable {
     ///
     /// - Throws: `CatException("rigctld už běží")`, `CatException("Nelze spustit rigctld: <command>")` with cause
     ///   `ProcessRunnerError`; a CAT log error on the `spouštím:` line propagates (`UncheckedIOError`, the process is not started).
-    public func start(model: Int, device: String?, baud: Int, port: Int, serial: SerialParams? = nil) throws {
+    public func start(model: Int, device: String?, baud: Int, port: Int, serial: SerialParams? = nil,
+                      civAddress: String? = nil) throws {
         lock.lock()
         defer { lock.unlock() }
         if let process, process.isAlive {
             throw CatException("rigctld už běží")
         }
-        var cmd: [String] = [binary ?? HamlibBinary.resolve("rigctld"), "-vvv", "-m", String(model)]
-        if let device, !JavaText.isBlank(device), let normalized = Self.normalizeDevice(device) {
-            cmd += ["-r", normalized]
-            if baud > 0 {
-                cmd += ["-s", String(baud)]
-            }
-            if let serial {
-                cmd += ["--set-conf", serial.toSetConf()]
-            }
-        }
-        cmd += ["-t", String(port)]
+        let cmd: [String] = Self.command(binary: binary ?? HamlibBinary.resolve("rigctld"), model: model,
+                                         device: device, baud: baud, port: port, serial: serial,
+                                         civAddress: civAddress)
         let joined = cmd.joined(separator: " ")
         try log.info("spouštím: " + joined)
         let mirror = OutputMirror(log: log)
@@ -76,6 +69,28 @@ public final class RigctldProcessManager: @unchecked Sendable {
         hooks.register(self) { [self] in
             destroyProcess()
         }
+    }
+
+    /// The daemon's command line: `<binary> -vvv -m <model> [-r <device> [-s <baud>] [--set-conf <serial>]
+    /// [--set-conf civaddr=<0xNN>]] -t <port>`. The CI-V address (N1MM „Icom Addr") goes only with a serial device
+    /// and only when it is a valid hex byte (`RigConfig.civAddressHamlib`).
+    static func command(binary: String, model: Int, device: String?, baud: Int, port: Int, serial: SerialParams?,
+                        civAddress: String?) -> [String] {
+        var cmd: [String] = [binary, "-vvv", "-m", String(model)]
+        if let device, !JavaText.isBlank(device), let normalized = Self.normalizeDevice(device) {
+            cmd += ["-r", normalized]
+            if baud > 0 {
+                cmd += ["-s", String(baud)]
+            }
+            if let serial {
+                cmd += ["--set-conf", serial.toSetConf()]
+            }
+            if let civAddress, let hex = RigConfig.civAddressHamlib(civAddress) {
+                cmd += ["--set-conf", "civaddr=" + hex]
+            }
+        }
+        cmd += ["-t", String(port)]
+        return cmd
     }
 
     /// Java `isAlive()`.

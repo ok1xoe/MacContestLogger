@@ -12,6 +12,7 @@ and DXLog
 |---|---|---|
 | **Rig keyer via CAT** (default) | text goes through rigctld to the keyer built into the rig (hamlib `send_morse`), e.g. Kenwood TS-590, Icom, Yaesu, Elecraft | plain text. Prosigns are sent as pairs of letters; speed changes `<` `>` inside a message are not supported by the rig |
 | **K1EL Winkeyer** | serial port (USB), Winkeyer 2/3 protocol | everything: prosigns (AR, SK...), speed changes inside a message, precise interruption |
+| **DTR/RTS line of a serial port** | a simple transistor interface on a serial (USB) port: one line keys CW, the other one PTT | everything a Winkeyer can do from the keyboard (the logger forms the elements); no paddles |
 | **Off** | | |
 
 For CAT the transceiver must be connected (icon in the info bar) and **the rig
@@ -31,6 +32,82 @@ Other options:
   **PgUp / PgDn** keys (±2 WPM) or with the spinner. It is saved when the program quits.
 - **Cut numbers:** serial numbers with 0 → T and 9 → N (109 → 1TN).
 - **Leading zeros:** serial numbers padded to three digits (007).
+
+### Weight and spacing
+
+- **CW weight (%)** (N1MM Other tab "CW Weight"): 30–70, default 50 (the
+  standard 1:1 ratio). Higher values lengthen every mark and shorten the space
+  after it, so the speed stays the same.
+- **Contest word spacing** (N1MM "Use CW contest word spacing"): 6 dit spaces
+  between words instead of 7.
+
+Both apply to keyers that form the elements themselves (the Winkeyer when its
+settings are sent). The rig keyer over CAT uses the rig's own weight setting.
+
+### DTR/RTS keying and PTT
+
+N1MM's CW/Other port with DTR or RTS set to *CW* / *PTT*. Choose the port, the
+**CW line** (DTR or RTS) and optionally the **PTT line** (the other one). The
+port opens with both lines low, so nothing is keyed until a message is sent,
+and Esc, closing the keyer and quitting always leave the key up and PTT off.
+
+- **PTT delay before sending (ms)** (N1MM "PTT Delay"): PTT goes on, then the
+  first element follows after this delay, so the amplifier relay never
+  hot-switches. Default 50 ms.
+- **PTT tail after sending (ms):** how long PTT stays on after the last element
+  (default 30 ms). Messages sent back to back keep PTT on between them.
+- **PTT via radio command (CAT) in CW** (N1MM "PTT via Radio Command", CW
+  mode): the rig's CAT PTT (`T 1` / `T 0`) goes on and off around the message,
+  with the same delay and tail, in addition to (or instead of) the PTT line.
+  Without a connected rig the message is not keyed.
+
+The elements are timed by the logger on its own high-priority thread (weight
+and contest word spacing apply); speed changes `<` `>` and prosigns work. Tune
+(Ctrl+T) keys PTT, waits the delay and holds the key down.
+
+PTT via radio command per mode: **CW** = the option above (the rig keyer over CAT
+and the Winkeyer key their own PTT); **SSB** = *Voice keyer → PTT via CAT*;
+**digital modes** = fldigi, TinyFSK or the TNC key PTT themselves.
+
+Note: macOS raises DTR for an instant while a serial port opens; use the RTS line
+for PTT if your interface reacts to that.
+
+### Sound-card CW monitor
+
+*Play the sent CW as a tone* (off by default) plays every sent CW message as a
+sidetone on the chosen sound output, with its own pitch (300–1200 Hz) and
+volume. The tone is formed from the same element sequence as DTR/RTS keying
+(weight, word spacing, speed changes, the PTT delay before the first element),
+with soft edges. Esc stops it. It is meant for DTR/RTS keying; the Winkeyer and
+most rigs have their own sidetone.
+
+### Winkeyer settings
+
+N1MM's Winkey tab. Nothing is sent unless **Send settings to the Winkeyer when it
+opens** is checked; without it the Winkeyer keeps its own (power-on) settings, as
+before. When checked, the settings are sent after host open and again after every
+change (on the next message), with the keyer in Winkeyer 2 mode (WK3 accepts it):
+
+| Setting | Winkeyer command |
+|---|---|
+| Keying mode: Iambic B (default), Iambic A, Ultimatic, Semi-auto (bug) | mode register |
+| Autospace, Reverse paddles, Contest word spacing | mode register |
+| Sidetone on, Paddle-only sidetone, Sidetone frequency (400–4000 Hz in the Winkeyer's steps) | sidetone + pin config |
+| CW weight | weight |
+| PTT output, PTT lead time and tail time (10 ms steps, up to 2.55 s; tail 0 = the hang time decides) | PTT lead/tail + pin config |
+| PTT hang time: 1, 1.33, 1.67 or 2 word spaces | pin config |
+| First character extension, Keying compensation (ms) | first extension, keying compensation |
+| Speed pot: minimum and range (WPM) | speed pot setup |
+
+CW and PTT go to the KEY 1 / PTT 1 outputs. Use a PTT lead time long enough for
+your amplifier's relay (N1MM recommends at least 10 ms when PTT is used) so it
+never hot-switches.
+
+**Speed pot:** *Ignore the speed pot* (default) — the Winkeyer sends at the
+logger's speed whatever the knob says. *The speed pot changes the logger's CW
+speed* — turning the knob sets the CW speed in the entry window, just like
+PgUp / PgDn (the position is read once when the keyer opens, too). N1MM's third
+choice (the pot for paddle and keyboard CW only) is not available.
 
 ## "Nastavení → Function Keys → CW" (Settings → Function Keys → CW)
 
@@ -95,14 +172,6 @@ Example exchange for CQ WPX (serial number): `{SENTRSTCUT} #`, for CQ WW
 
 The button of the message currently being sent is lit while it transmits. The
 duration is calculated from real Morse code timing and the speed.
-
-## Not available yet
-
-- automatic CQ repeat,
-- typing CW from the keyboard (N1MM Ctrl+K),
-- keying via the DTR/RTS lines of a serial port,
-- Winkeyer settings (paddle mode, sidetone, PTT lead/tail); the keyer's default
-  values are used.
 
 ## More macros (N1MM)
 

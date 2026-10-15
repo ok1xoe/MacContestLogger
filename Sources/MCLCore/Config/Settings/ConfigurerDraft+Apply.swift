@@ -129,6 +129,7 @@ extension ConfigurerDraft {
         config.cwKeyer.cutNumbers = cwCutNumbers
         config.cwKeyer.leadingZeros = cwLeadingZeros
         config.cwKeyer.cutStyle = cwCutStyle
+        config.cwKeyer.options = cwOptions
         config.cwKeyer.runMessages = cwRun.map { $0.toMessage() }
         config.cwKeyer.spMessages = cwSp.map { $0.toMessage() }
         config.digital.engine = digiEngine
@@ -166,6 +167,12 @@ extension ConfigurerDraft {
         rig.rts = rts
         rig.host = Self.trim(host)
         rig.port = Self.trimmedInt(rigPort) ?? rig.port
+        rig.civAddress = Self.trim(civAddress)
+        rig.pollRate = pollRate
+        rig.reverseCw = reverseCw
+        rig.muteMicOnVoice = muteMicOnVoice
+        rig.subReceiverOn = subReceiverOn
+        rig.timeoutSeconds = Self.trimmedInt(rigTimeout).map { max(0, $0) } ?? rig.timeoutSeconds
     }
 
     private func applyStation(_ st: inout StationConfig) {
@@ -301,6 +308,8 @@ extension ConfigurerDraft {
         config.cwSpeedStepSecondary = Self.clamped(cwSpeedStepSecondary, 1, 10) ?? 1
         config.clearPrefilledExchange = clearPrefilledExchange
         config.resetRxAfterRunQso = resetRxAfterRunQso
+        config.autoSendThreshold = Self.trimmedInt(autoSendThreshold).map { min(max(0, $0), 20) }
+            ?? config.autoSendThreshold
         config.macroQsyStepKHz = Self.clamped(macroQsyStepKHz, 1, 100) ?? 1
         config.functionKeysPerOperator = functionKeysPerOperator
         config.clubLog.enabled = clEnabled
@@ -349,6 +358,7 @@ extension ConfigurerDraft {
         let entries: [AntennaEntry] = antennas.map { $0.toEntry() }
         config.antennas = entries.filter { !KotlinText.isBlank($0.name) }
         config.antennaViaRig = antennaViaRig
+        config.rotor.autoAntenna = antennaAutoByAzimuth
         config.transverters = transverters.compactMap { $0.toEntry() }
         config.footswitchPort = footswitchPort
         config.footswitchPin = footswitchPin
@@ -361,6 +371,7 @@ extension ConfigurerDraft {
         let rig2: String = Self.trim(rig2Host)
         config.rig2.host = KotlinText.isBlank(rig2) ? "localhost" : rig2
         config.rig2.port = ConfigurerRows.toIntOrNull(rig2Port) ?? 4534
+        config.rig2.reverseCw = rig2ReverseCw
         config.otrspPort = Self.trim(otrspPort)
         config.cwPitchHz = Self.pitch(cwPitch)
     }

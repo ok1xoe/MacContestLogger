@@ -228,6 +228,9 @@ Sunrise/Sunset*) are in the band map's spot menu (**right click on a spot → Do
 Cluster window's right click on a spot line. They go to the main connection, formatted for the node's software; the
 answer shows in the DX Cluster window.
 
+The band map's spot menu also has **Natočit rotátor na CALL** (N1MM *Turn Rotor*): the rotator turns to the station,
+by the spot's grid when it is known, otherwise by the call's country (see [Antennas → Rotator](antennas.md#rotator)).
+
 | Item | Command (DXSpider / AR-Cluster, CC Cluster) |
 |---|---|
 | Posledních 10 spotů | `SH/DX 10 CALL` / `SH/DX/10 CALL` |
@@ -419,6 +422,11 @@ Beacons you load yourself with `BEACONS` (Nástroje → Načíst soubor majáků
 window's info strip shows which NCDXF/IARU beacon is transmitting at this moment (`NCDXF 4U1UN (United Nations NY)`),
 from the published schedule — 10 seconds per beacon and band, a 3-minute cycle starting at 00:00 UTC — so the
 computer clock must be right (N1MM shows it in its status bar the same way).
+
+**Nástroje → Naladit maják NCDXF pro pásmo** (Tools → Tune to NCDXF beacon for this band, N1MM "Tune to beacon for
+this band"): on 20, 17, 15, 12 or 10 m the active entry window and the rig go to the band's beacon frequency in CW,
+and the status line names the beacon sending now with its bearing from your locator
+(`Maják NCDXF: vysílá OH2B (Finland), azimut 27°`). On other bands it only says where the beacons are.
 
 **Odstranit chybné (busted) spoty** (N1MM "Remove Busted Spots"): among the live spots, two calls within the tuning
 tolerance of the mode (Settings → DX Cluster) that differ by one character (a changed, added or missing character)

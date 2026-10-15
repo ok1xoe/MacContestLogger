@@ -47,7 +47,7 @@ struct HardwareTab: View {
 
     private var rigRow: some View {
         HStack(spacing: 8) {
-            HardwareCell(text: HardwareSummary.cell(draft.device))
+            HardwareCell(text: HardwareSummary.cell(app.settingsTools.portLabel(draft.device)))
                 .frame(minWidth: HardwareGridHeader.portMin, idealWidth: HardwareGridHeader.port,
                        maxWidth: HardwareGridHeader.port)
             HardwareCell(text: HardwareSummary.cell(draft.rigModelLabel))
@@ -127,9 +127,11 @@ private struct FootswitchGroup: View {
         SettingsGroup(title: language.tr("Nožní spínač (footswitch)")) {
             SettingsCaption(language.tr(
                 "Spínač na USB-RS232 převodníku: propojí RTS→CTS (nebo DTR→DSR / DCD). Akce: PTT drží vysílač po dobu sešlápnutí, ENTER = jako Enter (s ESM pošle zprávu), F1 = CQ."))
+            SettingsCaption(language.tr(
+                "F2–F4, F11, F12 = jako funkční klávesy, ESC = zastavit vysílání, SWITCH_RADIOS = druhé zadávací okno (SO2V / SO2R, jako \\). PTT spínače hlídá síťový Interlock jako každé vysílání (první vyhrává, zámek pásma)."))
             HStack(alignment: .top, spacing: 8) {
                 SettingsField(caption: "Port") {
-                    SettingsDropdown(label: ifBlank(draft.footswitchPort, "—"),
+                    SettingsDropdown(label: ifBlank(app.settingsTools.portLabel(draft.footswitchPort), "—"),
                                      options: app.settingsTools.serialPortsWithNone, language: language) { picked in
                         draft.footswitchPort = picked == "—" ? "" : picked
                     }
@@ -146,6 +148,7 @@ private struct FootswitchGroup: View {
                 }
                 .frame(width: 120)
             }
+            MissingPortNote(app: app, port: draft.footswitchPort)
         }
     }
 }
@@ -225,13 +228,31 @@ private struct So2rGroup: View {
                 }
                 .frame(width: 110)
                 SettingsField(caption: language.tr("OTRSP port (sériový)")) {
-                    SettingsDropdown(label: ifBlank(draft.otrspPort, "—"),
+                    SettingsDropdown(label: ifBlank(app.settingsTools.portLabel(draft.otrspPort), "—"),
                                      options: app.settingsTools.serialPortsWithNone, language: language) { picked in
                         draft.otrspPort = picked == "—" ? "" : picked
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            MissingPortNote(app: app, port: draft.otrspPort)
+            SettingsCheckbox(label: language.tr("Reverzní CW (CW-R) na rigu 2"), isOn: $draft.rig2ReverseCw)
+        }
+    }
+}
+
+/// N1MM's asterisk on the COM port list: a configured port that cannot be found now gets a warning line.
+struct MissingPortNote: View {
+    let app: AppModel
+    let port: String
+
+    var body: some View {
+        if app.settingsTools.portMissing(port) {
+            Text(verbatim: app.language.tr(
+                "* Nastavený port %s teď není k dispozici (odpojený USB převodník?)", .string(port)))
+                .windowFont(11)
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
