@@ -79,7 +79,8 @@ extension EntryModel {
     /// What the key router needs at the moment of the event, for the field with the focus.
     public func keyContext(field: EntryKeyField) -> EntryKeyContext {
         EntryKeyContext(bindings: KeyBindings(config.config.keyBindings), field: field, callText: form.call,
-                        isCw: form.mode == .cw, esmActive: esmActive, hasLastSent: !operating.lastSentKeys.isEmpty,
+                        isCw: form.mode == .cw, esmActive: esmActive,
+                        hasLastSent: !operating.lastSentKeys(window: vfo).isEmpty,
                         isSending: ports.keyer.isSending || operating.cqRepeat, scpPick: scpPick,
                         suggestionCount: suggestions().count, hasCommand: hasCommand,
                         twoRadios: rig?.otherEntry(than: self) != nil)
@@ -141,7 +142,7 @@ extension EntryModel {
         case .escape(let step):
             escape(step)
         case .resendLast:
-            sendKeys(operating.lastSentKeys, refocus: false)
+            sendKeys(operating.lastSentKeys(window: vfo), refocus: false)
         case .scpMove(_, let to):
             scpPick = to
         case .focusMove(let by, let skipReports):
@@ -695,7 +696,7 @@ extension EntryModel {
             esmProgress = progress
         }
         if let keys = outcome.lastSentKeys {
-            operating.lastSentKeys = keys
+            operating.setLastSentKeys(keys, window: vfo)
         }
         // `{ESC}` and `{PROFILEn}` act before the message goes out: the old transmission stops, the new one uses
         // the profile.
@@ -706,6 +707,7 @@ extension EntryModel {
         performMacroCommands(early)
         var keyerStatus: EntryStatus?
         if let transmission = outcome.transmission {
+            endCqRepeatOfOtherWindow()
             // N1MM: the transmit focus moves to the window the message is sent from (SO2R).
             rig?.claimTx(vfo)
             if config.config.showSentCw || rig?.vfo.so2r == true, case .cw(let message, _) = transmission {
