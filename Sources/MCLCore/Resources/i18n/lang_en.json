@@ -2404,5 +2404,18 @@
  "Druhý přijímač zapnut (dual watch)": "Sub receiver on (dual watch)",
  "Druhý přijímač vypnut": "Sub receiver off",
  "Ctrl+Alt+D: jen v SO2V": "Ctrl+Alt+D: SO2V only",
- "SO2V: CQ na VFO A, druhý přijímač zap / vyp": "SO2V: CQ on VFO A, sub receiver on / off"
+ "SO2V: CQ na VFO A, druhý přijímač zap / vyp": "SO2V: CQ on VFO A, sub receiver on / off",
+ "Vstup rádia 2": "Radio 2 input",
+ "Vodopád 2 (rádio 2)": "Waterfall 2 (radio 2)",
+ "CW Reader 2 (rádio 2)": "CW Reader 2 (radio 2)",
+ "Hlasové zprávy rádia 1": "Radio 1 voice messages",
+ "Hlasové zprávy rádia 2": "Radio 2 voice messages",
+ "Oba kanály": "Both channels",
+ "Jen levý kanál": "Left channel only",
+ "Jen pravý kanál": "Right channel only",
+ "Hlasové zprávy rádia %s: %s": "Radio %s voice messages: %s",
+ "Vodopád 2": "Waterfall 2",
+ "CW Reader 2": "CW Reader 2",
+ "Dostupné multiplikátory 2 (rádio 2)": "Available multipliers 2 (radio 2)",
+ "Dostupné multiplikátory 2": "Available multipliers 2"
 }

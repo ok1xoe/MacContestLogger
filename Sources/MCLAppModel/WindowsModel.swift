@@ -23,7 +23,7 @@ public final class WindowsModel {
     /// spot windows, the network and integration windows).
     public static let implemented: Set<String> = Set([
         "log", "defeditor", "profiles", "catLog", "rotator", "cwkeyboard", "cwreader", "digitalinterface", "waterfall",
-        "digitalinterface2",
+        "digitalinterface2", "cwreader2", "waterfall2", "availMult2",
         "dxCluster", "bandmap", "availMult", "blacklist", "netstatus", "chat", "partner", "wsjtxdecodes", "hamqthLog",
     ]).union(infoToolWindows)
 
@@ -53,7 +53,8 @@ public final class WindowsModel {
     public static let menuWindows: [String: String] = [
         "window.catlog": "catLog", "window.rotator": "rotator", "window.cwkeyboard": "cwkeyboard",
         "window.cwreader": "cwreader", "window.digitalinterface": "digitalinterface", "window.waterfall": "waterfall",
-        "window.digitalinterface2": "digitalinterface2",
+        "window.digitalinterface2": "digitalinterface2", "window.cwreader2": "cwreader2",
+        "window.waterfall2": "waterfall2", "window.availmult2": "availMult2",
         "window.dxcluster": "dxCluster", "window.bandmap": "bandmap", "window.availmult": "availMult",
         "window.blacklist": "blacklist", "window.netstatus": "netstatus", "window.chat": "chat",
         "window.partner": "partner", "window.wsjtxdecodes": "wsjtxdecodes", "window.hamqthlog": "hamqthLog",

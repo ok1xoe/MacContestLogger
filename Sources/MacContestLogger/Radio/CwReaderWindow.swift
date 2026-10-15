@@ -6,21 +6,35 @@ import SwiftUI
 /// (200…3000 Hz), the speed „~N WPM", „Vymazat", the audio error, up to six decoded calls (a click puts the call
 /// into the call field), the decoded text (or a hint while there is none) scrolled to its end, and the hint line.
 /// The window holds the receiver audio while it is open.
+///
+/// `radio` 1 (`cwreader2`, N1MM's second reader in SO2V / SO2R) decodes radio 2's audio input — chosen in the window —
+/// and its calls go into the VFO B / rig 2 window.
 struct CwReaderWindowView: View {
     static let id = "cwreader"
+    static let id2 = "cwreader2"
 
     let host: AppHost
+    let radio: Int
 
-    @StateObject private var session = WindowSession(id: CwReaderWindowView.id, persistSize: true,
-                                                     defaultSize: CGSize(width: 620, height: 300))
+    @StateObject private var session: WindowSession
     @StateObject private var holder = WindowModelHolder<CwReaderModel>()
+
+    init(host: AppHost, radio: Int = 0) {
+        self.host = host
+        self.radio = radio
+        _session = StateObject(wrappedValue: WindowSession(id: radio == 1 ? Self.id2 : Self.id, persistSize: true,
+                                                           defaultSize: CGSize(width: 620, height: 300)))
+    }
+
+    private var windowId: String { radio == 1 ? Self.id2 : Self.id }
 
     var body: some View {
         Group {
             if let app = host.model {
-                let model: CwReaderModel = holder.model { app.makeCwReader() }
+                let model: CwReaderModel = holder.model { radio == 1 ? app.makeCwReader2() : app.makeCwReader() }
                 content(app, model)
-                    .modifier(RadioWindowChrome(host: host, app: app, id: Self.id, title: "CW Reader",
+                    .modifier(RadioWindowChrome(host: host, app: app, id: windowId,
+                                                title: radio == 1 ? "CW Reader 2" : "CW Reader",
                                                 binder: session.binder))
                     .task { await model.open() }
                     .onDisappear { model.close() }
@@ -35,6 +49,12 @@ struct CwReaderWindowView: View {
         let language: LanguageModel = app.language
         return VStack(alignment: .leading, spacing: 6) {
             WindowTopBar(size: $session.fontSize, language: language)
+            if radio == 1 {
+                Radio2InputRow(app: app) {
+                    model.close()
+                    Task { await model.open() }
+                }
+            }
             toneRow(language, model)
             if let error = model.error {
                 Text(verbatim: RadioWindowTexts.readerAudioError(error))
@@ -103,6 +123,29 @@ struct CwReaderWindowView: View {
                 Text(verbatim: "Vymazat").windowFont(14)
             }
             .buttonStyle(.borderless)
+        }
+    }
+}
+
+/// Radio 2's audio input (SO2R: the second CW Reader and spectrum window), saved with the SO2R options; a change
+/// reopens the input.
+struct Radio2InputRow: View {
+    let app: AppModel
+    let changed: () -> Void
+
+    var body: some View {
+        let language: LanguageModel = app.language
+        let fallback: String = language.tr(SettingsTools.systemDefaultDevice)
+        let current: String = app.config.config.so2r.text(.rx2AudioDevice)
+        HStack(spacing: 6) {
+            Text(verbatim: language.tr("Vstup rádia 2"))
+                .windowFont(12)
+                .foregroundStyle(.secondary)
+            SettingsDropdown(label: current.isEmpty ? fallback : current, options: app.settingsTools.inputDevices,
+                             language: language) { picked in
+                app.setRadio2AudioDevice(picked == fallback ? "" : picked)
+                changed()
+            }
         }
     }
 }

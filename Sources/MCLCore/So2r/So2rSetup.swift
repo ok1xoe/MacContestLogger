@@ -28,6 +28,25 @@ public struct So2rSetup: Equatable, Sendable {
         case winkeyerSecondOutput
         /// N1MM „Repeating CQ Ends With VFOB Window Entry" (SO2V dual receive).
         case so2vRepeatEndsWithVfoB
+        /// The audio input of radio 2 (the second CW Reader and spectrum window; empty = none chosen).
+        case rx2AudioDevice
+        /// N1MM SO2R DVK: the channel radio 1's / radio 2's voice messages play on (`VoiceChannel`).
+        case voiceChannel1
+        case voiceChannel2
+    }
+
+    /// N1MM SO2R DVK routing: both channels (as recorded), only the left or only the right one.
+    public enum VoiceChannel: String, CaseIterable, Sendable {
+        case both, left, right
+
+        /// 0 = both, 1 = left, 2 = right (`SoundCard.routed`).
+        public var index: Int {
+            switch self {
+            case .both: 0
+            case .left: 1
+            case .right: 2
+            }
+        }
     }
 
     /// The range of the swap and dueling times (ms).
@@ -52,6 +71,8 @@ public struct So2rSetup: Equatable, Sendable {
         case .duelingCqMs: "100"
         case .focusOther, .focusOtherAlwaysSwap, .winkeyerSecondOutput, .so2vRepeatEndsWithVfoB: "false"
         case .ctrlFx, .stereoMacros: "true"
+        case .rx2AudioDevice: ""
+        case .voiceChannel1, .voiceChannel2: VoiceChannel.both.rawValue
         }
     }
 

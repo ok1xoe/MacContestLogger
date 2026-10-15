@@ -80,6 +80,8 @@ public final class WaterfallModel {
     /// The trace, decay and detection shared by every source.
     @ObservationIgnored let pipeline = SpectrumPipeline()
     @ObservationIgnored private let audio: AudioModel
+    /// N1MM's associated radio: `nil` = the radio with the entry focus, 1 = radio 2 / VFO B (the second window).
+    public internal(set) var radio: Int?
     @ObservationIgnored let rig: RigModel
     @ObservationIgnored let config: ConfigModel
     @ObservationIgnored private let clock: any RescoreClock
@@ -144,14 +146,45 @@ public final class WaterfallModel {
 
     // MARK: - the rig and the options
 
+    /// The window is bound to a radio / VFO (N1MM's spectrum window with an associated radio) that does not have the
+    /// entry focus now: it shows and tunes that radio, not the focused one.
+    var bindsOtherRadio: Bool {
+        guard let radio, rig.vfo.twoEntryWindows else { return false }
+        return radio != rig.vfo.activeVfo
+    }
+
+    /// The rig state the window shows: the focused rig's, or the bound radio's (SO2R; in SO2V the other VFO is not
+    /// polled, so there is none).
+    var boundState: RigState? {
+        guard bindsOtherRadio, let radio else { return rig.activeState }
+        return rig.vfo.so2r ? rig.snapshot(vfo: radio).state : nil
+    }
+
+    /// The external (UDP) source is shown — only in the first window.
+    var showsExternal: Bool {
+        setup.source == .external && radio == nil
+    }
+
+    /// Tunes the radio the window shows (the other radio through its own lane, the focus stays).
+    func tuneRig(_ hz: Int64) {
+        if bindsOtherRadio {
+            rig.qsyOtherRadio(hz)
+        } else {
+            rig.tuneTo(hz)
+        }
+    }
+
     /// `state.cat.state?.freqHz() ?: state.tunedFreqHz`.
     public var dialHz: Int64 {
-        rig.activeState?.freqHz ?? rig.tuning.tunedFreqHz
+        if bindsOtherRadio {
+            return boundState?.freqHz ?? rig.otherVfoFreqHz ?? 0
+        }
+        return rig.activeState?.freqHz ?? rig.tuning.tunedFreqHz
     }
 
     /// `state.cat.state?.rawMode() ?: ""`.
     public var rawMode: String {
-        rig.activeState?.rawMode ?? ""
+        boundState?.rawMode ?? ""
     }
 
     /// `config.cwPitchHz`.
@@ -161,7 +194,7 @@ public final class WaterfallModel {
 
     /// The split transmit frequency the rig reports (`nil` without split).
     public var txHz: Int64? {
-        guard let state = rig.activeState, state.split, state.txFreqHz > 0 else { return nil }
+        guard let state = boundState, state.split, state.txFreqHz > 0 else { return nil }
         return state.txFreqHz
     }
 
@@ -203,7 +236,7 @@ public final class WaterfallModel {
         if let receiveError {
             return (RadioWindowTexts.spectrumReceiveError(receiveError), true)
         }
-        if setup.source == .external {
+        if showsExternal {
             if let hoverHz = hoverRfHz {
                 return (.verbatim(RadioWindowTexts.spectrumHover(rfHz: hoverHz)), false)
             }
@@ -241,7 +274,7 @@ public final class WaterfallModel {
     /// The axis and visible bins now: the last picture's, or (before the first line) the receiver audio's on the
     /// current tuning.
     private var axisAndWindow: (axis: SpectrumFrame, window: Range<Int>) {
-        if setup.source == .external, let picture {
+        if showsExternal, let picture {
             return (picture.axis, picture.window)
         }
         let bins: Int = Int(waterfall.bins)
@@ -276,7 +309,7 @@ public final class WaterfallModel {
     /// The yellow RX line (in CW the CW pitch line) as a fraction of the frequency axis, `nil` outside CW (the
     /// receiver audio has no line for the carrier of a sideband).
     public var pitchLine: Double? {
-        if setup.source == .external {
+        if showsExternal {
             // An SDR shows the band: the RX line is the dial frequency in every mode.
             return dialHz > 0 ? fraction(ofHz: Double(rxHz)) : nil
         }
@@ -303,7 +336,7 @@ public final class WaterfallModel {
 
     /// N1MM: in SO2V the other VFO is drawn as a line in the highlight colour (when it is within the shown span).
     public var otherVfoLine: Double? {
-        guard rig.vfo.so2v, let hz = rig.otherVfoFreqHz else { return nil }
+        guard rig.vfo.so2v, radio == nil, let hz = rig.otherVfoFreqHz else { return nil }
         return fraction(ofHz: Double(hz))
     }
 
@@ -344,7 +377,10 @@ public final class WaterfallModel {
         guard dial > 0 else { return }
         let hz: Double = hz(atFraction: fraction)
         if command {
-            rig.setSplit(Int64(hz.rounded()))
+            // The split belongs to the radio with the entry focus; a window bound to the other radio leaves it.
+            if !bindsOtherRadio {
+                rig.setSplit(Int64(hz.rounded()))
+            }
             return
         }
         var target: Double = hz
@@ -352,7 +388,7 @@ public final class WaterfallModel {
            let snapped = SignalDetector.snap(hz, signals: picture.signals) {
             target = snapped
         }
-        rig.tuneTo(Int64(target.rounded()))
+        tuneRig(Int64(target.rounded()))
     }
 
     /// The mouse wheel over the spectrum pane: the threshold, with Cmd the reference level, with Cmd+Shift the dB
@@ -369,9 +405,9 @@ public final class WaterfallModel {
     public func wheelTune(_ steps: Int, large: Bool) {
         let dial: Int64 = dialHz
         guard steps != 0, dial > 0 else { return }
-        let mode: Mode = rig.activeState?.mode ?? .cw
+        let mode: Mode = boundState?.mode ?? .cw
         let step: Int64 = rig.tuneStepHz(mode) * (large ? 10 : 1)
-        rig.tuneTo(dial + Int64(steps) * step)
+        tuneRig(dial + Int64(steps) * step)
     }
 
     /// N1MM `+` / `-`.
@@ -398,7 +434,7 @@ public final class WaterfallModel {
         guard !rendering else { return }
         rendering = true
         let source: any SpectrumSource = activeSource
-        if setup.source == .external {
+        if showsExternal {
             externalSource.select(setup.text(.externalName))
         }
         let pipeline: SpectrumPipeline = self.pipeline

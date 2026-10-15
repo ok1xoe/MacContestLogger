@@ -283,6 +283,10 @@ Audio → Receive, the same one used for the waterfall).
 - **Pozastavit posuv** (Pause scrolling, as in N1MM): the shown text stops moving so you can read it or click a
   call, while decoding goes on in the background; **Pokračovat** (Resume) shows everything decoded meanwhile.
 
+**CW Reader 2** (Okno → CW Reader 2 (rádio 2), N1MM's second reader in SO2V / SO2R) decodes radio 2's own audio
+input, chosen at the top of the window (SO2R: e.g. the second USB audio CODEC); its calls go into the VFO B / rig 2
+entry window.
+
 The decoder is simple (a Goertzel filter plus timing measurement). It works well
 on a clean single-tone signal; in a pileup with several stations on the same tone
 it gets confused, like any such decoder.

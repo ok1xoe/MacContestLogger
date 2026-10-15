@@ -8,7 +8,7 @@ extension WaterfallModel {
 
     /// The mode the tuning tolerance and the CQ width go by.
     var currentMode: Mode {
-        rig.activeState?.mode ?? .cw
+        boundState?.mode ?? .cw
     }
 
     /// The tuning tolerance of the mode (Configurer → Telnet; N1MM: spots and signals within it are one).
@@ -58,7 +58,7 @@ extension WaterfallModel {
         }
         if let next = SpectrumSignals.next(from: from, direction: direction, targets: targets,
                                            minStepHz: Swift.max(picture.binWidthHz, toleranceHz / 2)) {
-            rig.tuneTo(Int64(next.rounded()))
+            tuneRig(Int64(next.rounded()))
         }
         return true
     }
@@ -109,9 +109,13 @@ extension WaterfallModel {
     /// A click on a spot label (N1MM): the rig goes to the spot (with its split and call, like the band map).
     public func tuneToSpot(_ spot: SpectrumSpot) {
         if let dx = rig.spotForCall(spot.call) {
-            rig.tuneToSpot(dx)
+            if bindsOtherRadio {
+                rig.tuneOtherToSpot(dx)
+            } else {
+                rig.tuneToSpot(dx)
+            }
         } else {
-            rig.tuneTo(Int64(spot.freqHz.rounded()))
+            tuneRig(Int64(spot.freqHz.rounded()))
         }
     }
 }

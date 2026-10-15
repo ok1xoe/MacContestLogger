@@ -92,6 +92,7 @@ import Testing
             "hamqthLog", "rate", "goals", "goals-from-log", "statistics", "score", "dupesheet", "dupesheet2", "skeds", "qtc",
             "simulator", "check", "bandnotes", "movemults", "propagation", "worldmap", "worldmap-dxcc", "gridmap", "mult:dxcc",
             "mult:grid", "mult:itu", "mult:cq", "mult:districts", "mult:other", "mult:sections",
+            "cwreader2", "waterfall2", "availMult2",
         ])
         let dir = try TempDir()
         let (windows, config) = Self.model(["log"], dir: dir)

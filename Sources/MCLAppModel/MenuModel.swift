@@ -20,7 +20,7 @@ public final class MenuModel {
         "settings.import", "settings.merge", "settings.exportEdi", "settings.exportOther", "settings.exportByBand", "settings.exportFormatted", "settings.print",
         "database.refillDxcc", "database.updateClubLogDxcc", "contest.updateCallHistory", "contest.updateDefinitions", "contest.editor",
         "settings.profiles", "settings.open", "contest.record", "window.catlog", "window.rotator",
-        "window.cwkeyboard", "window.cwreader", "window.digitalinterface", "window.digitalinterface2", "window.waterfall", "beacons.load",
+        "window.cwkeyboard", "window.cwreader", "window.digitalinterface", "window.digitalinterface2", "window.waterfall", "window.waterfall2", "window.cwreader2", "window.availmult2", "beacons.load",
         "window.dxcluster", "window.bandmap", "window.availmult", "window.blacklist", "window.netstatus",
         "window.chat", "window.partner", "window.wsjtxdecodes", "wsjtx.launch", "wsjtx.launch2", "window.hamqthlog", "window.rate", "window.skeds",
         "window.score", "window.movemults", "window.dupesheet", "window.dupesheet2", "window.check", "view.unmatchedMark", "window.statistics", "window.qtc",
@@ -35,7 +35,8 @@ public final class MenuModel {
         "help.contestRules", "help.contestCalendar", "help.errorLog", "settings.announcements", "tools.tuneBeacon",
         "settings.autoSend", "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2",
         "so2r.dueling", "so2r.duelingTime", "so2r.focusOther", "so2r.focusOtherAlways", "so2r.ctrlFx", "so2r.stereoMacros",
-        "so2r.so2vRepeat",
+        "so2r.so2vRepeat", "so2r.voice1.both", "so2r.voice1.left", "so2r.voice1.right", "so2r.voice2.both",
+        "so2r.voice2.left", "so2r.voice2.right",
     ]
 
     /// The Edit items that run an entry-window shortcut, and the Help item that is its key: the menu shows the key

@@ -80,7 +80,17 @@ public final class VoiceKeyerModel {
         studio = VoiceMessageStudio(VoiceMessageStudio.Dependencies(
             hardware: dependencies.hardware, config: dependencies.config, operating: dependencies.operating,
             clock: dependencies.clock, dataDir: dependencies.dataDir))
-        voiceKeyer = VoiceKeyer(audio: dependencies.hardware.voicePlayer({ settings.outputDevice }, { settings.gain }),
+        let plain: VoiceKeyer.AudioOut = dependencies.hardware.voicePlayer({ settings.outputDevice }, { settings.gain })
+        let routed: VoiceKeyer.AudioOut = dependencies.hardware.voicePlayerRouted(
+            { settings.outputDevice }, { settings.gain }, { settings.channel })
+        let audio: VoiceKeyer.AudioOut = { file, cancelled in
+            if settings.channel == 0 {
+                try plain(file, cancelled)
+            } else {
+                try routed(file, cancelled)
+            }
+        }
+        voiceKeyer = VoiceKeyer(audio: audio,
                                 ptt: { on in try ptt.set(on) },
                                 pttDelayMs: { settings.pttDelayMs }, delay: dependencies.hardware.voicePttDelay)
         studio.voice = self
@@ -186,7 +196,7 @@ public final class VoiceKeyerModel {
             context: planContext(hisCall: hisCall, freqHz: freqHz, keys: set),
             ttsVoice: app.ttsVoice, synthesize: hardware.synthesize)
         settings.update(outputDevice: outputDevice(app), pttDelayMs: app.voiceKeyer.pttDelayMs,
-                        gain: Double(app.voiceKeyer.outputLevel) / 100)
+                        gain: Double(app.voiceKeyer.outputLevel) / 100, channel: outputChannel(app))
         let rigIndex: Int = keyer.rig?.vfo.txCatIndex ?? 0
         ptt.arm(target: keyer.activeRigLane(), viaCat: app.voiceKeyer.pttViaCat,
                 muteMic: (rigIndex == 1 ? app.rig2 : app.rig).muteMicOnVoice)
@@ -220,6 +230,14 @@ public final class VoiceKeyerModel {
             guard let file = try? letters.resolve(name + ".wav") else { return true }
             return !FileManager.default.fileExists(atPath: file.description)
         }
+    }
+
+    /// N1MM SO2R DVK routing: the channel the transmitting radio's messages play on (0 = as recorded, 1 = left only,
+    /// 2 = right only).
+    private func outputChannel(_ app: AppConfig) -> Int {
+        guard let rig = keyer?.rig, rig.vfo.so2r else { return 0 }
+        let key: So2rSetup.Key = rig.vfo.txVfo == 1 ? .voiceChannel2 : .voiceChannel1
+        return So2rSetup.VoiceChannel(rawValue: app.so2r.text(key))?.index ?? 0
     }
 
     /// N1MM SO2R sound: radio 2's messages go to its own output when one is set.
@@ -573,10 +591,15 @@ private enum RecordStart: Sendable {
 
 /// What the voice keyer's threads read: the output device and the PTT delay of the message being played.
 private final class VoiceSettingsBox: Sendable {
-    private let state = OSAllocatedUnfairLock(initialState: (device: "", delay: Int32(150), gain: 1.0))
+    private let state = OSAllocatedUnfairLock(initialState: (device: "", delay: Int32(150), gain: 1.0, channel: 0))
 
-    func update(outputDevice: String, pttDelayMs: Int, gain: Double = 1) {
-        state.withLock { $0 = (outputDevice, Int32(clamping: pttDelayMs), gain) }
+    func update(outputDevice: String, pttDelayMs: Int, gain: Double = 1, channel: Int = 0) {
+        state.withLock { $0 = (outputDevice, Int32(clamping: pttDelayMs), gain, channel) }
+    }
+
+    /// N1MM SO2R DVK routing of the message being played (0 = as recorded, 1 = left only, 2 = right only).
+    var channel: Int {
+        state.withLock { $0.channel }
     }
 
     var gain: Double {

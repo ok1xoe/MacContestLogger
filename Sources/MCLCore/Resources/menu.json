@@ -154,7 +154,23 @@
             { "id": "so2r.swapTail", "label": "Čas po vysílání při přepnutí rádia (ms)…", "state": "enable" },
             { "id": "so2r.swapLead", "label": "Předstih při přepnutí rádia (ms)…", "state": "enable" },
             { "id": "so2r.winkeyer2", "label": "Winkeyer: rádio 2 na druhém výstupu (KEY OUT 2)", "state": "enable" },
-            { "id": "so2r.so2vRepeat", "label": "SO2V: zápis do okna VFO B ukončí opakované CQ", "state": "enable" }
+            { "id": "so2r.so2vRepeat", "label": "SO2V: zápis do okna VFO B ukončí opakované CQ", "state": "enable" },
+            {
+              "id": "so2r.voice1", "label": "Hlasové zprávy rádia 1", "state": "enable",
+              "children": [
+                { "id": "so2r.voice1.both", "label": "Oba kanály", "state": "enable" },
+                { "id": "so2r.voice1.left", "label": "Jen levý kanál", "state": "enable" },
+                { "id": "so2r.voice1.right", "label": "Jen pravý kanál", "state": "enable" }
+              ]
+            },
+            {
+              "id": "so2r.voice2", "label": "Hlasové zprávy rádia 2", "state": "enable",
+              "children": [
+                { "id": "so2r.voice2.both", "label": "Oba kanály", "state": "enable" },
+                { "id": "so2r.voice2.left", "label": "Jen levý kanál", "state": "enable" },
+                { "id": "so2r.voice2.right", "label": "Jen pravý kanál", "state": "enable" }
+              ]
+            }
           ]
         }
       ]
@@ -164,6 +180,7 @@
       "children": [
         { "id": "window.log",       "label": "Přehled spojení", "state": "enable" },
         { "id": "window.availmult", "label": "Dostupné multiplikátory", "state": "enable" },
+        { "id": "window.availmult2", "label": "Dostupné multiplikátory 2 (rádio 2)", "state": "enable" },
         { "id": "window.catlog",    "label": "CAT log",         "state": "enable" },
         { "id": "window.dxcluster", "label": "DX Cluster",      "state": "enable" },
         { "id": "window.bandmap",   "label": "Bandmapa",       "state": "enable" },
@@ -177,6 +194,7 @@
         { "id": "window.dupesheet", "label": "Dupesheet",       "state": "enable" },
         { "id": "window.dupesheet2", "label": "Dupesheet VFO B", "state": "enable" },
         { "id": "window.waterfall", "label": "Vodopád",         "state": "enable" },
+        { "id": "window.waterfall2", "label": "Vodopád 2 (rádio 2)", "state": "enable" },
         { "id": "window.rotator",   "label": "Rotátor",         "state": "enable" },
         { "id": "window.statistics", "label": "Statistiky",     "state": "enable" },
         { "id": "window.qtc",       "label": "QTC (WAE)",       "state": "enable" },
@@ -184,6 +202,7 @@
         { "id": "window.bandnotes", "label": "Poznámky k pásmům", "state": "enable" },
         { "id": "window.cwkeyboard", "label": "CW z klávesnice", "state": "enable" },
         { "id": "window.cwreader",  "label": "CW Reader",       "state": "enable" },
+        { "id": "window.cwreader2", "label": "CW Reader 2 (rádio 2)", "state": "enable" },
         { "id": "window.digitalinterface", "label": "Digitální rozhraní", "state": "enable" },
         { "id": "window.digitalinterface2", "label": "Digitální rozhraní 2", "state": "enable" },
         { "id": "window.simulator", "label": "Simulátor pileupu", "state": "enable" },

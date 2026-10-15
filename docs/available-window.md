@@ -13,6 +13,10 @@ active contest the window only says so.
 | **Fokus rig** | only the spots on the band of the radio (SO2R) or VFO (SO2V) with the focus; with one radio the band of the tuned frequency |
 | **Sloupce a souhrn** | the columns, their order, the summary panel and its bands (below) |
 
+**Okno → Dostupné multiplikátory 2 (rádio 2)** (SO2V / SO2R, N1MM's Available window of the second entry window) is
+bound to radio 2 / VFO B: its *Fokus rig* (on by default) shows radio 2's band and a click on a spot tunes radio 2 and
+puts the call into its window — while the entry focus is on radio 1 it stays there.
+
 ## Summary panel
 
 Under the title the summary shows the new multipliers (*Mults*), the new QSOs (*Qs*) and all spots (*Total*) per band.
