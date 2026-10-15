@@ -77,6 +77,7 @@ import Testing
         #expect(try children("settings.so2r") == ["so2r.dueling", "so2r.duelingTime", "so2r.focusOther",
                                                   "so2r.focusOtherAlways", "so2r.ctrlFx", "so2r.stereoMacros",
                                                   "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2", "so2r.so2vRepeat",
+                                                  "so2r.twoKeyboards", "so2r.keyboards",
                                                   "so2r.voice1", "so2r.voice2"])
         #expect(try children("contest") == ["contest.postcontest", "contest.record", "contest.none"])
         #expect(try children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.contestRules",

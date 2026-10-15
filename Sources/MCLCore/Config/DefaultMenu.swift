@@ -78,6 +78,8 @@ public enum DefaultMenu {
         "so2r.ctrlFx": "Makro {CTRLFx}",
         "so2r.stereoMacros": "Makra stereo / OTRSP RX",
         "so2r.so2vRepeat": "SO2V: zápis do okna VFO B ukončí opakované CQ",
+        "so2r.twoKeyboards": "Dvě klávesnice (každá ovládá jedno okno)",
+        "so2r.keyboards": "Dvě klávesnice: přiřazení…",
         "so2r.swapTail": "Čas po vysílání při přepnutí rádia (ms)…",
         "so2r.swapLead": "Předstih při přepnutí rádia (ms)…",
         "so2r.winkeyer2": "Winkeyer: rádio 2 na druhém výstupu (KEY OUT 2)",
@@ -222,7 +224,7 @@ public enum DefaultMenu {
             node("settings.so2r", [
                 leaf("so2r.dueling"), leaf("so2r.duelingTime"), leaf("so2r.focusOther"), leaf("so2r.focusOtherAlways"),
                 leaf("so2r.ctrlFx"), leaf("so2r.stereoMacros"), leaf("so2r.swapTail"), leaf("so2r.swapLead"),
-                leaf("so2r.winkeyer2"), leaf("so2r.so2vRepeat"),
+                leaf("so2r.winkeyer2"), leaf("so2r.so2vRepeat"), leaf("so2r.twoKeyboards"), leaf("so2r.keyboards"),
                 node("so2r.voice1", [leaf("so2r.voice1.both"), leaf("so2r.voice1.left"), leaf("so2r.voice1.right")]),
                 node("so2r.voice2", [leaf("so2r.voice2.both"), leaf("so2r.voice2.left"), leaf("so2r.voice2.right")]),
             ]),

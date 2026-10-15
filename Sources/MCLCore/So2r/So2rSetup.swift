@@ -33,6 +33,11 @@ public struct So2rSetup: Equatable, Sendable {
         /// N1MM SO2R DVK: the channel radio 1's / radio 2's voice messages play on (`VoiceChannel`).
         case voiceChannel1
         case voiceChannel2
+        /// N1MM „Two Keyboards": each of two keyboards drives one entry window (`TwoKeyboardRouter`).
+        case twoKeyboards
+        /// The keyboard of entry window 1 / 2 (`KeyboardDevice.id`; empty = the first keyboard typed on, N1MM).
+        case keyboard1
+        case keyboard2
     }
 
     /// N1MM SO2R DVK routing: both channels (as recorded), only the left or only the right one.
@@ -69,9 +74,9 @@ public struct So2rSetup: Equatable, Sendable {
         switch key {
         case .swapLeadMs, .swapTailMs: "0"
         case .duelingCqMs: "100"
-        case .focusOther, .focusOtherAlwaysSwap, .winkeyerSecondOutput, .so2vRepeatEndsWithVfoB: "false"
+        case .focusOther, .focusOtherAlwaysSwap, .winkeyerSecondOutput, .so2vRepeatEndsWithVfoB, .twoKeyboards: "false"
         case .ctrlFx, .stereoMacros: "true"
-        case .rx2AudioDevice: ""
+        case .rx2AudioDevice, .keyboard1, .keyboard2: ""
         case .voiceChannel1, .voiceChannel2: VoiceChannel.both.rawValue
         }
     }

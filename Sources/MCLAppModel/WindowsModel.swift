@@ -25,6 +25,7 @@ public final class WindowsModel {
         "log", "defeditor", "profiles", "catLog", "rotator", "cwkeyboard", "cwreader", "digitalinterface", "waterfall",
         "digitalinterface2", "cwreader2", "waterfall2", "availMult2",
         "dxCluster", "bandmap", "availMult", "blacklist", "netstatus", "chat", "partner", "wsjtxdecodes", "hamqthLog",
+        "keyboards",
     ]).union(infoToolWindows)
 
     /// The info and tool windows: the Info window (`rate`), the goal editor and the goals from an
@@ -64,13 +65,13 @@ public final class WindowsModel {
         "window.propagation": "propagation", "window.bandnotes": "bandnotes", "window.simulator": "simulator",
         "mult.dxcc": "mult:dxcc", "mult.grid": "mult:grid", "mult.itu": "mult:itu", "mult.cq": "mult:cq",
         "mult.districts": "mult:districts", "mult.other": "mult:other", "mult.sections": "mult:sections",
-        "mult.gridmap": "gridmap",
+        "mult.gridmap": "gridmap", "so2r.keyboards": "keyboards",
     ]
 
     /// Windows Kotlin never saves in `config.openWindows` (their `showXxx` flag starts `false`): `profiles`
     /// (`showProfiles`, `AS:2491`), the simulator and the two goal windows. They are open in `openIds` for this run
     /// only.
-    public static let notPersisted: Set<String> = ["profiles", "simulator", "goals", "goals-from-log"]
+    public static let notPersisted: Set<String> = ["profiles", "simulator", "goals", "goals-from-log", "keyboards"]
 
     /// Open window ids (Kotlin `config.openWindows`).
     public private(set) var openIds: [String]
