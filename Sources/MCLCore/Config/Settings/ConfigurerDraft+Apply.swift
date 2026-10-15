@@ -133,6 +133,7 @@ extension ConfigurerDraft {
         config.cwKeyer.runMessages = cwRun.map { $0.toMessage() }
         config.cwKeyer.spMessages = cwSp.map { $0.toMessage() }
         config.digital.engine = digiEngine
+        config.builtinModemSetup = BuiltinModemSetup(builtinModemSetup).values
         config.digital.fldigiHost = Self.trim(fldigiHost)
         config.digital.fldigiPort = Self.trimmedInt(fldigiPort) ?? config.digital.fldigiPort
         config.digital.runMessages = digiRun.map { $0.toMessage() }

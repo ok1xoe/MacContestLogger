@@ -186,10 +186,11 @@ import Testing
         // the other-radio texts and
         // the sub receiver texts and
         // the radio 2 audio texts and
-        // the second Available window.
-        #expect(map.count == 2_419)
+        // the second Available window and
+        // 27 keys of the built-in RTTY modem.
+        #expect(map.count == 2_442)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_419)
+        #expect(german.count == 2_442)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

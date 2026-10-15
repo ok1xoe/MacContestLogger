@@ -247,6 +247,16 @@ public final class BuiltinRttyChannel: @unchecked Sendable {
         }
     }
 
+    /// MMTTY's XY scope (mark against space): collection on or off.
+    public func setXYScope(_ on: Bool) {
+        lock.withLock { modem.setXYScope(on) }
+    }
+
+    /// The last full batch of XY points (x = mark, y = space), `nil` = none new.
+    public func xyPoints() -> [(x: Float, y: Float)]? {
+        lock.withLock { modem.xyScope()?.map { (x: $0.x, y: $0.y) } }
+    }
+
     /// The right button on the spectrum (MMTTY): a notch at `hz`.
     public func notch(_ hz: Double) {
         lock.withLock { modem.notchClick(hz: hz) }

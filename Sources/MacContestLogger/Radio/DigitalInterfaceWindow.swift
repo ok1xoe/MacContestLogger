@@ -23,12 +23,18 @@ struct DigitalInterfaceWindowView: View {
     init(host: AppHost, index: Int = 0) {
         self.host = host
         self.index = index
-        _session = StateObject(wrappedValue: WindowSession(id: index == 1 ? Self.id2 : Self.id, persistSize: true,
-                                                           defaultSize: CGSize(width: 680, height: 340)))
+        let session = WindowSession(id: index == 1 ? Self.id2 : Self.id, persistSize: true,
+                                    defaultSize: CGSize(width: 680, height: 560))
+        // N1MM's receiver groups side by side: DI1 (radio 1) on the left half, DI2 (radio 2) on the right half.
+        session.binder.defaultTopLeft = { visible in
+            NSPoint(x: index == 1 ? visible.midX : visible.minX, y: visible.maxY)
+        }
+        _session = StateObject(wrappedValue: session)
     }
 
     private var windowId: String { index == 1 ? Self.id2 : Self.id }
     @StateObject private var holder = WindowModelHolder<DigitalInterfaceModel>()
+    @StateObject private var engineHolder = WindowModelHolder<BuiltinEngineModel>()
     @StateObject private var keys = WindowKeyMonitor()
     @StateObject private var tx = TxFieldState()
     @FocusState private var txFocused: Bool
@@ -129,11 +135,16 @@ struct DigitalInterfaceWindowView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Self.color(hex: model.appearance.background).map { Color(nsColor: $0) } ?? Color.clear)
             }
+            if model.usesBuiltin {
+                // N1MM: the receiver's engine window (MMTTY) under its text.
+                BuiltinEnginePane(engine: engineHolder.model { app.makeBuiltinEngine(side: index) }, language: language)
+            }
             indicators(model, language: language)
             txArea(app, model, language: language)
             buttonsGrid(model)
-            Text(verbatim: language.tr(
-                "Klik: volačka do pole volačky, jiné podtržené slovo do výměny · Option+klik: do zásobníku · Cmd+klik: slovo do pole s kurzorem · Shift+klik: převod Letters/Figs. Text dekóduje fldigi."))
+            Text(verbatim: language.tr(model.usesBuiltin
+                ? "Klik: volačka do pole volačky, jiné podtržené slovo do výměny · Option+klik: do zásobníku · Cmd+klik: slovo do pole s kurzorem · Shift+klik: převod Letters/Figs. Text dekóduje vestavěný modem (MMTTY)."
+                : "Klik: volačka do pole volačky, jiné podtržené slovo do výměny · Option+klik: do zásobníku · Cmd+klik: slovo do pole s kurzorem · Shift+klik: převod Letters/Figs. Text dekóduje fldigi."))
                 .windowFont(11)
                 .foregroundStyle(.secondary)
         }

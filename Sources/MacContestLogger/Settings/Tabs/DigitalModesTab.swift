@@ -109,6 +109,12 @@ private struct ModemGroup: View {
                 SettingsRadio(label: "fldigi (XML-RPC)", selected: draft.digiEngine == .fldigi) {
                     draft.digiEngine = .fldigi
                 }
+                SettingsRadio(label: language.tr("Vestavěný (MMTTY, jen RTTY)"), selected: draft.digiEngine == .builtin) {
+                    draft.digiEngine = .builtin
+                }
+            }
+            if draft.digiEngine == .builtin {
+                BuiltinModemOptions(app: app, draft: $draft)
             }
             HStack(alignment: .bottom, spacing: 8) {
                 SettingsField(caption: "fldigi — adresa") {
@@ -311,6 +317,101 @@ private struct AppearanceGroup: View {
                 }
                 .frame(width: 140)
             }
+        }
+    }
+}
+
+/// The built-in RTTY modem (MMTTY): the receivers' audio (one stereo input: left = radio 1, right = radio 2, or radio
+/// 2's own input), linked or independent tuning, the transmit output, its level and PTT.
+private struct BuiltinModemOptions: View {
+    let app: AppModel
+    @Binding var draft: ConfigurerDraft
+
+    private var language: LanguageModel {
+        app.language
+    }
+
+    private func text(_ key: BuiltinModemSetup.Key) -> Binding<String> {
+        Binding(get: { draft.builtinModem.text(key) },
+                set: { value in
+                    var setup: BuiltinModemSetup = draft.builtinModem
+                    setup.set(key, value)
+                    draft.builtinModem = setup
+                })
+    }
+
+    private func flag(_ key: BuiltinModemSetup.Key) -> Binding<Bool> {
+        Binding(get: { draft.builtinModem.flag(key) },
+                set: { value in
+                    var setup: BuiltinModemSetup = draft.builtinModem
+                    setup.set(key, flag: value)
+                    draft.builtinModem = setup
+                })
+    }
+
+    private func device(_ key: BuiltinModemSetup.Key, _ options: [String]) -> some View {
+        let fallback: String = language.tr(SettingsTools.systemDefaultDevice)
+        let value: Binding<String> = text(key)
+        return SettingsDropdown(label: ifBlank(value.wrappedValue, fallback), options: options, language: language) {
+            value.wrappedValue = $0 == fallback ? "" : $0
+        }
+    }
+
+    private static let inputs: [(BuiltinModemSetup.Input, String)] = [
+        (.radio1, "Vstup přijímače (Audio)"), (.radio2, "Vstup rádia 2"),
+    ]
+    private static let channels: [(BuiltinModemSetup.Channel, String)] = [
+        (.left, "Levý kanál"), (.right, "Pravý kanál"), (.mix, "Oba kanály"),
+    ]
+
+    private func receiver(_ side: Int) -> some View {
+        let inputKey: BuiltinModemSetup.Key = side == 1 ? .input2 : .input1
+        let channelKey: BuiltinModemSetup.Key = side == 1 ? .channel2 : .channel1
+        let setup: BuiltinModemSetup = draft.builtinModem
+        return HStack(alignment: .center, spacing: 8) {
+            Text(verbatim: language.tr(side == 1 ? "Přijímač 2 (DI2):" : "Přijímač 1 (DI1):"))
+                .windowFont(13)
+                .frame(width: 130, alignment: .leading)
+            ForEach(Self.inputs, id: \.0.rawValue) { input, label in
+                SettingsRadio(label: language.tr(label), selected: setup.input(side: side) == input) {
+                    text(inputKey).wrappedValue = input.rawValue
+                }
+            }
+            Text(verbatim: "·").windowFont(13).accessibilityHidden(true)
+            ForEach(Self.channels, id: \.0.rawValue) { channel, label in
+                SettingsRadio(label: language.tr(label), selected: setup.channel(side: side) == channel) {
+                    text(channelKey).wrappedValue = channel.rawValue
+                }
+            }
+        }
+    }
+
+    var body: some View {
+        let tools: SettingsToolsModel = app.settingsTools
+        VStack(alignment: .leading, spacing: 6) {
+            SettingsCaption(language.tr(
+                "Vestavěný modem (MMTTY přes RYRY) dekóduje zvuk přijímače přímo v programu: Digitální rozhraní 1 a 2 mají každé svůj přijímač s vodopádem. Obvyklé zapojení: jeden stereo vstup, levý kanál = rádio 1, pravý = rádio 2."))
+            receiver(0)
+            receiver(1)
+            SettingsCheckbox(label: language.tr("Společné ladění obou přijímačů (mark, posun, rychlost, AFC, NET, Rev)"),
+                             isOn: flag(.linkedTuning))
+            HStack(alignment: .top, spacing: 12) {
+                SettingsField(caption: language.tr("Výstup AFSK (vysílač)")) {
+                    device(.outputDevice, tools.outputDevices)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                SettingsField(caption: language.tr("Výstup rádia 2 (SO2R; prázdné = jako rádio 1)")) {
+                    device(.outputDevice2, tools.outputDevices)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                SettingsField(caption: language.tr("Úroveň AFSK (%)")) {
+                    SettingsTextField(text: text(.outputLevel), filter: .digits(limit: 3))
+                }
+                .frame(width: 130)
+            }
+            SettingsCheckbox(label: language.tr("PTT přes CAT (jinak VOX)"), isOn: flag(.pttViaCat))
+            SettingsCaption(language.tr(
+                "Vysílání: AFSK zvukem na zvolený výstup. FSK přes TinyFSK nebo WinKeyer nastavíte níže v „RTTY: rozhraní pro vysílání\" (vestavěný modem pak jen přijímá)."))
         }
     }
 }

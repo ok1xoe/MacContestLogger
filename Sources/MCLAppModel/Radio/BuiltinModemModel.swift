@@ -36,6 +36,33 @@ public final class BuiltinModemModel {
         self.audio = audio
         self.audio2 = audio2
         self.setup = setup
+        lastSetup = setup()
+        observeSetup()
+    }
+
+    @ObservationIgnored private var lastSetup: BuiltinModemSetup
+
+    /// A change of the options (Settings): the transmit options go to the hub, an attached receiver whose input or
+    /// channel changed listens again.
+    private func observeSetup() {
+        withObservationTracking {
+            _ = setup()
+        } onChange: { [weak self] in
+            MainHop.post {
+                guard let self else { return }
+                let now: BuiltinModemSetup = self.setup()
+                let before: BuiltinModemSetup = self.lastSetup
+                self.lastSetup = now
+                self.hub.configure(BuiltinModemHub.Settings(
+                    level: now.outputLevel, devices: [now.outputDevice(side: 0), now.outputDevice(side: 1)],
+                    linked: now.flag(.linkedTuning)))
+                for side in 0...1 where now.input(side: side) != before.input(side: side)
+                    || now.channel(side: side) != before.channel(side: side) {
+                    Task { await self.reattach(side) }
+                }
+                self.observeSetup()
+            }
+        }
     }
 
     private static func clamp(_ side: Int) -> Int {
