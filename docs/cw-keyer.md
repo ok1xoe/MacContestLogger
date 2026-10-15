@@ -32,6 +32,45 @@ Other options:
 - **Cut numbers:** serial numbers with 0 → T and 9 → N (109 → 1TN).
 - **Leading zeros:** serial numbers padded to three digits (007).
 
+### Weight and spacing
+
+- **CW weight (%)** (N1MM Other tab "CW Weight"): 30–70, default 50 (the
+  standard 1:1 ratio). Higher values lengthen every mark and shorten the space
+  after it, so the speed stays the same.
+- **Contest word spacing** (N1MM "Use CW contest word spacing"): 6 dit spaces
+  between words instead of 7.
+
+Both apply to keyers that form the elements themselves (the Winkeyer when its
+settings are sent). The rig keyer over CAT uses the rig's own weight setting.
+
+### Winkeyer settings
+
+N1MM's Winkey tab. Nothing is sent unless **Send settings to the Winkeyer when it
+opens** is checked; without it the Winkeyer keeps its own (power-on) settings, as
+before. When checked, the settings are sent after host open and again after every
+change (on the next message), with the keyer in Winkeyer 2 mode (WK3 accepts it):
+
+| Setting | Winkeyer command |
+|---|---|
+| Keying mode: Iambic B (default), Iambic A, Ultimatic, Semi-auto (bug) | mode register |
+| Autospace, Reverse paddles, Contest word spacing | mode register |
+| Sidetone on, Paddle-only sidetone, Sidetone frequency (400–4000 Hz in the Winkeyer's steps) | sidetone + pin config |
+| CW weight | weight |
+| PTT output, PTT lead time and tail time (10 ms steps, up to 2.55 s; tail 0 = the hang time decides) | PTT lead/tail + pin config |
+| PTT hang time: 1, 1.33, 1.67 or 2 word spaces | pin config |
+| First character extension, Keying compensation (ms) | first extension, keying compensation |
+| Speed pot: minimum and range (WPM) | speed pot setup |
+
+CW and PTT go to the KEY 1 / PTT 1 outputs. Use a PTT lead time long enough for
+your amplifier's relay (N1MM recommends at least 10 ms when PTT is used) so it
+never hot-switches.
+
+**Speed pot:** *Ignore the speed pot* (default) — the Winkeyer sends at the
+logger's speed whatever the knob says. *The speed pot changes the logger's CW
+speed* — turning the knob sets the CW speed in the entry window, just like
+PgUp / PgDn (the position is read once when the keyer opens, too). N1MM's third
+choice (the pot for paddle and keyboard CW only) is not available.
+
 ## "Nastavení → Function Keys → CW" (Settings → Function Keys → CW)
 
 Messages F1–F12 separately for **Run** and **S&P**. The default set corresponds to
@@ -100,9 +139,7 @@ duration is calculated from real Morse code timing and the speed.
 
 - automatic CQ repeat,
 - typing CW from the keyboard (N1MM Ctrl+K),
-- keying via the DTR/RTS lines of a serial port,
-- Winkeyer settings (paddle mode, sidetone, PTT lead/tail); the keyer's default
-  values are used.
+- keying via the DTR/RTS lines of a serial port.
 
 ## More macros (N1MM)
 

@@ -129,6 +129,7 @@ extension ConfigurerDraft {
         config.cwKeyer.cutNumbers = cwCutNumbers
         config.cwKeyer.leadingZeros = cwLeadingZeros
         config.cwKeyer.cutStyle = cwCutStyle
+        config.cwKeyer.options = cwOptions
         config.cwKeyer.runMessages = cwRun.map { $0.toMessage() }
         config.cwKeyer.spMessages = cwSp.map { $0.toMessage() }
         config.digital.engine = digiEngine

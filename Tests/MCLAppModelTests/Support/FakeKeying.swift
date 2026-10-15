@@ -55,6 +55,31 @@ final class FakeCwKeyer: RttyKeyer, @unchecked Sendable {
         }
     }
 
+    private var configuredOptions: [CwKeyingOptions] = []
+    private var potReport: (@Sendable (Int) -> Void)?
+
+    /// The options of every `configure` call (kept apart from `events`).
+    var configured: [CwKeyingOptions] {
+        lock.lock()
+        defer { lock.unlock() }
+        return configuredOptions
+    }
+
+    func configure(_ options: CwKeyingOptions, potSpeed: (@Sendable (Int) -> Void)?) throws {
+        lock.lock()
+        configuredOptions.append(options)
+        potReport = potSpeed
+        lock.unlock()
+    }
+
+    /// The keyer's speed pot moves (as a followed Winkeyer pot reports it, on the keyer's reader thread).
+    func turnPot(_ wpm: Int) {
+        lock.lock()
+        let report = potReport
+        lock.unlock()
+        report?(wpm)
+    }
+
     func send(_ message: CwMessage, wpm: Int) throws {
         lock.lock()
         while holding {

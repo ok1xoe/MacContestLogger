@@ -8,8 +8,8 @@ import Foundation
 /// - `1B c1 c2` merging two characters into a prosign (AR, SK…);
 /// - text as ASCII (Java `getBytes(US_ASCII)`: every code point outside ASCII → `?`).
 ///
-/// From incoming bytes the status is tracked (0xC0–0xFF, bit 0x04 = keyer transmitting); character echo and potentiometer
-/// position are ignored. **The first received byte is the version** — even if it is a status byte (as in Java).
+/// From incoming bytes the status is tracked (0xC0–0xFF, bit 0x04 = keyer transmitting); character echo is ignored,
+/// the speed pot position (0x80–0xBF) is reported only when `configure` asked to follow the pot. **The first received byte is the version** — even if it is a status byte (as in Java).
 ///
 /// Read by the `winkeyer-reader` thread (a Java daemon thread) until the transport returns end of stream or an error,
 /// or until the keyer is closed. `open(portPath:wpm:)` opens the serial port like Java (1200 Bd 8N2, read
@@ -43,10 +43,16 @@ public final class WinkeyerKeyer: CwKeyer, @unchecked Sendable {
     private var closed = false
     /// The read loop has ended (for tests).
     private var readerEnded = false
+    /// `configure` with the pot followed: the pot's lowest speed, its span and where its readings go.
+    private var potFollow: (min: Int, span: Int, report: @Sendable (Int) -> Void)?
 
     /// Keyer over a transport; immediately starts the read thread (Java package-private constructor).
     public init(transport: any ByteTransport) {
         self.transport = transport
+        startReader()
+    }
+
+    private func startReader() {
         let reader = Thread { [self] in readLoop() }
         reader.name = "winkeyer-reader"
         reader.start()
@@ -141,31 +147,54 @@ public final class WinkeyerKeyer: CwKeyer, @unchecked Sendable {
     }
 
     private func readLoop() {
+        var timedOut = false
         defer {
             state.lock()
-            readerEnded = true
+            // `configure` began following the pot while this loop was timing out: reading goes on.
+            let restart: Bool = timedOut && potFollow != nil && !closed
+            if !restart {
+                readerEnded = true
+            }
             state.broadcast()
             state.unlock()
+            if restart {
+                startReader()
+            }
         }
         while !isClosed {
             let b: Int
             do {
                 b = try transport.read()
             } catch {
+                // A silent serial port times out after 200 ms; while the pot is followed reading goes on.
+                if Self.isReadTimeout(error) {
+                    if followsPot, !isClosed {
+                        continue
+                    }
+                    timedOut = true
+                }
                 return // port closed / disconnected / 200 ms of silence
             }
             if b < 0 {
                 return
             }
             state.lock()
+            var potWpm: Int?
+            var report: (@Sendable (Int) -> Void)?
             if version < 0 {
                 version = b
                 state.broadcast()
             } else if b & 0xC0 == 0xC0 {
                 busy = b & 0x04 != 0
+            } else if b & 0xC0 == 0x80, let pot = potFollow {
+                potWpm = Self.potSpeed(b, min: pot.min, span: pot.span)
+                report = pot.report
             }
-            // 0x80–0xBF = speed potentiometer, < 0x80 = character echo — we do not care
+            // < 0x80 = character echo — we do not care
             state.unlock()
+            if let potWpm, let report {
+                report(potWpm)
+            }
         }
     }
 
@@ -250,6 +279,45 @@ public final class WinkeyerKeyer: CwKeyer, @unchecked Sendable {
         monitor.lock()
         defer { monitor.unlock() }
         try write([Self.setSpeedCommand, UInt8(Self.clamp(Int32(truncatingIfNeeded: wpm)))])
+    }
+
+    /// Sends the Winkeyer setup (`CwKeyingOptions.winkeyerCommands`, nothing when it is off) and starts or stops
+    /// following the speed pot. While the pot is followed the reader keeps reading through the serial port's read
+    /// timeouts (restarted when it had already stopped), otherwise the read loop keeps the behaviour of v1.1.1.
+    public func configure(_ options: CwKeyingOptions, potSpeed: (@Sendable (Int) -> Void)?) throws {
+        monitor.lock()
+        defer { monitor.unlock() }
+        let o: CwKeyingOptions = options.normalized()
+        let follow: Bool = o.wkSendSettings && o.wkPotMode == .follow && potSpeed != nil
+        state.lock()
+        potFollow = follow ? (o.wkPotMinWpm, o.wkPotRangeWpm, potSpeed ?? { _ in }) : nil
+        let restart: Bool = follow && readerEnded && !closed
+        if restart {
+            readerEnded = false
+        }
+        state.unlock()
+        if restart {
+            startReader()
+        }
+        let bytes: [UInt8] = o.winkeyerCommands()
+        if !bytes.isEmpty {
+            try write(bytes)
+        }
+    }
+
+    /// The speed of a pot status byte (`10nnnnnn`: the position above the pot's lowest speed).
+    static func potSpeed(_ byte: Int, min: Int, span: Int) -> Int {
+        clampWpm(min + Swift.min(byte & 0x3F, span))
+    }
+
+    private var followsPot: Bool {
+        state.lock()
+        defer { state.unlock() }
+        return potFollow != nil
+    }
+
+    static func isReadTimeout(_ error: any Error) -> Bool {
+        (error as? ByteTransportError)?.message == SerialPort.timeoutMessage
     }
 
     /// Is the keyer transmitting right now (by the last status byte)?
