@@ -112,7 +112,7 @@ import Testing
     }
 
     /// `StreamReadConstraints` limits (name 50,000 bytes / characters, string 20,000,000 units); input by id.
-    /// Row by row as arguments, so that large inputs (up to 40 MB) run concurrently. Strings of 20 M units are expensive in the debug
+    /// Row by row as arguments, run one at a time: inputs of up to 40 MB held concurrently exhaust the memory of a CI runner. Strings of 20 M units are expensive in the debug
     /// build (seconds per row), so only the rows that decide the boundary are replayed: ASCII exactly
     /// at the limit and just above it, surrogate pairs exactly at the limit (`pairs-10000000` = 20 M UTF-16 units, but
     /// 40 M UTF-8 bytes — the only row proving that UTF-16 units are counted, not bytes) and just above it
@@ -123,7 +123,7 @@ import Testing
         "value-ascii-19999999", "value-pairs-9999999", "value-utf16le-20000000",
     ]
 
-    @Test(arguments: ProbeRows.rawRows(I18nMeasured.rows, "L.limit")
+    @Test(.serialized, arguments: ProbeRows.rawRows(I18nMeasured.rows, "L.limit")
         .filter { !slowLimitRows.contains($0[0]) }.map { $0[0] + "=" + $0[1] })
     func limitsMatchJava(_ row: String) throws {
         let parts: [String] = row.components(separatedBy: "=")
