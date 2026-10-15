@@ -21,6 +21,8 @@ public final class Waterfall: Sendable {
         var filled = 0
         /// Newest first (Java `ArrayDeque.addFirst`).
         var history: [[Double]] = []
+        /// Rows added so far (the spectrum display takes each new row once).
+        var serial = 0
     }
 
     private let sampleRate: Double
@@ -55,6 +57,7 @@ public final class Waterfall: Sendable {
                     // A length of 2048 is a power of two — `magnitudesDb` does not throw.
                     let db = (try? Fft.magnitudesDb(s.window)) ?? []
                     s.history.insert(Array(db[0..<count]), at: 0)
+                    s.serial += 1
                     while s.history.count > limit && !s.history.isEmpty {
                         s.history.removeLast()
                     }
@@ -94,6 +97,15 @@ public final class Waterfall: Sendable {
             return s.history.prefix(count).map { row in
                 row.map { value in Float(JavaMath.max(0, JavaMath.min(1, (value - floor) / span))) }
             }
+        }
+    }
+
+    /// The newest row in dB with the number of rows added so far (`nil` before the first row): the spectrum display
+    /// reads it on every refresh and takes it once.
+    public func latestRow() -> (levelsDb: [Double], serial: Int)? {
+        state.withLock { s in
+            guard let first = s.history.first else { return nil }
+            return (first, s.serial)
         }
     }
 
