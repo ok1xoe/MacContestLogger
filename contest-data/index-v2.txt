@@ -4,6 +4,7 @@
 # comment in index.txt). Maintained by hand; PublishedContestDataTests checks this file lists exactly
 # the files in this directory.
 bandplan.yaml
+contests/7th-area-qso-party.yaml
 contests/9a-dx.yaml
 contests/agcw-happy-new-year.yaml
 contests/agcw-qrp.yaml
@@ -34,6 +35,7 @@ contests/baltic-contest.yaml
 contests/bartg-hf-rtty.yaml
 contests/bartg-sprint-rtty.yaml
 contests/california-qso-party.yaml
+contests/combined-qso-parties-may.yaml
 contests/cq-160-cw.yaml
 contests/cq-160-ssb.yaml
 contests/cq-m.yaml
@@ -51,6 +53,7 @@ contests/darc-10m.yaml
 contests/darc-wag.yaml
 contests/darc-xmas.yaml
 contests/ddfm-50.yaml
+contests/delaware-qso-party.yaml
 contests/dx-satellite.yaml
 contests/dx-serial.yaml
 contests/dx.yaml
@@ -77,6 +80,7 @@ contests/iaru-r1-field-day-ssb.yaml
 contests/iaru-r1-microwave.yaml
 contests/iaru-r1-uhf.yaml
 contests/iaru-r1-vhf.yaml
+contests/indiana-qso-party.yaml
 contests/iota-contest.yaml
 contests/jarts-ww-rtty.yaml
 contests/jidx-cw.yaml
@@ -174,6 +178,7 @@ multipliers/cqp_counties.csv
 multipliers/cqp_counties.yaml
 multipliers/cqp_qth.yaml
 multipliers/cwt_exchange.yaml
+multipliers/deqp_counties.yaml
 multipliers/dme_municipalities.yaml
 multipliers/dok.yaml
 multipliers/dok_districts.yaml
@@ -195,6 +200,8 @@ multipliers/holyland_areas.yaml
 multipliers/hr_counties.yaml
 multipliers/iaru_hq.csv
 multipliers/iaru_hq.yaml
+multipliers/inqp_counties.csv
+multipliers/inqp_counties.yaml
 multipliers/iota_refs.yaml
 multipliers/it_provinces.csv
 multipliers/it_provinces.yaml
@@ -223,10 +230,13 @@ multipliers/pa_qsl_regions.csv
 multipliers/pa_qsl_regions.yaml
 multipliers/pt_districts.csv
 multipliers/pt_districts.yaml
+multipliers/qp_weekend_qth.yaml
 multipliers/rda_districts.yaml
 multipliers/rda_oblasts.yaml
 multipliers/ref_departments.csv
 multipliers/ref_departments.yaml
+multipliers/sevenqp_counties.csv
+multipliers/sevenqp_counties.yaml
 multipliers/sp_poviats.yaml
 multipliers/sp_provinces.csv
 multipliers/sp_provinces.yaml
