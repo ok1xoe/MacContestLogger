@@ -16,6 +16,13 @@ in `config.json`).
 - Typical use: Run on VFO A, hunting multipliers on VFO B — switching with one
   click between the windows.
 
+- **Sub receiver** (rigs with two receivers and "Sub receiver always on" in the rig's settings): **Alt+F12** switches
+  the dual watch on / off. **Ctrl+Alt+D** starts the CQ repeat on VFO A with the sub receiver on, so you tune the
+  sub receiver on the rig between the CQs; a caller there is worked from the VFO B window (`\`, Pause). Ctrl+Alt+D
+  again stops the repeat and switches the sub receiver back off (unless it is always on). MCL does not read the sub
+  receiver's knob over hamlib: the VFO B window shows its frequency once VFO B is selected.
+- The spectrum window draws the other VFO as a line in the accent colour.
+
 Switching back to SO1V closes the VFO B window. The rig must support VFO selection
 through hamlib (most transceivers with CAT).
 
@@ -76,6 +83,9 @@ VFO active for the message and come back once it has been sent when this window'
 - **The other radio from the band map and the call field:** **Shift+click** on a spot (or a frequency) in the band map
   tunes the other radio / VFO and puts the call into its window; `/14030` in the call field tunes the other radio in
   SO2R (VFO B of the rig in SO1V / SO2V). The focus stays where it is.
+- **Rotor of the focused radio:** Alt+J / Alt+L turn the rotors of the antenna in use; when that antenna was chosen
+  by the other radio on another band, the first antenna of the focused radio's band (Settings → Antennas) and its
+  rotors are used.
 - **Software band lockout:** in SO2R Ctrl+PgUp/PgDn of either radio skips the band the other radio is on. It is no
   substitute for a hardware lockout.
 - **The caret in the inactive window** stays marked (a thin bar), so after `\` you see where typing continues.

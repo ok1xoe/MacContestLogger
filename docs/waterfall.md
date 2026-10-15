@@ -19,7 +19,8 @@ SDR, from the **receiver audio**. Open via **Okno → Vodopád** (Window → Wat
 - The **white** columns are the instant levels, the **blue** line the decaying levels (it jumps up with a
   signal and falls at the decay speed), the **blue dashed** line the signal threshold above the noise floor.
 - The **yellow** line is the receive frequency (in CW the CW tone), the **red** line the transmit frequency
-  when the rig reports split.
+  when the rig reports split. In SO2V the other VFO is drawn in the accent (highlight) colour when it lies within
+  the shown span.
 - The box above the panes shows the noise floor, the threshold, the number of signals found and the
   resolution (Hz per bin).
 

@@ -301,6 +301,12 @@ public final class WaterfallModel {
         txHz.flatMap { fraction(ofHz: Double($0)) }
     }
 
+    /// N1MM: in SO2V the other VFO is drawn as a line in the highlight colour (when it is within the shown span).
+    public var otherVfoLine: Double? {
+        guard rig.vfo.so2v, let hz = rig.otherVfoFreqHz else { return nil }
+        return fraction(ofHz: Double(hz))
+    }
+
     // MARK: - the pointer
 
     /// The pointer moved over the image (`x` from the image's left edge, `width` its width).

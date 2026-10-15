@@ -2400,5 +2400,9 @@
  "Druhé rádio: jen v režimu SO2V nebo SO2R": "Other radio: SO2V or SO2R only",
  "Druhé rádio: na jeho pásmu není CQ frekvence": "Other radio: no CQ frequency on its band",
  "Rychlost druhého rádia: jen v režimu SO2V nebo SO2R": "Other radio's speed: SO2V or SO2R only",
- "CW rádio %s: %s WPM": "CW radio %s: %s WPM"
+ "CW rádio %s: %s WPM": "CW radio %s: %s WPM",
+ "Druhý přijímač zapnut (dual watch)": "Sub receiver on (dual watch)",
+ "Druhý přijímač vypnut": "Sub receiver off",
+ "Ctrl+Alt+D: jen v SO2V": "Ctrl+Alt+D: SO2V only",
+ "SO2V: CQ na VFO A, druhý přijímač zap / vyp": "SO2V: CQ on VFO A, sub receiver on / off"
 }

@@ -161,7 +161,15 @@ extension EntryModel {
         case .splitPrompt: rig.promptSplit(currentFreqHz: form.freqHz)
         case .previousFrequency: rig.returnToPrevious()
         case .swapVfo: rig.swapVfo()
-        case .copyToVfoB: rig.copyToVfoB()
+        case .copyToVfoB:
+            // N1MM Alt+F12: on a rig with a sub receiver the dual watch toggle, otherwise the copy A → B.
+            if rig.altF12TogglesSubReceiver {
+                rig.setSubReceiver(nil)
+            } else {
+                rig.copyToVfoB()
+            }
+        case .so2vDualCq:
+            so2vDualReceiveCq()
         case .ritUp: rig.stepRit(1, mode: form.mode)
         case .ritDown: rig.stepRit(-1, mode: form.mode)
         case .ritClear: rig.setRit(0)
@@ -198,6 +206,33 @@ extension EntryModel {
         default:
             unavailable()
         }
+    }
+
+    /// N1MM Ctrl+Alt+D (SO2V): CQ repeat on VFO A with the sub receiver on, so the sub receiver (VFO B) can be tuned
+    /// on the rig between the CQs; again = the CQ repeat off and the sub receiver back to its „always on" option. A
+    /// caller heard on the sub receiver is worked from the VFO B window (`\` or Pause).
+    func so2vDualReceiveCq() {
+        guard let rig, rig.vfo.so2v else {
+            show(.tr("Ctrl+Alt+D: jen v SO2V"))
+            return
+        }
+        if operating.cqRepeat && rig.subReceiverOn && operating.cqRepeatWindow == 0 {
+            operating.setCqRepeat(false)
+            if !rig.rigConfig(vfo: 0).subReceiverOn {
+                rig.setSubReceiver(false)
+            }
+            return
+        }
+        guard rig.active.connected else {
+            show(RigTexts.vfoNeedsCat(RigTexts.subReceiverLabel))
+            return
+        }
+        if rig.vfo.activeVfo != 0 {
+            rig.requestFocusVfo(0)
+        }
+        rig.setSubReceiver(true)
+        operating.cqRepeatWindow = 0
+        operating.setCqRepeat(true)
     }
 
     /// N1MM Alt+F5 / Alt+F6: the frequency, mode and call of the two windows swapped — the two rigs retuned (SO2R) or

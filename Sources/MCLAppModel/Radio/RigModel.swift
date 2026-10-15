@@ -38,6 +38,8 @@ public final class RigModel {
     public internal(set) var auxAntenna: AntennaEntry?
     /// N1MM `{ANTRXnTOGGLE}`: the port and RX antenna state per rig index.
     @ObservationIgnored var macroAntenna: [Int: MacroAntennaState] = [:]
+    /// N1MM Alt+F12 / Ctrl+Alt+D: the sub receiver (dual watch) last set per rig index.
+    @ObservationIgnored var subReceiver: [Int: Bool] = [:]
     /// N1MM `{ACTIVEAUDIO…}` / `{INACTIVEAUDIO…}`: the AF mute last set per rig index.
     @ObservationIgnored var macroMuted: [Int: Bool] = [:]
     /// The pause before the next keying after the transmit focus moved (N1MM radio swap lead + tail time, SO2R).

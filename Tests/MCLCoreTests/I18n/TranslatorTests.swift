@@ -183,10 +183,11 @@ import Testing
         // the simulator's QSB/QRM and the VoiceOver announcements and
         // the SO2R foci, swap and menu texts and
         // the SO2R automation texts and
-        // the other-radio texts.
-        #expect(map.count == 2_402)
+        // the other-radio texts and
+        // the sub receiver texts.
+        #expect(map.count == 2_406)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_402)
+        #expect(german.count == 2_406)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)
