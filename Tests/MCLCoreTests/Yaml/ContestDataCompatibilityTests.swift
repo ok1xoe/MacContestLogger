@@ -3,9 +3,9 @@ import Testing
 @testable import MCLCore
 
 /// Released apps update their contest data from `contest-data/` on `main` (`DefinitionUpdater.defaultBase`), so the
-/// published files must stay readable by the oldest published release (v0.9.0-rc1). Its readers ignore unknown keys,
-/// but they reject a schema version above 1, an enum value they do not know and a multiplier set kind, provider or
-/// algorithm they cannot build (`MultiplierSetRegistry.loadDir` stops at the first such file). A new DSL key is
+/// published files must stay readable by the oldest published release (v0.9.0-rc1, which reads `index.txt`). Its
+/// readers ignore unknown keys, but they reject a schema version above 1 and an enum value they do not know; the set
+/// algorithms and providers of `index.txt` are guarded by `PublishedContestDataTests.rc1Problems`. A new DSL key is
 /// therefore only allowed when the definition still means something without it: `scoring.parts` keeps `total` as
 /// the fallback formula of the older versions.
 @Suite struct ContestDataCompatibilityTests {
@@ -22,11 +22,6 @@ import Testing
     static let releasedPointsModes: Set<String> = ["FIRST_MATCH", "SUM"]
     static let releasedSetKinds: Set<String> = ["FIXED", "ALGORITHM", "EXTERNAL_DATA"]
     static let releasedKeyTypes: Set<String> = ["INTEGER", "TEXT", "CALLSIGN_PREFIX"]
-    /// v0.9.0-rc1 builds only the `wpx` algorithm and the DXCC provider (`nil`, `dxcc-json`, `cty`).
-    static let releasedAlgorithms: Set<String> = ["wpx"]
-    static let releasedProviders: Set<String> = ["dxcc-json", "cty"]
-    /// Sets published before this test existed that v0.9.0-rc1 cannot build; no further ones may be added.
-    static let knownUnbuildableSets: Set<String> = ["last_letters", "worked_calls"]
 
     private static func definitions() throws -> [(String, ContestDefinition)] {
         try PublishedContestDataTests.files("contests").map { name in
@@ -58,24 +53,14 @@ import Testing
         }
     }
 
-    @Test func multiplierSetsAreBuildableByReleasedReaders() throws {
+    @Test func multiplierSetsUseOnlyValuesReleasedReadersKnow() throws {
         for name in try PublishedContestDataTests.files("multipliers") where name.hasSuffix(".yaml") {
-            let url = PublishedContestDataTests.root.appendingPathComponent(name)
-            let set = try MultiplierSetLoader.loadFile(url)
+            let set = try MultiplierSetLoader.loadFile(PublishedContestDataTests.root.appendingPathComponent(name))
             if let kind = set.kind?.rawValue {
                 #expect(Self.releasedSetKinds.contains(kind), "\(name): kind \(kind)")
             }
             if let keyType = set.keyType?.rawValue {
                 #expect(Self.releasedKeyTypes.contains(keyType), "\(name): keyType \(keyType)")
-            }
-            let id = url.deletingPathExtension().lastPathComponent
-            if Self.knownUnbuildableSets.contains(id) { continue }
-            if set.kind == .ALGORITHM {
-                let type = (set.algorithm?.type ?? "").lowercased()
-                #expect(Self.releasedAlgorithms.contains(type), "\(name): algorithm \(type)")
-            }
-            if set.kind == .EXTERNAL_DATA, let provider = set.provider?.type {
-                #expect(Self.releasedProviders.contains(provider.lowercased()), "\(name): provider \(provider)")
             }
         }
     }
