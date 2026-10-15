@@ -141,6 +141,9 @@ import Testing
         expected.resetRxAfterRunQso = false
         expected.macroQsyStepKHz = 1
         expected.functionKeysPerOperator = false
+        expected.fontFamily = ""
+        expected.fixedFontFamily = ""
+        expected.spotTooltips = true
         expected.clubLog.ctyEnabled = true
         expected.esm.nextCallKey = -1
         expected.esm.keyMap = EsmKeyMap.n1mm.keys
@@ -438,6 +441,9 @@ import Testing
         w.same(\.ntpServer, \.ntpServer, "ntp.example")
         w.same(\.ntpCorrect, \.ntpCorrectQsoTime, true)
         w.same(\.themeAccent, \.themeAccent, "ORANGE")
+        w.same(\.fontFamily, \.fontFamily, "Avenir Next")
+        w.same(\.fixedFontFamily, \.fixedFontFamily, "PT Mono")
+        w.same(\.spotTooltips, \.spotTooltips, false)
         w.same(\.ritClearAfterLog, \.ritClearAfterLog, false)
     }
 

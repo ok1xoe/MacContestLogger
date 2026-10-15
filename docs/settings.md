@@ -109,6 +109,26 @@ window opens automatically according to the mode in Settings → Hardware. Dialo
   (black background, white text, yellow accent — for night operation),
 - each window has its own font size (A− / A+ at the top right), and the window remembers it.
 
+### Skins, colours and fonts
+
+The equivalent of N1MM's Configurer **Colors**, **Fonts** and **Skins** tabs, also in **Settings → Other**:
+
+- **Skiny** (Skins) — a skin is the appearance mode, the accent, the colours and the fonts at once. Pick a
+  built-in one (Default, N1MM classic, Night operation, High contrast), **Načíst skin…** (Load skin) from a
+  `.mclskin` file or **Uložit skin…** (Save skin) to share your look with another Mac. A skin goes into the
+  settings; OK saves it.
+- **Barvy** (Colours) — a colour well per item: the call colours of the entry window (new QSO, multiplier, double
+  multiplier), dupe/error, the multiplier info, the QuickEdit background, the **background of the field with the
+  caret** (N1MM's focus colour, off by default), the connected-radio lamp, the bandmap and Available spot colours
+  (new QSO, one multiplier, two or more, dupe), the band plan strips and the band notes. A changed colour replaces
+  the built-in one in both the light and the dark appearance; the arrow next to it, or **Všechny barvy výchozí**,
+  returns to the default (which follows the appearance).
+- **Písma** (Fonts) — the family of the proportional texts and of the fixed-width texts (tables and the entry
+  fields). Sizes stay per window. Empty = the system font.
+- **Bublinová nápověda u spotů** (Spot tooltips) — the tooltip of a spot in the bandmap and the multiplier windows
+  (spotter, age, comment...) can be turned off. N1MM's "balloon" tooltip style is a Windows look; macOS has one
+  tooltip style. VoiceOver reads the spot details either way.
+
 ## Settings profiles
 
 An equivalent of N1MM's multiple configurations / DXLog profiles. **Nastavení →

@@ -122,8 +122,8 @@ struct EntryTextField: NSViewRepresentable {
         let coordinator: Coordinator = context.coordinator
         coordinator.parent = self
         field.entryKey = key
-        let weight: NSFont.Weight = bold ? .bold : .regular
-        let font = NSFont.monospacedSystemFont(ofSize: CGFloat(fontSize), weight: weight)
+        let font: NSFont = WindowFont.entryFont(size: fontSize, bold: bold,
+                                                family: context.environment.mclFixedFontFamily)
         if field.font != font {
             field.font = font
         }
@@ -131,7 +131,8 @@ struct EntryTextField: NSViewRepresentable {
         field.placeholderString = placeholder
         field.setAccessibilityLabel(accessibilityLabel)
         field.textColor = textTint ?? (isError ? DomainColors.dupe : NSColor.textColor)
-        field.backgroundColor = tint ?? NSColor.textBackgroundColor
+        field.baseBackground = tint ?? NSColor.textBackgroundColor
+        field.applyBackground()
         field.layer?.borderWidth = isError ? 1 : 0
         field.layer?.borderColor = DomainColors.dupe.cgColor
         let current: String = (field.currentEditor() as? NSTextView)?.string ?? field.stringValue
@@ -203,6 +204,25 @@ final class EntryNSTextField: NSTextField {
     var entryKey: EntryFieldKey?
     /// Called when the field is put into a window (deferred focus at start-up).
     var onMovedToWindow: (@MainActor () -> Void)?
+    /// The background without the focus colour (the text background or the QuickEdit tint).
+    var baseBackground: NSColor = .textBackgroundColor
+    /// The caret is in this field (its field editor is the first responder).
+    var hasEditingFocus = false {
+        didSet {
+            if oldValue != hasEditingFocus {
+                applyBackground()
+            }
+        }
+    }
+
+    /// N1MM's focus colour (Settings › Colors) on the field with the caret, unless a tint (QuickEdit) is set.
+    func applyBackground() {
+        let focused: NSColor? = hasEditingFocus && baseBackground == .textBackgroundColor ? DomainColors.entryFocus : nil
+        let wanted: NSColor = focused ?? baseBackground
+        if backgroundColor != wanted {
+            backgroundColor = wanted
+        }
+    }
 
     /// The field editor of this field (kept on the control, not the cell: `NSCell` copies are shallow).
     private(set) lazy var fieldEditor: EntryFieldEditor = {
@@ -236,4 +256,20 @@ final class EntryTextFieldCell: NSTextFieldCell {
 final class EntryFieldEditor: NSTextView {
 
     weak var owner: EntryNSTextField?
+
+    override func becomeFirstResponder() -> Bool {
+        let became: Bool = super.becomeFirstResponder()
+        if became {
+            owner?.hasEditingFocus = true
+        }
+        return became
+    }
+
+    override func resignFirstResponder() -> Bool {
+        let resigned: Bool = super.resignFirstResponder()
+        if resigned {
+            owner?.hasEditingFocus = false
+        }
+        return resigned
+    }
 }

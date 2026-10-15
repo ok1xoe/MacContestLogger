@@ -327,6 +327,11 @@ public final class BandmapModel {
         return SpecialCalls.matches(call, bases: SpecialCalls.bases(calls))
     }
 
+    /// N1MM „Tooltips" (Settings › Other): the spot tooltips are shown (VoiceOver gets the text either way).
+    public var showsTooltips: Bool {
+        config.config.spotTooltips
+    }
+
     /// N1MM's spot tooltip (the exact frequency, the spotter, the age, the comment, QSX, the counts, the azimuth, the
     /// gray line, a self-spot).
     public func tooltip(_ spot: DxSpot) -> String {

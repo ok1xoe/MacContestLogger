@@ -157,6 +157,16 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// Appearance: SYSTEM / LIGHT / DARK and accent TEAL / BLUE / ORANGE / CONTRAST.
     public var themeMode = "SYSTEM"
     public var themeAccent = "TEAL"
+    /// N1MM Configurer › Colors: a colour per slot (`ColorSlot` raw value → `#RRGGBB`) over the built-in light and
+    /// dark colours; an absent slot keeps the built-in one. Swift-only key.
+    public var colorOverrides: [String: String] = [:]
+    /// N1MM Configurer › Fonts: the family of the proportional texts (empty = the system font). Swift-only key.
+    public var fontFamily: String = ""
+    /// N1MM Configurer › Fonts „fixed": the family of the monospaced texts and the entry fields (empty = the system
+    /// monospaced font). Swift-only key.
+    public var fixedFontFamily: String = ""
+    /// N1MM „Tooltips": the spot tooltips of the band map and the multiplier windows (off = none). Swift-only key.
+    public var spotTooltips: Bool = true
 
     /// Mode Control: the rule for the written mode (RADIO, BANDPLAN, ALWAYS) and a fixed mode for ALWAYS.
     public var modeRule = "RADIO"
@@ -299,6 +309,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case rotatorHost, rotatorPort, rotorUdpHost, rotorUdpPort, rotorUdpName
         case rig2, otrspPort, radioMode, ntpServer, ntpCorrectQsoTime
         case language, themeMode, themeAccent
+        case colorOverrides, fontFamily, fixedFontFamily, spotTooltips
         case modeRule, modeAlways, dataMode, rttyAfsk
         case cwSpeedStep, tuneStepCwHz, tuneStepSsbHz, beepOnDupe, ritClearAfterLog
         case scpSuggestionsEnabled, nPlusOneEnabled, preferredCallbook, dupesheetSortBySuffix
@@ -437,6 +448,10 @@ public struct AppConfig: Codable, Equatable, Sendable {
         let secondaryStep: Int = c.value(.cwSpeedStepSecondary, default: d.cwSpeedStepSecondary)
         cwSpeedStepSecondary = secondaryStep <= 0 ? 1 : secondaryStep
         clearPrefilledExchange = c.value(.clearPrefilledExchange, default: d.clearPrefilledExchange)
+        colorOverrides = c.value(.colorOverrides, default: d.colorOverrides)
+        fontFamily = c.value(.fontFamily, default: d.fontFamily)
+        fixedFontFamily = c.value(.fixedFontFamily, default: d.fixedFontFamily)
+        spotTooltips = c.value(.spotTooltips, default: d.spotTooltips)
         entryHiddenBands = c.value(.entryHiddenBands, default: d.entryHiddenBands)
         entryBandButtonsClick = c.value(.entryBandButtonsClick, default: d.entryBandButtonsClick)
         entryShowUtcClock = c.value(.entryShowUtcClock, default: d.entryShowUtcClock)

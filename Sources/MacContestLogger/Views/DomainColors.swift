@@ -8,11 +8,39 @@ import SwiftUI
 /// multiplier state) stays, the Material 3 palette of the JVM version does not.
 enum DomainColors {
 
-    /// A dynamic colour: `light` in the aqua appearance, `dark` in dark aqua.
+    /// A dynamic colour: `light` in the aqua appearance, `dark` in dark aqua — or the user's colour of the slot
+    /// named `name` (Settings › Colors, `ColorSlot`), which replaces both.
     static func dynamic(_ name: String, light: NSColor, dark: NSColor) -> NSColor {
         NSColor(name: NSColor.Name(name)) { appearance in
-            appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
+            if let custom = overrideColor(name) {
+                return custom
+            }
+            return appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
         }
+    }
+
+    /// The user's colours by slot (set by `AppearanceApplier`, read while drawing on any thread).
+    private static let overrides = OSAllocatedUnfairLock<[String: Int]>(initialState: [:])
+
+    /// Replaces the colour overrides; `true` = they changed (the windows must repaint).
+    @discardableResult
+    static func setOverrides(_ values: [String: Int]) -> Bool {
+        overrides.withLock { current in
+            guard current != values else { return false }
+            current = values
+            return true
+        }
+    }
+
+    /// The user's colour of a slot, `nil` = the built-in one.
+    static func overrideColor(_ name: String) -> NSColor? {
+        overrides.withLock { $0[name] }.map(rgb)
+    }
+
+    /// N1MM's focus colour of the entry fields: the background of the field with the caret (`nil` = none, the
+    /// default).
+    static var entryFocus: NSColor? {
+        overrideColor(ColorSlot.entryFocus.rawValue)
     }
 
     private static func rgb(_ hex: Int) -> NSColor {

@@ -69,6 +69,10 @@ enum ProfileMergeSchema {
             Property("callHistoryLookupEnabled", .boolean, .fieldDefault),
             Property("callHistoryExtraFiles", .list(.string), .fieldDefault),
             Property("callHistoryShowUserInfo", .boolean, .fieldDefault),
+            Property("colorOverrides", .map(.string), .fieldDefault),
+            Property("fontFamily", .string, .fieldDefault),
+            Property("fixedFontFamily", .string, .fieldDefault),
+            Property("spotTooltips", .boolean, .fieldDefault),
         ],
         "cz.ok1xoe.maccontestlogger.config.ContestSetup": [
             Property("callHistoryFile", .string, .fieldDefault),

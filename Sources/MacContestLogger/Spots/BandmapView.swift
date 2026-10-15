@@ -395,7 +395,7 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
     nonisolated func view(_ view: NSView, stringForToolTip tag: NSView.ToolTipTag, point: NSPoint,
                           userData data: UnsafeMutableRawPointer?) -> String {
         MainActor.assumeIsolated {
-            guard let model, let state else { return "" }
+            guard let model, let state, model.showsTooltips else { return "" }
             let metrics: Metrics = metrics(state)
             guard let spot = model.menuSpot(x: Float(point.x), y: Float(point.y), height: Float(bounds.height),
                                             axisX: metrics.axisX, rowH: metrics.rowH) else { return "" }

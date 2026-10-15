@@ -208,6 +208,11 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var ntpServer: String = ""
     public var ntpCorrect: Bool = false
     public var themeAccent: String = ""
+    /// `colorOverrides`, `fontFamily`, `fixedFontFamily`, `spotTooltips` (Colors, Fonts, Tooltips).
+    public var colorOverrides: [String: String] = [:]
+    public var fontFamily: String = ""
+    public var fixedFontFamily: String = ""
+    public var spotTooltips: Bool = true
     public var ritClearAfterLog: Bool = false
     public var antennas: [AntennaDraft] = []
     public var antennaViaRig: Bool = false
@@ -560,6 +565,10 @@ extension ConfigurerDraft {
         ntpServer = config.ntpServer
         ntpCorrect = config.ntpCorrectQsoTime
         themeAccent = config.themeAccent
+        colorOverrides = config.colorOverrides
+        fontFamily = config.fontFamily
+        fixedFontFamily = config.fixedFontFamily
+        spotTooltips = config.spotTooltips
         ritClearAfterLog = config.ritClearAfterLog
     }
 

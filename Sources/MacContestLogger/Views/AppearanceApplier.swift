@@ -13,16 +13,22 @@ struct AppearanceApplier: ViewModifier {
         let model: AppearanceModel? = host.model?.appearance
         let accent: AppearanceModel.Accent = model?.accent ?? .teal
         let mode: AppearanceModel.Appearance = model?.effectiveAppearance ?? .system
+        let colors: [String: Int] = model?.colorOverrides ?? [:]
         content
             .tint(Color(nsColor: AppearanceColors.accent(accent)))
             .environment(\.mclAccent, accent)
+            .environment(\.mclFontFamily, model?.fontFamily ?? "")
+            .environment(\.mclFixedFontFamily, model?.fixedFontFamily ?? "")
+            .environment(\.mclSpotTooltips, model?.spotTooltips ?? true)
             .background(model?.isContrast == true ? Color.black : Color.clear)
             .onAppear {
                 AppearanceColors.apply(mode)
                 AppearanceColors.applyAccent(accent)
+                AppearanceColors.applyOverrides(colors)
             }
             .onChange(of: mode) { AppearanceColors.apply(mode) }
             .onChange(of: accent) { AppearanceColors.applyAccent(accent) }
+            .onChange(of: colors) { AppearanceColors.applyOverrides(colors) }
     }
 }
 
@@ -50,6 +56,16 @@ enum AppearanceColors {
     static func applyAccent(_ accent: AppearanceModel.Accent) {
         guard DomainColors.accent != accent else { return }
         DomainColors.accent = accent
+        for window in NSApp.windows {
+            if let content = window.contentView {
+                invalidate(content)
+            }
+        }
+    }
+
+    /// Makes the user's colours current (Settings › Colors) and repaints the windows when they changed.
+    static func applyOverrides(_ colors: [String: Int]) {
+        guard DomainColors.setOverrides(colors) else { return }
         for window in NSApp.windows {
             if let content = window.contentView {
                 invalidate(content)
@@ -90,5 +106,17 @@ enum AppearanceColors {
         let green = CGFloat((hex >> 8) & 0xFF) / 255
         let blue = CGFloat(hex & 0xFF) / 255
         return NSColor(srgbRed: red, green: green, blue: blue, alpha: 1)
+    }
+}
+
+/// N1MM „Tooltips" (Settings › Other): the spot tooltips of the multiplier windows; the band map reads the model.
+private struct SpotTooltipsKey: EnvironmentKey {
+    static let defaultValue: Bool = true
+}
+
+extension EnvironmentValues {
+    var mclSpotTooltips: Bool {
+        get { self[SpotTooltipsKey.self] }
+        set { self[SpotTooltipsKey.self] = newValue }
     }
 }

@@ -195,6 +195,7 @@ private struct GridRowView: View {
     let model: MultGridModel
     let row: MultGridRow
     let metrics: MultGridLayout.Metrics
+    @Environment(\.mclSpotTooltips) private var spotTooltips
 
     var body: some View {
         HStack(spacing: 0) {
@@ -223,7 +224,7 @@ private struct GridRowView: View {
                 if let tip = model.tooltip(key: row.key, band: band) {
                     Rectangle().fill(Color(argb: argb))
                         .frame(width: size, height: size)
-                        .help(tip)
+                        .help(spotTooltips ? tip : "")
                         .onTapGesture { model.tune(key: row.key, band: band) }
                         .accessibilityElement()
                         .accessibilityLabel(Text(verbatim: "\(MultGridLayout.label(row)) \(band.adif)"))

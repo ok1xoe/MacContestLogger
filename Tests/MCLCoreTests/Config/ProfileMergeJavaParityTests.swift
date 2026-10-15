@@ -299,7 +299,7 @@ import Testing
         }
         #expect(paths.sorted() == [
             "antennas", "bandNotes", "callHistoryExtraFiles", "checkHiddenPanes", "checkPaneWeights", "checkYankOrder",
-            "cluster.statusColumns",
+            "cluster.statusColumns", "colorOverrides",
             "contestSetups", "cwKeyer.runMessages", "cwKeyer.spMessages",
             "digital.diMessages", "digital.runMessages", "digital.spMessages", "dxCluster.availColumnWidths",
             "dxCluster.availColumns", "dxCluster.availSummaryBands", "dxCluster.bandmapButtons",

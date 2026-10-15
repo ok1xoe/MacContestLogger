@@ -18,6 +18,9 @@ struct OtherTab: View {
             timeGroup
             LanguageGroup(app: app, draft: $draft)
             AppearanceGroup(language: language, draft: $draft)
+            SkinsGroup(language: language, draft: $draft)
+            ColorsGroup(language: language, draft: $draft)
+            FontsGroup(language: language, draft: $draft)
             SettingsGroup(title: "Volby") {
                 SettingsCheckbox(label: language.tr("Po zapsání QSO vynulovat RIT"), isOn: $draft.ritClearAfterLog)
                 SettingsCheckbox(label: language.tr("Ve splitu po zapsání Run QSO vrátit RX na TX frekvenci (Alt+S)"),
