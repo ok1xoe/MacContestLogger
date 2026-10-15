@@ -13,18 +13,32 @@ public struct HamlibModeMapping: Equatable, Sendable {
     public let dataMode: Mode
     /// RTTY via AFSK (rig data mode, audio from the computer) instead of FSK (rig RTTY mode).
     public let rttyAfsk: Bool
+    /// N1MM „Mode sent to radio" for the other digital modes (PSK, FT8…): the hamlib mode set on the rig —
+    /// `PKTUSB` (the data mode, default), `PKTLSB`, `USB` or `LSB`.
+    public let digiRadioMode: String
+
+    /// The hamlib modes the other digital modes may be sent as.
+    public static let digiRadioModes: [String] = ["PKTUSB", "PKTLSB", "USB", "LSB"]
 
     /// Java default state: `DIGITAL`, FSK.
     public static let `default` = HamlibModeMapping(dataMode: .digital, rttyAfsk: false)
 
-    /// Java `configure(dataModeForPacket, rttyViaAfsk)`: `nil` or a non-data mode → `DIGITAL`.
-    public init(dataMode: Mode?, rttyAfsk: Bool) {
+    /// Java `configure(dataModeForPacket, rttyViaAfsk)`: `nil` or a non-data mode → `DIGITAL`; an unknown digital
+    /// radio mode → `PKTUSB`.
+    public init(dataMode: Mode?, rttyAfsk: Bool, digiRadioMode: String = "PKTUSB") {
         if let dataMode, dataMode.isDigital {
             self.dataMode = dataMode
         } else {
             self.dataMode = .digital
         }
         self.rttyAfsk = rttyAfsk
+        self.digiRadioMode = Self.normalizedDigiRadioMode(digiRadioMode)
+    }
+
+    /// A stored digital radio mode: one of `digiRadioModes` (any case), anything else `PKTUSB`.
+    public static func normalizedDigiRadioMode(_ text: String) -> String {
+        let upper: String = text.trimmingCharacters(in: .whitespaces).uppercased()
+        return digiRadioModes.contains(upper) ? upper : "PKTUSB"
     }
 
     /// Hamlib mode → our `Mode` (or `nil` if it cannot be mapped).
@@ -56,7 +70,7 @@ public struct HamlibModeMapping: Equatable, Sendable {
         case .am: return "AM"
         // AFSK: RTTY as audio in data mode (LSB side like FSK), otherwise the rig's FSK mode.
         case .rtty: return rttyAfsk ? "PKTLSB" : "RTTY"
-        case .psk, .ft8, .ft4, .jt65, .digital, .q65, .ft2: return "PKTUSB"
+        case .psk, .ft8, .ft4, .jt65, .digital, .q65, .ft2: return digiRadioMode
         }
     }
 }

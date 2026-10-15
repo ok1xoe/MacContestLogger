@@ -35,6 +35,9 @@ public enum DefaultMenu {
         "window.check": "Check",
         "tools": "Nástroje",
         "beacons.load": "Načíst soubor majáků…",
+        "layout.save": "Uložit rozložení oken…",
+        "layout.restore": "Obnovit rozložení oken…",
+        "layout.gather": "Přesunout ztracená okna na hlavní obrazovku",
         "help": "Nápověda",
         "help.docs": "Dokumentace",
         "help.shortcuts": "Klávesové zkratky",
@@ -166,7 +169,8 @@ public enum DefaultMenu {
         let tools = node("tools", [
             leaf("contest.rescore"), leaf("contest.rescoreHours"), leaf("database.refillDxcc"), leaf("tools.addCallToCountry"), leaf("sep.tools.1"),
             leaf("settings.downloadScp"), leaf("contest.updateDefinitions"), leaf("database.updateClubLogDxcc"),
-            leaf("contest.updateCallHistory"), leaf("callhistory.clear"), leaf("beacons.load"), leaf("sep.tools.2"),
+            leaf("contest.updateCallHistory"), leaf("callhistory.clear"), leaf("beacons.load"),
+            leaf("layout.save"), leaf("layout.restore"), leaf("sep.tools.2"),
             leaf("contest.editor"),
         ])
         let settings = node("settings", [
@@ -185,7 +189,7 @@ public enum DefaultMenu {
             leaf("window.statistics"), leaf("window.dxccmap"), leaf("window.qtc"), leaf("window.propagation"),
             leaf("window.bandnotes"), leaf("window.cwkeyboard"), leaf("window.cwreader"),
             leaf("window.simulator"), leaf("window.wsjtxdecodes"), leaf("window.netstatus"),
-            leaf("window.chat"), leaf("window.partner"),
+            leaf("window.chat"), leaf("window.partner"), leaf("layout.gather"),
         ])
         let buffer = MenuNode(id: "buffer", label: nil, state: .hidden, children: [])
 

@@ -23,8 +23,8 @@ public final class HamlibModeStore: Sendable {
     }
 
     /// `HamlibModes.configure(Mode.fromAdif(config.dataMode), config.isRttyAfsk)`.
-    public func configure(dataMode: Mode?, rttyAfsk: Bool) {
-        let next = HamlibModeMapping(dataMode: dataMode, rttyAfsk: rttyAfsk)
+    public func configure(dataMode: Mode?, rttyAfsk: Bool, digiRadioMode: String = "PKTUSB") {
+        let next = HamlibModeMapping(dataMode: dataMode, rttyAfsk: rttyAfsk, digiRadioMode: digiRadioMode)
         state.withLock { $0 = next }
     }
 }

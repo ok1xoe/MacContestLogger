@@ -13,6 +13,9 @@ public final class WindowGeometryStore {
 
     /// Kotlin `debounce(500)`.
     public static let debounceMilliseconds = 500
+    /// Posted after a saved window layout replaced the geometry in the configuration: every open window takes its
+    /// saved place again.
+    public static let layoutRestored = Notification.Name("cz.ok1xoe.maccontestlogger.layoutRestored")
 
     private let config: ConfigModel
     private let clock: any RescoreClock

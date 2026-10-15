@@ -12,6 +12,19 @@ import MCLCore
 @MainActor
 enum ExportPanels {
 
+    /// Window › Move lost windows to the main display (`WindowGather`); the moves are saved like the user's.
+    private static func gatherWindows(app: AppModel) {
+        let windows: [NSWindow] = NSApp.windows.filter { $0.isVisible && !($0 is NSPanel) }
+        guard let main = NSScreen.screens.first?.visibleFrame else { return }
+        let moves: [Int: CGPoint] = WindowGather.moves(frames: windows.map(\.frame),
+                                                       screens: NSScreen.screens.map(\.visibleFrame), main: main)
+        for (index, origin) in moves {
+            windows[index].setFrameOrigin(origin)
+            windows[index].makeKeyAndOrderFront(nil)
+        }
+        app.status.show("Přesunuto oken na hlavní obrazovku: %s", .int(moves.count))
+    }
+
     static func run(_ request: MenuActions.Request, app: AppModel) {
         switch request {
         case .saveAdif(let name):
@@ -84,6 +97,8 @@ enum ExportPanels {
             }
         case .openDataFolder(let dir):
             NSWorkspace.shared.open(dir)
+        case .gatherWindows:
+            gatherWindows(app: app)
         case .openFile(let file):
             NSWorkspace.shared.open(file)
         case .openCallHistoryImport:

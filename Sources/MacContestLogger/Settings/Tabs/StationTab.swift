@@ -34,6 +34,10 @@ struct StationTab: View {
             row(language.tr("Jméno")) {
                 SettingsTextField(text: $draft.name)
             }
+            SettingsCheckbox(label: language.tr("Údaje stanice podle databáze (přepnutí databáze přepne stanici)"),
+                             isOn: $draft.stationPerDatabase)
+            SettingsCaption(language.tr(
+                "Jako N1MM: každá databáze si pamatuje svou stanici (soubor .station.json vedle databáze). Databáze bez ní převezme tuto."))
         }
     }
 

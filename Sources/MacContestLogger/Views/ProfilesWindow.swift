@@ -1,3 +1,4 @@
+import AppKit
 import MCLAppModel
 import MCLCore
 import SwiftUI
@@ -20,7 +21,10 @@ struct ProfilesWindowView: View {
                 content(app)
                     .navigationTitle(app.language.tr("Profily nastavení"))
                     .onAppear { binder.setStore(app.geometry) }
-                    .task { await app.profiles.refresh() }
+                    .task {
+                        await app.profiles.refresh()
+                        await app.profiles.refreshBackups()
+                    }
                     .background(WindowAccessor { window in
                         binder.isTerminating = { host.isTerminating }
                         binder.onClose = { app.windows.setOpen("profiles", false) }
@@ -45,6 +49,8 @@ struct ProfilesWindowView: View {
                 .fixedSize(horizontal: false, vertical: true)
             Divider()
             ProfileList(app: app)
+            Divider()
+            BackupList(app: app)
         }
         .padding(8)
         .windowFont(13)
@@ -115,5 +121,55 @@ private struct ProfileList: View {
             }
         }
         .padding(.vertical, 2)
+    }
+}
+
+/// N1MM's daily settings backups (7 days) with „Obnovit", and „Clear INI file settings" („Výchozí nastavení…"); both
+/// ask first and back the current settings up before they change anything.
+private struct BackupList: View {
+    let app: AppModel
+
+    var body: some View {
+        let profiles: ProfilesModel = app.profiles
+        let language: LanguageModel = app.language
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(verbatim: language.tr("Zálohy nastavení (denně, 7 dní)"))
+                    .windowFont(12, weight: .semibold)
+                Spacer()
+                Button(language.tr("Výchozí nastavení…")) {
+                    guard confirm(language.tr("Vrátit všechna nastavení na výchozí?"),
+                                  language.tr("Stanice, databáze a okna zůstanou; současné nastavení se nejdřív zazálohuje."))
+                    else { return }
+                    Task { await profiles.resetToDefaults() }
+                }
+            }
+            if profiles.backups.isEmpty {
+                Text(verbatim: language.tr("Žádné zálohy."))
+                    .foregroundStyle(.secondary)
+            }
+            ForEach(profiles.backups) { entry in
+                HStack(spacing: 6) {
+                    Text(verbatim: entry.label)
+                        .windowFont(12, design: .monospaced)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Button(language.tr("Obnovit")) {
+                        guard confirm(language.tr("Obnovit nastavení ze zálohy %s?", .string(entry.label)),
+                                      language.tr("Databáze a okna zůstanou; současné nastavení se nejdřív zazálohuje."))
+                        else { return }
+                        Task { await profiles.restoreBackup(entry) }
+                    }
+                }
+            }
+        }
+    }
+
+    private func confirm(_ title: String, _ text: String) -> Bool {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = text
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: app.language.tr("Zrušit"))
+        return alert.runModal() == .alertFirstButtonReturn
     }
 }

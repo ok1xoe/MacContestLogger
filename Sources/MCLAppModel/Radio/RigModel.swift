@@ -333,7 +333,8 @@ public final class RigModel {
 
     /// Kotlin `applyModeSettings()` (`AS:2362-2364`): Digital Modes / RTTY AFSK into the shared mapping.
     public func applyModeSettings() {
-        modeStore.configure(dataMode: Mode.from(adif: config.config.dataMode), rttyAfsk: config.config.rttyAfsk)
+        modeStore.configure(dataMode: Mode.from(adif: config.config.dataMode), rttyAfsk: config.config.rttyAfsk,
+                            digiRadioMode: config.config.digiRadioMode)
     }
 
     /// Kotlin `loggedMode(radio, freqHz)` (`AS:2366-2370`): the mode to log by Mode Control.

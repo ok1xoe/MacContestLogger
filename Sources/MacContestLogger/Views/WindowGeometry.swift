@@ -118,6 +118,13 @@ final class WindowGeometryBinder {
         window.alphaValue = 1
     }
 
+    /// A restored window layout: the saved frame is applied again (a window without a saved place stays).
+    private func reapply() {
+        guard applied, savesGeometry else { return }
+        applied = false
+        applyInitialFrame()
+    }
+
     private func observe(_ window: NSWindow) {
         let center = NotificationCenter.default
         observers.append(center.addObserver(forName: NSWindow.didMoveNotification, object: window,
@@ -135,6 +142,10 @@ final class WindowGeometryBinder {
         observers.append(center.addObserver(forName: NSWindow.willCloseNotification, object: window,
                                             queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.closing() }
+        })
+        observers.append(center.addObserver(forName: WindowGeometryStore.layoutRestored, object: nil,
+                                            queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.reapply() }
         })
     }
 

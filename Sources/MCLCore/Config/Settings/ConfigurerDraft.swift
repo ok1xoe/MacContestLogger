@@ -213,6 +213,9 @@ public struct ConfigurerDraft: Sendable, Equatable {
     public var fontFamily: String = ""
     public var fixedFontFamily: String = ""
     public var spotTooltips: Bool = true
+    /// `digiRadioMode`, `stationPerDatabase`.
+    public var digiRadioMode: String = "PKTUSB"
+    public var stationPerDatabase: Bool = false
     public var ritClearAfterLog: Bool = false
     public var antennas: [AntennaDraft] = []
     public var antennaViaRig: Bool = false
@@ -569,6 +572,8 @@ extension ConfigurerDraft {
         fontFamily = config.fontFamily
         fixedFontFamily = config.fixedFontFamily
         spotTooltips = config.spotTooltips
+        digiRadioMode = config.digiRadioMode
+        stationPerDatabase = config.stationPerDatabase
         ritClearAfterLog = config.ritClearAfterLog
     }
 

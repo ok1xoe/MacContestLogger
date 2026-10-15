@@ -177,10 +177,11 @@ import Testing
         // 8 keys of the TX lockouts and
         // 4 keys of the broker discovery and
         // 25 keys of the Available window's columns, summary panel, focus-radio filter, row marks, rotator and other-radio items and the Alt+A keys and
-        // the colours, fonts and skins.
-        #expect(map.count == 2_069)
+        // the colours, fonts and skins and
+        // the window layouts, the settings backups, the data folder and the digital radio mode.
+        #expect(map.count == 2_107)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_069)
+        #expect(german.count == 2_107)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)
