@@ -35,6 +35,10 @@ public final class MessagesModel {
         let instant = JavaInstant(date: at)
         for text in texts {
             log.add(instant, text)
+            if !KotlinStrings.isBlank(text) {
+                // N1MM's Errorlog.txt: every program message is also kept in `<data>/diagnostics/errors.log`.
+                ProgramLog.shared.message(text)
+            }
         }
         lines = log.entries
         revision += 1

@@ -104,14 +104,17 @@ import Testing
         let id: Int64 = try #require(app.model.logbook.rows.first { $0.call == "W1AW" }?.id)
         var opened: [String] = []
         let table = LogTableModel(logbook: app.model.logbook, windows: app.model.windows, status: app.model.status,
-                                  openCallPage: { call, service in opened.append(call + "@" + service.rawValue) })
+                                  openCallPage: { call, service in opened.append(call + "@" + service.rawValue) },
+                                  openSearch: { call in opened.append(call + "@google") })
         let items: [LogTableModel.LookupItem] = table.lookupItems(forRow: id)
         #expect(items.map(\.title) == [ContestMessage("Dohledat na %s", .string("HamQTH")),
-                                       ContestMessage("Dohledat na %s", .string("QRZ.com"))])
-        #expect(items.map(\.isEnabled) == [true, true])
+                                       ContestMessage("Dohledat na %s", .string("QRZ.com")),
+                                       ContestMessage("Dohledat na %s", .string("Google"))])
+        #expect(items.map(\.isEnabled) == [true, true, true])
         table.perform(items[0])
         table.perform(items[1])
-        #expect(opened == ["W1AW@hamqth", "W1AW@qrz"])
+        table.perform(items[2])
+        #expect(opened == ["W1AW@hamqth", "W1AW@qrz", "W1AW@google"])
         #expect(table.lookupItems(forRow: nil).isEmpty)
     }
 

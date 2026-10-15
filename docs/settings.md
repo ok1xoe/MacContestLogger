@@ -230,11 +230,12 @@ Settings `Cmd+,` and Quit.
 |---|---|
 | Soubor (File) | New contest, Open contest, Open recent (the last 9 contests of the open database), New / Open database, Copy contest to another database, Import (QSOs, Merge log, Import call history), Export (ADIF, ADIF by date, Cabrillo, EDI, CSV / text / summary, call history), Post result to 3830, Print log |
 | Úpravy (Edit) | the entry window's actions with your current keys shown next to them (wipe, restore, +1 to the number, note, find, delete last QSO), then Undo, Redo, Cut, Copy, Paste and Select All for the text fields |
+| Zobrazení (View) | Show ? on unmatched calls, Look up the call on QRZ.com, Search the call on Google (the call typed in the active entry window, opened in the browser) |
 | Závod (Contest) | Late entry, Record contest, None (free logging) |
-| Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Assign call to country, Download master.scp, Update definitions, Update DXCC from Club Log, Update call history, Clear call history, Load beacon file, Definition editor |
+| Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Assign call to country, Download master.scp, Update definitions, Update DXCC from Club Log, Import / Remove a country list ([DXCC data](dxcc-data.md#import-a-country-list-from-a-file)), Update call history, Clear call history, Load beacon file, Definition editor, Program execution logging, Open diagnostics folder, Check for new program version, Check for a new version at start (see below) |
 | Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles, Enable call history lookup (a check item, see [Call history](call-history.md#enabling-the-lookup)) |
 | Okno (Window) | the application's windows, Multiplikátory (Multipliers) and, after a separator, **Vlastní** (Custom) with the windows of window plugins ([Plugin windows](plugin-windows.md)) |
-| Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Report a bug (GitHub issues), Open data folder (honours `MCL_DATA_DIR`) |
+| Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Contest rules (the `officialUrl` of the open contest's definition), Contest calendar (WA7BNM), Report a bug (GitHub issues), View error log, Open data folder (honours `MCL_DATA_DIR`), Check for updates |
 
 The keys in the Edit and Help menus are only shown: the entry window's own key handling (Settings → Keys)
 stays the one that reacts to them, so a remapped key is shown as remapped.
@@ -242,6 +243,22 @@ stays the one that reacts to them, so a remapped key is shown as remapped.
 A `menu.json` of your own (below) replaces the built-in menu as a whole. If you made one before this
 layout, it keeps your old structure; to get the new one, create a fresh copy with **Vytvořit menu.json k
 úpravám** after moving the old file away. A node whose `id` starts with `sep.` is a separator line.
+
+### Program version, error log and diagnostics
+
+- **Nástroje → Zkontrolovat novou verzi programu…** (also **Nápověda → Zkontrolovat aktualizace…**) asks
+  GitHub for the latest published release of MacContestLogger and compares it with the running version. A newer
+  release is offered in a dialog whose **Otevřít stránku vydání** button opens its page in the browser; nothing is
+  downloaded or installed by the application. The request is made only when you choose the item, or — when you
+  tick **Kontrolovat novou verzi při spuštění** in the same menu (off by default) — once at every start; then a
+  dialog appears only when a newer version exists. With `MCL_INERT_NETWORK` no request is ever made.
+- **Nápověda → Zobrazit chybový log** opens `<data folder>/diagnostics/errors.log`: every program message of the
+  Info window (failed downloads and uploads, Cabrillo warnings, definition updates…) is kept there with its time.
+- **Nástroje → Logování běhu programu (diagnostika)** (a check item, off at every start; `MCL_DIAGNOSTICS=1` turns it
+  on from the start) writes `<data folder>/diagnostics/program.log`: the messages, every status line and every
+  menu action. Attach it to a bug report. **Otevřít složku diagnostiky** shows the folder in Finder. Both logs are
+  rotated at 1 MB (the previous part is kept as `….log.1`).
+- The PDF manual of N1MM has no counterpart: the documentation is these online pages (**Nápověda → Dokumentace**).
 
 ## Application menu
 

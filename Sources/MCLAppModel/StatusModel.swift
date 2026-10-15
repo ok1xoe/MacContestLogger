@@ -32,20 +32,31 @@ public final class StatusModel {
 
     public func show(_ message: ContestMessage) {
         current = .message(message)
+        trace()
     }
 
     /// `statusMessage = tr(key, args…)`.
     public func show(_ key: String, _ args: Translator.Arg...) {
         current = .message(ContestMessage(key, parts: args.map { ContestMessage.Part.value($0) }))
+        trace()
     }
 
     /// A text shown as is (Kotlin strings without `tr`, exception messages).
     public func showVerbatim(_ text: String) {
         current = .message(.verbatim(text))
+        trace()
     }
 
     public func showJoined(_ parts: [ContestMessage], separator: String) {
         current = .joined(parts, separator: separator)
+        trace()
+    }
+
+    /// Program execution logging (Tools menu): every status line goes to `program.log`.
+    private func trace() {
+        let log: ProgramLog = .shared
+        guard log.isEnabled else { return }
+        log.trace("status", message)
     }
 
     public func clear() {

@@ -291,6 +291,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// N1MM „Show User Information": the call history line and the UserText line under the entry fields.
     /// Swift-only key.
     public var callHistoryShowUserInfo = true
+    /// N1MM „Check for New Program Version" at start: one request to GitHub's release API per start, only when the
+    /// user switched it on (off by default — no outward call without consent). Swift-only key.
+    public var checkUpdatesAtStart = false
 
     public var databasesDir = ""
     public var lastDatabase = ""
@@ -338,6 +341,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
+        case checkUpdatesAtStart
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -483,6 +487,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         callHistoryLookupEnabled = c.value(.callHistoryLookupEnabled, default: d.callHistoryLookupEnabled)
         callHistoryExtraFiles = c.value(.callHistoryExtraFiles, default: d.callHistoryExtraFiles)
         callHistoryShowUserInfo = c.value(.callHistoryShowUserInfo, default: d.callHistoryShowUserInfo)
+        checkUpdatesAtStart = c.value(.checkUpdatesAtStart, default: d.checkUpdatesAtStart)
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

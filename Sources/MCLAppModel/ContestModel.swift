@@ -116,7 +116,8 @@ public final class ContestModel {
 
     /// Loads the contest environment off the main thread (`contestDataDir`, fallback `dataDir/contest-data`;
     /// DXCC from `dxccDir`, Kotlin `~/dxcc-json`). With `clubLogDxcc` the cached Club Log `cty.xml` in
-    /// `dataDir/clublog` is the DXCC source when a copy exists.
+    /// `dataDir/clublog` is the DXCC source when a copy exists; an imported country file (`UserCountryFile`) comes
+    /// before both.
     public nonisolated static func loadEnvironment(contestDataDir: String?, dxccDir: URL?, dataDir: URL,
                                                    clubLogDxcc: Bool = false,
                                                    overrides: DxccOverrideStore? = nil) async -> ContestEnvironment {
@@ -125,14 +126,17 @@ public final class ContestModel {
         let cache = ClubLogCtyCache(dataDir: dataDir)
         let loaded: ContestEnvironment? = try? await BlockingQueue.run {
             overrides?.load()
-            let clubLog: ClubLogCtyData? = clubLogDxcc ? cache.load() : nil
+            let userCty: Data? = UserCountryFile.load(dataDir: dataDir)
+            let imported: Bool = userCty.map { UserCountryFile.entityCount($0) > 0 } ?? false
+            let clubLog: ClubLogCtyData? = clubLogDxcc && !imported ? cache.load() : nil
             var environment = ContestEnvironment.load(dataRoot: contestDataDir, dxccDir: dxcc,
                                                       fallbackDataRoot: fallback, clubLog: clubLog,
-                                                      overrides: overrides)
+                                                      overrides: overrides, userCty: imported ? userCty : nil)
             if environment.dxcc != nil {
                 environment.dxccStamp = DxccDataStamp.current(
                     clubLogInUse: clubLog != nil, clubLogState: clubLog != nil ? cache.readState() : nil,
-                    clubLogDir: cache.directory, dxccDir: dxcc.map { URL(fileURLWithPath: $0) })
+                    clubLogDir: cache.directory, dxccDir: dxcc.map { URL(fileURLWithPath: $0) },
+                    userCty: imported ? UserCountryFile.url(dataDir: dataDir) : nil)
             }
             return environment
         }

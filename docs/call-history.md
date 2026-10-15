@@ -233,9 +233,10 @@ mode restriction and the pause, but still needs the service's user name and pass
   tooltip, when the service has no credentials or the call field is empty. It works in the
   VFO B window too.
 - The log window's row menu ("Přehled spojení") and the bandmap's spot menu both have
-  **Dohledat na HamQTH** and **Dohledat na QRZ.com** (Look up on …). They open the call's page
-  in the browser (`https://www.hamqth.com/<CALL>`, `https://www.qrz.com/db/<CALL>`); no
-  credentials are needed, and nothing is looked up through the API or written to the log.
+  **Dohledat na HamQTH**, **Dohledat na QRZ.com** and **Dohledat na Google** (Look up on …). They open the
+  call's page in the browser (`https://www.hamqth.com/<CALL>`, `https://www.qrz.com/db/<CALL>`, a Google search);
+  no credentials are needed, and nothing is looked up through the API or written to the log. **Zobrazení**
+  (View) has the QRZ.com and Google items for the call typed in the entry window.
 
 ## Locator checks (VHF)
 

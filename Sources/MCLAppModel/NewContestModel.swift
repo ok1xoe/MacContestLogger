@@ -80,6 +80,11 @@ public final class NewContestModel {
 
     /// The rules page of the chosen contest (`metadata.officialUrl`); `nil` = none.
     public var rulesUrl: URL? {
+        Self.rulesUrl(of: definition)
+    }
+
+    /// A definition's rules page (`metadata.officialUrl`, http or https only); `nil` = none.
+    public static func rulesUrl(of definition: ContestDefinition?) -> URL? {
         guard let text = definition?.metadata?.officialUrl.map({ KotlinStrings.trim($0) }), !text.isEmpty,
               let url = URL(string: text), let scheme = url.scheme?.lowercased(),
               scheme == "https" || scheme == "http" else { return nil }

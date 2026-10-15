@@ -98,6 +98,7 @@ struct MainWindowView: View {
                 .modifier(PluginConsentPresenter(app: app))
                 .modifier(WindowRequestPresenter(app: app))
                 .modifier(DataToolsDialogPresenter(app: app))
+                .modifier(UpdateNoticePresenter(app: app))
                 .modifier(EntryDialogPresenter(app: app))
                 .sheet(isPresented: Binding(get: { app.database.needsDatabasesDir }, set: { _ in })) {
                     FirstRunDatabaseDirAlert(app: app)

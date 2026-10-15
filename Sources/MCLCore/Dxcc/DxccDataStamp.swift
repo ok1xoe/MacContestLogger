@@ -57,10 +57,14 @@ public struct DxccDataStamp: Equatable, Sendable {
     ///   - clubLogState: the cache's `cty-state.json`.
     ///   - clubLogDir: the cache directory (`<data>/clublog`).
     ///   - dxccDir: the local DXCC directory (`~/dxcc-json`).
+    ///   - userCty: the imported country file in use (`UserCountryFile`), stamped as `cty.dat` with its date.
     ///   - modificationDate: a file's modification date, `nil` when it does not exist (injected by tests).
     public static func current(clubLogInUse: Bool, clubLogState: ClubLogCtyCache.State?, clubLogDir: URL?,
-                               dxccDir: URL?,
+                               dxccDir: URL?, userCty: URL? = nil,
                                modificationDate: (URL) -> Date? = Self.fileModificationDate) -> DxccDataStamp? {
+        if let userCty, let date = modificationDate(userCty) {
+            return DxccDataStamp(source: .ctyDat, date: date)
+        }
         if clubLogInUse {
             let fileDate: Date? = clubLogDir.flatMap { dir in
                 modificationDate(dir.appendingPathComponent("cty.json"))

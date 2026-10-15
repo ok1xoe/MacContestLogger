@@ -572,6 +572,11 @@ public final class BandmapModel {
         callbook.openHamQth(spot.dxCall)
     }
 
+    /// N1MM „Show Google (Internet)".
+    public func openGoogle(_ spot: DxSpot) {
+        callbook.openGoogle(spot.dxCall)
+    }
+
     /// `tr("Smazat všechny spoty")` (N1MM "Remove Spots, ALL BANDS").
     public func clearSpots() {
         feed.buffer.clear()

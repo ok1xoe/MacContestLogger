@@ -62,11 +62,19 @@ public struct ContestEnvironment: Sendable {
     /// the entity); `nil` leaves the `dxccDir` source exactly as before.
     ///
     /// `overrides` = the user's call → country list: when given, it is asked before every other DXCC source.
+    ///
+    /// `userCty` = an imported country file (`UserCountryFile`, N1MM „Import country list"): when given and it holds
+    /// countries, it is the DXCC source instead of Club Log and the `dxccDir` data (whose `dxcc.json` still gives the
+    /// entity codes).
     public static func load(dataRoot configured: String?, dxccDir: String?, fallbackDataRoot: String,
-                            clubLog: ClubLogCtyData? = nil, overrides: DxccOverrideStore? = nil) -> ContestEnvironment {
+                            clubLog: ClubLogCtyData? = nil, overrides: DxccOverrideStore? = nil,
+                            userCty: Data? = nil) -> ContestEnvironment {
         var problems: [ContestMessage] = []
-        let local: (any DxccLookup)? = dxccDir.flatMap { loadDxcc(URL(fileURLWithPath: $0)) }
-        let source: (any DxccLookup)? = clubLog.map {
+        let imported: (any DxccLookup)? = userCty.flatMap { data in
+            loadUserCty(data, codesDir: dxccDir.map { URL(fileURLWithPath: $0) })
+        }
+        let local: (any DxccLookup)? = imported == nil ? dxccDir.flatMap { loadDxcc(URL(fileURLWithPath: $0)) } : nil
+        let source: (any DxccLookup)? = imported ?? clubLog.map {
             ClubLogCtyResolver($0, localNames: ClubLogCtyResolver.localNames(from: local))
         } ?? local
         let dxcc: (any DxccLookup)? = source.map { (base: any DxccLookup) -> any DxccLookup in
@@ -111,6 +119,16 @@ public struct ContestEnvironment: Sendable {
         guard let data = try? Data(contentsOf: json), let resolver = try? DxccResolver.fromData(data) else {
             return nil
         }
+        return DxccSpecialCases(resolver)
+    }
+
+    /// An imported `cty.dat` with the `dxcc.json` codes of `codesDir`; `nil` when it holds no country.
+    static func loadUserCty(_ data: Data, codesDir: URL?) -> (any DxccLookup)? {
+        let codes: DxccCodeIndex? = codesDir.flatMap { dir in
+            (try? Data(contentsOf: dir.appendingPathComponent("dxcc.json"))).flatMap { try? DxccCodeIndex.fromData($0) }
+        }
+        let resolver: CtyDxccResolver = CtyDxccResolver.fromData(data, codes: codes)
+        guard !resolver.entities().isEmpty else { return nil }
         return DxccSpecialCases(resolver)
     }
 
