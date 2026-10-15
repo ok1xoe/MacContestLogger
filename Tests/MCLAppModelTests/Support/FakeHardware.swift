@@ -267,8 +267,9 @@ struct RigApp {
     var status: String { app.model.status.message }
 
     static func make(configure: @escaping (inout AppConfig, URL) throws -> Void = { _, _ in },
-                     adjust: @escaping (inout AppModel.Environment) -> Void = { _ in }) async throws -> RigApp {
-        let hardware = FakeHardware()
+                     adjust: @escaping (inout AppModel.Environment) -> Void = { _ in },
+                     pollIntervalMs: Int64? = nil) async throws -> RigApp {
+        let hardware = FakeHardware(pollIntervalMs: pollIntervalMs)
         let clock = ManualClock()
         let keyer = RecordingKeyer()
         let app = try await TestApp.make(configure: configure, adjust: { environment in

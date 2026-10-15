@@ -1,0 +1,7 @@
+schemaVersion: 1
+id: sevenqp_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "7th call area counties (7QP)", description: "The 259 counties of AZ, ID, MT, NV, OR, UT, WA and WY as 7QP codes: the state and the county abbreviation (ORDES)." }
+valuesFile: sevenqp_counties.csv

@@ -68,6 +68,7 @@ struct MainWindowView: View {
                 }
                 .modifier(EntryFocusFollower(app: app, entry: app.entry, focus: focus))
                 .modifier(EntryVfoFocus(app: app, vfo: 0, focus: focus, activator: activator))
+                .modifier(EntryFocusGrab(app: app, vfo: 0, activator: activator))
                 .onChange(of: app.rig.vfo.twoEntryWindows, initial: true) {
                     // Kotlin `if (state.twoEntryWindows) Window(…)`: the VFO B window follows SO2V/SO2R.
                     if app.rig.vfo.twoEntryWindows {

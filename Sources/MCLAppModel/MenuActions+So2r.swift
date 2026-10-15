@@ -10,6 +10,7 @@ extension MenuActions {
     static let so2rIds: Set<String> = [
         "so2r.dueling", "so2r.duelingTime", "so2r.focusOther", "so2r.focusOtherAlways", "so2r.ctrlFx",
         "so2r.stereoMacros", "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2", "so2r.so2vRepeat",
+        "so2r.twoKeyboards",
         "so2r.voice1.both", "so2r.voice1.left", "so2r.voice1.right", "so2r.voice2.both", "so2r.voice2.left",
         "so2r.voice2.right",
     ]
@@ -58,6 +59,10 @@ extension MenuActions {
         case "so2r.so2vRepeat":
             toggleSo2r(.so2vRepeatEndsWithVfoB, app: app, on: "SO2V: zápis do okna VFO B ukončí opakované CQ",
                        off: "SO2V: zápis do okna VFO B opakované CQ neukončí")
+        case "so2r.twoKeyboards":
+            toggleSo2r(.twoKeyboards, app: app,
+                       on: "Dvě klávesnice zapnuty — klávesnice 1 ovládá levé okno, klávesnice 2 pravé",
+                       off: "Dvě klávesnice vypnuty")
         case "so2r.swapTail":
             promptSo2rMillis(.swapTailMs, title: "Čas po vysílání při přepnutí rádia",
                              hint: "ms, o které se po přerušeném vysílání na jednom rádiu odloží přepnutí na druhé (0–2000)",
@@ -103,6 +108,8 @@ extension MenuActions {
             return setup.flag(.so2vRepeatEndsWithVfoB)
         case "so2r.winkeyer2":
             return setup.flag(.winkeyerSecondOutput)
+        case "so2r.twoKeyboards":
+            return setup.flag(.twoKeyboards)
         default:
             return false
         }

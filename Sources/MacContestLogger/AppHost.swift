@@ -22,6 +22,10 @@ final class AppHost {
     @ObservationIgnored private var endsWithoutAppKit = false
     /// The menu bar from `menu.json`; built once the model exists.
     @ObservationIgnored private var menuBuilder: MenuBuilder?
+    /// N1MM „Snap windows to edges" (opt-in).
+    @ObservationIgnored private let windowSnapper = WindowSnapper()
+    /// N1MM „Two Keyboards" (opt-in; no keyboard is read with `MCL_INERT_HARDWARE`).
+    private(set) var keyboards: TwoKeyboardModel?
 
     /// Bootstraps the app model (Kotlin start-up, `AppModel.bootstrap`). A failure is reported and ends the app
     /// (Kotlin would crash).
@@ -47,6 +51,13 @@ final class AppHost {
                 let builder = MenuBuilder(app: app)
                 builder.start()
                 menuBuilder = builder
+                windowSnapper.install(app: app)
+                let inert: Bool = HardwarePorts.production(environment: ProcessInfo.processInfo.environment).isInert
+                let twoKeyboards = TwoKeyboardModel(config: app.config, status: app.status, rig: app.rig,
+                                                    source: inert ? nil : HidKeyboardSource())
+                keyboards = twoKeyboards
+                TwoKeyboardDispatcher.shared.keyboards = twoKeyboards
+                twoKeyboards.start()
                 QuitTrace.write("ready")
                 #if DEBUG
                 Self.smokeLanguageSwitch(app)

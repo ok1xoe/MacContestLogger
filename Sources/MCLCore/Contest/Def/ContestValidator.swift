@@ -45,7 +45,28 @@ public enum ContestValidator {
         validateMultipliers(def, &r, recvIds, stationClassIds)
         validateCabrillo(def, &r, sentIds, recvIds)
         validateStationClasses(def, &r)
+        validateParts(def, &r)
         return r
+    }
+
+    /// `scoring.parts` (Swift only, checked last so the Java findings keep their order): every part has an id and
+    /// refers only to multiplier bindings of the definition; the fallback `total` is required above.
+    private static func validateParts(_ def: ContestDefinition, _ r: inout ValidationReport) {
+        guard let parts = def.scoring?.parts else { return }
+        let bindingIds = Set((def.multipliers ?? []).compactMap { $0?.id })
+        var ids = Set<String>()
+        for entry in parts {
+            guard let part = entry, let id = part.id, !JavaText.isBlank(id) else {
+                r.error("scoring.parts obsahuje část bez id")
+                continue
+            }
+            if !ids.insert(id).inserted {
+                r.error("duplicitní id části skóre '\(id)'")
+            }
+            for mult in part.multipliers ?? [] where !(mult.map(bindingIds.contains) ?? false) {
+                r.error("část skóre '\(id)' odkazuje na neexistující multiplier '\(mult ?? "null")'")
+            }
+        }
     }
 
     private static func validateExchange(_ def: ContestDefinition, _ r: inout ValidationReport,

@@ -1,0 +1,10 @@
+schemaVersion: 1
+id: deqp_counties
+kind: FIXED
+keyType: TEXT
+enumerable: true
+metadata: { name: "Delaware counties (DEQP)" }
+values:
+  - { key: NDE, label: "New Castle" }
+  - { key: KDE, label: "Kent" }
+  - { key: SDE, label: "Sussex" }
