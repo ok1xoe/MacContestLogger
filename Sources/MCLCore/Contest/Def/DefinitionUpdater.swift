@@ -55,8 +55,13 @@ public struct DefinitionUpdaterError: Error, Equatable, Sendable, CustomStringCo
 }
 
 /// Updating contest definitions from the internet (N1MM „Check for updated contest
-/// definitions", DXLog contest updates). Downloads `index.txt` and the files in it
+/// definitions", DXLog contest updates). Downloads the index and the files in it
 /// from the published `contest-data` directory and stores them in the data directory.
+///
+/// Two indexes are published: `index-v2.txt` lists every file, `index.txt` only the files that the released
+/// v0.9.0-rc1 understands (it reads only `index.txt` and cannot load newer multiplier set algorithms). The updater
+/// downloads `index-v2.txt` first and falls back to `index.txt` when it cannot be downloaded (HTTP 404, network
+/// error), so an older or self-hosted `contest-data` without `index-v2.txt` keeps working.
 ///
 /// Port of Java `contest/def/DefinitionUpdater.java` (v1.1.1). A file the
 /// user edited locally (the hash does not match what was last downloaded) is
@@ -67,6 +72,11 @@ public struct DefinitionUpdater: Sendable {
 
     /// Public source: the contest-data directory in the project repository.
     public static let defaultBase = URL(string: "https://raw.githubusercontent.com/ok1xoe/MacContestLogger/main/contest-data/")!
+
+    /// The complete index, read first.
+    static let indexName = "index-v2.txt"
+    /// The index of the files apps before `index-v2.txt` understand; the fallback when `index-v2.txt` is missing.
+    static let legacyIndexName = "index.txt"
 
     static let manifestName = ".update-manifest.properties"
     static let manifestComment = "Hash naposledy stažených souborů (lokálně upravené se nepřepisují)"
@@ -117,7 +127,7 @@ public struct DefinitionUpdater: Sendable {
         self.fetcher = fetcher
     }
 
-    /// The downloaded `index.txt`: the root it was resolved against and its lines (Java `lines`, stripped,
+    /// The downloaded index (`index-v2.txt` or `index.txt`): the root it was resolved against and its lines (Java `lines`, stripped,
     /// without blanks and `#` comments).
     public struct Index: Equatable, Sendable {
         let root: String
@@ -137,7 +147,7 @@ public struct DefinitionUpdater: Sendable {
     /// (`apply`). A caller that must keep file work off Swift's shared pool runs the two synchronous phases on its
     /// own thread.
     ///
-    /// It fails as a whole (and writes nothing) when `index.txt` cannot be downloaded, the
+    /// It fails as a whole (and writes nothing) when neither `index-v2.txt` nor `index.txt` can be downloaded, the
     /// manifest cannot be read, or when a path in the index does not pass Java `URI.resolve`
     /// (a space, `|`, a lone `%` …). A local file error in the second phase
     /// fails `update` too — what was written until then stays, the manifest does not.
@@ -148,11 +158,18 @@ public struct DefinitionUpdater: Sendable {
         return try Self.apply(downloaded, manifest: manifest, dataDir: dataDir)
     }
 
-    /// Phase 1 (network): downloads and splits `index.txt` of `base`.
+    /// Phase 1 (network): downloads and splits `index-v2.txt` of `base`, or `index.txt` when `index-v2.txt` cannot
+    /// be downloaded. A failure of `index.txt` (then the only error reported) fails the update.
     public func fetchIndex(_ base: URL) async throws(DefinitionUpdaterError) -> Index {
         var root = base.absoluteString
         if root.utf16.last != UInt16(UInt8(ascii: "/")) { root += "/" }
-        let indexData = try await get(JavaURIReference.resolve(root: root, "index.txt"))
+        let indexData: Data
+        do throws(DefinitionUpdaterError) {
+            indexData = try await get(JavaURIReference.resolve(root: root, Self.indexName))
+        } catch {
+            if Task.isCancelled { throw error }
+            indexData = try await get(JavaURIReference.resolve(root: root, Self.legacyIndexName))
+        }
         return Index(root: root, paths: Self.indexLines(String(decoding: indexData, as: UTF8.self)))
     }
 
@@ -254,7 +271,7 @@ public struct DefinitionUpdater: Sendable {
 
     // MARK: - helpers (Java static methods)
 
-    /// Lines of `index.txt`: Java `lines()` (breaks `\n`, `\r`, `\r\n`) → `strip()`
+    /// Lines of an index file: Java `lines()` (breaks `\n`, `\r`, `\r\n`) → `strip()`
     /// → without empty ones and without those starting with `#`.
     static func indexLines(_ text: String) -> [String] {
         var lines: [String] = []
