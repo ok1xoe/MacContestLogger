@@ -8,6 +8,7 @@ let package = Package(
         .library(name: "MCLCore", targets: ["MCLCore"]),
         .executable(name: "mcl-scorecheck", targets: ["mcl-scorecheck"]),
         .executable(name: "MacContestLogger", targets: ["MacContestLogger"]),
+        .executable(name: "mcl-manual", targets: ["mcl-manual"]),
     ],
     targets: [
         .target(name: "MCLCore", dependencies: ["ModemKit", "RTTYModem"], resources: [.process("Resources")]),
@@ -39,11 +40,14 @@ let package = Package(
         .testTarget(name: "MacContestLoggerTests", dependencies: ["MacContestLogger", "MCLAppModel", "MCLCore"]),
         // the Java parity suite: command line over `ScoreCheckReport` (the logic lives in MCLCore so it can be tested).
         .executableTarget(name: "mcl-scorecheck", dependencies: ["MCLCore"]),
+        // The PDF user guide from `docs/*.md` (AppKit text layout + PDFKit, nothing to install); built for releases.
+        .target(name: "MCLManual"),
+        .executableTarget(name: "mcl-manual", dependencies: ["MCLManual"]),
         // Development tool of the 20k measurement: a synthetic CQ WW CW log and core timings.
         .executableTarget(name: "mcl-synthlog", dependencies: ["MCLCore"]),
         .testTarget(
             name: "MCLCoreTests",
-            dependencies: ["MCLCore", "RTTYSignalKit"],
+            dependencies: ["MCLCore", "MCLManual", "RTTYSignalKit"],
             // Probe tables read straight from disk by the tests (via `#filePath`), not from the bundle.
             exclude: ["Fixtures/jvm-probes"],
             resources: [

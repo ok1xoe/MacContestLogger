@@ -97,6 +97,8 @@ public struct NetworkPorts: Sendable {
     public var launchApp: @Sendable (_ path: String, _ arguments: [String]) throws -> Void = NetworkPorts.inertLaunch
     /// The Bonjour search for MQTT brokers in the LAN (Settings → Cluster). Inert = finds nothing.
     public var discoverBrokers: BrokerDiscoverer = BonjourBrokerBrowser.inert
+    /// The PDF manual of the newest release (Help → „Stáhnout nejnovější PDF manuál…"). Inert = refused.
+    public var fetchManual: ManualFetcher = NetworkPorts.inertManual
     /// The opt-in download of the published DX cluster list (Settings → DX Cluster); `nil` = nothing is downloaded.
     public var clusterList: (any DataFetcher)?
 
@@ -152,6 +154,11 @@ public struct NetworkPorts: Sendable {
         InertSyncTransport()
     }
 
+    /// The manual download of the inert ports: fails before any I/O.
+    @Sendable public static func inertManual(_ url: String) async -> ManualDownload.Outcome {
+        .failed(disabledMessage)
+    }
+
     /// The probe of the inert ports: fails before any I/O.
     @Sendable public static func inertClock(_ host: String) async throws -> Int64 {
         throw SyncTransportError(disabledMessage)
@@ -174,6 +181,7 @@ public struct NetworkPorts: Sendable {
                                  clubLogCty: URLSessionDataFetcher(), launchApp: liveLaunch)
         ports.discoverBrokers = BonjourBrokerBrowser.live
         ports.clusterList = BoundedDataFetcher()
+        ports.fetchManual = { url in await ManualDownloader().fetch(url) }
         return ports
     }()
 

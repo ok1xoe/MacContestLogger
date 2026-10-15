@@ -14,7 +14,7 @@ extension MenuActions {
         "view.qrz", "view.google", "tools.importCountryFile", "tools.removeCountryFile", "tools.programLogging",
         "tools.diagnosticsFolder", "tools.checkVersion", "tools.checkVersionAtStart", "help.checkUpdates",
         "help.contestRules", "help.contestCalendar", "help.errorLog", "settings.announcements", "tools.tuneBeacon",
-        "settings.autoSend", "settings.grabFocus", "settings.snapWindows",
+        "settings.autoSend", "settings.grabFocus", "settings.snapWindows", "tools.pdfManual", "help.pdfManual",
     ]
 
     /// Runs one of `miscIds`; what the app layer must do is returned.
@@ -55,6 +55,9 @@ extension MenuActions {
             return .openDataFolder(dir)
         case "tools.checkVersion", "help.checkUpdates":
             app.updates.checkNow()
+        case "tools.pdfManual", "help.pdfManual":
+            guard app.updates.canDownloadManual() else { return nil }
+            return .saveManual(suggestedName: ManualDownload.assetName)
         case "tools.checkVersionAtStart":
             app.updates.checksAtStart.toggle()
         case "help.contestRules":

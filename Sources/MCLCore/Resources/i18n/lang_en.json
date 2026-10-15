@@ -2512,5 +2512,18 @@
  "Test: %s — nepřiřazena": "Test: %s — not assigned",
  "Test: %s → okno %s": "Test: %s → window %s",
  "%s: body %s × násobiče %s = %s": "%s: points %s × multipliers %s = %s",
- "%s  =  skóre %s": "%s  =  score %s"
+ "%s  =  skóre %s": "%s  =  score %s",
+ "Stáhnout nejnovější PDF manuál…": "Download latest PDF manual…",
+ "Uložit PDF manuál": "Save the PDF manual",
+ "Stahuji PDF manuál…": "Downloading the PDF manual…",
+ "PDF manuál uložen: %s": "PDF manual saved: %s",
+ "Uložení PDF manuálu selhalo: %s": "Saving the PDF manual failed: %s",
+ "nejnovější vydání PDF manuál nemá": "the latest release has no PDF manual",
+ "soubor je větší, než manuál může být": "the file is larger than the manual can be",
+ "stažený soubor není PDF": "the downloaded file is not a PDF",
+ "přesměrování mimo GitHub (%s) odmítnuto": "redirect outside GitHub (%s) refused",
+ "PDF manuál nejde stáhnout: %s": "The PDF manual cannot be downloaded: %s",
+ "Otevřít dokumentaci online": "Open the online documentation",
+ "PDF manuál": "PDF manual",
+ "Dokumentace je k dispozici online: %s": "The documentation is available online: %s"
 }

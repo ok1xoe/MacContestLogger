@@ -53,6 +53,8 @@ public enum DefaultMenu {
         "tools.diagnosticsFolder": "Otevřít složku diagnostiky",
         "tools.checkVersion": "Zkontrolovat novou verzi programu…",
         "tools.checkVersionAtStart": "Kontrolovat novou verzi při spuštění",
+        "tools.pdfManual": "Stáhnout nejnovější PDF manuál…",
+        "help.pdfManual": "Stáhnout nejnovější PDF manuál…",
         "help.contestRules": "Pravidla závodu",
         "help.contestCalendar": "Kalendář závodů (WA7BNM)",
         "help.errorLog": "Zobrazit chybový log",
@@ -215,7 +217,7 @@ public enum DefaultMenu {
             leaf("contest.updateCallHistory"), leaf("callhistory.clear"), leaf("beacons.load"),
             leaf("layout.save"), leaf("layout.restore"), leaf("sep.tools.2"),
             leaf("contest.editor"), leaf("sep.tools.3"), leaf("tools.programLogging"), leaf("tools.diagnosticsFolder"),
-            leaf("tools.checkVersion"), leaf("tools.checkVersionAtStart"),
+            leaf("tools.checkVersion"), leaf("tools.checkVersionAtStart"), leaf("tools.pdfManual"),
         ])
         let settings = node("settings", [
             settingsOpen, leaf("settings.keys"), leaf("settings.profiles"), leaf("sep.settings.1"),
@@ -232,7 +234,7 @@ public enum DefaultMenu {
         let help = node("help", [
             leaf("help.docs"), leaf("help.shortcuts"), leaf("help.commands"), leaf("help.contestRules"),
             leaf("help.contestCalendar"), leaf("sep.help.1"), leaf("help.report"), leaf("help.errorLog"),
-            leaf("help.dataFolder"), leaf("help.checkUpdates"),
+            leaf("help.dataFolder"), leaf("help.checkUpdates"), leaf("help.pdfManual"),
         ])
         let window = node("window", [
             leaf("window.log"),

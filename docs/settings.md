@@ -275,10 +275,10 @@ Settings `Cmd+,` and Quit.
 | Úpravy (Edit) | the entry window's actions with your current keys shown next to them (wipe, restore, +1 to the number, note, find, delete last QSO), then Undo, Redo, Cut, Copy, Paste and Select All for the text fields |
 | Zobrazení (View) | Show ? on unmatched calls, Look up the call on QRZ.com, Search the call on Google (the call typed in the active entry window, opened in the browser) |
 | Závod (Contest) | Late entry, Record contest, None (free logging) |
-| Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Assign call to country, Download master.scp, Update definitions, Update DXCC from Club Log, Import / Remove a country list ([DXCC data](dxcc-data.md#import-a-country-list-from-a-file)), Update call history, Clear call history, Load beacon file, Definition editor, Program execution logging, Open diagnostics folder, Check for new program version, Check for a new version at start (see below) |
+| Nástroje (Tools) | Rescore, Rescore last N hours, Recalculate DXCC in the log, Assign call to country, Download master.scp, Update definitions, Update DXCC from Club Log, Import / Remove a country list ([DXCC data](dxcc-data.md#import-a-country-list-from-a-file)), Update call history, Clear call history, Load beacon file, Definition editor, Program execution logging, Open diagnostics folder, Check for new program version, Check for a new version at start, Download latest PDF manual (see below) |
 | Nastavení (Settings) | Settings (all tabs), Keys, Settings profiles, Enable call history lookup (a check item, see [Call history](call-history.md#enabling-the-lookup)), Exchange abbreviations, Announcements for blind operators (VoiceOver, see [Entry window](entry-window.md#announcements-for-blind-operators-voiceover)), AutoSend threshold, Grab focus when a radio is tuned, Snap windows to edges ([above](#snapping-windows-and-grabbing-the-focus)), SO2R |
 | Okno (Window) | the application's windows, Multiplikátory (Multipliers) and, after a separator, **Vlastní** (Custom) with the windows of window plugins ([Plugin windows](plugin-windows.md)) |
-| Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Contest rules (the `officialUrl` of the open contest's definition), Contest calendar (WA7BNM), Report a bug (GitHub issues), View error log, Open data folder (honours `MCL_DATA_DIR`), Check for updates |
+| Nápověda (Help) | Documentation (`Alt+H`), Keyboard shortcuts, Text commands, Contest rules (the `officialUrl` of the open contest's definition), Contest calendar (WA7BNM), Report a bug (GitHub issues), View error log, Open data folder (honours `MCL_DATA_DIR`), Check for updates, Download latest PDF manual |
 
 The keys in the Edit and Help menus are only shown: the entry window's own key handling (Settings → Keys)
 stays the one that reacts to them, so a remapped key is shown as remapped.
@@ -301,7 +301,14 @@ layout, it keeps your old structure; to get the new one, create a fresh copy wit
   on from the start) writes `<data folder>/diagnostics/program.log`: the messages, every status line and every
   menu action. Attach it to a bug report. **Otevřít složku diagnostiky** shows the folder in Finder. Both logs are
   rotated at 1 MB (the previous part is kept as `….log.1`).
-- The PDF manual of N1MM has no counterpart: the documentation is these online pages (**Nápověda → Dokumentace**).
+- **Nápověda → Stáhnout nejnovější PDF manuál…** (also in **Nástroje**, N1MM's Download latest PDF manual) saves
+  this user guide as one PDF (contents with page numbers, bookmarks for every chapter and section, working
+  links) for reading offline. It first asks where to save the file, then downloads the
+  `MacContestLogger-manual.pdf` attached to the latest published release on GitHub. Only that address is used
+  (redirects are followed only to GitHub's own download hosts), the file must be a PDF and at most 64 MB, and nothing
+  is written otherwise. When the release has no manual yet or the download fails, the dialog says why and offers
+  **Otevřít dokumentaci online** (these pages in the browser). The request is made only when you choose the item;
+  with `MCL_INERT_NETWORK` it is never made.
 
 ## Application menu
 

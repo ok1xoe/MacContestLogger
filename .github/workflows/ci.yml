@@ -28,6 +28,11 @@ jobs:
         run: scripts/release-version.sh --self-test
       - name: Tests
         run: scripts/test.sh
+      # The PDF user guide renders from docs/ (a missing page or image fails it); the release attaches it.
+      - name: User guide PDF
+        run: |
+          swift build --product mcl-manual
+          .build/debug/mcl-manual --out build/manual/MacContestLogger-manual.pdf
       # Static accessibility audit of the views (reads sources only, starts nothing): icon and glyph controls,
       # canvases and AppKit islands carry a label, every window has the font stepper, the spoken texts are translated.
       - name: Accessibility audit
