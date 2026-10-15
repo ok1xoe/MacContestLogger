@@ -22,6 +22,13 @@ public enum Band: String, CaseIterable, Codable, Sendable {
     case cm9 = "9cm"
     case cm6 = "6cm"
     case cm3 = "3cm"
+    // Millimetre bands (ADIF 3.1.x names, N1MM supports them up to 241 GHz).
+    case cm125 = "1.25cm"
+    case mm6 = "6mm"
+    case mm4 = "4mm"
+    case mm25 = "2.5mm"
+    case mm2 = "2mm"
+    case mm1 = "1mm"
 
     public var adif: String { rawValue }
 
@@ -33,7 +40,7 @@ public enum Band: String, CaseIterable, Codable, Sendable {
     /// `true` for the post-port microwave bands (23 cm and up), which Java v1.1.1 does not know.
     public var isMicrowave: Bool {
         switch self {
-        case .cm23, .cm13, .cm9, .cm6, .cm3: true
+        case .cm23, .cm13, .cm9, .cm6, .cm3, .cm125, .mm6, .mm4, .mm25, .mm2, .mm1: true
         default: false
         }
     }
@@ -67,6 +74,12 @@ public enum Band: String, CaseIterable, Codable, Sendable {
         case .cm9: 3_300_000_000
         case .cm6: 5_650_000_000
         case .cm3: 10_000_000_000
+        case .cm125: 24_000_000_000
+        case .mm6: 47_000_000_000
+        case .mm4: 75_500_000_000
+        case .mm25: 119_980_000_000
+        case .mm2: 134_000_000_000
+        case .mm1: 241_000_000_000
         }
     }
 
@@ -90,6 +103,12 @@ public enum Band: String, CaseIterable, Codable, Sendable {
         case .cm9: 3_500_000_000
         case .cm6: 5_925_000_000
         case .cm3: 10_500_000_000
+        case .cm125: 24_250_000_000
+        case .mm6: 47_200_000_000
+        case .mm4: 81_000_000_000
+        case .mm25: 123_000_000_000
+        case .mm2: 149_000_000_000
+        case .mm1: 250_000_000_000
         }
     }
 

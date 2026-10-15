@@ -28,6 +28,12 @@ enum MacroFrequency {
         case .cm9: return "3456"
         case .cm6: return "5760"
         case .cm3: return "10368"
+        case .cm125: return "24048"
+        case .mm6: return "47088"
+        case .mm4: return "76032"
+        case .mm25: return "122250"
+        case .mm2: return "134928"
+        case .mm1: return "241920"
         default: return String(band.rawValue.dropLast())
         }
     }

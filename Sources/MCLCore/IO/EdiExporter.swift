@@ -45,6 +45,12 @@ public enum EdiExporter {
         case .cm9: return "3,4 GHz"
         case .cm6: return "5,7 GHz"
         case .cm3: return "10 GHz"
+        case .cm125: return "24 GHz"
+        case .mm6: return "47 GHz"
+        case .mm4: return "76 GHz"
+        case .mm25: return "122 GHz"
+        case .mm2: return "134 GHz"
+        case .mm1: return "248 GHz"
         default: return JavaFormat.format("%d MHz", .int(band.lowHz / 1_000_000))
         }
     }

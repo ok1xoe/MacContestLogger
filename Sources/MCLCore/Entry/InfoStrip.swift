@@ -26,6 +26,8 @@ public struct InfoStripInput: Equatable, Sendable {
     public var stackedCalls: [String]
     /// The next sked within 10 minutes: its formatted time and call.
     public var sked: InfoStripSked?
+    /// The NCDXF/IARU beacon sending on the tuned beacon frequency now (`NcdxfBeacons.stripText`); `nil` = none.
+    public var beacon: String? = nil
 
     public init(tour: Tour? = nil, now: Date = Date(), countyLine: [String] = [], roverQth: String = "",
                 usesRoverQth: Bool = false, bonusStationCount: Int = 0, cqRepeat: Bool = false,
@@ -115,6 +117,9 @@ public enum InfoStrip {
         }
         if let note = input.bandNote {
             items.append(.verbatim("📝 " + note))
+        }
+        if let beacon = input.beacon {
+            items.append(.verbatim(beacon))
         }
         if let rit = input.ritHz, rit != 0 {
             items.append(.verbatim("RIT " + (rit > 0 ? "+" : "") + String(rit)))

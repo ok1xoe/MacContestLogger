@@ -36,14 +36,17 @@ import Testing
         }
     }
 
-    /// The five post-port microwave rows (IARU R1 narrow-band centres); the rest of the table is the Java one.
+    /// The post-port microwave and millimetre rows (narrow-band centres); the rest of the table is the Java one.
     @Test func microwaveRowsFollowTheJavaOnes() {
         let microwave: [BandRows.Row] = BandRows.all.filter { $0.band.isMicrowave }
-        #expect(BandRows.all.suffix(5) == microwave[...])
+        #expect(BandRows.all.suffix(11) == microwave[...])
         let expected: [(Band, String, Double, Double, Double?)] = [
             (.cm23, "23cm", 1296050.0, 1296200.0, 1296174.0), (.cm13, "13cm", 2320050.0, 2320200.0, nil),
             (.cm9, "9cm", 3400050.0, 3400200.0, nil), (.cm6, "6cm", 5760050.0, 5760200.0, nil),
-            (.cm3, "3cm", 10368050.0, 10368200.0, nil),
+            (.cm3, "3cm", 10368050.0, 10368200.0, nil), (.cm125, "24G", 24048050.0, 24048200.0, nil),
+            (.mm6, "47G", 47088050.0, 47088200.0, nil), (.mm4, "76G", 76032050.0, 76032200.0, nil),
+            (.mm25, "122G", 122250050.0, 122250200.0, nil), (.mm2, "134G", 134928050.0, 134928200.0, nil),
+            (.mm1, "241G", 241920050.0, 241920200.0, nil),
         ]
         #expect(microwave.count == expected.count)
         for (row, e) in zip(microwave, expected) {

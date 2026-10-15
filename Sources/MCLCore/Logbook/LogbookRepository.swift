@@ -577,6 +577,12 @@ extension Band {
         case .cm9: "CM9"
         case .cm6: "CM6"
         case .cm3: "CM3"
+        case .cm125: "CM125"
+        case .mm6: "MM6"
+        case .mm4: "MM4"
+        case .mm25: "MM25"
+        case .mm2: "MM2"
+        case .mm1: "MM1"
         }
     }
 
@@ -600,6 +606,12 @@ extension Band {
         case "CM9": self = .cm9
         case "CM6": self = .cm6
         case "CM3": self = .cm3
+        case "CM125": self = .cm125
+        case "MM6": self = .mm6
+        case "MM4": self = .mm4
+        case "MM25": self = .mm25
+        case "MM2": self = .mm2
+        case "MM1": self = .mm1
         default: return nil
         }
     }

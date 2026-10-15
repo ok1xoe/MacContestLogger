@@ -221,10 +221,10 @@ import Testing
         #expect(AvailMultModel.bandGroups.flatMap(\.bands).count == Band.allCases.count)
         let labels: [String] = Band.allCases.map { AvailMultModel.bandLabel($0) }
         #expect(labels == ["1.8", "3.5", "5", "7", "10", "14", "18", "21", "24", "28", "50", "144", "430",
-                           "1296", "2.3G", "3.4G", "5.7G", "10G"])
+                           "1296", "2.3G", "3.4G", "5.7G", "10G", "24G", "47G", "76G", "122G", "134G", "241G"])
         #expect(AvailMultModel.bandGroups[1].extra == ["222"])
         #expect(AvailMultModel.bandGroups[2].extra == ["902"])
-        #expect(AvailMultModel.bandGroups[3].extra == ["24G"])
+        #expect(AvailMultModel.bandGroups[3].extra.isEmpty)
         #expect(AvailMultModel.modeChoices.map(\.label) == ["CW", "Phone", "Digi"])
     }
 

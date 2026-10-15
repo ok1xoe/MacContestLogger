@@ -51,6 +51,10 @@ public final class CwReaderModel {
 
     /// The decoded text (the last 2000 characters).
     public private(set) var text: String = ""
+    /// N1MM "pause scrolling": the window keeps showing `frozenText` (and stops scrolling) while decoding goes on.
+    public private(set) var scrollPaused = false
+    /// The text shown when scrolling was paused.
+    public private(set) var frozenText: String = ""
     public private(set) var wpm: Int = 0
     /// The audio error (`nil` = the input runs).
     public private(set) var error: String?
@@ -125,11 +129,24 @@ public final class CwReaderModel {
     /// „Vymazat".
     public func clear() {
         text = ""
+        frozenText = ""
     }
 
-    /// Up to six decoded calls, newest first, without the own call (`CwDecoder.callsigns(text.takeLast(200), …)`).
+    /// The text the window shows: the frozen one while scrolling is paused.
+    public var shownText: String {
+        scrollPaused ? frozenText : text
+    }
+
+    /// N1MM "pause scrolling" on / off: paused, the shown text stays as it is (to read or click a call) while the
+    /// decoder goes on; resumed, the window jumps to the current text.
+    public func toggleScrollPause() {
+        scrollPaused.toggle()
+        frozenText = scrollPaused ? text : ""
+    }
+
+    /// Up to six decoded calls of the shown text, newest first, without the own call (`CwDecoder.callsigns(text.takeLast(200), …)`).
     public var calls: [String] {
-        let units: [UInt16] = Array(text.utf16.suffix(200))
+        let units: [UInt16] = Array(shownText.utf16.suffix(200))
         let tail: String = String(decoding: units, as: UTF16.self)
         let myCall: String = config.config.station.call
         return Array(CwDecoder.callsigns(tail, myCall: myCall).prefix(6))

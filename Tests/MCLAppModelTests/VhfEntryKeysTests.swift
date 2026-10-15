@@ -118,3 +118,15 @@ import Testing
         await eventually("A's status") { a.status == "Pass: DL1ABC předáno stanici OP2" }
     }
 }
+
+/// The NCDXF/IARU beacon sending now shows in the info strip while the rig is on a beacon frequency.
+@MainActor @Suite struct NcdxfInfoStripTests {
+
+    @Test func theBeaconShowsOnlyOnABeaconFrequency() async throws {
+        let app = try await TestApp.make()
+        app.model.entry.setFrequency("14100")
+        #expect(app.model.infoStrip.text.contains("NCDXF "), "\(app.model.infoStrip.text)")
+        app.model.entry.setFrequency("14025")
+        #expect(!app.model.infoStrip.text.contains("NCDXF"))
+    }
+}

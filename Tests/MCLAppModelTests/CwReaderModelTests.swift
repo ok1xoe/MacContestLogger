@@ -36,6 +36,29 @@ import Testing
         #expect(reader.text == before)
     }
 
+    /// N1MM "pause scrolling": the shown text and its calls stay while the decoder goes on; resuming shows everything.
+    @Test func pausedScrollingKeepsTheShownTextWhileDecodingGoesOn() async throws {
+        let app = try await KeyingApp.make()
+        let reader: CwReaderModel = app.model.makeCwReader()
+        await reader.open()
+        try RadioSignals.feed(app, RadioSignals.cw("TEST OK2XYZ", wpm: 25, tone: 600))
+        app.radioClock.advance(by: 150)
+        #expect(reader.shownText.contains("OK2XYZ"), "\(reader.text)")
+        reader.toggleScrollPause()
+        #expect(reader.scrollPaused)
+        let frozen: String = reader.shownText
+        try RadioSignals.feed(app, RadioSignals.cw("CQ DL1ABC", wpm: 25, tone: 600))
+        app.radioClock.advance(by: 150)
+        #expect(reader.text.contains("DL1ABC"), "\(reader.text)")
+        #expect(reader.shownText == frozen)
+        #expect(reader.calls == ["OK2XYZ"])
+        reader.toggleScrollPause()
+        #expect(!reader.scrollPaused)
+        #expect(reader.shownText.contains("DL1ABC"))
+        #expect(reader.calls.first == "DL1ABC")
+        reader.close()
+    }
+
     /// The tone field keeps up to four digits; only 200…3000 Hz retunes the decoder (a 700 Hz signal is decoded
     /// after the field says 700, not after an out-of-range value).
     @Test func toneField() async throws {

@@ -389,7 +389,7 @@ window apply and are saved at once; in Settings they apply with Save. The state 
 `config.json` (`spotFilter*` keys; a configuration without them means "everything on").
 
 **Bands.** One checkbox per band MCL knows, in four groups: HF (160 m to 10 m, including 60 m), VHF (6 m, 2 m),
-UHF (70 cm, 23 cm) and Mw (13 cm, 9 cm, 6 cm, 3 cm). The group buttons switch the whole group: all on turns it off,
+UHF (70 cm, 23 cm) and Mw (13 cm, 9 cm, 6 cm, 3 cm and the millimetre bands 24, 47, 76, 122, 134 and 241 GHz). The group buttons switch the whole group: all on turns it off,
 otherwise all on.
 
 **Modes.** CW, Fonie (phone) and Digi (RTTY, FT8, PSK and the like). The mode of a spot is the one the band map already
@@ -414,6 +414,11 @@ origin options combine: a spotter matching **any** of the continents, own countr
 **Skrýt spoty majáků NCDXF/IARU**: hides spots of the 18 International Beacon Project stations (4U1UN, VE8AT, W6WX,
 KH6RS, ZL6B, VK6RBP, JA2IGY, RR9O, VR2B, 4S7B, ZS6DN, 5Z4B, 4X6TU, OH2B, CS3B, LU4AA, OA4B, YV5B, with or without `/B`).
 Beacons you load yourself with `BEACONS` (Nástroje → Načíst soubor majáků…) are your own spots and stay.
+
+**The beacon sending now**: tuned to a beacon frequency (14100, 18110, 21150, 24930 or 28200 kHz, ±1 kHz), the entry
+window's info strip shows which NCDXF/IARU beacon is transmitting at this moment (`NCDXF 4U1UN (United Nations NY)`),
+from the published schedule — 10 seconds per beacon and band, a 3-minute cycle starting at 00:00 UTC — so the
+computer clock must be right (N1MM shows it in its status bar the same way).
 
 **Odstranit chybné (busted) spoty** (N1MM "Remove Busted Spots"): among the live spots, two calls within the tuning
 tolerance of the mode (Settings → DX Cluster) that differ by one character (a changed, added or missing character)
