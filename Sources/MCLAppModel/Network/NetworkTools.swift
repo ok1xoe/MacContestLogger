@@ -130,11 +130,16 @@ extension NetworkModel {
         return out
     }
 
-    /// A new mismatch is shown in the status line once.
+    /// A new mismatch is shown in the status line once, and every new one goes to the Info window's program
+    /// messages (N1MM reports a category difference between the computers there).
     private func reportMismatches() {
         let current: [EntryStatus] = mismatchWarnings
-        if let fresh = current.first(where: { !tools.shownWarnings.contains($0) }) {
-            show(EntryStatus.verbatim("⚠ ").appending(fresh))
+        let fresh: [EntryStatus] = current.filter { !tools.shownWarnings.contains($0) }
+        if let first = fresh.first {
+            show(EntryStatus.verbatim("⚠ ").appending(first))
+        }
+        for warning in fresh {
+            programMessage(language.text(warning))
         }
         tools.shownWarnings = current
     }

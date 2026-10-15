@@ -53,6 +53,9 @@ public final class NetworkModel {
     /// Calls this station put on another station's stack, by call → target station.
     @ObservationIgnored var stackedCalls: [String: String] = [:]
     @ObservationIgnored var ownProfile: @MainActor () -> StationProfile = { StationProfile() }
+    /// A line for the Info window's program messages (N1MM's Message Window, where a category difference between
+    /// the networked computers is reported); set by the app.
+    @ObservationIgnored var programMessage: @MainActor (String) -> Void = { _ in }
     /// The alert of a call for help (the system beep; silent in tests); set by the app.
     @ObservationIgnored var alert: @MainActor () -> Void = {}
     /// The offset this station's QSO times are corrected by (ms; the master adds it to the time it hands out).

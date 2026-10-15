@@ -71,7 +71,34 @@ import Testing
         #expect(a.network.mismatchWarnings.map(\.czech)
             == ["Stanice OP2 má otevřený jiný závod (CQ-WPX-CW, tato CQ-WW-CW)"])
         #expect(a.status == "⚠ Stanice OP2 má otevřený jiný závod (CQ-WPX-CW, tato CQ-WW-CW)")
+        // N1MM's Message Window: every new difference also goes to the Info window's program messages.
+        #expect(a.model.messages.lines.map(\.text) == [
+            "Stanice OP2 má jinou verzi programu (1.0.1, tato 1.0.0)",
+            "Stanice OP2 má otevřený jiný závod (CQ-WPX-CW, tato CQ-WW-CW)",
+        ])
         #expect(a.network.tools.trace.contains { $0.type == "HELLO" })
+    }
+
+    /// N1MM reports a different entry category (multi-single versus multi-two) in the Message Window once.
+    @Test func aCategoryMismatchIsAProgramMessage() async throws {
+        let hub = InMemorySyncTransport()
+        let now = NetStation.start()
+        let a = try await NetStation.make(id: "OP1", hub: hub, now: now)
+        let b = try await NetStation.make(id: "OP2", hub: hub, now: now)
+        a.network.ownProfile = { StationProfile(contest: "CQ-WW-CW", category: "OPERATOR=MULTI-OP TRANSMITTER=ONE") }
+        b.network.ownProfile = { StationProfile(contest: "CQ-WW-CW", category: "OPERATOR=MULTI-OP TRANSMITTER=TWO") }
+        try await a.activate()
+        try await b.activate()
+        await eventually("A sees B online") { a.cluster.peers.first?.online == true }
+        await eventually("A knows B") { !a.network.mismatchWarnings.isEmpty }
+        await eventually("A's message") { !a.model.messages.lines.isEmpty }
+        let expected = "Stanice OP2 má jinou kategorii (OPERATOR=MULTI-OP TRANSMITTER=TWO, tato "
+            + "OPERATOR=MULTI-OP TRANSMITTER=ONE)"
+        #expect(a.model.messages.lines.map(\.text) == [expected])
+        // The same difference is not repeated on the next round.
+        b.clusterClock.advance(by: 1_000)
+        a.clusterClock.advance(by: 1_000)
+        #expect(a.model.messages.lines.count == 1)
     }
 
     @Test func serialResetMovesEveryStationPastTheHighestSentSerial() async throws {

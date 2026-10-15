@@ -1152,6 +1152,10 @@ public final class AppModel {
         model.network.openStatusWindow = { [weak model] in
             model?.windows.setOpen("netstatus", true)
         }
+        model.network.programMessage = { [weak model] text in
+            guard let model else { return }
+            model.messages.add(text, at: model.network.now())
+        }
         model.network.isChatOpen = { [weak windows = model.windows] in
             windows?.isOpen("chat") ?? false
         }
