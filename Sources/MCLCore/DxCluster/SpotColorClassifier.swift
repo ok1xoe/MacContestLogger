@@ -9,6 +9,8 @@ public enum SpotColorClassifier {
         case good = "GOOD"
         case oneMult = "ONE_MULT"
         case multiMult = "MULTI_MULT"
+        /// WAE (N1MM): a dupe that can still exchange QTCs (Swift-only; `classify` never returns it).
+        case qtc = "QTC"
     }
 
     /// - Parameters:

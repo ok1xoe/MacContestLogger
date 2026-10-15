@@ -226,7 +226,8 @@ public enum FunctionKeyRouter {
         } else {
             message = CwMessageBuilder.build(joined, ctx)
         }
-        let index: Int = indices[indices.count - 1]
+        // A template send (a DI button, a QTC message) lights no F-key: -1.
+        let index: Int = max(-1, indices[indices.count - 1])
         out.commands = message.commands
         if !message.isEmpty {
             out.varyUsed = message.varyUsed
@@ -335,9 +336,30 @@ public enum FunctionKeyRouter {
         return out
     }
 
+    /// The pseudo key of a QTC window message (its label in the statuses is `QTC`).
+    public static let qtcKey = -2
+
+    /// A QTC window message (N1MM WAE: QRV, Cfm, Agn, TU, the RTTY series): sent like an F-key message in CW and in a
+    /// ready digital mode (the same macros); phone plays it through the voice keyer, which the caller does.
+    public static func sendQtcTemplate(_ template: String, context: FunctionKeyContext) -> FunctionKeyOutcome {
+        var out = FunctionKeyOutcome()
+        if context.postContest {
+            out.status = .tr("Dodatečné zadání — nic se nevysílá (NOPOSTCONTEST ukončí)")
+            return out
+        }
+        if context.isCw || context.digi {
+            keyed([qtcKey], opposite: false, digital: context.digi, context: context, template: template, into: &out)
+        } else if context.mode.isDigital {
+            out.status = .tr("QTC: pro %s nastav fldigi (Nastavení → Digitální módy)", .string(context.mode.rawValue))
+        } else {
+            out.status = .tr("QTC: v módu %s se zpráva nevysílá", .string(context.mode.rawValue))
+        }
+        return out
+    }
+
     /// `keysLabel(indices)`: `F5+F2`.
     public static func keysLabel(_ indices: [Int]) -> String {
-        indices.map { $0 < 0 ? "DI" : "F\($0 + 1)" }.joined(separator: "+")
+        indices.map { $0 == qtcKey ? "QTC" : $0 < 0 ? "DI" : "F\($0 + 1)" }.joined(separator: "+")
     }
 
     /// The label of an F-key button (`*FunctionKeyLabel(i, shiftHeld)`, `EP:1335-1339`): the CW set in CW, the

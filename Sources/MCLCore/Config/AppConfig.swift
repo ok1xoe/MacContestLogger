@@ -297,6 +297,15 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// N1MM „Program announcements for blind operators": VoiceOver announcements of a dupe, a new multiplier, an
     /// incomplete exchange and the split (off by default). Swift-only key.
     public var accessibilityAnnouncements = false
+    /// N1MM Config → WAE: the QTC options and messages (`QtcSetup.Key` → value; only non-default values are kept).
+    /// Swift-only key.
+    public var qtcSetup: [String: String] = [:]
+
+    /// The QTC setup (WAE).
+    public var qtc: QtcSetup {
+        get { QtcSetup(qtcSetup) }
+        set { qtcSetup = newValue.values }
+    }
 
     public var databasesDir = ""
     public var lastDatabase = ""
@@ -344,7 +353,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case checkTelnetMinSpots, checkReverseEnabled, checkReverseThreshold, checkReverseFromStart
         case showUnmatchedCallMark
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
-        case checkUpdatesAtStart, accessibilityAnnouncements
+        case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -492,6 +501,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         callHistoryShowUserInfo = c.value(.callHistoryShowUserInfo, default: d.callHistoryShowUserInfo)
         checkUpdatesAtStart = c.value(.checkUpdatesAtStart, default: d.checkUpdatesAtStart)
         accessibilityAnnouncements = c.value(.accessibilityAnnouncements, default: d.accessibilityAnnouncements)
+        qtcSetup = QtcSetup(c.value(.qtcSetup, default: d.qtcSetup)).values
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

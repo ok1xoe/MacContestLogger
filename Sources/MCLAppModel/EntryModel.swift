@@ -168,6 +168,8 @@ public final class EntryModel {
     @ObservationIgnored weak var callStack: CallStackModel?
     /// The Digital Interface's Grab window (Alt+G, `{GRAB}`, `{LOGTHENGRAB}`, Insert); wired by the app.
     @ObservationIgnored weak var grabList: GrabListModel?
+    /// The QTC window (WAE: Ctrl+Z, `{DIGQTCR}`, `{DIGQTCS}`, `{QTC}`); wired by the app.
+    @ObservationIgnored weak var qtc: QtcModel?
     /// The call history (`{NAME}`); wired by the app.
     @ObservationIgnored var callHistory: (@MainActor () -> CallHistory)?
     /// fldigi (AutoTRXUpdate's audio frequency, the modem switch of RTTY / PSK); wired by the app.

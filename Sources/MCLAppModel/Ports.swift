@@ -43,11 +43,18 @@ public protocol KeyerPort: Sendable {
     @MainActor func manualPtt() -> EntryStatus?
     /// N1MM `{STOPTX}`: the PTT released (the manual PTT, a tune carrier).
     @MainActor func releasePtt()
+    /// A phone message that is not an F-key's (a QTC window message: wav names, `[text]`) through the voice keyer;
+    /// the result is a status to show (`nil` = none).
+    @MainActor func playVoiceText(_ text: String, hisCall: String, freqHz: Int64) -> EntryStatus?
 }
 
 extension KeyerPort {
     public var isTuning: Bool {
         false
+    }
+
+    public func playVoiceText(_ text: String, hisCall: String, freqHz: Int64) -> EntryStatus? {
+        .tr(EntryTexts.unavailable)
     }
 
     public func toggleTune() -> EntryStatus? {

@@ -47,6 +47,7 @@ Anyone who wants a mac-native logger can remap all of it; nobody else is affecte
 | **Ctrl+F** | finds the callsign from the field in the log (opens the QSO overview with the search `call:`); again with the same callsign selects its next QSO (Find Again) |
 | **Ctrl+Y** | edits the last logged QSO in a dialog (also the **Edit** button), see [Entry window](entry-window.md#editing-a-qso) |
 | **Ctrl+Q** / **Ctrl+A** | QuickEdit: the logged QSOs one back / forward in the entry fields; Enter saves, Esc cancels, see [Entry window](entry-window.md#quickedit) |
+| **Ctrl+Z** | WAE: QTC mode on / off — opens the QTC window to receive (Europe) or send, see [QTC](qtc.md#qtc-mode-ctrlz) |
 | **Ctrl+U** | serial number in the exchange +1; a Sweepstakes serial with its precedence keeps it (`23B` → `24B`, also inside `23B 72 CT`) |
 | **Alt+Y** | next call of the Check window's panes into the callsign field (again = the next one; in an exchange field the first value of the exchange pane), see [Check window](call-check.md#alt-y) |
 | **↑ / ↓** | with SCP suggestions, moves within the suggestions, otherwise tunes the rig |

@@ -99,6 +99,8 @@ public enum ShortcutAction: CaseIterable, Sendable {
     case gridSearch
     /// N1MM Alt+- (VHF and up): the grid field toggles through the call history's grids and the typed one.
     case gridToggle
+    /// N1MM Ctrl+Z (WAE): QTC mode on / off — the QTC window opens to receive (Europe) or send (elsewhere).
+    case qtcMode
 
     /// Row of a Java constant: name, id, label and default keys.
     private struct Spec {
@@ -184,12 +186,13 @@ public enum ShortcutAction: CaseIterable, Sendable {
         case .availPrevious: Spec(name: "AVAIL_PREVIOUS", id: "avail_previous", label: "Předchozí spot z okna Dostupné", defaultKeys: "Alt+Shift+A")
         case .gridSearch: Spec(name: "GRID_SEARCH", id: "grid_search", label: "VHF: hledat volačku a lokátor v call history", defaultKeys: "Alt+EQUALS")
         case .gridToggle: Spec(name: "GRID_TOGGLE", id: "grid_toggle", label: "VHF: přepínat lokátory z call history", defaultKeys: "Alt+MINUS")
+        case .qtcMode: Spec(name: "QTC_MODE", id: "qtc_mode", label: "WAE: QTC režim zap / vyp", defaultKeys: "Ctrl+Z")
         case .insertGrab: Spec(name: "INSERT_GRAB", id: "insert_grab", label: "Insert: volačka z Grab okna + F5+F2", defaultKeys: "HELP")
         }
     }
 
     /// The actions v1.1.1 does not have (appended after the Java constants).
-    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle]
+    public static let swiftOnly: Set<ShortcutAction> = [.stackCall, .grabStack, .insertGrab, .toggleTx, .digitalLeft, .digitalRight, .editLast, .quickEditBack, .quickEditForward, .resetRx, .toggleFilter, .cwReverse, .wipeOther, .jumpLastCq, .toggleStationType, .passFrequency, .availNext, .availPrevious, .gridSearch, .gridToggle, .qtcMode]
 
     /// The Java constants in Java order (`values()`), for the parity gates.
     public static var javaCases: [ShortcutAction] {

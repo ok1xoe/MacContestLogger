@@ -87,6 +87,8 @@ public enum CwMessageBuilder {
         /// Interface in kHz (`DigitalFrequency.macroText`); `""` = unknown.
         public var leftDigitalFrequency: String = ""
         public var rightDigitalFrequency: String = ""
+        /// N1MM `{QTC}` (WAE): the header of the QTC series in the QTC window (`26/10`), empty outside it.
+        public var qtcHeader: String = ""
         /// `{NAME}`: the other station's name from the call history.
         public var hisName: String = ""
         /// `{DI1}`…`{DI24}`: the texts of the Digital Interface's message buttons.
@@ -164,6 +166,7 @@ public enum CwMessageBuilder {
         "{FORCELOG}": .forceLog, "{FORCELOGNOTE}": .forceLogNote, "{SPACE}": .space,
         "{PGUP}": .pageUp, "{PGDN}": .pageDown, "{FREQUP}": .freqUp, "{FREQDN}": .freqDown,
         "{TURNROTOR}": .turnRotor, "{LONGPATH}": .longPath, "{STOPROTOR}": .stopRotor,
+        "{DIGQTCR}": .qtcReceive, "{DIGQTCS}": .qtcSend,
     ].merging(radioActions) { first, _ in first }
 
     /// The two-radio, audio and needed-QSO actions (N1MM), shared with the voice messages.
@@ -419,6 +422,7 @@ public enum CwMessageBuilder {
     private static func macroValue(_ macro: String, _ ctx: Context) -> String? {
         switch macro {
         case "{MYCALL}": ctx.myCall
+        case "{QTC}": ctx.qtcHeader
         case "{CALL}": hisCall(ctx)
         case "{SENTRST}": ctx.rst
         case "{SENTRSTCUT}": cut(ctx.rst)

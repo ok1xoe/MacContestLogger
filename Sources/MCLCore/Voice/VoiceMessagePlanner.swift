@@ -95,7 +95,8 @@ public enum VoiceMessagePlanner {
         "{SPOTME}": .spotMe, "{CQ}": .cq, "{QSYCQ}": .cqFrequency, "{EXCHSENT}": .exchangeSent,
         "{CTRLHOME}": .ctrlHome, "{FORCELOG}": .forceLog, "{FORCELOGNOTE}": .forceLogNote, "{SPACE}": .space,
         "{PGUP}": .pageUp, "{PGDN}": .pageDown, "{FREQUP}": .freqUp, "{FREQDN}": .freqDown, "{TURNROTOR}": .turnRotor,
-        "{LONGPATH}": .longPath, "{STOPROTOR}": .stopRotor, "{TX}": .manualPtt,
+        "{LONGPATH}": .longPath, "{STOPROTOR}": .stopRotor, "{TX}": .manualPtt, "{DIGQTCR}": .qtcReceive,
+        "{DIGQTCS}": .qtcSend,
     ].merging(CwMessageBuilder.radioActions) { first, _ in first }
 
     /// Items of a message with `{F1}`…`{F12}` replaced by the items of that key (depth ≤ 2 as in CW; deeper stays
@@ -369,7 +370,7 @@ public enum VoiceMessagePlanner {
         switch name {
         case "{LOG}", "{WIPE}", "{RUN}", "{S&P}", "{END}", "{CLEARRIT}", "{RITCLEAR}", "{CQFREQ}", "{NOSPLIT}",
              "{SPOTME}", "{CQ}", "{QSYCQ}", "{EXCHSENT}", "{CTRLHOME}", "{FORCELOG}", "{FORCELOGNOTE}", "{SPACE}",
-             "{PGUP}", "{PGDN}", "{FREQUP}", "{FREQDN}", "{TURNROTOR}", "{LONGPATH}", "{STOPROTOR}", "{TX}":
+             "{PGUP}", "{PGDN}", "{FREQUP}", "{FREQDN}", "{TURNROTOR}", "{LONGPATH}", "{STOPROTOR}", "{TX}", "{DIGQTCR}", "{DIGQTCS}":
             return true
         case _ where CwMessageBuilder.radioActions[name] != nil:
             return true

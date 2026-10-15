@@ -61,6 +61,7 @@ public struct WsjtxDecodes: Sendable {
         case .good: (nil, WsjtxMessages.Rgb(0x1E88E5))
         case .oneMult: (WsjtxMessages.Rgb(0xE53935), WsjtxMessages.Rgb(0xFFFFFF))
         case .multiMult: (WsjtxMessages.Rgb(0x43A047), WsjtxMessages.Rgb(0xFFFFFF))
+        case .qtc: (nil, WsjtxMessages.Rgb(0x212121))
         }
     }
 

@@ -2178,5 +2178,22 @@
  "Azimut ke středu čtverce": "Beam heading to square centre",
  "Jeden čtverec na řádek (např. JN79).": "One square per line (e.g. JN79).",
  "Pozastavit posuv": "Pause scrolling",
- "Pokračovat": "Resume"
+ "Pokračovat": "Resume",
+ "QTC: pro %s nastav fldigi (Nastavení → Digitální módy)": "QTC: set up fldigi for %s (Settings → Digital modes)",
+ "QTC: v módu %s se zpráva nevysílá": "QTC: no message is sent in %s",
+ "Hlasový klíč právě hraje — Esc ho zastaví": "The voice keyer is playing — Esc stops it",
+ "QTC: zpráva %s není nastavená (Nastavení QTC)": "QTC: message %s is not set (QTC setup)",
+ "duplicitní, QTC možná": "dupe, QTCs possible",
+ "Odvysílat sérii (digi)": "Send series (digital)",
+ "Nastavení QTC…": "QTC setup…",
+ "Nastavení QTC": "QTC setup",
+ "Ve zprávách: {QTC} = hlavička série (26/10), $ = číslo QTC pro Agn, dále makra F-kláves (*, !, {ENTER}…).": "In the messages: {QTC} = the series header (26/10), $ = the QTC number for Agn, plus the F-key macros (*, !, {ENTER}…).",
+ "Žádost QTC?": "Ask QTC?",
+ "TU na konci (prázdné = F3)": "TU on exit (empty = F3)",
+ "SSB (wav soubory)": "SSB (wav files)",
+ "Ctrl+Z pošle QTC? automaticky (Evropa, Run, CW)": "Ctrl+Z sends QTC? automatically (Europe, Run, CW)",
+ "Enter v hlavičce série pošle QRV (CW)": "Return in the series header sends QRV (CW)",
+ "QTC v jedné sérii": "QTCs per series",
+ "Max. QTC pro barvy v bandmapě": "Max QTCs for band map colours",
+ "WAE: QTC režim zap / vyp": "WAE: QTC mode on / off"
 }

@@ -148,6 +148,7 @@ Characters a keyer cannot send (`:` in `{TIMEGMT}`, for example) are left out.
 | `{PGUP}` / `{PGDN}` | the rig down / up by the step of "Nastavení → Ostatní → QSY makry {PGUP}/{PGDN}" (Settings → Other, 1 kHz by default) |
 | `{FREQUP}` / `{FREQDN}` | the rig up / down by the same step (Sprint QSY, usually after `{END}`) |
 | `{TURNROTOR}`, `{LONGPATH}`, `{STOPROTOR}` | the rotator to the bearing of the call in the callsign field, to its long path, stop |
+| `{DIGQTCR}`, `{DIGQTCS}`, `{QTC}` | WAE: the QTC window opens to receive / send; `{QTC}` is the header of its series (`26/10`), see [QTC](qtc.md) |
 | `{TX}` | in a message that sends nothing else: the active rig's PTT on over CAT until Esc (with the 30 s safeguard of the tune) |
 | `{CAT1ASC cmd}` / `{CAT1HEX hex}` | a raw CAT command to radio 1 (`CAT2…` radio 2), through `rigctld`'s `w` command. Several commands are separated by `\`; an ASCII command may hold bytes as `<FE>`; HEX is pairs of hex digits (spaces ignored) |
 | `{CATA1ASC …}`, `{CATI1ASC …}` (and `2`, `HEX`) | the same, only while radio 1 is the active / the inactive one |

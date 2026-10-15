@@ -149,7 +149,8 @@ private struct SkedContent: View {
 /// from the own log with the CW send, the limit per station and the list of the exchanged QTCs.
 ///
 /// „Odvysílat CW" calls `QtcSending.send` (the keyer's `sendCwText`, so the simulator and the TX gate apply) and only
-/// on its button; nothing is sent by itself.
+/// on its button; nothing is sent by itself. The message buttons (N1MM QRV, Cfm, Agn, TU, the RTTY RQTC / SQTC
+/// messages) go out through the active entry window's keyer for its mode; „Nastavení QTC" edits them (Config → WAE).
 struct QtcWindowView: View {
     static let id = "qtc"
 
@@ -159,6 +160,7 @@ struct QtcWindowView: View {
         ToolWindowShell(host: host, id: Self.id, title: { $0.language.tr("QTC") },
                         size: CGSize(width: 620, height: 560), minSize: CGSize(width: 460, height: 320),
                         appeared: { $0.qtc.open() },
+                        leading: { app in QtcSetupButton(app: app) },
                         content: { app, _ in QtcContent(app: app) })
     }
 }
@@ -184,6 +186,7 @@ private struct QtcContent: View {
                                      action: { model.sendMode = true }),
                 ])
                 partnerRow(model, language: language)
+                messageRow(model)
                 if model.sendMode {
                     sendForm(model, language: language)
                 } else {
@@ -213,6 +216,21 @@ private struct QtcContent: View {
         }
     }
 
+    /// The message buttons of the side and mode (N1MM QRV, Cfm, Agn n, TU / Save QTC, RU QRV?).
+    private func messageRow(_ model: QtcModel) -> some View {
+        HStack(spacing: 6) {
+            ForEach(Array(model.messageKinds.enumerated()), id: \.offset) { _, kind in
+                Button {
+                    model.press(kind)
+                } label: {
+                    Text(verbatim: model.label(kind))
+                }
+                .accessibilityIdentifier("qtc.message.\(model.label(kind))")
+            }
+        }
+        .windowFont(12)
+    }
+
     @ViewBuilder private func sendForm(_ model: QtcModel, language: LanguageModel) -> some View {
         let lines: [QtcPlanner.Line] = model.candidateLines
         Text(verbatim: model.seriesTitle(count: lines.count)).windowFont(13, weight: .medium)
@@ -225,6 +243,13 @@ private struct QtcContent: View {
             }
             .disabled(lines.isEmpty)
             .accessibilityIdentifier("qtc.sendCw")
+            if model.family == .digital {
+                Button(language.tr("Odvysílat sérii (digi)")) {
+                    model.sendDigitalSeries()
+                }
+                .disabled(lines.isEmpty)
+                .accessibilityIdentifier("qtc.sendDigital")
+            }
             Button(language.tr("Potvrzeno — uložit")) {
                 Task { @MainActor in _ = await model.saveSent() }
             }
@@ -239,6 +264,7 @@ private struct QtcContent: View {
             TextField("", text: Binding(get: { model.group }, set: { model.group = $0 }))
                 .textFieldStyle(.roundedBorder)
                 .windowFont(12)
+                .onSubmit { model.headerSubmitted() }
                 .accessibilityIdentifier("qtc.group")
         }
         .frame(width: 160)
@@ -283,5 +309,114 @@ private struct QtcContent: View {
             }
         }
         .accessibilityIdentifier("qtc.exchanged")
+    }
+}
+
+/// „Nastavení QTC…" in the QTC window's top bar: the sheet of N1MM's Config → WAE options and QTC messages.
+private struct QtcSetupButton: View {
+    let app: AppModel
+    @State private var showing = false
+
+    var body: some View {
+        Button(app.language.tr("Nastavení QTC…")) {
+            showing = true
+        }
+        .windowFont(12)
+        .accessibilityIdentifier("qtc.setup")
+        .sheet(isPresented: $showing) {
+            QtcSetupSheet(model: app.qtc, language: app.language) { showing = false }
+        }
+    }
+}
+
+/// N1MM Config → WAE: „Ctrl-Z sends QTC? automatically", „Max QTC Number for callsign colors", „Default Number of
+/// QTCs to Send" and the CW, SSB and RTTY messages of the QTC window. Every change is saved at once.
+private struct QtcSetupSheet: View {
+    let model: QtcModel
+    let language: LanguageModel
+    let close: () -> Void
+
+    @StateObject private var form = DialogFormState()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            WindowTopBar(size: $form.fontSize, language: language) {
+                Text(verbatim: language.tr("Nastavení QTC"))
+                    .windowFont(15, weight: .semibold)
+            }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 8) {
+                    general
+                    Text(verbatim: language.tr("Ve zprávách: {QTC} = hlavička série (26/10), $ = číslo QTC pro Agn, "
+                        + "dále makra F-kláves (*, !, {ENTER}…)."))
+                        .windowFont(11)
+                        .foregroundStyle(.secondary)
+                    section("CW", [(.cwAsk, "Žádost QTC?"), (.cwQrv, "QRV"), (.cwConfirm, "Cfm"),
+                                   (.cwAgain, "Agn"), (.cwTu, "TU na konci (prázdné = F3)")])
+                    section(language.tr("SSB (wav soubory)"),
+                            [(.ssbQrv, "QRV"), (.ssbConfirm, "Cfm"), (.ssbAgain, "Agn"),
+                             (.ssbTu, "TU na konci (prázdné = F3)")])
+                    section("RTTY", [(.rttyQrv, "RQTC: RX Ready"), (.rttyAllAgain, "RQTC: All Agn"),
+                                     (.rttyAgain, "RQTC: Agn"), (.rttyReceivedSave, "RQTC: Save QTC"),
+                                     (.rttyAskQrv, "SQTC: RU QRV"), (.rttyHeading, "SQTC: Send All Heading"),
+                                     (.rttyEnding, "SQTC: Send All Ending"), (.rttySentSave, "SQTC: Save QTC"),
+                                     (.rttySpacing, "QTC Spacing")])
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            DialogButtonRow {
+                Button(language.tr("Zavřít")) {
+                    close()
+                }
+                .keyboardShortcut(.cancelAction)
+            }
+        }
+        .padding(16)
+        .frame(minWidth: 480, minHeight: 420)
+        .environment(\.windowFontSize, form.fontSize)
+    }
+
+    private var general: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Toggle(language.tr("Ctrl+Z pošle QTC? automaticky (Evropa, Run, CW)"), isOn: Binding(
+                get: { model.setup.flag(.ctrlZSendsAsk) }, set: { model.setSetup(.ctrlZSendsAsk, flag: $0) }))
+                .accessibilityIdentifier("qtc.setup.ctrlZ")
+            Toggle(language.tr("Enter v hlavičce série pošle QRV (CW)"), isOn: Binding(
+                get: { model.setup.flag(.cwQrvOnHeader) }, set: { model.setSetup(.cwQrvOnHeader, flag: $0) }))
+                .accessibilityIdentifier("qtc.setup.qrvOnHeader")
+            HStack(spacing: 12) {
+                numberField(.sendCount, language.tr("QTC v jedné sérii"))
+                numberField(.colorMax, language.tr("Max. QTC pro barvy v bandmapě"))
+            }
+        }
+        .windowFont(12)
+    }
+
+    private func numberField(_ key: QtcSetup.Key, _ label: String) -> some View {
+        ToolField(label: label) {
+            TextField("", text: Binding(get: { String(model.setup.number(key)) },
+                                        set: { model.setSetup(key, KotlinStrings.trim($0)) }))
+                .textFieldStyle(.roundedBorder)
+                .windowFont(12)
+                .accessibilityLabel(Text(verbatim: label))
+        }
+        .frame(width: 200)
+    }
+
+    private func section(_ title: String, _ rows: [(QtcSetup.Key, String)]) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: title).windowFont(13, weight: .medium)
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                HStack(spacing: 8) {
+                    Text(verbatim: language.tr(row.1))
+                        .windowFont(12)
+                        .frame(width: 190, alignment: .leading)
+                    TextField("", text: Binding(get: { model.setup.text(row.0) }, set: { model.setSetup(row.0, $0) }))
+                        .textFieldStyle(.roundedBorder)
+                        .windowFont(12, design: .monospaced)
+                        .accessibilityLabel(Text(verbatim: title + " " + language.tr(row.1)))
+                }
+            }
+        }
     }
 }

@@ -312,7 +312,7 @@ import Testing
             "entryHiddenBands", "entryHiddenSections", "esm.keyMap", "goals", "graylineLayers",
             "hamQth.callModes", "hamQth.fetchFields", "keyBindings", "multExpected", "multGridBands", "multGridShowAll",
             "openWindows", "qrz.callModes",
-            "qrz.fetchFields", "transverters", "voiceKeyer.runMessages", "voiceKeyer.spMessages",
+            "qrz.fetchFields", "qtcSetup", "transverters", "voiceKeyer.runMessages", "voiceKeyer.spMessages",
             "windowGeometry",
         ])
     }

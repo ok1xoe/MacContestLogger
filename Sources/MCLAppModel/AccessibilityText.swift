@@ -64,6 +64,8 @@ public enum AccessibilityText {
             parts.append(translator.translate("nový násobič"))
         case .multiMult:
             parts.append(translator.translate("více nových násobičů"))
+        case .qtc:
+            parts.append(translator.translate("duplicitní, QTC možná"))
         }
         return parts.joined(separator: ", ")
     }
