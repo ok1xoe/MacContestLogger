@@ -3,6 +3,10 @@
 The pages below follow the order of the application: first steps, windows, operating, network, data.
 Window names and menu labels are quoted as they appear in the (Czech) user interface.
 
+The whole guide is also available as one PDF (contents, bookmarks, page numbers): every release has
+`MacContestLogger-manual.pdf` attached, and **Nápověda → Stáhnout nejnovější PDF manuál…** in the application
+downloads the latest one.
+
 The screenshots were taken in the earlier Java version of the application; the current native macOS
 version looks slightly different, but the controls and their meaning are the same.
 

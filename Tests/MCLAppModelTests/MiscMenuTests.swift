@@ -19,9 +19,9 @@ import Testing
         #expect(children("view") == ["view.unmatchedMark", "view.qrz", "view.google"])
         #expect(children("help") == ["help.docs", "help.shortcuts", "help.commands", "help.contestRules",
                                      "help.contestCalendar", "help.report", "help.errorLog", "help.dataFolder",
-                                     "help.checkUpdates"])
-        #expect(children("tools").suffix(4) == ["tools.programLogging", "tools.diagnosticsFolder",
-                                                "tools.checkVersion", "tools.checkVersionAtStart"])
+                                     "help.checkUpdates", "help.pdfManual"])
+        #expect(children("tools").suffix(5) == ["tools.programLogging", "tools.diagnosticsFolder",
+                                                "tools.checkVersion", "tools.checkVersionAtStart", "tools.pdfManual"])
         for id in MenuActions.miscIds {
             #expect(app.model.menu.isImplemented(id), "\(id)")
         }

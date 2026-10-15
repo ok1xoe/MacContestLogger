@@ -104,12 +104,18 @@ SIGTERM, SIGINT and SIGHUP run the regular quit, and the transmitter is released
 
     swift run mcl-scorecheck --help    # recompute a Cabrillo log's score and compare it with CLAIMED-SCORE
     swift run mcl-synthlog --help      # generate synthetic logs
+    swift run mcl-manual --out build/manual/MacContestLogger-manual.pdf   # the user guide as a PDF
+
+`mcl-manual` turns `docs/*.md` into one PDF (order and parts from `docs/README.md`; title page, contents with page
+numbers, bookmarks, page numbers, links) using only AppKit's text layout and PDFKit, so it needs nothing installed.
+It fails when a page or an image linked from the guide is missing; CI builds it on every pull request.
 
 ## Release
 
 A release is built by `.github/workflows/release.yml`: pushing a version tag such as `v0.9.0` builds a
 universal (arm64 and x86_64) DMG, checks it on an Intel runner and creates a draft GitHub
-release with `MacContestLogger-<version>-macos-universal.dmg` and its `.sha256`. A suffix such as
+release with `MacContestLogger-<version>-macos-universal.dmg`, its `.sha256` and the user guide
+`MacContestLogger-manual.pdf` (built by `mcl-manual`; the app's Help menu downloads it from the latest release). A suffix such as
 `-rc1` stays in the file name; the bundle version is `0.9.0`. The version rules are in
 `scripts/release-version.sh`. Locally:
 
@@ -150,7 +156,8 @@ and `--sign -` runs the same hardened-runtime path with an ad-hoc signature (no 
   `IO/` (import and export), `Radio/`, `Net/`, `Keys/` and others.
 - `Sources/MCLAppModel` holds the view-independent application state, `Sources/MacContestLogger`
   the AppKit/SwiftUI views and the app entry point.
-- `Sources/mcl-scorecheck` and `Sources/mcl-synthlog` are the command-line tools.
+- `Sources/mcl-scorecheck`, `Sources/mcl-synthlog` and `Sources/mcl-manual` (over `Sources/MCLManual`) are the
+  command-line tools.
 - Tests are in `Tests/MCLCoreTests` (mirroring `Sources/MCLCore`) and `Tests/MCLAppModelTests`.
 - There are no external package dependencies: only the Swift standard library, Foundation, AppKit
   and, in tests, CryptoKit. `Sources/MMTTYCore`, `ModemKit`, `RTTYModem` and `RTTYSignalKit` are the

@@ -2510,5 +2510,18 @@
  "Okno %s": "Fenster %s",
  "Test: stiskni klávesu na jedné z klávesnic": "Test: eine Taste auf einer der Tastaturen drücken",
  "Test: %s — nepřiřazena": "Test: %s — nicht zugeordnet",
- "Test: %s → okno %s": "Test: %s → Fenster %s"
+ "Test: %s → okno %s": "Test: %s → Fenster %s",
+ "Stáhnout nejnovější PDF manuál…": "Neuestes PDF-Handbuch herunterladen…",
+ "Uložit PDF manuál": "PDF-Handbuch speichern",
+ "Stahuji PDF manuál…": "PDF-Handbuch wird heruntergeladen…",
+ "PDF manuál uložen: %s": "PDF-Handbuch gespeichert: %s",
+ "Uložení PDF manuálu selhalo: %s": "Speichern des PDF-Handbuchs fehlgeschlagen: %s",
+ "nejnovější vydání PDF manuál nemá": "die neueste Version hat kein PDF-Handbuch",
+ "soubor je větší, než manuál může být": "die Datei ist größer, als das Handbuch sein kann",
+ "stažený soubor není PDF": "die heruntergeladene Datei ist kein PDF",
+ "přesměrování mimo GitHub (%s) odmítnuto": "Weiterleitung außerhalb von GitHub (%s) abgelehnt",
+ "PDF manuál nejde stáhnout: %s": "Das PDF-Handbuch kann nicht heruntergeladen werden: %s",
+ "Otevřít dokumentaci online": "Online-Dokumentation öffnen",
+ "PDF manuál": "PDF-Handbuch",
+ "Dokumentace je k dispozici online: %s": "Die Dokumentation ist online verfügbar: %s"
 }

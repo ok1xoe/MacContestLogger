@@ -1,6 +1,8 @@
 # Universal (arm64 + x86_64) DMG, signed with Developer ID and notarized when the signing secrets are set.
 #
-# - Tag `v*`           : build, verify on Intel, create a DRAFT GitHub release (the owner publishes it).
+# - Tag `v*`           : build, verify on Intel, create a DRAFT GitHub release (the owner publishes it) with the DMG,
+#                        its checksum and the PDF user guide (`mcl-manual` over docs/; the app's Help menu downloads
+#                        `MacContestLogger-manual.pdf` from the latest release).
 # - workflow_dispatch  : build + verify, artifacts only (never a release); optional `version` input.
 # - pull_request       : the same dry run, only when a release-related file changes; artifacts only.
 # The tag is a version such as v0.9.0 or v1.2.3 (not all zero); a suffix (-rc1) stays in the file name and is cut off from the bundle version
@@ -32,6 +34,8 @@ on:
       - 'packaging/**'
       - 'Package.swift'
       - 'Package.resolved'
+      - 'Sources/MCLManual/**'
+      - 'Sources/mcl-manual/**'
 
 permissions:
   contents: read
@@ -230,6 +234,18 @@ jobs:
           codesign --verify --deep --strict "$MNT/MacContestLogger.app"
           codesign -dv "$MNT/MacContestLogger.app" 2>&1 | grep -E '^(Authority|TeamIdentifier|Timestamp|CodeDirectory)'
           spctl -a -vv "$MNT/MacContestLogger.app"
+      # The user guide as one PDF (AppKit text layout + PDFKit, nothing to install); the name is the same in every
+      # release so `releases/latest/download/MacContestLogger-manual.pdf` always finds the newest one.
+      - name: Build user guide PDF
+        env:
+          FILE_VERSION: ${{ steps.ver.outputs.fileVersion }}
+        run: |
+          set -euo pipefail
+          swift build -c release --product mcl-manual
+          "$(swift build -c release --show-bin-path)/mcl-manual" --docs docs \
+            --out build/release/MacContestLogger-manual.pdf --version "$FILE_VERSION"
+          [ "$(head -c 5 build/release/MacContestLogger-manual.pdf)" = "%PDF-" ]
+          ls -lh build/release/MacContestLogger-manual.pdf
       - name: Check DMG and checksum
         env:
           DMG: ${{ steps.ver.outputs.dmgName }}
@@ -244,6 +260,7 @@ jobs:
           path: |
             build/release/${{ steps.ver.outputs.dmgName }}
             build/release/${{ steps.ver.outputs.dmgName }}.sha256
+            build/release/MacContestLogger-manual.pdf
           if-no-files-found: error
       # Always, also after a failure halfway through the import (the keychain path is fixed, not a step output).
       - name: Remove signing keychain
@@ -320,4 +337,4 @@ jobs:
           ls -lh dist
           gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
             --title "MacContestLogger $GITHUB_REF_NAME" --generate-notes \
-            "dist/$DMG" "dist/$DMG.sha256"
+            "dist/$DMG" "dist/$DMG.sha256" dist/MacContestLogger-manual.pdf

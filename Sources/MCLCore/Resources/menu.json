@@ -97,7 +97,8 @@
         { "id": "tools.programLogging", "label": "Logování běhu programu (diagnostika)", "state": "enable" },
         { "id": "tools.diagnosticsFolder", "label": "Otevřít složku diagnostiky", "state": "enable" },
         { "id": "tools.checkVersion", "label": "Zkontrolovat novou verzi programu…", "state": "enable" },
-        { "id": "tools.checkVersionAtStart", "label": "Kontrolovat novou verzi při spuštění", "state": "enable" }
+        { "id": "tools.checkVersionAtStart", "label": "Kontrolovat novou verzi při spuštění", "state": "enable" },
+        { "id": "tools.pdfManual", "label": "Stáhnout nejnovější PDF manuál…", "state": "enable" }
       ]
     },
     {
@@ -251,7 +252,8 @@
         { "id": "help.report", "label": "Nahlásit chybu…", "state": "enable" },
         { "id": "help.errorLog", "label": "Zobrazit chybový log", "state": "enable" },
         { "id": "help.dataFolder", "label": "Otevřít datovou složku", "state": "enable" },
-        { "id": "help.checkUpdates", "label": "Zkontrolovat aktualizace…", "state": "enable" }
+        { "id": "help.checkUpdates", "label": "Zkontrolovat aktualizace…", "state": "enable" },
+        { "id": "help.pdfManual", "label": "Stáhnout nejnovější PDF manuál…", "state": "enable" }
       ]
     },
     { "id": "buffer", "label": "Nezařazené", "state": "hidden", "children": [] }

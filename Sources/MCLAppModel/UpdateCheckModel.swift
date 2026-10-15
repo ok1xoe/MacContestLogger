@@ -14,12 +14,16 @@ public final class UpdateCheckModel {
         case newer(UpdateCheck.Release, current: String)
         case upToDate(current: String)
         case failed(ContestMessage)
+        /// The PDF manual could not be downloaded (why); the alert offers the online documentation.
+        case manualFailed(ContestMessage)
     }
 
     /// The alert of the main window (`nil` = none).
     public var notice: Notice?
     /// A check is in flight.
     public private(set) var isChecking = false
+    /// The PDF manual is being downloaded.
+    public private(set) var isDownloadingManual = false
 
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private let status: StatusModel
@@ -28,6 +32,9 @@ public final class UpdateCheckModel {
     /// The API address (tests may point it at a local server).
     @ObservationIgnored var url: String = UpdateCheck.latestReleaseUrl
     @ObservationIgnored private var task: Task<Void, Never>?
+    /// The manual's address (tests may point it at a local server).
+    @ObservationIgnored var manualUrl: String = ManualDownload.latestUrl
+    @ObservationIgnored private var manualTask: Task<Void, Never>?
 
     init(config: ConfigModel, status: StatusModel, network: NetworkPorts, appVersion: String?) {
         self.config = config
@@ -133,8 +140,77 @@ public final class UpdateCheckModel {
         notice = .failed(text)
     }
 
-    /// Waits for the check in flight (tests).
+    /// Waits for the check and the manual download in flight (tests).
     func settle() async {
         await task?.value
+        await manualTask?.value
+    }
+
+    // MARK: - the PDF manual
+
+    /// N1MM „Download latest PDF manual" before its save panel: refused (with the reason in the status line) under
+    /// `MCL_INERT_NETWORK` or while a download runs.
+    public func canDownloadManual() -> Bool {
+        guard !network.isInert else {
+            status.show("Síť je vypnutá (MCL_INERT_NETWORK)")
+            return false
+        }
+        return !isDownloadingManual
+    }
+
+    /// Downloads the manual of the newest release and saves it to `file` (chosen by the user in the save panel).
+    /// Nothing is written unless the answer is a PDF within the size limit.
+    public func downloadManual(to file: URL) {
+        guard canDownloadManual() else { return }
+        isDownloadingManual = true
+        status.show("Stahuji PDF manuál…")
+        let fetch: ManualFetcher = network.fetchManual
+        let address: String = manualUrl
+        manualTask = Task { [weak self] in
+            let outcome: ManualDownload.Outcome = await fetch(address)
+            self?.finishManual(outcome, file: file)
+        }
+    }
+
+    private func finishManual(_ outcome: ManualDownload.Outcome, file: URL) {
+        isDownloadingManual = false
+        let reason: ContestMessage
+        switch outcome {
+        case .pdf(let data):
+            do {
+                try data.write(to: file, options: .atomic)
+                status.show("PDF manuál uložen: %s", .string(file.path))
+                return
+            } catch {
+                let text = ContestMessage("Uložení PDF manuálu selhalo: %s", parts: [.value(.string(ErrorText.message(error)))])
+                status.show(text)
+                notice = .failed(text)
+                return
+            }
+        case .notPublished:
+            reason = ContestMessage("nejnovější vydání PDF manuál nemá")
+        case .httpStatus(let code):
+            reason = .verbatim("HTTP " + String(code))
+        case .tooLarge:
+            reason = ContestMessage("soubor je větší, než manuál může být")
+        case .notPdf:
+            reason = ContestMessage("stažený soubor není PDF")
+        case .redirectRefused(let host):
+            reason = ContestMessage("přesměrování mimo GitHub (%s) odmítnuto", parts: [.value(.string(host))])
+        case .failed(let text):
+            reason = .verbatim(text)
+        }
+        let text = ContestMessage("PDF manuál nejde stáhnout: %s", parts: [.message(reason)])
+        status.show(text)
+        notice = .manualFailed(text)
+    }
+
+    /// „Otevřít dokumentaci online" of the failure alert.
+    public func openOnlineDocs() {
+        let opener: UrlOpener = network.urlOpener
+        notice = nil
+        Task.detached {
+            opener.open(ManualDownload.docsUrl)
+        }
     }
 }
