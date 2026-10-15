@@ -72,12 +72,16 @@ import Testing
         #expect(abs(mark - 2165) < 15, "mark \(mark)")
     }
 
-    /// Two signals 600 Hz apart: each decoder tuned to its own mark reads only its own station.
+    /// Two signals 850 Hz apart: each decoder tuned to its own mark reads only its own station.
     @Test func twoSignalsTwoDecoders() async throws {
         let one = RTTYSignalGenerator(sampleRate: Self.rate, markHz: 1275, amplitude: 0.25).generate(text: "DE OK1AAA OK1AAA K\r\n")
         let two = RTTYSignalGenerator(sampleRate: Self.rate, markHz: 2125, amplitude: 0.25).generate(text: "DE DL2BBB DL2BBB K\r\n")
-        let mixed = (0..<max(one.count, two.count)).map { i in
-            (i < one.count ? one[i] : 0) + (i < two.count ? two[i] : 0)
+        var mixed = [Float](repeating: 0, count: max(one.count, two.count))
+        for (index, sample) in one.enumerated() {
+            mixed[index] += sample
+        }
+        for (index, sample) in two.enumerated() {
+            mixed[index] += sample
         }
         let low = try RTTYModem(sampleRate: Self.rate)
         try low.set(parameter: "afc", value: .bool(false))
