@@ -3,7 +3,7 @@ id: arrl-dx-ssb-wve
 metadata:
   name: "ARRL International DX Contest — SSB (W/VE and DX)"
   organizer: "ARRL"
-  description: "For both sides. W/VE (48 US states + DC and Canada; KL7/KH6 count as DX) work DX only and send RST + state/province; DX stations work W/VE only and send RST + power. 3 points per QSO. W/VE count DXCC entities per band, DX count states/DC/provinces per band. My side is detected from my own DXCC entity. Maritime mobile stations (contact credit only) are not distinguished."
+  description: "For both sides. W/VE (48 US states + DC and Canada; KL7/KH6 count as DX) work DX only and send RST + state/province; DX stations work W/VE only and send RST + power. 3 points per QSO. W/VE count DXCC entities per band, DX count states/DC/provinces per band. My side is detected from my own DXCC entity. Working DX, the space bar puts the station's usual power into an empty Power field (100 W; 200 W UA/UA2/UA9/UK/UN/UR; 400 W G/GM/GI/GD/GW; 500 W I/IS). Maritime mobile stations (contact credit only) are not distinguished."
   officialUrl: "https://www.arrl.org/arrl-dx"
 period: { durationHours: 48, startWeekday: SAT, startTime: "0000" }
 bands: [160m, 80m, 40m, 20m, 15m, 10m]
@@ -21,7 +21,19 @@ exchange:
   received:
     - { id: rst,   type: RST,   required: true }
     - { id: state, type: STATE, required: true, appliesWhen: { workedClass: wve } }   # from W/VE
-    - { id: power, type: TEXT,  required: true, appliesWhen: { workedClass: dx } }    # from DX
+    # from DX; the space bar fills the DX station's usual power when the field is empty (as N1MM)
+    - id: power
+      type: TEXT
+      required: true
+      appliesWhen: { workedClass: dx }
+      prefill:
+        # UA, UA2, UA9, UK, UN, UR, R1FJ, R1MV
+        - { when: { entityIn: [54, 126, 15, 292, 130, 288, 61, 151] }, value: "200" }
+        # G, GM (incl. GM/s), GI, GD, GW
+        - { when: { entityIn: [223, 279, 265, 114, 294] }, value: "400" }
+        # I (incl. IT9), IS
+        - { when: { entityIn: [248, 225] }, value: "500" }
+        - { value: "100" }
 
 # W/VE work DX only, DX work W/VE only
 workable:

@@ -292,12 +292,16 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
         /// `split: true` (Swift-only key, N1MM 7QP county line): a received value `A/B/C` logs one QSO per part;
         /// a shorter part takes the leading characters of the first one (`ORDES/JEF` = `ORDES` + `ORJEF`).
         public var split: Bool
+        /// A received field's default value (Swift-only key, N1MM's ARRL DX default power): the first rule whose
+        /// `when` matches the worked station (no `when` = always) fills the empty field on the space bar.
+        public var prefill: [PrefillRule?]?
 
         public init(id: String?, type: FieldType?, required: Bool, source: FieldSource?,
                     appliesWhen: AppliesWhen?, validation: FieldValidation?, estimate: String? = nil,
-                    derive: String? = nil, split: Bool = false) {
+                    derive: String? = nil, split: Bool = false, prefill: [PrefillRule?]? = nil) {
             self.derive = derive
             self.split = split
+            self.prefill = prefill
             self.id = id
             self.type = type
             self.required = required
@@ -317,6 +321,7 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
             estimate = object.string("estimate")
             derive = object.string("derive")
             split = object.bool("split") ?? false
+            prefill = object.list("prefill", of: PrefillRule.self)
         }
 
         /// `derive: lastCall2L` / `lastCallSuffix` (case-insensitive) of a `DERIVED` field.
@@ -340,6 +345,22 @@ public struct ContestDefinition: YamlRecord, Equatable, Sendable {
 
         public init(yaml object: YamlObject) {
             workedClass = object.string("workedClass")
+        }
+    }
+
+    /// One rule of a received field's `prefill`: `{ when: <condition>, value: "200" }`.
+    public struct PrefillRule: YamlRecord, Equatable, Sendable {
+        public var when: Condition?
+        public var value: String?
+
+        public init(when: Condition? = nil, value: String?) {
+            self.when = when
+            self.value = value
+        }
+
+        public init(yaml object: YamlObject) {
+            when = object.decode("when", as: Condition.self)
+            value = object.string("value")
         }
     }
 
