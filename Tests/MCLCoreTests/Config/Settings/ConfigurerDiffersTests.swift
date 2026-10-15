@@ -3,7 +3,9 @@ import Testing
 
 /// Change predicates (`ui/configurer/ConfigurerDraft.kt:202-246, 319-327`) against the old configuration. Values
 /// marked "probe" are measured by a maintainer-only probe.
-@Suite struct ConfigurerDiffersTests {
+/// Main actor: in a Swift 6.1 debug build these tests' frames hold many `AppConfig` / `ConfigurerDraft` copies
+/// (up to ~480 KB), which together with the callees overflows a 512 KB worker thread stack; the main thread has 8 MB.
+@MainActor @Suite struct ConfigurerDiffersTests {
 
     static let defaultDir = "/data/contest-data"
 
