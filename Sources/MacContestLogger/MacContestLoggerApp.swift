@@ -77,6 +77,9 @@ struct MacContestLoggerApp: App {
         toolWindow("CW Reader", id: CwReaderWindowView.id, size: CGSize(width: 620, height: 300)) {
             CwReaderWindowView(host: host)
         }
+        toolWindow("CW Reader 2", id: CwReaderWindowView.id2, size: CGSize(width: 620, height: 300)) {
+            CwReaderWindowView(host: host, radio: 1)
+        }
         toolWindow("Digitální rozhraní", id: DigitalInterfaceWindowView.id, size: CGSize(width: 680, height: 340)) {
             DigitalInterfaceWindowView(host: host)
         }
@@ -85,6 +88,9 @@ struct MacContestLoggerApp: App {
         }
         toolWindow("Vodopád", id: WaterfallWindowView.id, size: CGSize(width: 760, height: 380)) {
             WaterfallWindowView(host: host)
+        }
+        toolWindow("Vodopád 2", id: WaterfallWindowView.id2, size: CGSize(width: 760, height: 380)) {
+            WaterfallWindowView(host: host, radio: 1)
         }
 
         // The spot windows: the DX Cluster, the Bandmap, the Available Multipliers and the Blacklist, opened from
@@ -98,6 +104,9 @@ struct MacContestLoggerApp: App {
         }
         toolWindow("Dostupné multiplikátory", id: AvailMultWindowView.id, size: CGSize(width: 720, height: 520)) {
             AvailMultWindowView(host: host)
+        }
+        toolWindow("Dostupné multiplikátory 2", id: AvailMultWindowView.id2, size: CGSize(width: 720, height: 520)) {
+            AvailMultWindowView(host: host, radio: 1)
         }
         toolWindow("Blacklist", id: BlacklistWindowView.id, size: CGSize(width: 640, height: 480)) {
             BlacklistWindowView(host: host)

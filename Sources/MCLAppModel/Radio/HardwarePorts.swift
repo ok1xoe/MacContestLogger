@@ -93,6 +93,12 @@ public struct HardwarePorts: Sendable {
         -> VoiceKeyer.AudioOut = { _, _ in
         { _, _ in throw InertHardwareError() }
     }
+    /// The voice keyer's output with N1MM's SO2R routing (the third closure: 1 = left channel only, 2 = right only);
+    /// used only while a radio's messages are routed to one channel.
+    public var voicePlayerRouted: @Sendable (@escaping @Sendable () -> String?, @escaping @Sendable () -> Double,
+                                             @escaping @Sendable () -> Int) -> VoiceKeyer.AudioOut = { _, _, _ in
+        { _, _ in throw InertHardwareError() }
+    }
     /// The voice keyer's wait between PTT on and the audio (`nil` = the real wait of `VoiceKeyer`; tests hold it).
     public var voicePttDelay: VoiceKeyer.Delay?
     /// `SoundCard.record(target, inputDevice)` — recording a voice message (blocks; called on the voice lane).
@@ -164,6 +170,9 @@ public struct HardwarePorts: Sendable {
             try SoundCard.playPcm(bytes, format: format, deviceName: device, cancelled: cancelled)
         }
         ports.voicePlayer = { device, gain in SoundCard.player(deviceName: device, gain: gain) }
+        ports.voicePlayerRouted = { device, gain, channel in
+            SoundCard.player(deviceName: device, gain: gain, channel: channel)
+        }
         ports.recordMessage = { target, device in try SoundCard.record(target: target, deviceName: device) }
         ports.microphoneAccess = { await MicrophoneAccess.request() }
         ports.synthesize = { cacheDir, voice, text in MacSpeech(cacheDir: cacheDir, voice: voice).synthesize(text) }

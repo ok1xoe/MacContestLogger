@@ -17,9 +17,13 @@ public final class AudioModel {
     @ObservationIgnored private let config: ConfigModel
     @ObservationIgnored private var closed = false
 
-    init(hardware: HardwarePorts, config: ConfigModel) {
+    /// The input device's name (Settings → Audio; radio 2's own input for the SO2R reader and spectrum).
+    @ObservationIgnored private let deviceName: @MainActor () -> String
+
+    init(hardware: HardwarePorts, config: ConfigModel, deviceName: (@MainActor () -> String)? = nil) {
         self.hardware = hardware
         self.config = config
+        self.deviceName = deviceName ?? { [weak config] in config?.config.rxAudioDevice ?? "" }
     }
 
     @ObservationIgnored private var setupModel: AudioSetupModel?
@@ -74,7 +78,7 @@ public final class AudioModel {
         }
         device = .starting
         let startEpoch: Int = epoch
-        let deviceName: String = config.config.rxAudioDevice
+        let deviceName: String = self.deviceName()
         let capture: AudioCapture = self.capture
         let start: @Sendable (AudioCapture, String?) throws(AudioIOError) -> Void = hardware.startAudio
         let failure: String? = await withCheckedContinuation { (continuation: CheckedContinuation<String?, Never>) in

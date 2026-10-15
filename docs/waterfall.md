@@ -9,6 +9,10 @@ SDR, from the **receiver audio**. Open via **Okno → Vodopád** (Window → Wat
 
 - **Nastavení → Audio → Příjem** (Settings → Audio → Receive): the sound card input that carries the audio
   from the rig (USB audio CODEC), and the receiver's **CW tone** (default 600 Hz).
+- **Okno → Vodopád 2 (rádio 2)** (N1MM's spectrum window with an associated radio): bound to radio 2 / VFO B — its
+  frequency, and its clicks, the wheel and Shift+↑/↓ in the VFO B window tune radio 2 (the focus stays). In SO2R it
+  shows radio 2's own audio input, chosen at the top of the window; the external (UDP) source stays with the first
+  window.
 - The window draws an FFT of the audio, 0–3 kHz: the **spectrum pane** on top and the **waterfall** below
   (newest line at the top; noise in dark blue, strong signals up to yellow). The waterfall brightness adapts
   to the noise floor.

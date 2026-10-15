@@ -49,6 +49,20 @@ public final class AvailMultModel {
     public var showFilter = false
     /// N1MM „Focus radio": only the spots on the band of the radio / VFO with the focus.
     public var focusRadioOnly = false
+    /// The second Available window (`availMult2`): bound to radio 2 / VFO B — its „Focus radio" band is that radio's
+    /// and a click tunes it (the other radio, the focus staying, when it has no focus). `nil` = the focused radio.
+    public internal(set) var radio: Int?
+
+    /// The window is bound to the radio without the entry focus.
+    var bindsOtherRadio: Bool {
+        guard let radio, rig.vfo.twoEntryWindows else { return false }
+        return radio != rig.vfo.activeVfo
+    }
+
+    /// The band „Focus radio" shows: the bound radio's, otherwise the focused one's.
+    var focusedBand: Band? {
+        bindsOtherRadio ? rig.otherRadioBand : rig.currentBand
+    }
     /// The sheet of the columns and the summary panel.
     public var showColumns = false
     /// The call Alt+A / Shift+Alt+A took last (the list's cursor; the row is highlighted).
@@ -124,7 +138,7 @@ public final class AvailMultModel {
     public func snapshot() -> Snapshot {
         let key = CacheKey(feed: feed.revision, analysis: analysis.revision, active: contest.isActive,
                            multsOnly: multsOnly, bands: bands, modes: modes,
-                           focusBand: focusRadioOnly ? rig.currentBand : nil, column: sortColumn,
+                           focusBand: focusRadioOnly ? focusedBand : nil, column: sortColumn,
                            ascending: ascending)
         // The speaker column changes with the waterfall, not with the spots: it is never cached.
         if sortColumn == .heard {
@@ -202,6 +216,14 @@ public final class AvailMultModel {
     /// A click on a row: tune to the call's spot, or (none left in the buffer) `qsy(freq, call)`. With two radios a
     /// spot on the other radio's band first takes the focus there (N1MM focus follows spot).
     public func click(_ row: SpotRow) {
+        if bindsOtherRadio {
+            if let spot = rig.spotForCall(row.call) {
+                rig.tuneOtherToSpot(spot)
+            } else {
+                rig.qsyOtherRadio(Int64(row.freqHz))
+            }
+            return
+        }
         rig.focusRadio(forSpotHz: row.freqHz)
         if let spot = rig.spotForCall(row.call) {
             rig.tuneToSpot(spot)

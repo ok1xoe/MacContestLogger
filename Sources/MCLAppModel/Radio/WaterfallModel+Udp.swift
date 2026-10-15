@@ -7,9 +7,10 @@ import MCLCore
 /// is open, never with the inert network ports (`MCL_INERT_NETWORK`); the socket work runs on its own lane.
 extension WaterfallModel {
 
-    /// The source the display shows (N1MM „Spectrum Source").
+    /// The source the display shows (N1MM „Spectrum Source"). The second window (radio 2) shows radio 2's audio
+    /// input; the external (UDP) source belongs to the first window.
     var activeSource: any SpectrumSource {
-        setup.source == .external ? externalSource : audioSource
+        showsExternal ? externalSource : audioSource
     }
 
     /// The bound receive port (`nil` = not listening).

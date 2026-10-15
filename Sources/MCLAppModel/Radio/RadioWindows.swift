@@ -125,6 +125,37 @@ extension AppModel {
         })
     }
 
+    /// The second CW reader (`cwreader2`, N1MM's two readers in SO2V / SO2R): radio 2's audio input, its calls go
+    /// into the VFO B / rig 2 window.
+    public func makeCwReader2() -> CwReaderModel {
+        CwReaderModel(audio: audio2, config: config, clock: radioWindowClock, prefill: { [weak self] call in
+            self?.vfoB.entry.prefillCall(call)
+        })
+    }
+
+    /// The input device of radio 2 (SO2R; the second CW Reader and spectrum window), saved.
+    public func setRadio2AudioDevice(_ name: String) {
+        var setup: So2rSetup = config.config.so2r
+        setup.set(.rx2AudioDevice, name)
+        config.config.so2r = setup
+        config.saveSilently()
+    }
+
+    /// The second spectrum window (`waterfall2`): bound to radio 2 / VFO B — its frequency and mode, its clicks tune
+    /// that radio — over radio 2's audio input (SO2R), or over the receiver audio in SO2V.
+    public func makeWaterfall2() -> WaterfallModel {
+        let model = WaterfallModel(audio: rig.vfo.so2r ? audio2 : audio, rig: rig, config: config,
+                                   clock: radioWindowClock)
+        model.radio = 1
+        model.spotsProvider = { [weak self] lo, hi in
+            self?.spectrumSpots(lowHz: lo, highHz: hi) ?? []
+        }
+        vfoB.entry.spectrumJump = { [weak model] direction, fromHz in
+            model?.jump(direction: direction, fromHz: fromHz) ?? false
+        }
+        return model
+    }
+
     /// The waterfall window's model (`waterfall`).
     public func makeWaterfall() -> WaterfallModel {
         let model = WaterfallModel(audio: audio, rig: rig, config: config, clock: radioWindowClock)

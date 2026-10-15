@@ -43,13 +43,43 @@ public enum SoundCard {
         }
     }
 
-    /// `player` over any output (tests substitute a replacement — no device).
+    /// `player` over any output (tests substitute a replacement — no device). `channel` (read at each playback,
+    /// N1MM SO2R DVK routing): 0 = as recorded, 1 = only the left channel, 2 = only the right one.
     static func player(deviceName: @escaping @Sendable () -> String?, gain: @escaping @Sendable () -> Double = { 1 },
+                       channel: @escaping @Sendable () -> Int = { 0 },
                        output: @escaping @Sendable (WavFile.PcmFormat, String?) throws -> any SoundOutput)
         -> VoiceKeyer.AudioOut {
         { file, cancelled in
-            try play(file, deviceName: deviceName(), cancelled: cancelled, gain: gain(), output: output)
+            try play(file, deviceName: deviceName(), cancelled: cancelled, gain: gain(), channel: channel(),
+                     output: output)
         }
+    }
+
+    /// The voice keyer's player with N1MM's SO2R routing of the messages to the left or right channel.
+    public static func player(deviceName: @escaping @Sendable () -> String?, gain: @escaping @Sendable () -> Double,
+                              channel: @escaping @Sendable () -> Int) -> VoiceKeyer.AudioOut {
+        player(deviceName: deviceName, gain: gain, channel: channel) { format, device in
+            try EngineOutput(format: format, deviceName: device)
+        }
+    }
+
+    /// N1MM SO2R DVK routing: a mono stream as stereo with the sound only in the left (`channel` 1) or the right (2)
+    /// channel, the other one silent. Anything else (`channel` 0, a stereo file) unchanged.
+    public static func routed(_ stream: [UInt8], format: WavFile.PcmFormat,
+                              channel: Int) -> (format: WavFile.PcmFormat, stream: [UInt8]) {
+        guard channel == 1 || channel == 2, format.channels == 1, format.frameSize > 0 else { return (format, stream) }
+        let width: Int = format.frameSize
+        let stereo = WavFile.PcmFormat(sampleRate: format.sampleRate, bits: format.bits, channels: 2,
+                                       frameSize: width * 2)
+        let frames: Int = stream.count / width
+        var out = [UInt8](repeating: 0, count: frames * width * 2)
+        let offset: Int = channel == 1 ? 0 : width
+        for frame in 0..<frames {
+            for k in 0..<width {
+                out[frame * width * 2 + offset + k] = stream[frame * width + k]
+            }
+        }
+        return (stereo, out)
     }
 
     /// Signed little-endian PCM (16, 24 or 32 bits) scaled by `gain` (0…1); other widths and a gain of 1 unchanged.
@@ -92,13 +122,13 @@ public enum SoundCard {
     /// parsing) — a message cancelled before the start or a wav without data does not open the device at all, and so does not report
     /// its unavailability.
     static func play(_ file: JavaPath, deviceName: String?, cancelled: () -> Bool, gain: Double = 1,
-                     output: SoundOutputFactory) throws {
+                     channel: Int = 0, output: SoundOutputFactory) throws {
         let bytes = try readFile(file.description)
         guard let wav = WavFile.parse(bytes) else {
             throw AudioIOError("Nepodporovaný formát wav: " + fileName(file))
         }
-        let (format, raw) = wav.playable()
-        let stream: [UInt8] = scaled(raw, bits: format.bits, gain: gain)
+        let (recorded, raw) = wav.playable()
+        let (format, stream) = routed(scaled(raw, bits: recorded.bits, gain: gain), format: recorded, channel: channel)
         let step = 4096 - 4096 % max(1, format.frameSize)
         var line: (any SoundOutput)?
         defer { line?.close() }

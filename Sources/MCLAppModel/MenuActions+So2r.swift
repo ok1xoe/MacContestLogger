@@ -10,10 +10,33 @@ extension MenuActions {
     static let so2rIds: Set<String> = [
         "so2r.dueling", "so2r.duelingTime", "so2r.focusOther", "so2r.focusOtherAlways", "so2r.ctrlFx",
         "so2r.stereoMacros", "so2r.swapTail", "so2r.swapLead", "so2r.winkeyer2", "so2r.so2vRepeat",
+        "so2r.voice1.both", "so2r.voice1.left", "so2r.voice1.right", "so2r.voice2.both", "so2r.voice2.left",
+        "so2r.voice2.right",
     ]
+
+    /// N1MM SO2R DVK routing: `so2r.voice<radio>.<channel>` → the radio's key and the channel.
+    static func voiceRouting(_ id: String) -> (key: So2rSetup.Key, channel: So2rSetup.VoiceChannel)? {
+        let parts: [Substring] = id.split(separator: ".")
+        guard parts.count == 3, parts[0] == "so2r", let channel = So2rSetup.VoiceChannel(rawValue: String(parts[2]))
+        else { return nil }
+        switch parts[1] {
+        case "voice1": return (.voiceChannel1, channel)
+        case "voice2": return (.voiceChannel2, channel)
+        default: return nil
+        }
+    }
 
     /// Runs one of `so2rIds`.
     static func performSo2r(_ id: String, app: AppModel) {
+        if let routing = voiceRouting(id) {
+            var setup: So2rSetup = app.config.config.so2r
+            setup.set(routing.key, routing.channel.rawValue)
+            app.config.config.so2r = setup
+            app.config.save(failureKey: "Uložení nastavení selhalo: %s")
+            app.status.show("Hlasové zprávy rádia %s: %s", .int(routing.key == .voiceChannel1 ? 1 : 2),
+                            .string(app.language.tr(voiceChannelLabel(routing.channel))))
+            return
+        }
         switch id {
         case "so2r.dueling":
             guard let automation = app.so2rAutomation else { return }
@@ -51,8 +74,20 @@ extension MenuActions {
     }
 
     /// The ✓ of the SO2R toggles.
+    /// The label of a DVK routing channel.
+    static func voiceChannelLabel(_ channel: So2rSetup.VoiceChannel) -> String {
+        switch channel {
+        case .both: "Oba kanály"
+        case .left: "Jen levý kanál"
+        case .right: "Jen pravý kanál"
+        }
+    }
+
     static func isSo2rChecked(_ id: String, app: AppModel) -> Bool {
         let setup: So2rSetup = app.config.config.so2r
+        if let routing = voiceRouting(id) {
+            return setup.text(routing.key) == routing.channel.rawValue
+        }
         switch id {
         case "so2r.dueling":
             return app.operating.duelingCq

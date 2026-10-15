@@ -8,21 +8,37 @@ import SwiftUI
 /// the band summary (its bands chosen, hidden or clicked to filter) and the spot list with the user's columns (every
 /// header sorts, the dividers drag the widths); a click tunes to the spot, a middle click deletes it, a right click
 /// opens the row menu. Without a contest only „Žádný aktivní závod." shows.
+///
+/// `radio` 1 (`availMult2`, N1MM's Available window of the second entry window): bound to radio 2 / VFO B.
 struct AvailMultWindowView: View {
     static let id = "availMult"
+    static let id2 = "availMult2"
 
     let host: AppHost
+    let radio: Int
 
-    @StateObject private var session = WindowSession(id: AvailMultWindowView.id, persistSize: true,
-                                                     defaultSize: CGSize(width: 720, height: 520))
+    @StateObject private var session: WindowSession
+
+    init(host: AppHost, radio: Int = 0) {
+        self.host = host
+        self.radio = radio
+        _session = StateObject(wrappedValue: WindowSession(id: radio == 1 ? Self.id2 : Self.id, persistSize: true,
+                                                           defaultSize: CGSize(width: 720, height: 520)))
+    }
+
+    private func model(_ app: AppModel) -> AvailMultModel {
+        radio == 1 ? app.availMult2 : app.availMult
+    }
 
     var body: some View {
         Group {
             if let app = host.model {
                 content(app)
-                    .modifier(RadioWindowChrome(host: host, app: app, id: Self.id, title: "Dostupné multiplikátory",
+                    .modifier(RadioWindowChrome(host: host, app: app, id: radio == 1 ? Self.id2 : Self.id,
+                                                title: radio == 1 ? "Dostupné multiplikátory 2"
+                                                    : "Dostupné multiplikátory",
                                                 binder: session.binder))
-                    .onAppear { app.availMult.resetSort() }
+                    .onAppear { model(app).resetSort() }
             } else {
                 Color.clear
             }
@@ -32,7 +48,7 @@ struct AvailMultWindowView: View {
 
     private func content(_ app: AppModel) -> some View {
         let language: LanguageModel = app.language
-        let model: AvailMultModel = app.availMult
+        let model: AvailMultModel = model(app)
         let snapshot: AvailMultModel.Snapshot = model.snapshot()
         let columns: [AvailableColumn] = model.columns
         return VStack(alignment: .leading, spacing: 4) {

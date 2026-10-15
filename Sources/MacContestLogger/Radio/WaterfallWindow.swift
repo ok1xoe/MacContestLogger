@@ -9,22 +9,36 @@ import SwiftUI
 /// the pointer (in the spectrum snapped to the nearest signal), Cmd+press sets the split transmit frequency, the
 /// wheel moves the levels over the spectrum and tunes over the waterfall, `−` / `+` zoom. The window holds the
 /// receiver audio while it is open.
+///
+/// `radio` 1 (`waterfall2`, N1MM's spectrum window with an associated radio): radio 2 / VFO B — its frequency, its
+/// clicks and, in SO2R, radio 2's audio input.
 struct WaterfallWindowView: View {
     static let id = "waterfall"
+    static let id2 = "waterfall2"
 
     let host: AppHost
+    let radio: Int
 
-    @StateObject private var session = WindowSession(id: WaterfallWindowView.id, persistSize: true,
-                                                     defaultSize: CGSize(width: 760, height: 380))
+    @StateObject private var session: WindowSession
+
+    init(host: AppHost, radio: Int = 0) {
+        self.host = host
+        self.radio = radio
+        _session = StateObject(wrappedValue: WindowSession(id: radio == 1 ? Self.id2 : Self.id, persistSize: true,
+                                                           defaultSize: CGSize(width: 760, height: 380)))
+    }
+
+    private var windowId: String { radio == 1 ? Self.id2 : Self.id }
     @StateObject private var holder = WindowModelHolder<WaterfallModel>()
     @State private var showingOptions = false
 
     var body: some View {
         Group {
             if let app = host.model {
-                let model: WaterfallModel = holder.model { app.makeWaterfall() }
+                let model: WaterfallModel = holder.model { radio == 1 ? app.makeWaterfall2() : app.makeWaterfall() }
                 content(app, model)
-                    .modifier(RadioWindowChrome(host: host, app: app, id: Self.id, title: "Vodopád",
+                    .modifier(RadioWindowChrome(host: host, app: app, id: windowId,
+                                                title: radio == 1 ? "Vodopád 2" : "Vodopád",
                                                 binder: session.binder))
                     .task { await model.open() }
                     .onDisappear { model.close() }
@@ -41,6 +55,12 @@ struct WaterfallWindowView: View {
         let infoText: String = info.text.text(language.translator, decimalSeparator: language.decimalSeparator)
         return VStack(alignment: .leading, spacing: 6) {
             WindowTopBar(size: $session.fontSize, language: language)
+            if radio == 1 && app.rig.vfo.so2r {
+                Radio2InputRow(app: app) {
+                    model.close()
+                    Task { await model.open() }
+                }
+            }
             HStack(spacing: 8) {
                 Text(verbatim: infoText)
                     .windowFont(12)

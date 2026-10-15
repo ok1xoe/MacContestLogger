@@ -210,6 +210,8 @@ public final class AppModel {
     public let functionKeyFiles: FunctionKeyFilesModel
     /// The shared receiver audio.
     public let audio: AudioModel
+    /// Radio 2's receiver audio (SO2R).
+    public let audio2: AudioModel
     /// The contest recording and the QSO playback.
     public let recording: RecordingModel
     /// The DX cluster connections, main and parallel.
@@ -232,6 +234,8 @@ public final class AppModel {
     public let bandmap: BandmapModel
     /// The Available Multipliers window and its filter.
     public let availMult: AvailMultModel
+    /// The second Available window's model (radio 2 / VFO B).
+    public let availMult2: AvailMultModel
     /// The UDP integrations: broadcast, WSJT-X, N1MM and ADIF receive.
     @ObservationIgnored public internal(set) var integrations: IntegrationsModel!
     /// Club Log, the scoreboard and the clock check.
@@ -341,6 +345,7 @@ public final class AppModel {
         self.functionKeyFiles = FunctionKeyFilesModel(config: config, contest: contest, operating: operating,
                                                       status: status, dataDir: dataDir)
         self.audio = radio.audio
+        self.audio2 = radio.audio2
         self.recording = radio.recording
         self.dxCluster = spots.dxCluster
         self.spotFeed = spots.feed
@@ -350,6 +355,7 @@ public final class AppModel {
         self.spotNavigation = spotTools.navigation
         self.bandmap = spotTools.bandmap
         self.availMult = spotTools.availMult
+        self.availMult2 = spotTools.availMult2
         self.cluster = net.cluster
         self.network = net.network
         self.vfoB = vfoB
@@ -558,12 +564,14 @@ public final class AppModel {
             await keyer?.shutdown()
         }
         model.shutdownServices.cat = { [weak rig = radio.rig, weak peripherals = radio.peripherals,
-                                        weak recording = radio.recording, weak audio = radio.audio] in
+                                        weak recording = radio.recording, weak audio = radio.audio,
+                                        weak audio2 = radio.audio2] in
             await rig?.shutdown()
             await peripherals?.shutdown()
             await rig?.rotator.shutdown()
             await recording?.shutdown()
             await audio?.shutdown()
+            await audio2?.shutdown()
         }
         model.shutdownServices.dxCluster = { [weak dxCluster = spots.dxCluster, weak callbook = spots.callbook,
                                               weak feed = spots.feed] in
@@ -666,6 +674,8 @@ public final class AppModel {
         let catLog: CatLogModel
         let keyer: KeyerModel
         let audio: AudioModel
+        /// Radio 2's receiver audio (SO2R: the second CW Reader and spectrum window).
+        let audio2: AudioModel
         let recording: RecordingModel
     }
 
@@ -687,8 +697,11 @@ public final class AppModel {
         let recording = RecordingModel(RecordingModel.Dependencies(
             audio: audio, config: config, status: status, hardware: hardware, dataDir: environment.dataDir,
             now: environment.now))
+        let audio2 = AudioModel(hardware: hardware, config: config) { [weak config] in
+            config?.config.so2r.text(.rx2AudioDevice) ?? ""
+        }
         return Radio(rig: rig, peripherals: peripherals, catLog: CatLogModel(log: environment.catLog), keyer: keyer,
-                     audio: audio, recording: recording)
+                     audio: audio, audio2: audio2, recording: recording)
     }
 
     /// The keyer and the main entry window: the free CW text and the voice messages use the window's `cwContext`,
@@ -854,6 +867,7 @@ public final class AppModel {
         let navigation: SpotNavigation
         let bandmap: BandmapModel
         let availMult: AvailMultModel
+        let availMult2: AvailMultModel
     }
 
     private static func makeSpotTools(_ spots: Spots, radio: Radio, environment: Environment, config: ConfigModel,
@@ -866,10 +880,15 @@ public final class AppModel {
             feed: spots.feed, analysis: spots.analysis, contest: contest, config: config, operating: operating,
             blacklist: spots.blacklist, callbook: spots.callbook, rig: radio.rig, status: status, language: language,
             dialogs: dialogs, now: environment.now))
-        let availMult = AvailMultModel(AvailMultModel.Dependencies(
+        let availDependencies = AvailMultModel.Dependencies(
             feed: spots.feed, analysis: spots.analysis, contest: contest, blacklist: spots.blacklist,
-            callbook: spots.callbook, rig: radio.rig, config: config, status: status, now: environment.now))
-        return SpotTools(navigation: navigation, bandmap: bandmap, availMult: availMult)
+            callbook: spots.callbook, rig: radio.rig, config: config, status: status, now: environment.now)
+        let availMult = AvailMultModel(availDependencies)
+        // N1MM: in SO2V / SO2R each entry window can have its own Available window.
+        let availMult2 = AvailMultModel(availDependencies)
+        availMult2.radio = 1
+        availMult2.focusRadioOnly = true
+        return SpotTools(navigation: navigation, bandmap: bandmap, availMult: availMult, availMult2: availMult2)
     }
 
     /// The spots and the entry windows: `tuneToSpot` reads the buffer and predicts the exchange, both
@@ -933,11 +952,15 @@ public final class AppModel {
             guard let model else { return nil }
             return model.vfoB.entry.isActivePanel ? model.vfoB.entry : model.entry
         }
-        model.contest.onDefaultSpotFilters = { [weak availMult = model.availMult] bands, modes in
+        model.contest.onDefaultSpotFilters = { [weak availMult = model.availMult,
+                                                weak availMult2 = model.availMult2] bands, modes in
             availMult?.setDefaults(bands: bands, modes: modes)
+            availMult2?.setDefaults(bands: bands, modes: modes)
         }
-        model.availMult.rotorTurner = { [weak rotator = model.rotator] call, grid in
-            rotator?.turnToStation(call, grid: grid)
+        for avail in [model.availMult, model.availMult2] {
+            avail.rotorTurner = { [weak rotator = model.rotator] call, grid in
+                rotator?.turnToStation(call, grid: grid)
+            }
         }
         model.bandmap.rotorTurner = { [weak rotator = model.rotator] call, grid in
             rotator?.turnToStation(call, grid: grid)

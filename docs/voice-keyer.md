@@ -15,6 +15,9 @@ and DXLog
 - **Input (recording):** the microphone used to record messages.
 - **Radio 2 output (SO2R):** in SO2R the messages of radio 2 go to this device (N1MM's
   sound card per radio); empty = the same output as radio 1.
+- **Left / right channel (SO2R, Nastavení → SO2R → Hlasové zprávy rádia 1 / 2):** a radio's messages can play
+  only on the left or only on the right channel of the output (the other channel silent), so one stereo sound card
+  feeds both rigs (N1MM's DVK routing). Default: both channels, as recorded.
 - **Message level (%):** the playback level of the messages (100 = as recorded).
 - **Output test (1 kHz tone):** a one-second tone on the output at the message level, to
   set the transmitter's audio drive. It goes to the sound card only: the PTT is not keyed.
