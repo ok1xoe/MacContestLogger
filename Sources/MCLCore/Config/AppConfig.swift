@@ -340,6 +340,16 @@ public struct AppConfig: Codable, Equatable, Sendable {
         set { so2rSetup = newValue.values }
     }
 
+    /// The built-in RTTY modem: linked tuning of the two receivers, PTT, the transmit output and level
+    /// (`BuiltinModemSetup.Key` → value; only non-default values are kept). Swift-only key.
+    public var builtinModemSetup: [String: String] = [:]
+
+    /// The built-in RTTY modem's options.
+    public var builtinModem: BuiltinModemSetup {
+        get { BuiltinModemSetup(builtinModemSetup) }
+        set { builtinModemSetup = newValue.values }
+    }
+
     public var databasesDir = ""
     public var lastDatabase = ""
     public var windowGeometry: [String: WindowGeometry] = [:]
@@ -388,6 +398,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         case showUnmatchedCallMark
         case callHistoryFile, callHistoryLookupEnabled, callHistoryExtraFiles, callHistoryShowUserInfo
         case checkUpdatesAtStart, accessibilityAnnouncements, qtcSetup, rotorSetup, spectrumSetup, so2rSetup
+        case builtinModemSetup
         case databasesDir, lastDatabase, windowGeometry, openWindows, goals
     }
 
@@ -540,6 +551,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         rotorSetup = RotorSetup(c.value(.rotorSetup, default: d.rotorSetup)).values
         spectrumSetup = SpectrumSetup(c.value(.spectrumSetup, default: d.spectrumSetup)).values
         so2rSetup = So2rSetup(c.value(.so2rSetup, default: d.so2rSetup)).values
+        builtinModemSetup = BuiltinModemSetup(c.value(.builtinModemSetup, default: d.builtinModemSetup)).values
 
         databasesDir = c.value(.databasesDir, default: d.databasesDir)
         lastDatabase = c.value(.lastDatabase, default: d.lastDatabase)

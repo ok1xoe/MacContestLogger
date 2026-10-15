@@ -10,7 +10,7 @@ let package = Package(
         .executable(name: "MacContestLogger", targets: ["MacContestLogger"]),
     ],
     targets: [
-        .target(name: "MCLCore", resources: [.process("Resources")]),
+        .target(name: "MCLCore", dependencies: ["ModemKit", "RTTYModem"], resources: [.process("Resources")]),
         // The built-in RTTY modem, vendored from RYRY (LGPL-3.0, see `third-party/MMTTY/NOTICE.md`): the MMTTY
         // demodulator/modulator core by JE3HHT behind a C API (`MMTTYCore`, C++), the generic modem interface
         // (`ModemKit`), the Swift RTTY modem over the core (`RTTYModem`) and an independent AFSK test-signal
@@ -34,14 +34,14 @@ let package = Package(
         .target(name: "MCLAppModel", dependencies: ["MCLCore"]),
         // The SwiftUI/AppKit app; `scripts/bundle.sh` assembles it into `MacContestLogger.app`.
         .executableTarget(name: "MacContestLogger", dependencies: ["MCLAppModel", "MCLCore"]),
-        .testTarget(name: "MCLAppModelTests", dependencies: ["MCLAppModel", "MCLCore"]),
+        .testTarget(name: "MCLAppModelTests", dependencies: ["MCLAppModel", "MCLCore", "RTTYSignalKit"]),
         // the Java parity suite: command line over `ScoreCheckReport` (the logic lives in MCLCore so it can be tested).
         .executableTarget(name: "mcl-scorecheck", dependencies: ["MCLCore"]),
         // Development tool of the 20k measurement: a synthetic CQ WW CW log and core timings.
         .executableTarget(name: "mcl-synthlog", dependencies: ["MCLCore"]),
         .testTarget(
             name: "MCLCoreTests",
-            dependencies: ["MCLCore"],
+            dependencies: ["MCLCore", "RTTYSignalKit"],
             // Probe tables read straight from disk by the tests (via `#filePath`), not from the bundle.
             exclude: ["Fixtures/jvm-probes"],
             resources: [

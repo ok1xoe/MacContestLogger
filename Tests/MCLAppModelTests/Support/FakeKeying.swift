@@ -191,6 +191,20 @@ final class FakeKeyingHardware: @unchecked Sendable {
     /// goes there, any other to `fldigiPort`.
     var allowedFldigiPorts: Set<Int> = []
 
+    private var modemStreams: [FakeModemStream] = []
+    private var modemOutputFailure: String?
+
+    /// The built-in modem's output refuses to open with this message (`nil` = it opens).
+    var failModemOutput: String? {
+        get { lock.withLock { modemOutputFailure } }
+        set { lock.withLock { modemOutputFailure = newValue } }
+    }
+
+    /// The built-in modem's transmit outputs opened so far (the test pulls their audio itself).
+    var modemOutputs: [FakeModemStream] {
+        lock.withLock { modemStreams }
+    }
+
     /// The generation of the last started (deviceless) capture: blocks are fed with `capture.accept`.
     var lastAudioGeneration: UInt64? {
         lock.withLock { audioGeneration }
@@ -403,6 +417,15 @@ final class FakeKeyingHardware: @unchecked Sendable {
             guard let port = chosen else { throw JavaIOError(nil, javaClass: "java.net.ConnectException") }
             guardTestPort(port)
             return try FldigiClient(host: "127.0.0.1", port: port, connectTimeoutMs: 5_000, requestTimeoutMs: 5_000)
+        }
+        ports.openModemOutput = { [self] device, rate, pull in
+            record("modem output \(device ?? "-") \(Int(rate))")
+            if let failure = lock.withLock({ modemOutputFailure }) {
+                throw AudioIOError(failure)
+            }
+            let stream = FakeModemStream(pull: pull)
+            lock.withLock { modemStreams.append(stream) }
+            return stream
         }
         ports.startAudio = { [self] capture, device throws(AudioIOError) in
             record("audio start \(device ?? "-")")
@@ -685,4 +708,43 @@ final class InstantCwSleeper: CwSleeper, @unchecked Sendable {
     }
 
     func wake() {}
+}
+
+/// The built-in modem's transmit output of a test: nothing is played; the test pulls the audio as the render thread
+/// would (`pull`), so the transmission advances only when the test says so.
+final class FakeModemStream: ModemAudioStream, @unchecked Sendable {
+    private let lock = NSLock()
+    private let render: @Sendable (UnsafeMutableBufferPointer<Float>) -> Void
+    private var audio: [Float] = []
+    private var stopped = false
+
+    init(pull: @escaping @Sendable (UnsafeMutableBufferPointer<Float>) -> Void) {
+        render = pull
+    }
+
+    /// Pulls `samples` of audio in render-sized buffers (nothing after `stop`); returns what was pulled.
+    @discardableResult
+    func pull(_ samples: Int) -> [Float] {
+        var pulled: [Float] = []
+        var buffer = [Float](repeating: 0, count: 512)
+        while pulled.count < samples, !isStopped {
+            buffer.withUnsafeMutableBufferPointer { render($0) }
+            pulled += buffer
+        }
+        lock.withLock { audio += pulled }
+        return pulled
+    }
+
+    /// Everything pulled so far.
+    var played: [Float] {
+        lock.withLock { audio }
+    }
+
+    var isStopped: Bool {
+        lock.withLock { stopped }
+    }
+
+    func stop() {
+        lock.withLock { stopped = true }
+    }
 }

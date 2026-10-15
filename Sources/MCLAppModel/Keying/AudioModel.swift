@@ -126,6 +126,16 @@ public final class AudioModel {
         capture.removeListener(id)
     }
 
+    /// Both channels of the input (left, right) — the built-in RTTY modem's receivers on one stereo input.
+    public func addStereoListener(_ listener: @escaping @Sendable ([Double], [Double]) -> Void)
+        -> AudioCapture.ListenerID {
+        capture.addStereoListener(listener)
+    }
+
+    public func removeStereoListener(_ id: AudioCapture.ListenerID) {
+        capture.removeStereoListener(id)
+    }
+
     public func addRawListener(_ listener: @escaping @Sendable ([UInt8]) -> Void) -> AudioCapture.ListenerID {
         capture.addRawListener(listener)
     }

@@ -46,9 +46,13 @@ final class KeyerLane: Sendable {
     private let hardware: HardwarePorts
     private let activeCat: ActiveCatBox
 
+    /// The built-in RTTY modem (its receivers answer fldigi's calls for `DigitalConfig.builtinHost`).
+    let builtin: BuiltinModemHub
+
     init(hardware: HardwarePorts, activeCat: ActiveCatBox) {
         self.hardware = hardware
         self.activeCat = activeCat
+        builtin = BuiltinModemHub(hardware: hardware)
     }
 
     /// Runs `body` on the lane, then `then` with its result on the main actor.
@@ -156,6 +160,9 @@ final class KeyerLane: Sendable {
 
     /// Kotlin `fldigiClient()` (`AS:1554-1562`), on the lane: a new client after the address changed.
     func fldigi(_ devices: Devices, host: String, port: Int) throws -> any FldigiPort {
+        if host == DigitalConfig.builtinHost {
+            return builtin.port(port - 1)
+        }
         let signature: String = KeyerSignature.fldigi(host: host, port: port)
         if let client = devices.fldigi, signature == devices.fldigiSignature {
             return client

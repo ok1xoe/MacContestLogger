@@ -20,8 +20,9 @@ port in **RYRY**.
 | `Sources/RTTYSignalKit/` | an independent AFSK test-signal generator and deterministic noise | RYRY |
 | `Tests/RTTYModemTests/` (except `DecodeAccuracyTests.swift`) | the core and modem tests | RYRY |
 
-Every vendored file keeps its copyright notice. Changes made for MacContestLogger are limited to the
-provenance header of the Swift files and the build settings in `Package.swift`.
+Every vendored file keeps its copyright notice. Changes made for MacContestLogger: the provenance header of
+the Swift files, the build settings in `Package.swift`, and `RTTYModem.eventSink` (a synchronous event receiver
+next to the `events` stream).
 
 ## Licence
 

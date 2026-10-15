@@ -77,6 +77,14 @@ public final class RTTYModem: Modem, @unchecked Sendable {
     /// Finishes the event stream (e.g. at the end of decoding a file).
     public func finishEvents() { continuation.finish() }
 
+    /// MacContestLogger: a synchronous receiver of the events, called in the modem's serial context. When it is set the
+    /// events go only there and `events` stays empty (a modem fed for hours must not buffer them in an unread stream).
+    public var eventSink: ((ModemEvent) -> Void)?
+
+    private func emit(_ event: ModemEvent) {
+        if let eventSink { eventSink(event) } else { continuation.yield(event) }
+    }
+
     public func select(mode: ModeDescriptor) throws {
         guard let baud = Self.modeBaud[mode.id] else { throw Error.parameter(.unknown(mode.id)) }
         try set(parameter: "baud", value: .double(baud))
@@ -123,23 +131,23 @@ public final class RTTYModem: Modem, @unchecked Sendable {
             if got == 0 { break }
             for k in 0..<got {
                 let ch = Character(UnicodeScalar(UInt8(bitPattern: charBuf[k].ch)))
-                continuation.yield(.rxText(ch, echo: charBuf[k].echo != 0))
+                emit(.rxText(ch, echo: charBuf[k].echo != 0))
             }
         }
     }
 
     private func publishTuningIfChanged() {
         let t = TuningInfo(mark: rttycore_get_param(core, RC_MARK), space: rttycore_get_param(core, RC_SPACE))
-        if t != lastTuning { lastTuning = t; continuation.yield(.tuning(t)) }
+        if t != lastTuning { lastTuning = t; emit(.tuning(t)) }
     }
 
     private func publishStatus() {
         let s = rttycore_signal(core)
-        continuation.yield(.signal(level: s.level, squelchOpen: s.squelchOpen != 0))
-        if s.overflow != 0 { continuation.yield(.overflow) }
+        emit(.signal(level: s.level, squelchOpen: s.squelchOpen != 0))
+        if s.overflow != 0 { emit(.overflow) }
         publishTuningIfChanged()
         let fig = s.fig != 0
-        if fig != lastFig { lastFig = fig; continuation.yield(.shift(fig: fig)) }
+        if fig != lastFig { lastFig = fig; emit(.shift(fig: fig)) }
     }
 
     public func beginTx(tune: Bool) {
@@ -191,7 +199,7 @@ public final class RTTYModem: Modem, @unchecked Sendable {
         let n = rttycore_generate_tx(core, base, buffer.count)
         drainChars()                                   // echo of the transmitted text
         if n < buffer.count {
-            if txWasActive { txWasActive = false; continuation.yield(.txFinished) }
+            if txWasActive { txWasActive = false; emit(.txFinished) }
             return .finished
         }
         return .active
@@ -202,7 +210,7 @@ public final class RTTYModem: Modem, @unchecked Sendable {
     public func abortTx() {
         txItems.removeAll()
         rttycore_tx_abort(core)
-        if txWasActive { txWasActive = false; continuation.yield(.txFinished) }
+        if txWasActive { txWasActive = false; emit(.txFinished) }
     }
 
     public var txPending: Int {

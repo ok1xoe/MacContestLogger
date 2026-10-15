@@ -151,6 +151,23 @@ public final class DigitalKeyerModel {
         })
     }
 
+    /// The built-in modem's settings for the transmission about to start and the rig its PTT keys (the active one,
+    /// as for the voice keyer). Nothing for fldigi, which keys the rig itself.
+    func prepareBuiltinTx() {
+        guard config.config.digital.engine == .builtin else { return }
+        syncBuiltin()
+        let setup: BuiltinModemSetup = config.config.builtinModem
+        lane.builtin.arm(lane: keyer?.activeRigLane(), viaCat: setup.flag(.pttViaCat))
+    }
+
+    /// The built-in modem's options from the configuration (level, outputs, linked tuning).
+    func syncBuiltin() {
+        let setup: BuiltinModemSetup = config.config.builtinModem
+        lane.builtin.configure(BuiltinModemHub.Settings(
+            level: setup.outputLevel, devices: [setup.outputDevice(side: 0), setup.outputDevice(side: 1)],
+            linked: setup.flag(.linkedTuning)))
+    }
+
     /// Kotlin `digitalReady`: a digital modem is configured.
     public var ready: Bool {
         config.config.digital.engine != .none || hardwareRoute != nil
@@ -199,6 +216,7 @@ public final class DigitalKeyerModel {
         if !isHolding {
             txSide = current
         }
+        prepareBuiltinTx()
         let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run({ devices -> String?? in
@@ -369,6 +387,7 @@ public final class DigitalKeyerModel {
         if !isHolding {
             txSide = current
         }
+        prepareBuiltinTx()
         let (host, port): (String, Int) = endpoint(txSide)
         let lane: KeyerLane = self.lane
         lane.run({ devices -> String?? in

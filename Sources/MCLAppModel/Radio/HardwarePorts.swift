@@ -116,6 +116,10 @@ public struct HardwarePorts: Sendable {
     public var openSerial: @Sendable (_ path: String, _ baud: Int) throws -> any ByteTransport = { _, _ in
         throw InertHardwareError()
     }
+    /// The built-in RTTY modem's transmit audio on a sound output (device name or `nil` = default, the modem's rate,
+    /// the pull callback on the render thread; called on the keyer lane). Inert: refused before any I/O.
+    public var openModemOutput: @Sendable (String?, Double, @escaping @Sendable (UnsafeMutableBufferPointer<Float>) -> Void)
+        throws -> any ModemAudioStream = { _, _, _ in throw InertHardwareError() }
     /// `FldigiClient(host, port)` (called on the keyer lane).
     public var makeFldigi: @Sendable (String, Int) throws -> any FldigiPort = { _, _ in throw InertHardwareError() }
     /// The N1MM Rotor heading broadcast receiver on a UDP port (blocks while binding; called on the rotator lane). Only
@@ -177,6 +181,9 @@ public struct HardwarePorts: Sendable {
         ports.microphoneAccess = { await MicrophoneAccess.request() }
         ports.synthesize = { cacheDir, voice, text in MacSpeech(cacheDir: cacheDir, voice: voice).synthesize(text) }
         ports.makeFldigi = { host, port in try FldigiClient(host: host, port: port) }
+        ports.openModemOutput = { device, rate, pull in
+            try ModemAudioOutput.open(deviceName: device, sampleRate: rate, pull: pull)
+        }
         ports.openSerial = { path, baud in try SerialPort.open(path: path, settings: SerialPort.Settings(baud: baud)) }
         ports.startAudio = { capture, device throws(AudioIOError) in try capture.start(deviceName: device) }
         ports.makeSimAudio = { noise in try SimAudioPlayer(noiseLevel: noise) }

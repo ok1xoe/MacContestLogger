@@ -5,13 +5,40 @@ import Foundation
 /// Mirrors `DigitalConfig.java`.
 public struct DigitalConfig: Codable, Equatable, Sendable {
 
-    /// Who handles digital operation: nobody, or fldigi via XML-RPC.
+    /// Who handles digital operation: nobody, fldigi via XML-RPC, or the built-in RTTY modem (MMTTY).
     public enum Engine: String, Codable, Equatable, Sendable {
+        case none = "NONE"
+        case fldigi = "FLDIGI"
+        case builtin = "BUILTIN"
+    }
+
+    /// The stored `engine` (the Java values only, so profiles stay compatible with v1.1.1).
+    enum StoredEngine: String, Codable, Equatable, Sendable {
         case none = "NONE"
         case fldigi = "FLDIGI"
     }
 
-    public var engine: Engine = .none
+    /// The pseudo-host of the built-in modem's endpoints (port 1 = DI1's receiver, 2 = DI2's): the keyer lane hands
+    /// these to the built-in modem instead of opening an XML-RPC client.
+    public static let builtinHost = "builtin-modem"
+
+    var storedEngine: StoredEngine = .none
+    /// The built-in RTTY modem replaces fldigi (`engine == .builtin`); `engine` itself is then stored as `FLDIGI`, so
+    /// a configuration read without this key still has a modem. Swift-only key.
+    public var builtinModem: Bool = false
+
+    public var engine: Engine {
+        get {
+            if builtinModem {
+                return .builtin
+            }
+            return storedEngine == .fldigi ? .fldigi : .none
+        }
+        set {
+            builtinModem = newValue == .builtin
+            storedEngine = newValue == .none ? .none : .fldigi
+        }
+    }
     /// Empty/whitespace is replaced with `"127.0.0.1"`; otherwise always trimmed.
     public var fldigiHost: String = "127.0.0.1" {
         didSet {
@@ -165,7 +192,7 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     public var diBackgroundColor: String = ""
 
     enum CodingKeys: String, CodingKey {
-        case engine, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
+        case storedEngine = "engine", builtinModem, fldigiHost, fldigiPort, runMessages, spMessages, digitalCallStacking
         case autoTrxUpdate, rttyModem, pskModem
         case callValidity, validateScp, validateCallHistory, validateSpotted, validateLogged, scpGarbageSearch, highlightBackground, nonScrollingRx, pauseOnCallHover, hoverMode, rightClickReturn, sendSpaceOnClick, captionRadioFrequency
         case grabOrder, grabNoDupes, grabOnlyScp, grabClearOnQsy, grabClearOnCq, grabSendSpace, grabAddToBandmap
@@ -181,7 +208,8 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = DigitalConfig()
-        engine = c.value(.engine, default: d.engine)
+        storedEngine = c.value(.storedEngine, default: d.storedEngine)
+        builtinModem = c.value(.builtinModem, default: d.builtinModem)
         fldigiHost = DigitalConfig.normalizedHost(c.value(.fldigiHost, default: d.fldigiHost))
         let rawPort = c.value(.fldigiPort, default: d.fldigiPort)
         fldigiPort = rawPort <= 0 ? 7362 : rawPort
@@ -256,15 +284,18 @@ public struct DigitalConfig: Codable, Equatable, Sendable {
     /// fldigi of a side: DI1 = `fldigiHost:fldigiPort`, DI2 = `fldigi2Host:fldigi2Port` when configured
     /// (`fldigi2Port > 0`), else DI1's.
     public func endpoint(_ side: Int) -> (host: String, port: Int) {
+        if engine == .builtin {
+            return (Self.builtinHost, side == 1 ? 2 : 1)
+        }
         if side == 1, fldigi2Port > 0 {
             return (DigitalConfig.normalizedHost(fldigi2Host), fldigi2Port)
         }
         return (fldigiHost, fldigiPort)
     }
 
-    /// A second fldigi is configured (DI2 has its own modem).
+    /// A second fldigi is configured, or the built-in modem runs (DI2 has its own modem).
     public var hasSecondFldigi: Bool {
-        fldigi2Port > 0
+        engine == .builtin || fldigi2Port > 0
     }
 
     /// The TNC's TX / RX / abort commands: the configured ones, a blank one from the type's preset.

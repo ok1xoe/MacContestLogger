@@ -1,0 +1,98 @@
+import Foundation
+import MCLCore
+import Observation
+
+/// The built-in RTTY modem's receive side: each Digital Interface window feeds its receiver from a receiver audio
+/// input while it is open (N1MM runs MMTTY inside the Digital Interface). The usual SO2R / SO2V setup is one stereo
+/// sound card input — left = receiver 1, right = receiver 2 (N1MM: "2 RX: audio left, audio right"); each receiver can
+/// also take radio 2's own input and the left, right or mixed channel (`BuiltinModemSetup`). The inputs are shared
+/// with the waterfall, the CW reader and the recorder (`AudioModel`).
+///
+/// One decoder per receiver for now (`decodersPerReceiver`); N1MM can run a second decoder on the same receiver.
+@Observable @MainActor
+public final class BuiltinModemModel {
+
+    /// Decoders on one receiver's audio (N1MM's second decoder window is not built yet).
+    public static let decodersPerReceiver = 1
+    /// The audio users (`AudioModel.acquire`).
+    static let users: [String] = ["rtty", "rtty2"]
+
+    struct Attachment {
+        let audio: AudioModel
+        let listener: AudioCapture.ListenerID
+    }
+
+    @ObservationIgnored let hub: BuiltinModemHub
+    @ObservationIgnored private let audio: AudioModel
+    @ObservationIgnored private let audio2: AudioModel
+    @ObservationIgnored private let setup: @MainActor () -> BuiltinModemSetup
+    @ObservationIgnored private var attached: [Attachment?] = [nil, nil]
+    /// Why a receiver has no audio (the input could not be opened), `nil` = it listens or is not attached.
+    public private(set) var audioErrors: [String?] = [nil, nil]
+
+    init(hub: BuiltinModemHub, audio: AudioModel, audio2: AudioModel,
+         setup: @escaping @MainActor () -> BuiltinModemSetup) {
+        self.hub = hub
+        self.audio = audio
+        self.audio2 = audio2
+        self.setup = setup
+    }
+
+    private static func clamp(_ side: Int) -> Int {
+        min(max(side, 0), 1)
+    }
+
+    /// The receiver of a side.
+    public func channel(_ side: Int) -> BuiltinRttyChannel {
+        hub.channels[Self.clamp(side)]
+    }
+
+    /// The receiver listens (its window is open and the input runs or is starting).
+    public func isAttached(_ side: Int) -> Bool {
+        attached[Self.clamp(side)] != nil
+    }
+
+    /// The receiver starts listening to its input; a failure is kept in `audioErrors`.
+    public func attach(_ side: Int) async {
+        let side: Int = Self.clamp(side)
+        guard attached[side] == nil else { return }
+        let options: BuiltinModemSetup = setup()
+        let source: AudioModel = options.input(side: side) == .radio2 ? audio2 : audio
+        let pick: BuiltinModemSetup.Channel = options.channel(side: side)
+        let channel: BuiltinRttyChannel = hub.channels[side]
+        let listener: AudioCapture.ListenerID = source.addStereoListener { left, right in
+            channel.receive(pick.pick(left, right))
+        }
+        let attachment = Attachment(audio: source, listener: listener)
+        attached[side] = attachment
+        audioErrors[side] = nil
+        let failure: String? = await source.acquire(Self.users[side])
+        guard let failure else { return }
+        audioErrors[side] = failure
+        if let current = attached[side], current.listener == listener {
+            source.removeStereoListener(listener)
+            attached[side] = nil
+        }
+    }
+
+    /// The receiver stops listening; the last user of the input closes it.
+    public func detach(_ side: Int) {
+        let side: Int = Self.clamp(side)
+        guard let attachment = attached[side] else { return }
+        attached[side] = nil
+        attachment.audio.removeStereoListener(attachment.listener)
+        attachment.audio.release(Self.users[side])
+    }
+
+    /// The audio options changed (input or channel): an attached receiver listens again with the new ones.
+    public func reattach(_ side: Int) async {
+        guard isAttached(side) else { return }
+        detach(side)
+        await attach(side)
+    }
+
+    /// A tuning change made in the window (mark, shift, speed, the switches); with linked tuning both receivers.
+    public func tune(_ side: Int, _ change: (inout BuiltinRttyChannel.Tuning) -> Void) {
+        hub.tune(side, change)
+    }
+}
