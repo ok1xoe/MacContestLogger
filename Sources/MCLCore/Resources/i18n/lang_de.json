@@ -1986,5 +1986,10 @@
  "Synchronizovat čas z master stanice": "Zeit von der Master-Station übernehmen",
  "Čas z master stanice je vypnutý (Nastavení → Cluster).": "Zeit von der Master-Station ist aus (Einstellungen → Cluster).",
  "Master stanice (ostatní si od ní berou čas)": "Master-Station (die anderen übernehmen ihre Zeit)",
- "Čas QSO podle hodin master stanice (místo vlastní kontroly NTP)": "QSO-Zeit nach der Uhr der Master-Station (statt der eigenen NTP-Prüfung)"
+ "Čas QSO podle hodin master stanice (místo vlastní kontroly NTP)": "QSO-Zeit nach der Uhr der Master-Station (statt der eigenen NTP-Prüfung)",
+ "{PASSMSG}: v síti není stanice %s": "{PASSMSG}: keine Station %s im Netz",
+ "Všechny stanice": "Alle Stationen",
+ "Stanice sítě:": "Netzwerkstation:",
+ "Op": "Op",
+ "Stn": "Stn"
 }

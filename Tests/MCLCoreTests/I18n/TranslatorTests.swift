@@ -172,10 +172,11 @@ import Testing
         // the QSO party setup and
         // the log extras and
         // 12 keys of the multi-op station table and
-        // 27 keys of the network tools.
-        #expect(map.count == 1_988)
+        // 27 keys of the network tools and
+        // 5 keys of the multi-user macros and the log's multi-op columns.
+        #expect(map.count == 1_993)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_988)
+        #expect(german.count == 1_993)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

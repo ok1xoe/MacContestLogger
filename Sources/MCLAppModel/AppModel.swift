@@ -1038,6 +1038,13 @@ public final class AppModel {
         model.network.prefillCall = { [weak model] call in
             model?.prefillCall(call)
         }
+        model.network.wipeCall = { [weak model] call in
+            guard let model else { return }
+            for entry in [model.entry, model.vfoB.entry]
+            where KotlinStrings.uppercase(KotlinStrings.trim(entry.form.call)) == call {
+                entry.wipe(focus: false)
+            }
+        }
         model.network.openStatusWindow = { [weak model] in
             model?.windows.setOpen("netstatus", true)
         }

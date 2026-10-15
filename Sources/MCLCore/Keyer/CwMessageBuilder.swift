@@ -117,6 +117,13 @@ public enum CwMessageBuilder {
         public var locale: Locale = .current
         /// How many times `{VARYMSG1}` / `{VARYMSG2}` were sent before.
         public var varyCounts: [Int] = []
+        /// The network log is connected: the N1MM multi-user macros (`{MESSAGE}`, `{PASS …}`, `{PASSMSG …}`,
+        /// `{LASTPASSEDFREQ}`) are substituted only then.
+        public var multiUser: Bool = false
+        /// The other stations for `{PASS …}`.
+        public var passTargets: [MacroPassTarget] = []
+        /// `{LASTPASSEDFREQ}`: the pass frequency of the station last alerted to expect a pass (Hz, 0 = none).
+        public var lastPassedFreqHz: Int = 0
 
         public init(
             myCall: String, hisCall: String, lastLogged: String, serial: Int, rst: String, exchange: String,
@@ -251,6 +258,8 @@ public enum CwMessageBuilder {
         var deferredCommands: [MacroCommand] = []
         var afterEnd = false
         var text: [UInt16] = []
+        // `{MESSAGE}`: the rest of the message is a network talk message, kept as written (not keyed).
+        var network: [UInt16]?
         var i = 0
         while i < t.count {
             let c = t[i]
@@ -273,6 +282,31 @@ public enum CwMessageBuilder {
                     } else if let command = MacroCommand.parse(JavaChar.string(raw)) {
                         deferredCommands.append(command)
                     }
+                    continue
+                }
+                if macro == "{MESSAGE}" {
+                    // Never keyed, even off the network (then the talk message is dropped).
+                    if network == nil {
+                        flush(&text, &parts)
+                        network = []
+                    }
+                    continue
+                }
+                if let (name, argument) = MacroCommand.split(JavaChar.string(raw)), name == "PASS" {
+                    var value: String = ""
+                    if ctx.multiUser, let target = MultiUserMacro.target(argument, in: ctx.passTargets) {
+                        value = MultiUserMacro.passText(target.targetHz)
+                        commands.append(.passAlert(station: target.station, hz: target.targetHz))
+                    }
+                    if network != nil {
+                        network?.append(contentsOf: value.utf16)
+                    } else {
+                        text.append(contentsOf: value.utf16)
+                    }
+                    continue
+                }
+                if network != nil, macro == "{ENTERLF}" || macro == "{ENTER}" {
+                    network?.append(0x20)
                     continue
                 }
                 if macro == "{ENTERLF}" || macro == "{ENTER}" {
@@ -302,11 +336,18 @@ public enum CwMessageBuilder {
                     continue
                 }
                 if let command = MacroCommand.parse(JavaChar.string(raw)) {
+                    if case .passLastQso = command, !ctx.multiUser {
+                        continue
+                    }
                     commands.append(command)
                     continue
                 }
                 if let value = macroValue(macro, ctx) {
-                    text.append(contentsOf: value.utf16)
+                    if network != nil {
+                        network?.append(contentsOf: value.utf16)
+                    } else {
+                        text.append(contentsOf: value.utf16)
+                    }
                 } else {
                     unknown.append(macro)
                 }
@@ -314,6 +355,15 @@ public enum CwMessageBuilder {
             }
             i += 1
             if afterEnd {
+                continue
+            }
+            if network != nil {
+                switch c {
+                case 0x2A: network?.append(contentsOf: ctx.myCall.utf16) // *
+                case 0x21: network?.append(contentsOf: hisCall(ctx).utf16) // !
+                case 0x23: network?.append(contentsOf: serial(ctx).utf16) // #
+                default: network?.append(c)
+                }
                 continue
             }
             switch c {
@@ -335,6 +385,12 @@ public enum CwMessageBuilder {
             }
         }
         flush(&text, &parts)
+        if let network {
+            let message: String = JavaText.trim(JavaChar.string(network))
+            if ctx.multiUser && !message.isEmpty {
+                commands.append(.networkMessage(message))
+            }
+        }
         return CwMessage(parts: parts, actions: actionList, unknownMacros: unknown, commands: commands,
                          varyUsed: varyUsed, deferredActions: deferredActions, deferredCommands: deferredCommands)
     }
@@ -400,6 +456,8 @@ public enum CwMessageBuilder {
         case "{CLUSTER}": ctx.clusterCall
         case "{FREQ}": MacroFrequency.text(ctx.freqHz, round: false, r: ctx.frequencyR)
         case "{FREQROUND}": MacroFrequency.text(ctx.freqHz, round: true, r: ctx.frequencyR)
+        case "{LASTPASSEDFREQ}":
+            ctx.multiUser ? MacroFrequency.text(Int64(ctx.lastPassedFreqHz), round: false, r: true) : ""
         case "{OTHERFREQ}": MacroFrequency.text(ctx.otherFreqHz, round: false, r: ctx.frequencyR)
         case "{OTHERFREQROUND}": MacroFrequency.text(ctx.otherFreqHz, round: true, r: ctx.frequencyR)
         case "{OTHERBAND}": MacroFrequency.band(ctx.otherFreqHz)

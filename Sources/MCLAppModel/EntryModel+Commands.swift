@@ -963,6 +963,12 @@ extension EntryModel {
                 swapContests(count: count)
             case .swapContest(let name):
                 swapContests(count: nil, name: name)
+            case .networkMessage(let text):
+                network?.sendMacroMessage(text)
+            case .passAlert(_, let hz):
+                network?.lastPassedFreqHz = hz
+            case .passLastQso(let argument):
+                network?.passLastQso(argument, call: logbook.rows.last?.call ?? "")
             }
         }
     }
@@ -1300,6 +1306,11 @@ extension EntryModel {
         base.rightMHz = rigMHz(vfo: 1)
         base.otherFreqHz = otherRadioHz
         base.varyCounts = operating.varyCounts
+        if let network, network.isConnected {
+            base.multiUser = true
+            base.passTargets = network.macroPassTargets()
+            base.lastPassedFreqHz = network.lastPassedFreqHz
+        }
     }
 
     /// `{FKEY(r1%r2)}`: 2 for the VFO B / radio 2 window while two entry windows are shown, otherwise 1.

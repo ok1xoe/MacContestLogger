@@ -13,6 +13,9 @@ public enum LogTableColumns {
     public enum Column: Int, CaseIterable, Sendable {
         case time = 0, call, band, mode, rstSent, rstRcvd, serialSent, serialRcvd, exchange, note
         case xqso, warning, points, mult
+        /// N1MM's Op and station columns of a multi-op log (Swift-only): the operator and the network station that
+        /// logged the QSO.
+        case op, station
 
         /// Header text — the Czech translation key (the UI passes it through `tr`).
         public var title: String {
@@ -31,6 +34,8 @@ public enum LogTableColumns {
             case .warning: return "⚠"
             case .points: return "Body"
             case .mult: return "Mult"
+            case .op: return "Op"
+            case .station: return "Stn"
             }
         }
 
@@ -47,6 +52,8 @@ public enum LogTableColumns {
             case .xqso, .warning: return 0.35
             case .points: return 0.5
             case .mult: return 1.0
+            case .op: return 1.0
+            case .station: return 0.7
             }
         }
     }
@@ -59,10 +66,14 @@ public enum LogTableColumns {
             case .serialSent, .serialRcvd: return usesSerial
             case .exchange: return usesExchangeBeyondRst
             case .points, .mult: return contestActive
+            case .op, .station: return false
             default: return true
             }
         }
     }
+
+    /// The multi-op columns (shown while the network log is in use).
+    public static let multiOpColumns: [Column] = [.op, .station]
 
     /// Kotlin `effectiveSort`: a sort column that became hidden (contest switch) falls back to time.
     public static func effectiveSort(_ column: Column, visible: [Column]) -> Column {
@@ -82,7 +93,7 @@ public enum LogTableColumns {
         case .serialSent: return .serialSent
         case .serialRcvd: return .serialRcvd
         case .exchange: return .exchange
-        case .note, .xqso, .warning, .points, .mult: return .note
+        case .note, .xqso, .warning, .points, .mult, .op, .station: return .note
         }
     }
 
@@ -109,6 +120,8 @@ public enum LogTableColumns {
         case .warning: return ""
         case .points: return pointsText(marks)
         case .mult: return marks?.multText ?? ""
+        case .op: return qso.operator
+        case .station: return qso.stationId
         }
     }
 

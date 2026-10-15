@@ -48,6 +48,19 @@ private struct AdifRangeForm: View {
                 Text(verbatim: language.tr("Ze všech závodů v databázi"))
             }
             .accessibilityLabel(Text(verbatim: language.tr("Ze všech závodů v databázi")))
+            let stations: [String] = model.stations
+            if !stations.isEmpty {
+                Picker(selection: Binding(get: { model.station }, set: { model.station = $0 })) {
+                    Text(verbatim: language.tr("Všechny stanice")).tag("")
+                    ForEach(stations, id: \.self) { station in
+                        Text(verbatim: station).tag(station)
+                    }
+                } label: {
+                    Text(verbatim: language.tr("Stanice sítě:"))
+                }
+                .fixedSize()
+                .accessibilityIdentifier("adifRange.station")
+            }
             if model.range == nil {
                 Text(verbatim: language.tr("Konec je před začátkem."))
                     .foregroundStyle(Color(domain: DomainColors.dupe))
@@ -64,8 +77,10 @@ private struct AdifRangeForm: View {
                     guard let range = model.range else { return }
                     let name: String = model.suggestedName
                     let all: Bool = model.allContests
+                    let station: String = model.station
                     app.dialogs.setOpen(.adifRange, false)
-                    ExportPanels.run(.saveAdifRange(suggestedName: name, range: range, allContests: all), app: app)
+                    ExportPanels.run(.saveAdifRange(suggestedName: name, range: range, allContests: all,
+                                                    station: station), app: app)
                 }
                 .disabled(!model.canExport)
             }

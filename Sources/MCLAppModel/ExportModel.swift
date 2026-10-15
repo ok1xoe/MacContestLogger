@@ -30,12 +30,15 @@ extension ImportExportModel {
     /// With `range` (Export → ADIF by date) only the QSOs of those UTC days are written; none in it = no file and a
     /// status line saying so.
     ///
+    /// `station` (N1MM „Export ADIF by multi-user station name"): only that station's QSOs (`""` = all).
+    ///
     /// `allContests` (N1MM „ADIF by date from ALL contests"): every contest of the database and free logging, without
     /// `CONTEST_ID` (the QSOs belong to different contests).
     ///
     /// The file carries N1MM's own fields (`PFX`, `APP_N1MM_EXCHANGE1`, `_POINTS`, `_ISRUNQSO`, and `_MULT1`–`3` of
     /// the open contest's replay).
-    public func exportAdif(to file: URL, range: AdifDateRange? = nil, allContests: Bool = false) async {
+    public func exportAdif(to file: URL, range: AdifDateRange? = nil, allContests: Bool = false,
+                           station networkStation: String = "") async {
         let contestId: String? = allContests ? nil : contest.definition?.cabrillo?.contestName
         let station: Station = config.config.station.toStation()
         let session: ContestSession? = allContests ? nil : contest.runtime.freshSession()
@@ -43,6 +46,7 @@ extension ImportExportModel {
         let definition: ContestDefinition? = allContests ? nil : contest.definition
         do {
             var qsos: [Qso] = allContests ? try await readAllContests() : try await readLog()
+            qsos = AdifRangeModel.byStation(qsos, networkStation)
             if let range {
                 qsos = range.filter(qsos)
                 if qsos.isEmpty {

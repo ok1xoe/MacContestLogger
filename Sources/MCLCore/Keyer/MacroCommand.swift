@@ -28,6 +28,14 @@ public enum MacroCommand: Equatable, Sendable {
     case swapContests(Int)
     /// `{SWAPCONTESTS name}`: the contest of the Open recent list whose title holds the name.
     case swapContest(String)
+    /// `{MESSAGE}` (N1MM multi-user): the rest of the message goes to the network as a talk message instead of the
+    /// transmitter; a first word naming a station sends it to that station only, `-` to all.
+    case networkMessage(String)
+    /// `{PASS name}` / `{PASS kHz}`: the pass frequency of that station was put into the message; it becomes the
+    /// last passed frequency (`{LASTPASSEDFREQ}`).
+    case passAlert(station: String, hz: Int)
+    /// `{PASSMSG name}` / `{PASSMSG kHz}`: the last QSO's call is passed to that station (the argument as written).
+    case passLastQso(String)
 
     /// The command of a parameterized macro (`raw` = the whole macro with its braces); `nil` = not a parameterized
     /// macro this app knows.
@@ -67,6 +75,8 @@ public enum MacroCommand: Equatable, Sendable {
             return .otrsp(argument.uppercased(), other: name == "OTRSPOTHER")
         case "SWAPCONTESTS":
             return argument.isEmpty ? nil : .swapContest(argument)
+        case "PASSMSG":
+            return argument.isEmpty ? nil : .passLastQso(argument)
         case "AUXANTSEL":
             guard let code = Int(argument), (0...63).contains(code) else { return nil }
             return .auxAntenna(code)
