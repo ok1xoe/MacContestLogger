@@ -412,10 +412,21 @@ public enum ScoreCheck {
 
     /// Java `band`: `Math.round(Double.parseDouble(freqKHz) * 1000.0)` → `Band.fromFrequencyHz`
     /// → ADIF; a non-number → `""`. `parseDouble` also accepts `14042d`, `1.4042e4F`, `0x1.b6ap13`, `NaN`.
+    ///
+    /// Post-port: a Cabrillo 3.0 band designator from 50 MHz up (`50`, `144`, `222`, `432`, `902`, `1.2G` … `241G`),
+    /// which Java read as kHz and left without a band, gives that band, so VHF contest logs can be checked. The Java
+    /// parity gates (`Band.javaV111Table`) keep the Java reading.
     static func band(_ freqKHz: String) -> String {
+        if !Band.javaV111Table, let designated = designatedBand(freqKHz) { return designated.adif }
         guard let value = JavaDouble.parseDouble(freqKHz) else { return "" }
         let hz = JavaMath.round(value * 1000.0)
         return Band.from(frequencyHz: Int(hz))?.adif ?? ""
+    }
+
+    /// The band of a Cabrillo 3.0 designator (`Band.cabrilloDesignator`; `76G` is accepted for 4 mm too).
+    static func designatedBand(_ text: String) -> Band? {
+        if text == "76G" { return .mm4 }
+        return Band.allCases.first { $0.cabrilloDesignator == text }
     }
 
     /// Java `mode`: Cabrillo abbreviations (`PH`/`SSB`/`USB`/`LSB` → SSB, `RY` → RTTY…), otherwise

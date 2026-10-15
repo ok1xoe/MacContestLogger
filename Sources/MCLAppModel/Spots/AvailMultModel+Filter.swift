@@ -18,8 +18,8 @@ extension AvailMultModel {
     public static let bandGroups: [BandGroup] = [
         BandGroup(title: "HF",
                   bands: [.m160, .m80, .m60, .m40, .m30, .m20, .m17, .m15, .m12, .m10], extra: []),
-        BandGroup(title: "VHF", bands: [.m6, .m2], extra: ["222"]),
-        BandGroup(title: "UHF", bands: [.cm70, .cm23], extra: ["902"]),
+        BandGroup(title: "VHF", bands: [.m6, .m2, .m125], extra: []),
+        BandGroup(title: "UHF", bands: [.cm70, .cm33, .cm23], extra: []),
         // Post-port: the microwave bands 13 cm – 3 cm are real bands now (Kotlin listed them as disabled extras).
         BandGroup(title: "Mw", bands: [.cm13, .cm9, .cm6, .cm3, .cm125, .mm6, .mm4, .mm25, .mm2, .mm1], extra: []),
     ]
@@ -44,7 +44,9 @@ extension AvailMultModel {
         case .m10: "28"
         case .m6: "50"
         case .m2: "144"
+        case .m125: "222"
         case .cm70: "430"
+        case .cm33: "902"
         case .cm23: "1296"
         case .cm13: "2.3G"
         case .cm9: "3.4G"

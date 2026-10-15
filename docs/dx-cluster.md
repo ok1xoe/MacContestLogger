@@ -392,8 +392,8 @@ the DX Cluster window (a dot after the label means a filter is active) or in *Se
 window apply and are saved at once; in Settings they apply with Save. The state lives in the `dxCluster` section of
 `config.json` (`spotFilter*` keys; a configuration without them means "everything on").
 
-**Bands.** One checkbox per band MCL knows, in four groups: HF (160 m to 10 m, including 60 m), VHF (6 m, 2 m),
-UHF (70 cm, 23 cm) and Mw (13 cm, 9 cm, 6 cm, 3 cm and the millimetre bands 24, 47, 76, 122, 134 and 241 GHz). The group buttons switch the whole group: all on turns it off,
+**Bands.** One checkbox per band MCL knows, in four groups: HF (160 m to 10 m, including 60 m), VHF (6 m, 2 m, 1.25 m = 222 MHz),
+UHF (70 cm, 33 cm = 902 MHz, 23 cm) and Mw (13 cm, 9 cm, 6 cm, 3 cm and the millimetre bands 24, 47, 76, 122, 134 and 241 GHz). The group buttons switch the whole group: all on turns it off,
 otherwise all on.
 
 **Modes.** CW, Fonie (phone) and Digi (RTTY, FT8, PSK and the like). The mode of a spot is the one the band map already

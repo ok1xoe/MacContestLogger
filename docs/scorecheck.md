@@ -12,6 +12,8 @@ reference of another.
    by continent) and `CLAIMED-SCORE:` (the claimed score) from the header.
 2. It maps the contest to a definition (`cabrillo.contestName` in the YAML), parses the `QSO:`
    lines, and evaluates points and multipliers.
+   The frequency of a `QSO:` line is either kHz or, from 50 MHz up, a Cabrillo band designator
+   (`50`, `144`, `222`, `432`, `902`, `1.2G`, `2.3G` … `241G`).
 3. For every log it writes one TSV line with the status, QSO count, points, multipliers,
    computed score and claimed score.
 

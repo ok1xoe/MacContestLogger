@@ -254,7 +254,9 @@ public enum CabrilloExporter {
             if isAny(value, ["DIGITAL", "FT8", "FT4", "PSK", "JT65", "Q65", "FT2"]) { return "DIGI" }
             if isAny(value, ["PH", "PHONE"]) { return "SSB" }
         } else if dim == "BAND" {
+            if JavaText.equals("1.25M", value) { return "222" }
             if JavaText.equals("70CM", value) { return "432" }
+            if JavaText.equals("33CM", value) { return "902" }
             if JavaText.equals("23CM", value) { return "1.2G" }
             // Post-port microwave bands (Cabrillo 3.0 designators); Java v1.1.1 passes these through unchanged.
             if JavaText.equals("13CM", value) { return "2.3G" }
@@ -376,26 +378,9 @@ public enum CabrilloExporter {
             band = Band.from(frequencyHz: q.freqHz)
         }
         guard let band else { return nil }
-        switch band {
-        case .m6: return "50"
-        case .m2: return "144"
-        case .cm70: return "432"
-        // Post-port microwave bands: the Cabrillo 3.0 band designators.
-        case .cm23: return "1.2G"
-        case .cm13: return "2.3G"
-        case .cm9: return "3.4G"
-        case .cm6: return "5.7G"
-        case .cm3: return "10G"
-        case .cm125: return "24G"
-        case .mm6: return "47G"
-        case .mm4: return "75G"
-        case .mm25: return "122G"
-        case .mm2: return "134G"
-        case .mm1: return "241G"
-        default:
-            let hz = q.freqHz > 0 ? q.freqHz : band.lowHz
-            return String(JavaMath.round(Double(hz) / 1000.0))
-        }
+        if let designator = band.cabrilloDesignator { return designator }
+        let hz = q.freqHz > 0 ? q.freqHz : band.lowHz
+        return String(JavaMath.round(Double(hz) / 1000.0))
     }
 
     /// Mode in Cabrillo: CW, PH (phone), FM, RY (RTTY), DG (other digital); `nil` → CW.
@@ -570,5 +555,32 @@ public enum CabrilloExporter {
         guard let last = scalars.lastIndex(where: { !JavaText.isWhitespace($0) }) else { return "" }
         let end = scalars.index(after: last)
         return end == scalars.endIndex ? text : String(scalars[..<end])
+    }
+}
+
+extension Band {
+    /// The Cabrillo 3.0 band designator from 50 MHz up (`50`, `144`, `222`, `432`, `902`, `1.2G` … `241G`); `nil` for
+    /// the HF bands, which Cabrillo writes as the frequency in kHz. 222 MHz, 902 MHz and the microwave bands are
+    /// post-port additions.
+    public var cabrilloDesignator: String? {
+        switch self {
+        case .m160, .m80, .m60, .m40, .m30, .m20, .m17, .m15, .m12, .m10: nil
+        case .m6: "50"
+        case .m2: "144"
+        case .m125: "222"
+        case .cm70: "432"
+        case .cm33: "902"
+        case .cm23: "1.2G"
+        case .cm13: "2.3G"
+        case .cm9: "3.4G"
+        case .cm6: "5.7G"
+        case .cm3: "10G"
+        case .cm125: "24G"
+        case .mm6: "47G"
+        case .mm4: "75G"
+        case .mm25: "122G"
+        case .mm2: "134G"
+        case .mm1: "241G"
+        }
     }
 }

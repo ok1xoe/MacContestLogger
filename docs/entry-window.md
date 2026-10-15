@@ -19,6 +19,15 @@ A right click anywhere in the entry window (outside the text fields) opens N1MM'
 
 The choices are saved with the settings.
 
+## 222 MHz and 902 MHz
+
+The Region 2 bands 222 MHz (1.25 m, 222–225 MHz) and 902 MHz (33 cm, 902–928 MHz) are bands of their own, in
+frequency order between 2 m and 70 cm and between 70 cm and 23 cm (ADIF `1.25m` and `33cm`; Cabrillo `222` and
+`902`; EDI `222 MHz` and `902 MHz`; `{OTHERBAND}` and the N1MM UDP band `222`/`902`). Their band buttons (`1.25m`,
+`33cm`) appear in contests whose definition lists them, such as the ARRL VHF contests, and the DX cluster spot
+filter has them in its VHF and UHF groups. The score check (`mcl-scorecheck`) reads the Cabrillo band designators
+from `50` up (`50`, `144`, `222`, `432`, `902`, `1.2G` … `241G`).
+
 ## Bands above 10 GHz
 
 Besides 23 cm – 3 cm, MCL knows the millimetre bands up to 241 GHz like N1MM: 24, 47, 76, 122, 134 and 241 GHz

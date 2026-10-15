@@ -15,7 +15,10 @@ public enum Band: String, CaseIterable, Codable, Sendable {
     case m10 = "10m"
     case m6 = "6m"
     case m2 = "2m"
+    // 222 MHz (ADIF 1.25m) and 902 MHz (ADIF 33cm): Region 2 bands, a post-port addition placed in frequency order.
+    case m125 = "1.25m"
     case cm70 = "70cm"
+    case cm33 = "33cm"
     // Microwave bands: a deliberate post-port addition (ranges per ADIF 3.1.x). Java v1.1.1 ends at 70 cm.
     case cm23 = "23cm"
     case cm13 = "13cm"
@@ -68,7 +71,9 @@ public enum Band: String, CaseIterable, Codable, Sendable {
         case .m10: 28_000_000
         case .m6: 50_000_000
         case .m2: 144_000_000
+        case .m125: 222_000_000
         case .cm70: 430_000_000
+        case .cm33: 902_000_000
         case .cm23: 1_240_000_000
         case .cm13: 2_300_000_000
         case .cm9: 3_300_000_000
@@ -97,7 +102,9 @@ public enum Band: String, CaseIterable, Codable, Sendable {
         case .m10: 29_700_000
         case .m6: 54_000_000
         case .m2: 148_000_000
+        case .m125: 225_000_000
         case .cm70: 440_000_000
+        case .cm33: 928_000_000
         case .cm23: 1_300_000_000
         case .cm13: 2_450_000_000
         case .cm9: 3_500_000_000

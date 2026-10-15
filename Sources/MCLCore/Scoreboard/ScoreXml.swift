@@ -50,7 +50,8 @@ public enum ScoreXml {
         x += line("mult", "total", "ALL", String(score.multTotal))
         if withBreakdown, let breakdown {
             for b in breakdown.bands(nil) {
-                let band = JavaText.replace(JavaText.replace(b, "m", ""), "c", "")
+                let band = Band.from(adif: b).map(BroadcastMapping.n1mmBandName)
+                    ?? JavaText.replace(JavaText.replace(b, "m", ""), "c", "")
                 for m in breakdown.modes {
                     let cell = breakdown.cell(b, m)
                     if cell.qsos == 0 { continue }

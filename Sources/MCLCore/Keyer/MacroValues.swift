@@ -22,7 +22,9 @@ enum MacroFrequency {
         switch band {
         case .m6: return "50"
         case .m2: return "144"
+        case .m125: return "222"
         case .cm70: return "432"
+        case .cm33: return "902"
         case .cm23: return "1296"
         case .cm13: return "2304"
         case .cm9: return "3456"

@@ -574,7 +574,9 @@ extension Band {
         case .m10: "M10"
         case .m6: "M6"
         case .m2: "M2"
+        case .m125: "M125"
         case .cm70: "CM70"
+        case .cm33: "CM33"
         case .cm23: "CM23"
         case .cm13: "CM13"
         case .cm9: "CM9"
@@ -603,7 +605,9 @@ extension Band {
         case "M10": self = .m10
         case "M6": self = .m6
         case "M2": self = .m2
+        case "M125": self = .m125
         case "CM70": self = .cm70
+        case "CM33": self = .cm33
         case "CM23": self = .cm23
         case "CM13": self = .cm13
         case "CM9": self = .cm9

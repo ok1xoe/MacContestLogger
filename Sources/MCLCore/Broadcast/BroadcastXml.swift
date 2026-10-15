@@ -562,6 +562,8 @@ public enum BroadcastXml {
         (1.8, 2.0, "1.8"), (3.5, 4.0, "3.5"), (7.0, 7.3, "7"), (10.1, 10.15, "10"),
         (14.0, 14.35, "14"), (18.0, 18.2, "18"), (21.0, 21.45, "21"), (24.8, 25.0, "24"),
         (28.0, 29.7, "28"), (50.0, 54.0, "50"), (144.0, 148.0, "144"),
+        // Post-port: the Region 2 bands 222 and 902 MHz (lower edge in MHz like the rest; Java ends at 144).
+        (222.0, 225.0, "222"), (902.0, 928.0, "902"),
     ]
 
     private static func tag(_ name: String, _ value: String?) -> String {
