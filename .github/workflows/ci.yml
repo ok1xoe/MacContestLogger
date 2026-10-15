@@ -36,7 +36,7 @@ jobs:
           for d in ~/Library/Logs/DiagnosticReports /Library/Logs/DiagnosticReports; do
             ls -la "$d" 2>/dev/null
             find "$d" -newer Package.swift \( -name '*.ips' -o -name '*.crash' \) 2>/dev/null | while read -r f; do
-              echo "=== CRASH REPORT $f"; head -c 400000 "$f"; echo
+              echo "=== CRASH REPORT $f"; python3 scripts/ips-dump.py "$f"
             done
           done
           exit $rc
