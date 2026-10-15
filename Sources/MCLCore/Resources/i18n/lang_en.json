@@ -2525,5 +2525,10 @@
  "PDF manuál nejde stáhnout: %s": "The PDF manual cannot be downloaded: %s",
  "Otevřít dokumentaci online": "Open the online documentation",
  "PDF manuál": "PDF manual",
- "Dokumentace je k dispozici online: %s": "The documentation is available online: %s"
+ "Dokumentace je k dispozici online: %s": "The documentation is available online: %s",
+ "Najít cluster přes Tailscale": "Find the cluster over Tailscale",
+ "Tailscale není nainstalovaný (aplikace Tailscale ani příkaz tailscale nenalezeny)": "Tailscale is not installed (neither the Tailscale app nor the tailscale command was found)",
+ "Tailscale není připojený (%s) — spusťte a přihlaste Tailscale": "Tailscale is not connected (%s) — start Tailscale and log in",
+ "Žádná z %s stanic tailnetu online neodpovídá jako MQTT broker": "None of the %s online tailnet machines answers as an MQTT broker",
+ "Nalezené MQTT brokery v tailnetu: %s": "MQTT brokers found in the tailnet: %s"
 }

@@ -59,7 +59,8 @@ struct ClusterTab: View {
         }
     }
 
-    /// The Bonjour search for a broker in the LAN: a found one fills the host, the port and TLS.
+    /// The Bonjour search for a broker in the LAN and the search for the cluster among the Tailscale peers: a found
+    /// one fills the host, the port and TLS.
     @ViewBuilder private var discovery: some View {
         let cluster: ClusterSyncModel = app.cluster
         HStack(spacing: 8) {
@@ -68,6 +69,11 @@ struct ClusterTab: View {
             }
             .disabled(cluster.discovering)
             .accessibilityIdentifier("settings.cluster.discover")
+            Button(language.tr("Najít cluster přes Tailscale")) {
+                cluster.discoverTailscaleCluster(port: draft.clusterPort, tls: draft.tls)
+            }
+            .disabled(cluster.discovering)
+            .accessibilityIdentifier("settings.cluster.discoverTailscale")
             if cluster.discovering {
                 ProgressView()
                     .controlSize(.small)
@@ -81,7 +87,7 @@ struct ClusterTab: View {
                 draft.tls = broker.tls
             }
             .buttonStyle(.link)
-            .accessibilityIdentifier("settings.cluster.broker." + broker.name)
+            .accessibilityIdentifier("settings.cluster.broker." + broker.name + "." + String(broker.port))
         }
     }
 

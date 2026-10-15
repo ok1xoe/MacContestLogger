@@ -4,6 +4,12 @@ The network logbook (an MQTT broker plus the authority, a separate Java applicat
 (cluster-app, Java 21) that is not part of this repository) shares operating information between the
 stations in addition to QSOs.
 
+Each station finds the network's broker in **Nastavení → Cluster**: by typing its address, with **Najít broker v
+LAN (Bonjour)** in the local network, or with **Najít cluster přes Tailscale** when the stations are connected
+over Tailscale. Both searches run only when you press the button
+([Network logbook guide](network-logbook-guide.md), section 5). MacContestLogger does not look for the other
+stations themselves: they all meet at the broker.
+
 ## Network Status
 
 ![Network status: stations, their bands and contacts](img/network-status.png)

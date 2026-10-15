@@ -54,4 +54,8 @@ public struct DiscoveredBroker: Equatable, Sendable, Hashable {
 public enum BrokerTexts {
     public static let noneFoundKey = "V místní síti není žádný MQTT broker ohlášený přes Bonjour"
     public static let foundKey = "Nalezené MQTT brokery v místní síti: %s"
+    public static let tailscaleMissingKey = "Tailscale není nainstalovaný (aplikace Tailscale ani příkaz tailscale nenalezeny)"
+    public static let tailscaleDownKey = "Tailscale není připojený (%s) — spusťte a přihlaste Tailscale"
+    public static let tailscaleNoneKey = "Žádná z %s stanic tailnetu online neodpovídá jako MQTT broker"
+    public static let tailscaleFoundKey = "Nalezené MQTT brokery v tailnetu: %s"
 }
