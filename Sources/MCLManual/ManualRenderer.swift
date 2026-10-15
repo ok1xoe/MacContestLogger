@@ -190,9 +190,9 @@ public struct ManualRenderer {
         let links: Int = addLinks(layout, to: document)
         let outlineEntries: Int = addOutline(layout, to: document)
         var attributes: [AnyHashable: Any] = [
-            PDFDocumentAttribute.titleAttribute: "MacContestLogger — " + book.title,
+            PDFDocumentAttribute.titleAttribute: "MacContestLogger — " + ManualTypesetter.subtitle(book),
             PDFDocumentAttribute.creatorAttribute: "mcl-manual",
-            PDFDocumentAttribute.subjectAttribute: "MacContestLogger user guide",
+            PDFDocumentAttribute.subjectAttribute: book.language.documentSubject,
         ]
         if let version = options.version, !version.isEmpty {
             attributes[PDFDocumentAttribute.keywordsAttribute] = [version]

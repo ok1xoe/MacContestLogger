@@ -82,15 +82,17 @@ public struct ManualHTML {
             groups[groups.count - 1].titles.append("\(index + 1) " + ManualRenderer.plain(chapter.title))
             body += chapterHtml(chapter, number: index + 1, pageStart: starts, group: "g\(group)", state: &state)
         }
-        var html = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\" />\n"
+        var html = "<!DOCTYPE html>\n<html lang=\"" + book.language.htmlLang + "\">\n<head>\n<meta charset=\"utf-8\" />\n"
         html += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n"
         html += "<meta name=\"color-scheme\" content=\"light dark\" />\n"
         html += "<meta name=\"generator\" content=\"mcl-manual\" />\n"
-        html += "<title>" + Self.escape("MacContestLogger — " + ManualTypesetter.subtitle(book.title)
+        html += "<title>" + Self.escape("MacContestLogger — " + ManualTypesetter.subtitle(book)
                                        + (options.version.map { $0.isEmpty ? "" : " " + $0 } ?? "")) + "</title>\n"
         html += "<style>\n" + Self.stylesheet + groupStyles(groups) + "</style>\n</head>\n<body>\n"
         html += body
-        html += "<a class=\"to-contents\" href=\"#contents\" aria-label=\"Contents\">&#8593; Contents</a>\n"
+        let contentsLabel: String = Self.escape(book.language.contents)
+        html += "<a class=\"to-contents\" href=\"#contents\" aria-label=\"" + contentsLabel + "\">&#8593; " + contentsLabel
+            + "</a>\n"
         html += "</body>\n</html>\n"
         let summary = Summary(bytes: html.utf8.count, chapters: book.chapters.count, images: state.images,
                               imageBytes: state.imageBytes, reducedImages: state.reducedImages,
@@ -234,8 +236,8 @@ public struct ManualHTML {
     func titlePage(_ state: inout State) -> String {
         var out = "<header class=\"title-page\" id=\"title\">\n"
         out += "<p class=\"product\">MacContestLogger</p>\n"
-        out += "<p class=\"subtitle\">" + Self.escape(ManualTypesetter.subtitle(book.title)) + "</p>\n"
-        if let line = ManualTypesetter.editionLine(version: options.version, buildDate: options.buildDate) {
+        out += "<p class=\"subtitle\">" + Self.escape(ManualTypesetter.subtitle(book)) + "</p>\n"
+        if let line = book.language.editionLine(version: options.version, buildDate: options.buildDate) {
             out += "<p class=\"edition\">" + Self.escape(line) + "</p>\n"
         }
         out += "<div class=\"intro\">\n"
@@ -251,7 +253,9 @@ public struct ManualHTML {
 
     /// The table of contents: the parts with their numbered chapters, each linked.
     func contents() -> String {
-        var out = "<nav class=\"toc\" id=\"contents\" aria-label=\"Contents\">\n<h1 class=\"toc-title\">Contents</h1>\n"
+        let label: String = Self.escape(book.language.contents)
+        var out = "<nav class=\"toc\" id=\"contents\" aria-label=\"" + label + "\">\n<h1 class=\"toc-title\">" + label
+            + "</h1>\n"
         var number = 0
         for (part, chapters) in book.parts {
             out += "<section class=\"toc-part\">\n<h2>" + Self.escape(part) + "</h2>\n<ol>\n"
@@ -458,7 +462,8 @@ public struct ManualHTML {
     /// it): its running header names them. Browsers without named pages ignore it and still break before
     /// `.page-start`.
     func groupStyles(_ groups: [(name: String, titles: [String])]) -> String {
-        var out = ""
+        var out = "@page contents { @top-right { content: " + Self.cssString(book.language.contents)
+            + "; font: 7.5pt -apple-system, \"Helvetica Neue\", Arial, sans-serif; color: #66666f; } }\n"
         for group in groups {
             var title: String = group.titles.first ?? ""
             if group.titles.count == 2 {
@@ -539,7 +544,6 @@ public struct ManualHTML {
       @bottom-center { content: counter(page); font: 7.5pt -apple-system, "Helvetica Neue", Arial, sans-serif; color: #66666f; }
     }
     @page title-page { @top-left { content: none; } @top-right { content: none; } @bottom-center { content: none; } }
-    @page contents { @top-right { content: "Contents"; font: 7.5pt -apple-system, "Helvetica Neue", Arial, sans-serif; color: #66666f; } }
     @media print {
       :root {
         --bg: #ffffff; --fg: #1a1a1f; --muted: #5f5f68; --rule: #c0c0c8; --link: #0d54b3;

@@ -28,21 +28,25 @@ jobs:
         run: scripts/release-version.sh --self-test
       - name: Tests
         run: scripts/test.sh
-      # The user guide renders from docs/ as a PDF and as one self-contained HTML file (a missing page or image fails
-      # it); the release attaches both.
+      # The user guide renders from docs/ (English) and docs/cs/ (Czech) as a PDF and as one self-contained HTML file
+      # each (a missing page or image fails it); the release attaches all four. A Czech page that is not translated
+      # yet falls back to English with a warning (`ManualLanguageTests` turns strict once docs/cs/README.md exists).
       - name: User guide PDF and HTML
         run: |
           set -euo pipefail
           swift build --product mcl-manual
-          .build/debug/mcl-manual --out build/manual/MacContestLogger-manual.pdf \
-            --html build/manual/MacContestLogger-manual.html
-          [ "$(head -c 5 build/manual/MacContestLogger-manual.pdf)" = "%PDF-" ]
-          [ "$(head -c 15 build/manual/MacContestLogger-manual.html)" = "<!DOCTYPE html>" ]
-          # Self-contained: nothing is loaded from outside the file.
-          if grep -Eq 'src="(https?:|//)|<link |<script|@import' build/manual/MacContestLogger-manual.html; then
-            echo "the HTML guide loads something from outside the file"; exit 1
-          fi
-          [ "$(wc -c < build/manual/MacContestLogger-manual.html)" -lt 26214400 ]
+          .build/debug/mcl-manual --lang en --out-dir build/manual
+          .build/debug/mcl-manual --lang cs --out-dir build/manual
+          for name in MacContestLogger-manual MacContestLogger-manual-cs; do
+            [ "$(head -c 5 "build/manual/$name.pdf")" = "%PDF-" ]
+            [ "$(head -c 15 "build/manual/$name.html")" = "<!DOCTYPE html>" ]
+            # Self-contained: nothing is loaded from outside the file.
+            if grep -Eq 'src="(https?:|//)|<link |<script|@import' "build/manual/$name.html"; then
+              echo "the HTML guide $name loads something from outside the file"; exit 1
+            fi
+            [ "$(wc -c < "build/manual/$name.html")" -lt 26214400 ]
+          done
+          grep -q '<html lang="cs">' build/manual/MacContestLogger-manual-cs.html
           ls -lh build/manual
       # Static accessibility audit of the views (reads sources only, starts nothing): icon and glyph controls,
       # canvases and AppKit islands carry a label, every window has the font stepper, the spoken texts are translated.

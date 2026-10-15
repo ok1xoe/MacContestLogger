@@ -32,9 +32,11 @@ public final class UpdateCheckModel {
     /// The API address (tests may point it at a local server).
     @ObservationIgnored var url: String = UpdateCheck.latestReleaseUrl
     @ObservationIgnored private var task: Task<Void, Never>?
-    /// The manual's address per format (tests may point it at a local server).
-    @ObservationIgnored var manualUrls: [ManualDownload.Format: String] = Dictionary(
-        uniqueKeysWithValues: ManualDownload.Format.allCases.map { ($0, $0.latestUrl) })
+    /// The manual's address per release asset name (tests may point it at a local server).
+    @ObservationIgnored var manualUrls: [String: String] = Dictionary(uniqueKeysWithValues:
+        ManualDownload.Format.allCases.flatMap { format in
+            ManualDownload.Language.allCases.map { (format.assetName($0), format.latestUrl($0)) }
+        })
     @ObservationIgnored private var manualTask: Task<Void, Never>?
 
     init(config: ConfigModel, status: StatusModel, network: NetworkPorts, appVersion: String?) {
@@ -159,18 +161,29 @@ public final class UpdateCheckModel {
         return !isDownloadingManual
     }
 
-    /// Downloads the manual of the newest release in `format` and saves it to `file` (chosen by the user in the save
-    /// panel). Nothing is written unless the answer is a file of that format within the size limit.
-    public func downloadManual(to file: URL, format: ManualDownload.Format = .pdf) {
+    /// Downloads the manual of the newest release in `format` and `language` and saves it to `file` (chosen by the
+    /// user in the save panel). Nothing is written unless the answer is a file of that format within the size limit.
+    /// A release without the Czech guide (published before it existed) answers 404 for it: the English one is
+    /// downloaded instead, under the same rules.
+    public func downloadManual(to file: URL, format: ManualDownload.Format = .pdf,
+                               language: ManualDownload.Language = .en) {
         guard canDownloadManual() else { return }
         isDownloadingManual = true
         status.show(format == .html ? ContestMessage("Stahuji HTML manuál…") : ContestMessage("Stahuji PDF manuál…"))
         let fetch: ManualFetcher = network.fetchManual
-        let address: String = manualUrls[format] ?? format.latestUrl
+        let address: String = manualUrl(format, language)
+        let fallback: String? = language == .en ? nil : manualUrl(format, .en)
         manualTask = Task { [weak self] in
-            let outcome: ManualDownload.Outcome = await fetch(address, format)
+            var outcome: ManualDownload.Outcome = await fetch(address, format)
+            if outcome == .notPublished, let fallback {
+                outcome = await fetch(fallback, format)
+            }
             self?.finishManual(outcome, file: file, format: format)
         }
+    }
+
+    private func manualUrl(_ format: ManualDownload.Format, _ language: ManualDownload.Language) -> String {
+        manualUrls[format.assetName(language)] ?? format.latestUrl(language)
     }
 
     private func finishManual(_ outcome: ManualDownload.Outcome, file: URL, format: ManualDownload.Format) {

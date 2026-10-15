@@ -303,14 +303,17 @@ layout, it keeps your old structure; to get the new one, create a fresh copy wit
   rotated at 1 MB (the previous part is kept as `….log.1`).
 - **Nápověda → Stáhnout nejnovější PDF manuál…** (also in **Nástroje**, N1MM's Download latest PDF manual) saves
   this user guide as one PDF (contents with page numbers, bookmarks for every chapter and section, working
-  links) for reading offline. It first asks where to save the file, then downloads the
-  `MacContestLogger-manual.pdf` attached to the latest published release on GitHub. Only that address is used
+  links) for reading offline, in the language of the application: Czech when the application is in Czech, English
+  otherwise. It first asks where to save the file, then downloads the `MacContestLogger-manual-cs.pdf` (Czech) or
+  `MacContestLogger-manual.pdf` (English) attached to the latest published release on GitHub; a release without the
+  Czech guide gives the English one. Only those addresses are used
   (redirects are followed only to GitHub's own download hosts), the file must be a PDF and at most 64 MB, and nothing
   is written otherwise. When the release has no manual yet or the download fails, the dialog says why and offers
   **Otevřít dokumentaci online** (these pages in the browser). The request is made only when you choose the item;
   with `MCL_INERT_NETWORK` it is never made.
 - **Nápověda → Stáhnout nejnovější HTML manuál…** saves the same guide as one self-contained HTML file
-  (`MacContestLogger-manual.html` from the latest release, with the same rules; the file must be an HTML document).
+  (`MacContestLogger-manual-cs.html` or `MacContestLogger-manual.html` from the latest release, chosen the same way
+  and with the same rules; the file must be an HTML document).
   Every image is embedded, so it opens offline in any browser. To make your own PDF, open it in Safari and choose
   **File → Export as PDF…**, or print it from Chrome (**Save as PDF**; turn off the browser's own *Headers and
   footers* and keep *Background graphics* on). It prints on A4 with a white background; Chrome also adds a running

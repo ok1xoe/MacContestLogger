@@ -4,12 +4,14 @@ The pages below follow the order of the application: first steps, windows, opera
 Window names and menu labels are quoted as they appear in the (Czech) user interface.
 
 The whole guide is also available as one PDF (contents, bookmarks, page numbers) and as one self-contained HTML
-file (all images inside; open it in a browser, adjust it if you like and print or export it to PDF): every release
-has `MacContestLogger-manual.pdf` and `MacContestLogger-manual.html` attached, and **Nápověda → Stáhnout nejnovější
-PDF manuál…** or **Stáhnout nejnovější HTML manuál…** in the application downloads the latest one.
+file (all images inside; open it in a browser, adjust it if you like and print or export it to PDF), in English and
+in Czech ([docs/cs](cs/README.md)): every release has `MacContestLogger-manual.pdf` and `MacContestLogger-manual.html`
+(English) and `MacContestLogger-manual-cs.pdf` and `MacContestLogger-manual-cs.html` (Czech) attached, and
+**Nápověda → Stáhnout nejnovější PDF manuál…** or **Stáhnout nejnovější HTML manuál…** in the application downloads
+the latest one in the language of the application (Czech for Czech, English otherwise).
 
-The screenshots show the Czech user interface. They were taken in the earlier Java version of the application;
-the current native macOS version looks slightly different, but the controls and their meaning are the same.
+Some screenshots were taken in the earlier Java version of the application; the current native macOS version looks
+slightly different, but the controls and their meaning are the same.
 
 ## Getting started
 

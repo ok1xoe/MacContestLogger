@@ -120,7 +120,8 @@ import Testing
         #expect(book.chapters.map(\.file) == ["first.md", "second.md"])
         #expect(book.chapters.map(\.title) == ["First chapter", "Second chapter"])
         #expect(book.chapters.map(\.part) == ["Part one", "Part two"])
-        #expect(book.intro == [.paragraph("Intro paragraph.")])
+        // The picture has no English version (`img/en/`): the introduction says so.
+        #expect(book.intro == [.paragraph("Intro paragraph."), .paragraph(ManualLanguage.czechScreenshotsNote)])
     }
 
     @Test func missingPagesAndImagesAreErrors() throws {
