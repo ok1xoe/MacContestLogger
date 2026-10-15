@@ -156,6 +156,10 @@ private struct StripHintsView: View {
                                  background: colors.background, foreground: colors.text)
                     }
                 }
+                if let warning = app.gridWarning(panel.entry) {
+                    ChipView(text: warning, background: DomainColors.dupe, foreground: .white)
+                        .help(language.tr("Lokátor neodpovídá zemi volačky — zkontroluj ho"))
+                }
                 WorkedBeforeStripView(app: app, panel: panel)
                 if panel.entry.isShown(.bearing), let bearing = panel.entry.bearingLine {
                     Text(verbatim: bearing)

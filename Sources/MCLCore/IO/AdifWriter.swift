@@ -19,6 +19,8 @@ public struct AdifWriter: Sendable {
     public var n1mmFields: Bool = false
     /// The multipliers a QSO counted as new (by `Qso.uuid`, in the definition's binding order) — `APP_N1MM_MULT1`–`3`.
     public var multipliers: [String: [String]] = [:]
+    /// Extra fields of a QSO by `Qso.uuid` (the contest definition's `adif` map): ADIF name and value, in order.
+    public var extraFields: [String: [AdifExtraFields.Field]] = [:]
 
     /// - Parameter contestId: Cabrillo contest name; `nil` or blank (Java `isBlank`) = no contest.
     public init(contestId: String? = nil) {
@@ -102,6 +104,9 @@ public struct AdifWriter: Sendable {
         }
         Self.field(&out, "COUNTRY", q.dxccName)
         Self.field(&out, "CONT", q.continent)
+        for extra in extraFields[q.uuid] ?? [] {
+            Self.field(&out, extra.name, extra.value)
+        }
         // N1MM extension: Run/S&P on the QSO.
         Self.field(&out, "APP_N1MM_RUNNING", q.runMode == .run ? "Y" : "N")
         if n1mmFields {

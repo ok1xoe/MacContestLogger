@@ -209,3 +209,18 @@ crash is counted as unreadable and skipped. The score is recounted afterwards.
 
 The file grows with the database; it can be deleted when the database is not open (a new one is started on the
 next write).
+
+## Text in the contest's layout
+
+**File → Export → Text ve formátu závodu…** (Text in the contest's layout...) writes one line per QSO from the
+template in the contest definition (`export: { text: "…" }`, N1MM's generic output / UDC `CabrilloString`), otherwise
+from a default one. Placeholders `{name}` or `{name:width}`: a positive width pads on the right, a negative one on
+the left, longer values are cut. Names: `date`, `time`, `call`, `band`, `freq` (kHz), `mode`, `rsts`, `rstr`, `nrs`,
+`nrr`, `sent`, `rcvd`, `op`, `points`, `note`, `mycall` and the id of any received field, e.g.
+
+```yaml
+export: { text: "{date:10} {time:4} {call:13} {rsts:3} {nrs:-4} {rstr:3} {nr:-4} {loc:6}" }
+```
+
+A contest definition can also add ADIF fields to the ADIF export: `adif: { SAT_NAME: sat, PROP_MODE: "=SAT" }` (a
+received field's value, or `=text` for a fixed value).

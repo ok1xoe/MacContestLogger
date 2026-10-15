@@ -406,6 +406,27 @@ public final class ImportExportModel {
         }
     }
 
+    /// N1MM's generic text output in the contest's own layout (`export.text` of the definition, otherwise
+    /// `FormattedTextExport.defaultTemplate`), one line per QSO in time order (UTF-8).
+    public func exportFormattedText(to file: URL) async {
+        let template: String? = contest.definition?.export?.text
+        let session: ContestSession? = contest.runtime.freshSession()
+        let myCall: String = config.config.station.call
+        do {
+            let qsos: [Qso] = try await readLog()
+            try await BlockingQueue.run {
+                let text: String = FormattedTextExport.text(qsos, template: template, myCall: myCall) { qso in
+                    (try? session?.receivedFromFlat(call: qso.call, exchangeRcvdFlat: qso.exchangeRcvd,
+                                                    serialRcvd: qso.serialRcvd)) ?? JavaLinkedMap()
+                }
+                try Data(text.utf8).write(to: file)
+            }
+            status.show("Exportováno do %s", .string(file.path))
+        } catch {
+            status.showVerbatim(ErrorText.message(error))
+        }
+    }
+
     // MARK: - printing (`AS:4025-4035`)
 
     /// Kotlin `printLog()` up to the dialog: the title `"<contest name or Deník> — <call>"` and the text listing of

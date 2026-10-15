@@ -91,6 +91,8 @@ public final class SuggestionsModel {
     @ObservationIgnored public var lookupSource: @MainActor () -> ManualLookupResult? = { nil }
     /// The app's callbook record (`AppState.callbookRecord`).
     @ObservationIgnored public var callbookSource: @MainActor () -> CallbookHit? = { nil }
+    /// N1MM's big grid: the only grid field of the call's country, `nil` = none or not known (wired by the app).
+    @ObservationIgnored public var bigGridSource: @MainActor (String) -> String? = { _ in nil }
     /// `state.lookupCallbook(call)` after the 700 ms pause (wired by the app).
     @ObservationIgnored public var callbookLookup: @MainActor (String) -> Void = { _ in }
     /// Kotlin `active` of the panel, read when the pause starts (`LaunchedEffect(call)` captures it at its launch).
@@ -372,6 +374,13 @@ public final class SuggestionsModel {
            let locator = fields.first(where: { $0.type == .LOCATOR })?.id,
            let logged = contest.runtime.loggedLocator(call: call, rows: logbook.rows) {
             fill.put(locator, logged)
+        }
+        // N1MM: without any locator, the big grid of a country that has only one (the operator types the rest).
+        if active, KotlinStrings.trim(call).utf16.count >= 3,
+           let locator = fields.first(where: { $0.type == .LOCATOR })?.id,
+           KotlinStrings.isBlank(fill[locator] ?? ""), KotlinStrings.isBlank(formSource().contestExchange[locator] ?? ""),
+           let big = bigGridSource(call) {
+            fill.put(locator, big)
         }
         if fill.isEmpty && chFilled.isEmpty {
             return

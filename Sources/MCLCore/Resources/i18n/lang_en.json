@@ -1941,5 +1941,11 @@
  "Obnovit původní": "Restore original",
  "Vrátí seznam dodaný s daty závodů": "Puts back the list shipped with the contest data",
  "Jeden okres / sekce na řádek: KÓD,Název.": "One county / section per line: CODE,Name.",
- "Seznam okresů / sekcí": "List of counties / sections"
+ "Seznam okresů / sekcí": "List of counties / sections",
+ "Text ve formátu závodu…": "Text in the contest's layout…",
+ "Exportovat ADIF…": "Export ADIF…",
+ "Vybraná smazaná QSO (bez výběru všechna) do souboru ADIF": "The selected deleted QSOs (all without a selection) to an ADIF file",
+ "QSO ve čtverci %s": "QSOs in grid %s",
+ "%s nesedí k zemi %s": "%s does not fit %s",
+ "Lokátor neodpovídá zemi volačky — zkontroluj ho": "The locator does not fit the call's country — check it"
 }

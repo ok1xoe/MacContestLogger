@@ -30,6 +30,7 @@
             { "id": "settings.exportEdi", "label": "Export EDI (VKV)…", "state": "enable" },
             { "id": "settings.exportOther", "label": "Export CSV, text a souhrn…", "state": "enable" },
             { "id": "settings.exportByBand", "label": "Text podle pásma…", "state": "enable" },
+            { "id": "settings.exportFormatted", "label": "Text ve formátu závodu…", "state": "enable" },
             { "id": "callhistory.exportN1mm", "label": "Call history (N1MM)…", "state": "enable" },
             { "id": "callhistory.exportCsv", "label": "Call history (CSV)…", "state": "enable" },
             { "id": "fkeys.export", "label": "Function Keys (.mc)…", "state": "enable" }

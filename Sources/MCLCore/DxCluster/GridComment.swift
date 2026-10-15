@@ -43,7 +43,7 @@ public enum GridComment {
         return nil
     }
 
-    private static func check(grid: String, field: String, entity: DxccEntity,
+    static func check(grid: String, field: String, entity: DxccEntity,
                               fieldMap: (any GridFieldLookup)?) -> (ok: Bool, why: String) {
         let prefix: String = entity.primaryPrefix ?? "null"
         if let fieldMap, fieldMap.known(field) {

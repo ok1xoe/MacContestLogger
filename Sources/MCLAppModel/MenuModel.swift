@@ -17,7 +17,7 @@ public final class MenuModel {
     public static let implementedActions: Set<String> = [
         "contest.new", "contest.open", "contest.setup", "contest.rescore", "contest.none", "database.new", "database.open",
         "window.log", "settings.exportCabrillo", "settings.export", "settings.downloadScp", "contest.postcontest",
-        "settings.import", "settings.merge", "settings.exportEdi", "settings.exportOther", "settings.exportByBand", "settings.print",
+        "settings.import", "settings.merge", "settings.exportEdi", "settings.exportOther", "settings.exportByBand", "settings.exportFormatted", "settings.print",
         "database.refillDxcc", "database.updateClubLogDxcc", "contest.updateCallHistory", "contest.updateDefinitions", "contest.editor",
         "settings.profiles", "settings.open", "contest.record", "window.catlog", "window.rotator",
         "window.cwkeyboard", "window.cwreader", "window.digitalinterface", "window.digitalinterface2", "window.waterfall", "beacons.load",

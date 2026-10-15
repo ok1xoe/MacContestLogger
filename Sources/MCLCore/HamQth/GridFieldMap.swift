@@ -33,6 +33,11 @@ public struct GridFieldMap: GridFieldLookup {
         return set.contains(entityCode)
     }
 
+    /// The fields the entity transmits from (per historical data), sorted.
+    public func fields(entityCode: Int) -> [String] {
+        entitiesByField.compactMap { key, entities in entities.contains(entityCode) ? key.text : nil }.sorted()
+    }
+
     /// Loads from `<contestDataDir>/multipliers/ww_digi_grid.csv`, otherwise an empty map (also without a resolver
     /// or on a read error).
     public static func fromDir(_ contestDataDir: URL?, _ dxcc: (any DxccLookup)?) -> GridFieldMap {

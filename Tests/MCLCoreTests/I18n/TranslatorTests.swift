@@ -169,10 +169,11 @@ import Testing
         // 3 keys of the Spots, Lookup and All QSOs broadcast and the shared receive port and
         // 3 keys of the ADIF export from all contests, the text export by band and the Cabrillo copy to supercheckpartial.com and
         // the free-form exchange and
-        // the QSO party setup.
-        #expect(map.count == 1_943)
+        // the QSO party setup and
+        // the log extras.
+        #expect(map.count == 1_949)
         let german = try Self.bundled("de")
-        #expect(german.count == 1_943)
+        #expect(german.count == 1_949)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

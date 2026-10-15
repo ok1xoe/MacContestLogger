@@ -47,6 +47,8 @@ public enum MenuActions {
         case saveAdifRange(suggestedName: String, range: AdifDateRange, allContests: Bool = false)
         /// N1MM „Export to file (generic) sorted by band" → `exportTextByBand(to:)`.
         case saveTextByBand(suggestedName: String)
+        /// N1MM's generic text output in the contest's layout → `exportFormattedText(to:)`.
+        case saveFormattedText(suggestedName: String)
         /// The loaded call history → `exportCallHistory(to:format:)`.
         case saveCallHistory(format: DataToolsModel.CallHistoryFormat, suggestedName: String)
         /// N1MM Export Function Keys to file: the message set the entry window's keys send now, as an `.mc` file.
@@ -62,7 +64,7 @@ public enum MenuActions {
     /// type-check).
     private static let fileIds: Set<String> = [
         "settings.export", "settings.exportCabrillo", "settings.exportEdi", "settings.exportOther", "settings.exportByBand",
-        "settings.import",
+        "settings.exportFormatted", "settings.import",
         "settings.merge", "database.refillDxcc", "callhistory.exportN1mm", "callhistory.exportCsv",
         "callhistory.import", "fkeys.export", "file.recoverJournal",
     ]
@@ -163,6 +165,8 @@ public enum MenuActions {
             return .chooseDirectory(.other)
         case "settings.exportByBand":
             return .saveTextByBand(suggestedName: ExportNames.otherBase(call: app.config.config.station.call) + "-by-band.txt")
+        case "settings.exportFormatted":
+            return .saveFormattedText(suggestedName: ExportNames.otherBase(call: app.config.config.station.call) + ".txt")
         case "database.refillDxcc":
             return .confirmRefillDxcc(count: app.logbook.rows.count)
         case "callhistory.import":

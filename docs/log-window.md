@@ -40,7 +40,8 @@ The **⋯** button right of the search field:
 
 Like N1MM's DELETEDQS log, every QSO deleted from the log (the row menu, the selection, Ctrl+D, WIPELOG) is kept in
 the database. **⋯ → Smazaná QSO…** lists the deleted QSOs of the contest, the most recently deleted first; select them
-and press **Obnovit** (Restore) to put them back. A restored QSO keeps its time and every field, is logged again as a
+and press **Obnovit** (Restore) to put them back, or **Exportovat ADIF…** (Export ADIF...) to save them (the
+selected ones, or all without a selection) to an ADIF file. A restored QSO keeps its time and every field, is logged again as a
 new QSO (in a multi-op cluster it is sent to the other stations as a new QSO) and the score is recalculated.
 
 ## Bulk edits
@@ -122,3 +123,9 @@ In a contest the table has two extra columns:
 
 It is computed by replaying the log (like Rescore) in the background after every change.
 X-QSOs and deleted QSOs have no marks. Outside a contest the columns are not shown.
+
+## QSOs by grid
+
+The search field takes `grid:JN79` (or `loc:`): the QSOs whose received locator starts with it (`grid:JN` for a whole
+field). A row with a locator has **QSO ve čtverci JN79** (QSOs in grid JN79) in its menu, which sets that search
+(N1MM's QSOs by grid).
