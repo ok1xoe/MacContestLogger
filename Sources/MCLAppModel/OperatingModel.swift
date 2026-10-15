@@ -23,6 +23,9 @@ public final class OperatingModel {
     public private(set) var esmEnabled: Bool
     /// Kotlin `cqRepeat` (RPT).
     public private(set) var cqRepeat: Bool = false
+    /// The entry window the CQ repeat was switched on in (0 = VFO A / rig 1, 1 = VFO B / rig 2): in SO2R it keeps
+    /// calling CQ on that (run) radio while the entry focus is on the other one (N1MM).
+    public internal(set) var cqRepeatWindow: Int = 0
     /// Kotlin `postContest` (POSTCONTEST): the time field is shown, nothing is sent.
     public private(set) var postContest: Bool = false
     /// The operator at the key (Kotlin `operatorCall`: the configured operator, otherwise the station call). A new

@@ -74,8 +74,15 @@ final class CqRepeatRunner {
     /// active window. Kotlin runs one loop per panel without an `active` gate, so the inactive window's loop keyed
     /// the active rig/VFO with its own form, also between the messages of the operator's QSO in the other window.
     /// Switching the active window restarts the loop there, with that window's call and mode.
+    ///
+    /// SO2R (N1MM): the entry and the transmit focus are separate, so the loop stays in the window it was switched on
+    /// in — the run radio keeps calling CQ while the operator types on the S&P radio.
     private func enabled(_ entry: EntryModel) -> Bool {
-        operating.cqRepeat && present() && entry.isActivePanel
+        guard operating.cqRepeat && present() else { return false }
+        if let rig = keyer.rig, rig.vfo.so2r, rig.otherEntry(than: entry) != nil {
+            return entry.vfo == operating.cqRepeatWindow && entry.isWindowShown
+        }
+        return entry.isActivePanel
     }
 
     private func observe() {

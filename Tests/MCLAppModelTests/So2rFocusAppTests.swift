@@ -195,4 +195,37 @@ import Testing
         #expect(model.status.message == "Neplatný čas (0–2000 ms)")
         #expect(model.config.config.so2r.millis(.swapTailMs) == 0)
     }
+
+    /// SO2R: the CQ repeat stays on the radio it was switched on in while the operator types on the other one.
+    @Test func cqRepeatStaysOnTheRunRadio() async throws {
+        let app = try await KeyingApp.make(configure: { config, _ in
+            winkeyerConfig(&config)
+            config.radioMode = "SO2R"
+            config.runMode.repeatSeconds = 0.2
+        })
+        let second: EntryModel = app.model.vfoB.entry
+        second.isWindowShown = true
+        for entry in [app.entry, second] {
+            entry.setMode(.cw)
+        }
+        func sends() -> Int {
+            (app.keying.lastKeyer?.events ?? []).filter { $0.hasPrefix("send ") }.count
+        }
+        app.entry.runShortcut(.cqRepeat)
+        await runMainQueue()
+        await app.settle()
+        #expect(sends() == 1)
+        app.entry.runShortcut(.switchRadio)
+        second.callChanged("W1AW")
+        await runMainQueue()
+        #expect(app.model.rig.vfo.activeVfo == 1)
+        for _ in 0..<40 where sends() < 2 {
+            app.clock.advance(by: 1_000)
+            await app.settle()
+        }
+        #expect(sends() >= 2)
+        #expect(app.model.operating.cqRepeat)
+        #expect(app.model.rig.vfo.txVfo == 0)
+        #expect(second.form.call == "W1AW")
+    }
 }

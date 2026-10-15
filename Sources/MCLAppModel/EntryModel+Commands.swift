@@ -428,6 +428,7 @@ extension EntryModel {
         case .toggleRun:
             operating.toggleRun(freqHz: form.freqHz)
         case .cqRepeat:
+            operating.cqRepeatWindow = vfo
             operating.setCqRepeat(!operating.cqRepeat)
         case .cqRepeatTime:
             promptRepeatTime()
@@ -739,6 +740,7 @@ extension EntryModel {
             grabList?.removeSelected()
         case .resumeCq:
             if operating.isRun {
+                operating.cqRepeatWindow = vfo
                 operating.applyCqRepeat(true)
             }
         case .digitalTx:
@@ -1695,6 +1697,7 @@ extension EntryModel {
     private func toggle(_ setting: CallFieldCommand.Setting, _ on: Bool) {
         switch setting {
         case .cqRepeat:
+            operating.cqRepeatWindow = vfo
             operating.applyCqRepeat(on)
         case .workDupes:
             operating.applyWorkDupes(on)
