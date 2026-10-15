@@ -85,19 +85,18 @@ import Testing
         #expect(app.model.status.message == "Rozložení oken „Nikdo“ neexistuje")
     }
 
-    @Test func layoutMenuItemsAskForAName() async throws {
+    /// The prompt opens after the saved names were read off the main thread, and the layout is saved off it too:
+    /// both are awaited through their observable results (the prompt, the status line), never a count of yields.
+    @Test(.mainActorSafetyNet) func layoutMenuItemsAskForAName() async throws {
         let app = try await TestApp.make()
         #expect(MenuActions.perform("layout.gather", app: app.model) == .gatherWindows)
         #expect(MenuActions.perform("layout.save", app: app.model) == nil)
-        for _ in 0..<50 where app.model.dialogs.textPrompt == nil {
-            await Task.yield()
-        }
+        await untilObserved { app.model.dialogs.textPrompt != nil }
         let prompt = try #require(app.model.dialogs.textPrompt)
         #expect(prompt.initial == "OK1XOE")
         app.model.dialogs.submitPrompt("Club")
-        for _ in 0..<200 where await app.model.profiles.layoutNames().isEmpty {
-            await Task.yield()
-        }
+        await untilObserved { app.model.status.message.contains("Club") }
+        #expect(app.model.status.message == "Rozložení oken „Club“ uloženo")
         #expect(await app.model.profiles.layoutNames() == ["Club"])
     }
 

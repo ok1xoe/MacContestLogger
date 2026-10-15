@@ -168,12 +168,15 @@ import Testing
         #expect(client.isConnected)
     }
 
+    /// The server resets only after the client's command: a reset right at the accept may reach the client before its
+    /// `connect` has checked the socket's error (a descheduled thread on a loaded machine) — a connect failure then.
     @Test func connectionResetIsReadError() async throws {
-        let server = try FakeLineServer(fallback: [.silent], onConnect: [.reset])
+        let server = try FakeLineServer(fallback: [.reset])
         defer { server.stop() }
         let received = Received()
         let client = try await Self.connect(server, received)
         defer { client.close() }
+        try await onOwnThread { try client.send("sh/dx") }
         try await received.wait { !$0.allErrors.isEmpty }
         let error = try #require(received.allErrors.first as? DxClusterException)
         #expect(error.message == "Chyba čtení z DX clusteru")

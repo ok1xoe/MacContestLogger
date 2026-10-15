@@ -36,7 +36,7 @@ import Testing
     }
 
     /// A replacement for the Kotlin `delay`: records the requested duration; the blocking variant waits (on the session
-    /// thread, not in the pool) until the test releases it, at most 120 s (strict-pool runs starve the polling waits).
+    /// thread, not in the pool) until the test releases it, however long the test takes to get there.
     final class SleepGate: @unchecked Sendable {
         private let condition = NSCondition()
         private var requested: [Int] = []
@@ -51,14 +51,24 @@ import Testing
             condition.lock()
             requested.append(ms)
             let ticket: Int = requested.count
-            // Bounded: a test that never releases the hold frees the session thread after 120 s instead of hanging.
-            let deadline = Date(timeIntervalSinceNow: 120)
+            condition.broadcast()
+            // Unbounded: a time bound here once let the hold lapse on a loaded runner before the test (starved in the
+            // cooperative pool) got to its `disconnect`. Every test releases what it holds; a hang is the safety net's.
             while blocking && released < ticket {
-                if !condition.wait(until: deadline) {
-                    break
-                }
+                condition.wait()
             }
             condition.unlock()
+        }
+
+        /// Blocks (off the cooperative pool) until the gate has been entered.
+        func waitUntilEntered() async {
+            await onOwnThread("sleep-gate-wait") { [self] in
+                condition.lock()
+                while requested.isEmpty {
+                    condition.wait()
+                }
+                condition.unlock()
+            }
         }
 
         func release() {
@@ -221,19 +231,6 @@ import Testing
         #expect(server.commands(0).isEmpty)
     }
 
-    /// Waits until the gate has been entered; records an issue instead of hanging when it never is (10 s).
-    private static func waitRequested(_ gate: SleepGate) async -> Bool {
-        let deadline = ContinuousClock.now + .seconds(10)
-        while gate.calls.isEmpty {
-            if ContinuousClock.now >= deadline {
-                Issue.record("The hold was never reached within 10 s")
-                return false
-            }
-            try? await Task.sleep(nanoseconds: 5_000_000)
-        }
-        return true
-    }
-
     @Test func autoLoginSkippedWhenDisconnectedDuringDelay() async throws {
         let server = try FakeLineServer(fallback: [.silent])
         defer { server.stop() }
@@ -242,7 +239,7 @@ import Testing
         let session = Self.makeSession(rec, gate: gate)
 
         try session.connect(Self.favorite(server), autoLogin: true)
-        guard await Self.waitRequested(gate) else { return }
+        await gate.waitUntilEntered()
         try session.disconnect("Konec")
         gate.release()
         await session.idle()
@@ -263,7 +260,7 @@ import Testing
         let session = Self.makeSession(rec, gate: gate)
         session.onClientCreated = { held.sleep(0) }
         try session.connect(Self.favorite(server), autoLogin: true)
-        guard await Self.waitRequested(held) else { return }
+        await held.waitUntilEntered()
         try session.disconnect("Konec")
         held.release()
         await session.idle()
@@ -283,7 +280,7 @@ import Testing
         let session = Self.makeSession(rec, gate: gate)
         session.onClientCreated = { held.sleep(0) }
         try session.connect(Self.favorite(server, password: ""), autoLogin: true)
-        guard await Self.waitRequested(held) else { return }
+        await held.waitUntilEntered()
         #expect(rec.statuses == ["Připojuji k Test…"])
         held.release()
         try await Self.waitCommands(server, count: 1)

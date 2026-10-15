@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 @testable import MCLAppModel
 @testable import MCLCore
 import Testing
@@ -233,6 +234,23 @@ func eventually(_ what: String = "", _ condition: @MainActor () -> Bool,
         try? await Task.sleep(nanoseconds: 1_000_000)
     }
     Issue.record("condition never held: \(what)", sourceLocation: sourceLocation)
+}
+
+/// Waits until `condition` holds, woken by a change of the observable state it reads (no polling and no clock: on a
+/// loaded machine the work behind the change may take as long as it takes). The condition is checked and its
+/// tracking registered in the same main-actor step, so a change cannot slip in between. A condition that never holds
+/// is ended by the test's safety net.
+@MainActor
+func untilObserved(_ condition: @escaping @MainActor () -> Bool) async {
+    while !condition() {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            withObservationTracking {
+                _ = condition()
+            } onChange: {
+                continuation.resume()
+            }
+        }
+    }
 }
 
 /// An app over a temporary data directory with fake hardware.

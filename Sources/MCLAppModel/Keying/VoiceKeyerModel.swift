@@ -30,6 +30,9 @@ public final class VoiceKeyerModel {
     @ObservationIgnored var performAction: (@MainActor (CwMessage.Action) -> Void)?
     /// The parameterized macros of a message (`{COMMENT text}`…), performed when it starts.
     @ObservationIgnored var performCommand: (@MainActor (MacroCommand) -> Void)?
+    /// How long the voice queue waits for a mid-message action on the main actor before it aborts the rest of the
+    /// message (a hung main actor); `nil` waits as long as it takes (tests on a loaded machine).
+    @ObservationIgnored var actionHopTimeout: DispatchTimeInterval? = .seconds(10)
     @ObservationIgnored private let voiceKeyer: VoiceKeyer
     @ObservationIgnored let ptt: VoicePtt
     @ObservationIgnored private let settings: VoiceSettingsBox
@@ -303,8 +306,9 @@ public final class VoiceKeyerModel {
                 ? nil : (plan.deferredActions, plan.deferredCommands)
             playingKey = key
             // Runs on the voice queue: the action is performed on the main actor and the next audio starts only after it
-            // has completed, however long that takes (a local model call). Only a hung main actor (10 s) aborts the
-            // rest of the message, which releases the transmitter; nothing ever continues out of order.
+            // has completed, however long that takes (a local model call). Only a hung main actor (`actionHopTimeout`)
+            // aborts the rest of the message, which releases the transmitter; nothing ever continues out of order.
+            let hopTimeout: DispatchTimeInterval? = actionHopTimeout
             let onAction: @Sendable (CwMessage.Action) -> Bool = { [weak self] action in
                 let done = DispatchSemaphore(value: 0)
                 MainHop.post {
@@ -312,7 +316,11 @@ public final class VoiceKeyerModel {
                     guard let self, self.voiceToken == token, self.playingKey != nil else { return }
                     self.performAction?(action)
                 }
-                return done.wait(timeout: .now() + 10) == .success
+                guard let hopTimeout else {
+                    done.wait()
+                    return true
+                }
+                return done.wait(timeout: .now() + hopTimeout) == .success
             }
             voiceKeyer.play(steps: plan.playSteps, onAction: onAction) { [weak self] error in
                 MainHop.post {

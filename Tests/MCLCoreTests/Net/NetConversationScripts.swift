@@ -15,15 +15,17 @@ import Testing
 /// `ioSafetyNet`: it never decides a result under load, it only turns a hang into `<timeout>` (a MISMATCH) instead of a
 /// test that never ends (a time limit cannot stop a thread blocked in a wait). The earlier 20 s limit was a wall-clock
 /// bound on the success path: under the load of a full parallel run one wait outlived it and the gate failed once.
-/// The timeouts of the Swift HTTP clients are generous (120 s): results do not depend on their length and under load of
-/// the whole suite the completion of `URLSession` can lag.
+/// The timeouts of the Swift HTTP clients are hang guards too, above the length of a whole run: results do not depend
+/// on their length, and under the load of the whole suite on CI (3 vCPUs, runs of up to ~12 min) the completion of
+/// `URLSession` once lagged past an earlier 120 s (a refused connect then read as a connect timeout, a callbook answer as
+/// a request timeout).
 enum NetConversationScripts {
 
     typealias Entry = JavaYamlParityTests.ReferenceFile
 
-    /// Hang guard of every wait (4 min): a whole strict-pool run of the suite takes ~2–3 min, `ioSafetyNet` is 5 min.
-    static let hangGuardMs: Int32 = 240_000
-    static let httpTimeout: TimeInterval = 120
+    /// Hang guard of every wait (25 min): above the length of a whole run on CI, below `ioSafetyNet` (30 min).
+    static let hangGuardMs: Int32 = 1_500_000
+    static let httpTimeout: TimeInterval = 1_500
 
     struct Scenario: Sendable {
         let name: String
