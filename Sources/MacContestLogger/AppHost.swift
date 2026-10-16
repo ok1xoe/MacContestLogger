@@ -80,6 +80,13 @@ final class AppHost {
         }
     }
 
+    /// Shows an already bootstrapped model without starting anything around it (no menu bar, keyboards or window
+    /// snapping): the offscreen screenshot renderer of the user guide (`Tests/MacContestLoggerTests/Screenshots`)
+    /// renders the windows over a demo model with inert hardware and network.
+    func adoptForRendering(_ app: AppModel) {
+        model = app
+    }
+
     /// `applicationShouldTerminate`: the Kotlin quit sequence (`AppModel.shutdown`) runs once before the process ends;
     /// a further ⌘Q while it runs is cancelled (the first reply stays pending).
     func shouldTerminate() -> NSApplication.TerminateReply {

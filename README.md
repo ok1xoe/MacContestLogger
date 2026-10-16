@@ -106,6 +106,7 @@ SIGTERM, SIGINT and SIGHUP run the regular quit, and the transmitter is released
     swift run mcl-synthlog --help      # generate synthetic logs
     swift run mcl-manual --lang en --out-dir build/manual   # the English user guide as a PDF and as HTML
     swift run mcl-manual --lang cs --out-dir build/manual   # the Czech one (docs/cs/)
+    scripts/shots.sh --lang cs|en [--only name]             # render the guide's screenshots offscreen
 
 `mcl-manual` turns `docs/*.md` into one PDF (order and parts from `docs/README.md`; title page, contents with page
 numbers, bookmarks, page numbers, links; a short chapter goes on below the previous one instead of leaving most of a
@@ -121,7 +122,9 @@ The guide exists in two languages. `--lang en` (the default) reads `docs/*.md` a
 used, its caption says so and the introduction adds a note. `--lang cs` reads `docs/cs/README.md` (chapter order) and
 `docs/cs/*.md` with the Czech screenshots in `docs/img/`; a page not translated yet is taken from English with a
 warning, and `--strict-lang` turns that into an error (`ManualLanguageTests` checks the Czech guide strictly as soon as
-`docs/cs/README.md` exists). The title page, contents and dates follow the language.
+`docs/cs/README.md` exists). The title page, contents and dates follow the language. The screenshots are rendered
+offscreen from the app's own views over a demo station (`scripts/shots.sh`, manifest `docs/screenshots.json`; see
+[docs/screenshots.md](docs/screenshots.md)).
 
 ## Release
 
