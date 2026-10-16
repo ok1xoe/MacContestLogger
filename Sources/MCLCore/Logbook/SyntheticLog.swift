@@ -47,8 +47,8 @@ public enum SyntheticLog {
         Prefix(letters: "SV", digits: "123456789", zone: 20, weight: 6),
         Prefix(letters: "4X", digits: "1456", zone: 20, weight: 3),
         Prefix(letters: "K", digits: "0123456789", zone: 5, weight: 40),
-        Prefix(letters: "W", digits: "0123456789", zone: 4, weight: 40),
-        Prefix(letters: "N", digits: "6", zone: 3, weight: 8),
+        Prefix(letters: "W", digits: "0123456789", zone: 5, weight: 40),
+        Prefix(letters: "N", digits: "6", zone: 5, weight: 8),
         Prefix(letters: "VE", digits: "1234567", zone: 5, weight: 10),
         Prefix(letters: "KH", digits: "6", zone: 31, weight: 2),
         Prefix(letters: "KL", digits: "7", zone: 1, weight: 2),
@@ -108,15 +108,21 @@ public enum SyntheticLog {
 
     /// Generates `count` QSOs of contest `contestId` starting at `start`. The QSOs have no `id` (the logbook assigns
     /// it) but a deterministic `uuid`; `serialSent` counts from 1, `exchangeSent` is `599 <ownZone>`.
+    ///
+    /// `mode` picks the sub-bands and the reports (SSB `59`, RTTY with the state or province of W/VE stations, as in
+    /// CQ WW RTTY); `gapSeconds` is the spread between two QSOs. The defaults give the CQ WW CW log of the
+    /// measurements unchanged.
     public static func generate(count: Int, seed: UInt64, contestId: String, start: Date,
-                                ownZone: Int = 15) -> [Qso] {
+                                ownZone: Int = 15, mode: Mode = .cw,
+                                gapSeconds: ClosedRange<Int> = 4...12) -> [Qso] {
         var random = Generator(state: seed)
+        let report: String = mode == .ssb ? "59" : "599"
         let totalWeight: Int = prefixes.reduce(0) { $0 + $1.weight }
         var out: [Qso] = []
         out.reserveCapacity(max(0, count))
         var seconds: Int = 0
         for index in 0..<max(0, count) {
-            seconds += 4 + random.below(9)
+            seconds += gapSeconds.lowerBound + random.below(gapSeconds.count)
             let isDupe: Bool = !out.isEmpty && random.below(1_000) < dupePermille
             var qso = Qso()
             if isDupe {
@@ -127,14 +133,17 @@ public enum SyntheticLog {
             } else {
                 let prefix: Prefix = pickPrefix(&random, totalWeight: totalWeight)
                 qso.call = call(prefix, &random)
-                qso.freqHz = frequencyHz(&random)
-                qso.exchangeRcvd = "599 " + String(prefix.zone)
+                qso.freqHz = frequencyHz(&random, mode: mode)
+                qso.exchangeRcvd = report + " " + String(prefix.zone)
+                if mode == .rtty, let states = areas[prefix.letters] {
+                    qso.exchangeRcvd += " " + states[random.below(states.count)]
+                }
             }
             qso.timestampUtc = start.addingTimeInterval(TimeInterval(min(seconds, 48 * 3_600 - 1)))
-            qso.mode = .cw
-            qso.rstSent = "599"
-            qso.rstRcvd = "599"
-            qso.exchangeSent = "599 " + String(ownZone)
+            qso.mode = mode
+            qso.rstSent = report
+            qso.rstRcvd = report
+            qso.exchangeSent = report + " " + String(ownZone)
             qso.serialSent = index + 1
             qso.runMode = random.below(10) < 6 ? .run : .searchAndPounce
             qso.contestId = contestId
@@ -168,11 +177,35 @@ public enum SyntheticLog {
         return text
     }
 
-    private static func frequencyHz(_ random: inout Generator) -> Int {
+    /// The states and provinces of the RTTY exchange of W/VE prefixes.
+    static let areas: [String: [String]] = [
+        "K": ["MA", "CT", "NY", "PA", "OH", "MI", "VA", "NC", "GA", "FL", "TX", "IL"],
+        "W": ["CA", "WA", "OR", "AZ", "CO", "MN", "WI", "TN", "MD", "NJ", "MO", "IN"],
+        "N": ["CA", "NV", "UT"],
+        "VE": ["ON", "QC", "BC", "AB", "NS", "MB"],
+    ]
+
+    /// The sub-band offset of SSB and RTTY against the CW ranges of `bands` (kHz; 160 m has no RTTY offset).
+    private static func offsetKHz(_ band: Band, _ mode: Mode) -> Int {
+        switch (mode, band) {
+        case (.ssb, .m160): return 0
+        case (.ssb, .m80): return 200
+        case (.ssb, .m40): return 100
+        case (.ssb, .m20): return 150
+        case (.ssb, .m15): return 200
+        case (.ssb, .m10): return 450
+        case (.rtty, .m160): return 0
+        case (.rtty, _): return 70
+        default: return 0
+        }
+    }
+
+    private static func frequencyHz(_ random: inout Generator, mode: Mode = .cw) -> Int {
         var target: Int = random.below(100)
         for entry in bands {
             if target < entry.percent {
-                let kHz: Int = entry.lowKHz + random.below(entry.highKHz - entry.lowKHz)
+                let kHz: Int = entry.lowKHz + offsetKHz(entry.band, mode)
+                    + random.below(entry.highKHz - entry.lowKHz)
                 return kHz * 1_000 + random.below(10) * 100
             }
             target -= entry.percent

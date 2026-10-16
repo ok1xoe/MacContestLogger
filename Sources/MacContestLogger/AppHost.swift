@@ -59,6 +59,7 @@ final class AppHost {
                 TwoKeyboardDispatcher.shared.keyboards = twoKeyboards
                 twoKeyboards.start()
                 QuitTrace.write("ready")
+                Self.demoEntry(app)
                 #if DEBUG
                 Self.smokeLanguageSwitch(app)
                 Self.smokeQuit()
@@ -153,6 +154,62 @@ final class AppHost {
         QuitTrace.write("exit without AppKit")
         AppDelegate.cleanUpBeforeExit()
         exit(0)
+    }
+
+    /// The maintainers' screenshot demo (`DemoMode`, only with both inert switches): the QSO in progress of
+    /// `demo.json` typed into the entry windows a few seconds after start, once the contest is open.
+    private static func demoEntry(_ app: AppModel) {
+        guard let demo = DemoMode.from(ProcessInfo.processInfo.environment) else { return }
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            if demo.script.connectRigs == true {
+                let vfos: [Int] = app.rig.rigConfig(vfo: 1) == app.rig.rigConfig(vfo: 0) ? [0] : [0, 1]
+                for vfo in vfos where !app.rig.connected(vfo: vfo) {
+                    app.rig.toggle(vfo: vfo)
+                }
+            }
+            if let name = demo.script.connectCluster {
+                app.dxCluster.connectNamed(name)
+            }
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            for (vfo, fields) in [(0, demo.script.entry), (1, demo.script.entry2)] {
+                if let fields {
+                    demoType(fields, into: app.panel(vfo: vfo).entry)
+                }
+            }
+            for action in demo.script.actions ?? [] {
+                if let wait = action.wait {
+                    try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+                }
+                if let id = action.menu {
+                    _ = MenuActions.perform(id, app: app)
+                }
+                if let tab = action.settingsTab {
+                    app.settings.open(tabKey: tab)
+                }
+                if let path = action.merge {
+                    await app.exports.merge(from: URL(fileURLWithPath: path))
+                }
+                if let fields = action.entry {
+                    demoType(fields, into: app.panel(vfo: action.vfo ?? 0).entry)
+                }
+                if let vfo = action.activate {
+                    app.rig.activateVfo(vfo)
+                }
+            }
+        }
+    }
+
+    private static func demoType(_ fields: [String: String], into entry: EntryModel) {
+        for (id, text) in fields.sorted(by: { $0.key < $1.key }) {
+            switch id {
+            case "call": entry.callChanged(text)
+            case "rstSent": entry.editRstSent(text)
+            case "rstRcvd": entry.editRstRcvd(text)
+            case "exchange": entry.editExchange(text)
+            default: entry.editContestField(id, text)
+            }
+        }
     }
 
     #if DEBUG

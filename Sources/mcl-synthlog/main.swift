@@ -10,12 +10,17 @@ import MCLCore
 
 let usage = """
 Usage: mcl-synthlog <out.sqlite> --contest-data <dir> [--count N] [--seed N] [--start-epoch S] [--dxcc-dir <dir>]
-                    [--no-measure]
+                    [--contest ID] [--call CALL] [--zone N] [--mode CW|SSB|RTTY] [--gap MIN-MAX] [--no-measure]
   --contest-data <dir>  directory with contests/ and multipliers/ (required: the contest row and the replay)
   --count N             number of QSOs (default 20000)
   --seed N              generator seed (default 1)
   --start-epoch S       contest start in Unix seconds (default 1795824000 = 2026-11-28 00:00Z); the log spans 48 h
   --dxcc-dir <dir>      DXCC data (cty.dat / dxcc.json; default ~/dxcc-json, read only)
+  --contest ID          contest definition (default cq-ww-cw; e.g. cq-ww-ssb, cq-ww-rtty)
+  --call CALL           the station's call (default OK1XOE)
+  --zone N              the station's CQ zone, sent in the exchange (default 15)
+  --mode CW|SSB|RTTY    mode of the QSOs, sub-bands and reports (default CW)
+  --gap MIN-MAX         seconds between two QSOs (default 4-12)
   --no-measure          only write the database
 The output file must not exist.
 """
@@ -33,6 +38,11 @@ struct Arguments {
     var startEpoch: Int64 = 1_795_824_000
     var dxccDir: String?
     var measure = true
+    var contest = "cq-ww-cw"
+    var call = "OK1XOE"
+    var zone = 15
+    var mode: Mode = .cw
+    var gap: ClosedRange<Int> = 4...12
 }
 
 func parseArguments() -> Arguments {
@@ -59,6 +69,20 @@ func parseArguments() -> Arguments {
             parsed.startEpoch = epoch
         case "--dxcc-dir": parsed.dxccDir = value(arg)
         case "--no-measure": parsed.measure = false
+        case "--contest": parsed.contest = value(arg)
+        case "--call": parsed.call = value(arg).uppercased()
+        case "--zone":
+            guard let zone = Int(value(arg)), (1...40).contains(zone) else { fail("--zone: 1-40") }
+            parsed.zone = zone
+        case "--mode":
+            guard let mode = Mode(rawValue: value(arg).uppercased()), [.cw, .ssb, .rtty].contains(mode) else {
+                fail("--mode: CW, SSB or RTTY")
+            }
+            parsed.mode = mode
+        case "--gap":
+            let parts: [Int] = value(arg).split(separator: "-").compactMap { Int($0) }
+            guard parts.count == 2, parts[0] >= 1, parts[1] >= parts[0] else { fail("--gap: MIN-MAX seconds") }
+            parsed.gap = parts[0]...parts[1]
         case "-h", "--help":
             print(usage)
             exit(0)
@@ -97,15 +121,15 @@ let dxccDir: String = arguments.dxccDir ?? home.appendingPathComponent("dxcc-jso
 
 // MARK: - write
 
-let definitionId = "cq-ww-cw"
+let definitionId: String = arguments.contest
 let contestsDir: URL = contestData.appendingPathComponent("contests")
 guard let yaml = ContestRuntime.rawYaml(contestsDir: contestsDir, definitionId: definitionId) else {
     fail("No \(definitionId).yaml in \(contestsDir.path)")
 }
 var setup = ContestSetup()
-setup.sentExchange = ["zone": "15"]
+setup.sentExchange = ["zone": String(arguments.zone)]
 var station = StationConfig()
-station.call = "OK1XOE"
+station.call = arguments.call
 // Only `toJSON` is used (the setup and station columns of the contest row); the file is never written.
 let configStore = ConfigStore(file: output.appendingPathExtension("config.json"))
 
@@ -123,7 +147,8 @@ let (opening, writeMs): (ContestActivation.Opening, Double) = try timed {
     try repository.metaSet("last_contest_id", opening.row.contestId)
     let start = Date(timeIntervalSince1970: TimeInterval(arguments.startEpoch))
     let qsos: [Qso] = SyntheticLog.generate(count: arguments.count, seed: arguments.seed,
-                                            contestId: opening.row.contestId, start: start)
+                                            contestId: opening.row.contestId, start: start, ownZone: arguments.zone,
+                                            mode: arguments.mode, gapSeconds: arguments.gap)
     try repository.connection.execute("BEGIN")
     for qso in qsos {
         var stored = qso
@@ -156,7 +181,7 @@ let environment = ContestEnvironment.load(dataRoot: contestData.path, dxccDir: d
                                           fallbackDataRoot: contestData.path)
 if let dxcc = environment.dxcc, let registry = environment.registry {
     func freshSession() -> ContestSession {
-        ContestSession(definition: opening.definition, dxcc: dxcc, registry: registry, myCall: "OK1XOE")
+        ContestSession(definition: opening.definition, dxcc: dxcc, registry: registry, myCall: arguments.call)
     }
     let (_, activationMs): ((), Double) = timed {
         ContestRuntime.replayLogged(ContestActivation.replayOrder(all), into: freshSession())
@@ -264,7 +289,7 @@ report("1,000 ContestStats.appending (operating rules)", appendStatsMs,
        String(format: "%.3f ms per QSO, worst %.3f ms, %d refused", appendStatsMs / 1_000, statsWorst, statsFallbacks))
 if let dxcc = environment.dxcc, let registry = environment.registry {
     func trackerSession() -> ContestSession {
-        ContestSession(definition: opening.definition, dxcc: dxcc, registry: registry, myCall: "OK1XOE")
+        ContestSession(definition: opening.definition, dxcc: dxcc, registry: registry, myCall: arguments.call)
     }
     let (tracker, recomputeMs): (QsoMarksTracker, Double) = timed {
         QsoMarksTracker.recomputed(fresh: trackerSession(), qsos: all)
