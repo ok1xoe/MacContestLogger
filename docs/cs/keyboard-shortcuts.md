@@ -49,7 +49,7 @@ Kdo chce deník nativní pro Mac, může si přemapovat všechno; nikoho jiného
 | **Ctrl+Q** / **Ctrl+A** | QuickEdit: zapsaná QSO o jedno zpět / vpřed v polích zápisu; Enter uloží, Esc zruší, viz [Zadávací okno](entry-window.md#quickedit) |
 | **Ctrl+Z** | WAE: režim QTC zap / vyp — otevře okno QTC pro příjem (Evropa) nebo odeslání, viz [QTC](qtc.md#režim-qtc-ctrlz) |
 | **Ctrl+U** | pořadové číslo ve výměně +1; číslo Sweepstakes s precedencí ji zachová (`23B` → `24B`, i uvnitř `23B 72 CT`) |
-| **Alt+Y** | další značka z panelů okna Check do pole značky (znovu = další; v poli výměny první hodnota z panelu výměny), viz [okno Check](call-check.md#alt-y) |
+| **Alt+Y** | další značka z panelů okna Check do pole značky (znovu = další; v poli výměny první hodnota z panelu výměny), viz [okno Check](call-check.md#alty) |
 | **↑ / ↓** | s návrhy SCP se pohybuje v návrzích, jinak ladí rig |
 | **Ctrl+O** | přihlášení operátora |
 
