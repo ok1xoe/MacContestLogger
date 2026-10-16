@@ -480,14 +480,14 @@ public final class DialogsModel {
         }
     }
 
-    /// The confirm button's label: Kotlin writes "Vymazat" / "Smazat" outside `tr`, "Ukončit" through it.
+    /// The confirm button's label (Kotlin wrote "Vymazat" / "Smazat" outside `tr`; translated here).
     public var confirmationButton: ContestMessage? {
         switch confirmation {
         case nil: return nil
-        case .wipeLog?: return .verbatim("Vymazat")
-        case .deleteLast?: return .verbatim("Smazat")
+        case .wipeLog?: return ContestMessage("Vymazat")
+        case .deleteLast?: return ContestMessage("Smazat")
         case .exit?: return ContestMessage("Ukončit")
-        case .clearCallHistory?: return .verbatim("Vymazat")
+        case .clearCallHistory?: return ContestMessage("Vymazat")
         }
     }
 

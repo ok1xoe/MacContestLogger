@@ -130,7 +130,7 @@ private struct SkedContent: View {
                 .frame(width: 90, alignment: .leading)
             Text(verbatim: sked.mode).frame(width: 50, alignment: .leading)
             Text(verbatim: sked.note).frame(maxWidth: .infinity, alignment: .leading)
-            Button("Smazat") {
+            Button(app.language.tr("Smazat")) {
                 Task { @MainActor in await model.remove(sked.id) }
             }
             .buttonStyle(.borderless)
@@ -203,7 +203,7 @@ private struct QtcContent: View {
 
     private func partnerRow(_ model: QtcModel, language: LanguageModel) -> some View {
         HStack(alignment: .bottom, spacing: 8) {
-            ToolField(label: "Stanice") {
+            ToolField(label: language.tr("Stanice")) {
                 TextField("", text: Binding(get: { model.partner }, set: { model.setPartner($0) }))
                     .textFieldStyle(.roundedBorder)
                     .windowFont(12)
@@ -299,7 +299,7 @@ private struct QtcContent: View {
                         Text(verbatim: model.rowText(record))
                             .windowFont(11, design: .monospaced)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Button("Smazat") {
+                        Button(app.language.tr("Smazat")) {
                             if let id = record.id {
                                 Task { @MainActor in await model.delete(id) }
                             }

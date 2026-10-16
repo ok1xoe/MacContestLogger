@@ -149,7 +149,7 @@ private struct DefinitionListColumn: View {
                 editor.startNew(id: id)
             }
         }
-        Button("Duplikovat…") {
+        Button(language.tr("Duplikovat…")) {
             let title: String = language.tr("Id kopie závodu %s", .string(editor.currentId ?? "null"))
             prompts.ask(title) { id in
                 editor.duplicate(id: id)
@@ -169,7 +169,7 @@ private struct DefinitionListColumn: View {
             }
         }
         .help(language.tr("Převede uživatelský závod N1MM (.udc) na definici; poznámky převodu jsou v komentářích"))
-        Button("Importovat okresy…") {
+        Button(language.tr("Importovat okresy…")) {
             ExportPanels.openFile(message: language.tr("Seznam okresů (KÓD,Název na řádek)")) { file in
                 prompts.ask(language.tr("Id sady okresů (např. ohqp_counties)")) { id in
                     Task {
@@ -215,7 +215,7 @@ private struct DefinitionCheckColumn: View {
         WindowFontReader { size in
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: "Kontrola")
+                    Text(verbatim: language.tr("Kontrola"))
                         .windowFont(14, weight: .bold)
                     DefinitionCheckLines(check: editor.check, language: language, fontSize: size - 1)
                     Divider()
@@ -223,7 +223,7 @@ private struct DefinitionCheckColumn: View {
                     Text(verbatim: language.tr("Náhled"))
                         .windowFont(14, weight: .bold)
                     if let definition = editor.check?.definition {
-                        ForEach(Array(DefinitionEditing.summary(definition).enumerated()), id: \.offset) { item in
+                        ForEach(Array(DefinitionEditing.summary(definition, translator: language.translator).enumerated()), id: \.offset) { item in
                             Text(verbatim: item.element)
                                 .font(.system(size: CGFloat(size - 1)))
                         }

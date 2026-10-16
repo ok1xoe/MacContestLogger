@@ -63,7 +63,7 @@ struct ScoreReportingTab: View {
                     SettingsTextField(text: $draft.clEmail)
                 }
                 .frame(maxWidth: .infinity)
-                SettingsField(caption: "Heslo aplikace") {
+                SettingsField(caption: language.tr("Heslo aplikace")) {
                     SettingsTextField(text: $draft.clPassword, isPassword: true)
                 }
                 .frame(maxWidth: .infinity)

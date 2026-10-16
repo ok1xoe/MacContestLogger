@@ -532,7 +532,7 @@ final class LogTableCoordinator: NSObject, NSTableViewDataSource, NSTableViewDel
                 spoken = AccessibilityText.logXQso(text == "·" ? "" : text, translator: language.translator)
             }
         case .warning:
-            toolTip = tableModel?.warningText(qso.id)
+            toolTip = tableModel?.warningText(qso.id, translator: language?.translator ?? .source)
             text = toolTip == nil ? "" : "⚠"
             color = DomainColors.dupe
             if let language {

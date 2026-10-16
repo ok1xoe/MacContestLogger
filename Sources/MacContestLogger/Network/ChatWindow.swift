@@ -99,7 +99,7 @@ struct ChatWindowView: View {
                 .windowFont(13)
                 .onSubmit { send(app) }
                 .accessibilityIdentifier("chat.input")
-            Button(NetTexts.chatSend) { send(app) }
+            Button(language.tr(NetTexts.chatSend)) { send(app) }
                 .windowFont(13)
                 .disabled(!connected || KotlinStrings.isBlank(state.text))
                 .accessibilityIdentifier("chat.send")

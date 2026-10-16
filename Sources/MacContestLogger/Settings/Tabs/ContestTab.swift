@@ -16,7 +16,7 @@ struct ContestTab: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SettingsGroup(title: "Start programu") {
+            SettingsGroup(title: language.tr("Start programu")) {
                 SettingsCheckbox(
                     label: language.tr("Při startu rovnou otevřít poslední závod (příkaz AUTORELOAD / NOAUTORELOAD)"),
                     isOn: $draft.autoReload)
@@ -51,7 +51,7 @@ struct ContestTab: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
-            Text(verbatim: "Nalezeno: \(contests) definic, \(sets) sad")
+            Text(verbatim: language.tr("Nalezeno: %s definic, %s sad", .string(contests), .string(sets)))
                 .windowFont(12)
                 .foregroundStyle(.secondary)
             SettingsCaption(language.tr("Uložení přenačte katalog závodů a sady multiplikátorů."))
@@ -65,7 +65,8 @@ struct ContestTab: View {
                 "Bez souboru se volačky nenašeptávají; logovat jde dál. Aktuální soubor stáhne Nastavení → Stáhnout master.scp.")
             : language.tr("Nalezeno: %s volaček", .int(count))
         return SettingsGroup(title: language.tr("Našeptávání volaček (SCP)")) {
-            fileRow(caption: "Soubor master.scp", text: $draft.scpFile, panelMessage: "Vyber soubor master.scp")
+            fileRow(caption: language.tr("Soubor master.scp"), text: $draft.scpFile,
+                    panelMessage: language.tr("Vyber soubor master.scp"))
             Text(verbatim: text)
                 .windowFont(12)
                 .foregroundStyle(.secondary)
@@ -80,7 +81,7 @@ struct ContestTab: View {
         let backups: String = app.dataDir.appendingPathComponent("backups").path
         return SettingsGroup(title: language.tr("Automatická záloha deníku")) {
             HStack(alignment: .top, spacing: 8) {
-                SettingsField(caption: "Interval (min, 0 = vypnuto)") {
+                SettingsField(caption: language.tr("Interval (min, 0 = vypnuto)")) {
                     SettingsTextField(text: $draft.autoBackupMinutes, filter: .digits(limit: 4))
                 }
                 .frame(width: 200)
@@ -105,7 +106,7 @@ struct ContestTab: View {
             : language.tr("Nalezeno: %s volaček", .int(count))
         return SettingsGroup(title: language.tr("Call history (předvyplnění výměny)")) {
             fileRow(caption: language.tr("Soubor call history (formát N1MM)"), text: $draft.callHistoryFile,
-                    panelMessage: "Vyber soubor call history")
+                    panelMessage: language.tr("Vyber soubor call history"))
             Text(verbatim: text)
                 .windowFont(12)
                 .foregroundStyle(.secondary)
@@ -200,7 +201,7 @@ struct ContestTab: View {
                     text.wrappedValue = url.path
                 }
             } label: {
-                Text(verbatim: "Vybrat soubor…")
+                Text(verbatim: language.tr("Vybrat soubor…"))
             }
             .buttonStyle(.borderedProminent)
         }

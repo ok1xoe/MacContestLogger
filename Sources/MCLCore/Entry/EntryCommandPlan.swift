@@ -245,7 +245,7 @@ public enum EntryCommandPlan {
         case .runScript(let name):
             runScript(name, &ctx, &effects)
         case .invalid(let message):
-            effects.append(.status(.verbatim(message)))
+            effects.append(.status(EntryStatus([CallFieldCommand.invalidMessage(message)])))
         case .otherVfo(let freqHz):
             effects.append(.rig(.otherVfo(freqHz: freqHz)))
         case .split(let txFreqHz):
@@ -276,7 +276,7 @@ public enum EntryCommandPlan {
         let text: String = FrequencyText.formatHz(hz)
         effects.append(.setFrequency(text: text))
         effects.append(.rigQsy(hz: hz))
-        effects.append(.status(.verbatim("QSY na " + text + " kHz")))
+        effects.append(.status(.tr("QSY na %s kHz", .string(text))))
         ctx.currentFreqHz = FrequencyText.parseHz(text)
     }
 

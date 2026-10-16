@@ -398,11 +398,11 @@ import Testing
             #expect(action.title.czech == labels.1)
             #expect(action.hint.czech == labels.2)
         }
-        // Kotlin writes these outside `tr`; they must not follow the language.
+        // Kotlin wrote these outside `tr`; "Frekvence" now follows the language, the codes do not.
         let english = Self.translator(["Frekvence…": "X", "Frekvence": "X", "X-QSO": "X", "CW, SSB, RTTY, FT8…": "X",
                                        "Mód": "Mode"])
-        #expect(BulkAction.frequency.button.text(english) == "Frekvence…")
-        #expect(BulkAction.frequency.title.text(english) == "Frekvence")
+        #expect(BulkAction.frequency.button.text(english) == "X")
+        #expect(BulkAction.frequency.title.text(english) == "X")
         #expect(BulkAction.xqso.button.text(english) == "X-QSO")
         #expect(BulkAction.mode.hint.text(english) == "CW, SSB, RTTY, FT8…")
         #expect(BulkAction.mode.title.text(english) == "Mode", "evaluated when shown")

@@ -23,7 +23,7 @@ struct MapTab: View {
 
     var body: some View {
         let language: LanguageModel = app.language
-        SettingsGroup(title: "Vzhled mapy") {
+        SettingsGroup(title: language.tr("Vzhled mapy")) {
             Text(verbatim: language.tr("Barevné schéma podkladu"))
                 .windowFont(14)
                 .foregroundStyle(.secondary)

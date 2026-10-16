@@ -34,9 +34,9 @@ public enum RadioWindowTexts {
     }
 
     /// The call line (`RotatorWindow.kt:73-76`): `"$call: $target°"`, `"$call: " + tr("azimut neznámý")`, or the
-    /// untranslated `"Volačka z pole: —"`.
+    /// `"Volačka z pole: —"` (translated; Kotlin left it Czech).
     public static func rotatorCallLine(call: String, target: Int?) -> EntryStatus {
-        guard !KotlinStrings.isBlank(call) else { return .verbatim("Volačka z pole: —") }
+        guard !KotlinStrings.isBlank(call) else { return .tr("Volačka z pole: —") }
         let head: EntryStatus = .verbatim(call + ": ")
         guard let target else { return head.appending(.tr("azimut neznámý")) }
         return head.appending(.verbatim(String(target) + "°"))

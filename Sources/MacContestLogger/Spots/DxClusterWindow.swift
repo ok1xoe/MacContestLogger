@@ -261,7 +261,7 @@ struct DxClusterWindowView: View {
         let lines: [ConsoleLine] = consoleLines(app)
         return VStack(alignment: .leading, spacing: 0) {
             header(app: app, lines: lines)
-            Text(verbatim: cluster.statusText)
+            Text(verbatim: language.tr(cluster.statusText))
                 .windowFont(11)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 12)
@@ -359,7 +359,7 @@ struct DxClusterWindowView: View {
                     cluster.toggle(selected)
                 }
             } label: {
-                Text(verbatim: cluster.connected ? "Odpojit" : language.tr("Připojit")).windowFont(13)
+                Text(verbatim: language.tr(cluster.connected ? "Odpojit" : "Připojit")).windowFont(13)
             }
             .disabled(selected == nil)
             .accessibilityIdentifier("dxcluster.connect")
@@ -402,7 +402,7 @@ struct DxClusterWindowView: View {
             Button {
                 cluster.clearLog()
             } label: {
-                Text(verbatim: "Vymazat").windowFont(13)
+                Text(verbatim: language.tr("Vymazat")).windowFont(13)
             }
         }
         .trailingFontStepper(size: $session.fontSize, language: language)
@@ -519,7 +519,7 @@ struct DxClusterWindowView: View {
             Button {
                 submit()
             } label: {
-                Text(verbatim: "Odeslat").windowFont(13)
+                Text(verbatim: language.tr("Odeslat")).windowFont(13)
             }
             .disabled(!cluster.connected)
         }
@@ -542,7 +542,7 @@ struct MacroEditSheet: View {
                 Text(verbatim: language.tr("Upravit tlačítko"))
                     .windowFont(15, weight: .semibold)
             }
-            field("Popisek", text: $state.editLabel)
+            field(language.tr("Popisek"), text: $state.editLabel)
             field(language.tr("Příkaz"), text: $state.editCommand)
             DialogButtonRow {
                 Button(language.tr("Zrušit")) {

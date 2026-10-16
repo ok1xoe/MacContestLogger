@@ -17,10 +17,10 @@ public enum NetworkStationColumn: String, CaseIterable, Sendable, Equatable {
     case lastQso
     case state
 
-    /// The header key (Czech; `translate` false for the headers v1.1.1 writes without `tr`).
+    /// The header key (Czech; `translate` false for `kHz` and `QSO`).
     public var header: NetTexts.Header {
         switch self {
-        case .station: return NetTexts.Header(text: "Stanice", translate: false)
+        case .station: return NetTexts.Header(text: "Stanice", translate: true)
         case .operator: return NetTexts.Header(text: "Operátor", translate: true)
         case .type: return NetTexts.Header(text: "Typ", translate: true)
         case .band: return NetTexts.Header(text: "Pásmo", translate: true)
@@ -32,7 +32,7 @@ public enum NetworkStationColumn: String, CaseIterable, Sendable, Equatable {
         case .rate10: return NetTexts.Header(text: "Rate 10", translate: true)
         case .rate100: return NetTexts.Header(text: "Rate 100", translate: true)
         case .lastQso: return NetTexts.Header(text: "Posl. QSO", translate: true)
-        case .state: return NetTexts.Header(text: "Stav", translate: false)
+        case .state: return NetTexts.Header(text: "Stav", translate: true)
         }
     }
 

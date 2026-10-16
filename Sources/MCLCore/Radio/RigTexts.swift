@@ -12,9 +12,9 @@ public enum RigTexts {
         .tr("Na pásmu %s zatím nebylo CQ", .string(band?.adif ?? ""))
     }
 
-    /// `AS:2196` — Alt+U: `"Run (CQ frekvence ${khz(freqHz)})"` / `"S&P"` (not translated).
+    /// `AS:2196` — Alt+U: `"Run (CQ frekvence ${khz(freqHz)})"` (translated; Kotlin left it Czech) / `"S&P"`.
     public static func runModeToggled(run: Bool, freqHz: Int64) -> EntryStatus {
-        run ? .verbatim("Run (CQ frekvence " + CatStatusLine.khz(freqHz) + ")") : .verbatim("S&P")
+        run ? .tr("Run (CQ frekvence %s)", .string(CatStatusLine.khz(freqHz))) : .verbatim("S&P")
     }
 
     // MARK: - VFO B and split (`AS:2239-2248`, `AS:2342-2360`, `AS:957-982`)
@@ -47,10 +47,10 @@ public enum RigTexts {
             : .tr("Split zapnut (vysílám na VFO B)")
     }
 
-    /// `splitOff` (not translated).
-    public static let splitOff = EntryStatus.verbatim("Split vypnut")
-    /// `swapVfo` (not translated).
-    public static let swapped = EntryStatus.verbatim("VFO A ↔ B prohozena")
+    /// `splitOff` (translated; Kotlin left it Czech).
+    public static let splitOff = EntryStatus.tr("Split vypnut")
+    /// `swapVfo` (translated; Kotlin left it Czech).
+    public static let swapped = EntryStatus.tr("VFO A ↔ B prohozena")
 
     /// `promptSplit` (`AS:965-981`): the prompt title — shown as is, Kotlin does not translate it.
     public static let splitPromptTitle = "Split"
@@ -66,10 +66,10 @@ public enum RigTexts {
 
     public static let ritNeedsCat = EntryStatus.tr("RIT: připoj TRX (CAT)")
 
-    /// Success: `if (v == 0) "RIT vypnut" else "RIT ${if (v > 0) "+" else ""}$v Hz"` (not translated).
+    /// Success: `if (v == 0) "RIT vypnut" else "RIT ${if (v > 0) "+" else ""}$v Hz"` ("RIT vypnut" translated).
     public static func rit(_ offsetHz: Int) -> EntryStatus {
         if offsetHz == 0 {
-            return .verbatim("RIT vypnut")
+            return .tr("RIT vypnut")
         }
         return .verbatim("RIT " + (offsetHz > 0 ? "+" : "") + String(offsetHz) + " Hz")
     }
@@ -86,15 +86,15 @@ public enum RigTexts {
         .verbatim("SO2R: " + (message ?? "null"))
     }
 
-    /// `toggleSo2rStereo`: on `"SO2R: stereo (oba rigy)"` (not translated), off translated.
+    /// `toggleSo2rStereo`: on `"SO2R: stereo (oba rigy)"`, off `"SO2R: poslech jen aktivního rigu"` (both translated).
     public static func so2rStereo(_ on: Bool) -> EntryStatus {
-        on ? .verbatim("SO2R: stereo (oba rigy)") : .tr("SO2R: poslech jen aktivního rigu")
+        on ? .tr("SO2R: stereo (oba rigy)") : .tr("SO2R: poslech jen aktivního rigu")
     }
 
     /// SO2R `activateVfo`: `tr("Aktivní rig %s", vfo + 1) + if (o == null) " (bez OTRSP kontroléru)" else ""`.
     public static func activeRig(_ rig: Int, hasOtrsp: Bool) -> EntryStatus {
         let text = EntryStatus.tr("Aktivní rig %s", .int(rig))
-        return hasOtrsp ? text : text.appending(.verbatim(" (bez OTRSP kontroléru)"))
+        return hasOtrsp ? text : text.appending(.tr(" (bez OTRSP kontroléru)"))
     }
 
     /// SO2R `\` / a click: only the entry (RX) focus moved; the transmit focus stays on `txRig`.

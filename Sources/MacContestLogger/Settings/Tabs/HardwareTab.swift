@@ -22,7 +22,7 @@ struct HardwareTab: View {
         VStack(alignment: .leading, spacing: 8) {
             SettingsCaption(language.tr("Řádek 1 = tvůj rig. Klikni na Set pro kompletní nastavení TRX."))
             radioModes
-            HardwareGridHeader()
+            HardwareGridHeader(language: language)
             rigRow
             FootswitchGroup(app: app, draft: $draft)
             TransvertersGroup(app: app, draft: $draft)
@@ -79,6 +79,7 @@ struct HardwareTab: View {
 
 /// The column captions of the N1MM grid (`HW:96-103`, widths of `HW:68-72`).
 private struct HardwareGridHeader: View {
+    let language: LanguageModel
     static let port: CGFloat = 150
     static let radio: CGFloat = 180
     /// The port and radio columns shrink to these in a narrow window (the grid never overflows the detail area).
@@ -97,7 +98,7 @@ private struct HardwareGridHeader: View {
             SettingsCaption("Digi").frame(width: Self.digi, alignment: .leading)
             SettingsCaption("CW/Other").frame(width: Self.cw, alignment: .leading)
             SettingsCaption("Details").frame(width: Self.action, alignment: .leading)
-            SettingsCaption("Linka / IP").frame(maxWidth: .infinity, alignment: .leading)
+            SettingsCaption(language.tr("Linka / IP")).frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
@@ -142,7 +143,7 @@ private struct FootswitchGroup: View {
                                      language: language) { draft.footswitchPin = $0 }
                 }
                 .frame(width: 110)
-                SettingsField(caption: "Akce") {
+                SettingsField(caption: language.tr("Akce")) {
                     SettingsDropdown(label: draft.footswitchAction, options: ConfigurerCatalogs.footswitchActions,
                                      language: language) { draft.footswitchAction = $0 }
                 }
@@ -160,7 +161,7 @@ private struct TransvertersGroup: View {
 
     var body: some View {
         let language: LanguageModel = app.language
-        SettingsGroup(title: "Transvertory") {
+        SettingsGroup(title: language.tr("Transvertory")) {
             SettingsCaption(language.tr(
                 "Rig na mezifrekvenci (IF) + offset = skutečná frekvence. Příklad 2 m přes 10 m: IF 28000–30000 kHz, offset 116000 kHz. Frekvence v IF rozsahu zapnutého transvertoru se v deníku, bandmapě i při ladění přepočítávají."))
             ForEach($draft.transverters) { $row in
@@ -191,11 +192,11 @@ private struct TransverterRow: View {
                 SettingsTextField(text: $row.name)
             }
             .frame(maxWidth: .infinity)
-            SettingsField(caption: "IF od (kHz)") {
+            SettingsField(caption: language.tr("IF od (kHz)")) {
                 SettingsTextField(text: $row.ifLow, filter: .digits(limit: nil))
             }
             .frame(width: 110)
-            SettingsField(caption: "IF do (kHz)") {
+            SettingsField(caption: language.tr("IF do (kHz)")) {
                 SettingsTextField(text: $row.ifHigh, filter: .digits(limit: nil))
             }
             .frame(width: 110)
@@ -203,7 +204,7 @@ private struct TransverterRow: View {
                 SettingsTextField(text: $row.offset, filter: .digitsAnd(extra: "-"))
             }
             .frame(width: 120)
-            SettingsButton("Smazat", borderless: true, action: onDelete)
+            SettingsButton(language.tr("Smazat"), borderless: true, action: onDelete)
         }
     }
 }
@@ -219,7 +220,7 @@ private struct So2rGroup: View {
             SettingsCaption(language.tr(
                 "Rig 2 se připojuje k běžícímu rigctld (spusť druhou instanci, např. rigctld -m <model> -r <port> -t 4534). OTRSP kontrolér (SO2RDuino, YCCC Box, microHAM v OTRSP) přepíná vysílání a sluchátka podle aktivního okna; „\\“ přepne okno, „`“ stereo."))
             HStack(alignment: .top, spacing: 8) {
-                SettingsField(caption: "rigctld rigu 2 (host)") {
+                SettingsField(caption: language.tr("rigctld rigu 2 (host)")) {
                     SettingsTextField(text: $draft.rig2Host)
                 }
                 .frame(maxWidth: .infinity)

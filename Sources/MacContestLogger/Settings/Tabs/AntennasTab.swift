@@ -19,7 +19,7 @@ struct AntennasTab: View {
                 SettingsCaption(language.tr("Anténa")).frame(maxWidth: .infinity, alignment: .leading)
                     .layoutPriority(1.4)
                 SettingsCaption(language.tr("Pásma")).frame(maxWidth: .infinity, alignment: .leading)
-                SettingsCaption("Sektor").frame(width: 90, alignment: .leading)
+                SettingsCaption(language.tr("Sektor")).frame(width: 90, alignment: .leading)
                 SettingsCaption(language.tr("Rotátory")).frame(width: 110, alignment: .leading)
                 SettingsCaption("Offset").frame(width: 56, alignment: .leading)
                 SettingsCaption(language.tr("Obousm.")).frame(width: 56, alignment: .leading)

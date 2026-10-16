@@ -218,7 +218,7 @@ public final class DataToolsModel {
 
     /// Kotlin `updateContestDefinitions()` (`AS:3682-3704`): downloads the published contest data into the contest
     /// data root (`DefinitionUpdater`, locally edited files kept), then reloads the contest data and lists the
-    /// changed files in the messages (`"Definice <path>: <STATUS>"` + `" — <detail>"`, without `tr`).
+    /// changed files in the messages (`"Definice <path>: <STATUS>"` + `" — <detail>"`, translated).
     public func updateDefinitions() {
         status.show("Stahuji definice závodů…")
         let previous: Task<Void, Never>? = definitionChain
@@ -239,11 +239,11 @@ public final class DataToolsModel {
             await Self.downloadAndApply(definitionSource, root: root)
         switch result {
         case .failure(let error):
-            status.showVerbatim("Aktualizace definic selhala: " + error.message)
+            status.show("Aktualizace definic selhala: %s", .string(error.message))
         case .success(let report):
             await contest.reloadContestData()
-            status.show("Definice závodů: %s", .string(report.summary()))
-            messages.add(Self.messageLines(report), at: now())
+            status.show("Definice závodů: %s", .string(report.summary(language.translator)))
+            messages.add(Self.messageLines(report, translator: language.translator), at: now())
         }
     }
 
@@ -269,10 +269,12 @@ public final class DataToolsModel {
     }
 
     /// The messages of a report: every file that is not `UNCHANGED`, in the report's order.
-    nonisolated static func messageLines(_ report: DefinitionUpdater.Report) -> [String] {
+    nonisolated static func messageLines(_ report: DefinitionUpdater.Report,
+                                         translator: Translator = .source) -> [String] {
         report.files.filter { $0.status != .unchanged }.map { file in
-            let head: String = "Definice " + file.path + ": " + file.status.description
-            return KotlinStrings.isBlank(file.detail) ? head : head + " — " + file.detail
+            let head: String = translator.translate("Definice %s: %s", [.string(file.path),
+                                                                        .string(file.status.description)])
+            return KotlinStrings.isBlank(file.detail) ? head : head + " — " + translator.translate(file.detail)
         }
     }
 

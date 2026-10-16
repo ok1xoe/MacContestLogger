@@ -729,31 +729,35 @@ public final class EntryModel {
     private func passesOperatingRules(force: Bool) -> Bool {
         let cluster: ClusterConfig = config.config.cluster
         let newMultiplier: Bool = contest.lastPreview?.multipliers.contains { $0.countsAsMultiplier && $0.isNew } == true
+        var found: ContestMessage?
         let gate = QsoAssembly.operatingGate(force: force, postContest: operating.postContest,
                                              enforcement: cluster.ruleEnforcement) {
-            self.operatingViolation(newMultiplier: newMultiplier)
+            found = self.operatingViolation(newMultiplier: newMultiplier)
+            return found?.czech
         }
         switch gate {
         case .proceed:
             return true
         case .warn(let violation):
-            status.showVerbatim("Pozor: " + violation)
+            status.show(ContestMessage("Pozor: %s", parts: [.message(found ?? .verbatim(violation))]))
             return true
         case .block(let violation):
-            status.show("NEZAPSÁNO — %s (Ctrl+Alt+Enter zapíše i tak)", .string(violation))
+            status.show(ContestMessage("NEZAPSÁNO — %s (Ctrl+Alt+Enter zapíše i tak)",
+                                       parts: [.message(found ?? .verbatim(violation))]))
             return false
         }
     }
 
     /// Kotlin `operatingViolation(band, newMultiplier)` (`KA:2722-2733`) over the log model's incremental statistics
     /// of this station (L1): no `ContestStats.of` on the main thread.
-    private func operatingViolation(newMultiplier: Bool) -> String? {
+    private func operatingViolation(newMultiplier: Bool) -> ContestMessage? {
         let cluster: ClusterConfig = config.config.cluster
         let interval: Perf.Interval = Perf.begin("operating-rules")
         defer { Perf.end(interval, String(logbook.rows.count) + " qso") }
         let rules = OperatingRules.resolve(contest.definition?.operating, contest.activeSetup?.category)?.bandChange
         let type = QsoAssembly.operatingStationType(networked: cluster.enabled, configured: cluster.stationType)
-        return OperatingGuard.check(logbook.statsForRules, rules, band, JavaInstant(date: now()), type, newMultiplier)
+        return OperatingGuard.violation(logbook.statsForRules, rules, band, JavaInstant(date: now()), type,
+                                        newMultiplier)
     }
 
     private func contestCopies(_ form: EntryForm, serial: Int, note: String?,

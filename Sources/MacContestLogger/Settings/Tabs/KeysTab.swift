@@ -30,7 +30,7 @@ struct KeysTab: View {
             // A grid: the columns share their widths and shrink with the window (long labels wrap).
             Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 2) {
                 GridRow {
-                    Text(verbatim: "Akce")
+                    Text(verbatim: language.tr("Akce"))
                         .windowFont(12, weight: .bold)
                     Text(verbatim: language.tr("Klávesy"))
                         .windowFont(12, weight: .bold)
@@ -60,7 +60,7 @@ struct KeysTab: View {
 
     @ViewBuilder private func rowView(_ row: KeyCaptureRules.Row) -> some View {
         GridRow {
-            SettingsText(row.action.label)
+            SettingsText(language.tr(row.action.label))
                 .frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
             keysCell(row)
                 .frame(minWidth: 140, maxWidth: 170, alignment: .leading)
@@ -76,7 +76,7 @@ struct KeysTab: View {
             }
             .fixedSize()
         }
-        if let conflict = row.conflictText {
+        if let conflict = row.conflictText(language.translator) {
             GridRow {
                 SettingsText(conflict, size: 12, isError: true)
                     .gridCellColumns(5)

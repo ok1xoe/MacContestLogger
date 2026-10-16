@@ -7,23 +7,24 @@ public enum SettingsTools {
 
     // MARK: - rig scan (HW:205-250)
 
-    /// `HW:220` — the status when a scan starts (not translated).
+    /// `HW:220` — the status when a scan starts (a key; Kotlin left it untranslated).
     public static let scanning = "Skenuji…"
     /// `HW:229` — a probed candidate (`%s` = label, baud).
     public static let probing = "Zkouším %s @ %s…"
-    /// `HW:243` — the scan was stopped (not translated).
+    /// `HW:243` — the scan was stopped (a key; Kotlin left it untranslated).
     public static let scanStopped = "Scan zastaven"
-    /// `HW:243` — no candidate answered (not translated).
+    /// `HW:243` — no candidate answered (a key; Kotlin left it untranslated).
     public static let nothingAnswered = "Nic se neozvalo"
     /// The bauds the scan tries (`HW:65` `BAUD_RATES`).
     public static let scanBauds: [Int] = ConfigurerCatalogs.baudRates
 
-    /// `HW:241` — the found rig (not translated): `"Nalezeno: <label> @ <baud> baud (<freqHz / 1000.0> kHz)"`, the
-    /// frequency as Kotlin's `Double` template (`Double.toString`).
-    public static func found(_ outcome: RigScanner.Outcome) -> String {
+    /// `HW:241` — the found rig: `"Nalezeno: <label> @ <baud> baud (<freqHz / 1000.0> kHz)"` (translated; Kotlin
+    /// left it Czech), the frequency as Kotlin's `Double` template (`Double.toString`).
+    public static func found(_ outcome: RigScanner.Outcome, translator: Translator = .source) -> String {
         let khz: String = JavaDouble.toString(Double(outcome.freqHz) / 1000.0)
         let candidate: RigScanner.Candidate = outcome.candidate
-        return "Nalezeno: \(candidate.label) @ \(candidate.baud) baud (\(khz) kHz)"
+        return translator.translate("Nalezeno: %s @ %s baud (%s kHz)",
+                                    [.string(candidate.label), .int(candidate.baud), .string(khz)])
     }
 
     // MARK: - fldigi probe (MT:86-97)

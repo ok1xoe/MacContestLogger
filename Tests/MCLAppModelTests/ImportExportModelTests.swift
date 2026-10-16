@@ -535,7 +535,7 @@ import Testing
         model.exports.printFinished(.failed(nil))
         #expect(model.status.message == "Tisk selhal: null")
         await model.language.switchTo("en")
-        #expect(model.status.message == "Tisk selhal: null")
+        #expect(model.status.message == "Printing failed: null")
     }
 
     // MARK: - menu

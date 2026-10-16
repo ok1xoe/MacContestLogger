@@ -122,30 +122,33 @@ public enum DefinitionEditing {
     // MARK: - summary
 
     /// Short definition summary for the editor preview. `nil` values are printed
-    /// as `null` (Java concatenation), a `nil` contest name as `—`.
-    public static func summary(_ definition: ContestDefinition) -> [String] {
+    /// as `null` (Java concatenation), a `nil` contest name as `—`. The captions are translated by `translator`.
+    public static func summary(_ definition: ContestDefinition, translator: Translator = .source) -> [String] {
+        func line(_ key: String, _ value: String) -> String {
+            translator.translate(key, [.string(value)])
+        }
         var out: [String] = []
-        out.append("Název: " + (definition.metadata?.name ?? "—"))
-        out.append("Pásma: " + join(definition.bands))
-        out.append("Módy: " + join(definition.modes))
+        out.append(line("Název: %s", definition.metadata?.name ?? "—"))
+        out.append(line("Pásma: %s", join(definition.bands)))
+        out.append(line("Módy: %s", join(definition.modes)))
         if let hours = definition.period?.durationHours {
-            out.append("Délka: \(hours) h")
+            out.append(line("Délka: %s h", String(hours)))
         }
         if let exchange = definition.exchange {
-            out.append("Výměna odeslaná: " + fields(exchange.sent))
-            out.append("Výměna přijatá: " + fields(exchange.received))
+            out.append(line("Výměna odeslaná: %s", fields(exchange.sent)))
+            out.append(line("Výměna přijatá: %s", fields(exchange.received)))
         }
         if let multipliers = definition.multipliers, !multipliers.isEmpty {
             // `nil` element: Java NPE (`m.id()`), Swift `null` (a deliberate divergence from Java v1.1.1).
-            out.append("Násobiče: " + multipliers.map { m in
+            out.append(line("Násobiče: %s", multipliers.map { m in
                 guard let m else { return "null" }
                 return "\(text(m.id)) (\(text(m.set)), \(text(m.scope?.rawValue)))"
-            }.joined(separator: ", "))
+            }.joined(separator: ", ")))
         } else {
-            out.append("Násobiče: žádné")
+            out.append(translator.translate("Násobiče: žádné"))
         }
         if let scoring = definition.scoring {
-            out.append("Skóre: " + text(scoring.total))
+            out.append(line("Skóre: %s", text(scoring.total)))
         }
         if let dupe = definition.dupe {
             out.append("Dupe: " + text(dupe.scope?.rawValue))

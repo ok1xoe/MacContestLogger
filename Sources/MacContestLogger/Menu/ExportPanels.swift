@@ -60,8 +60,8 @@ enum ExportPanels {
                 }
             }
         case .openImport:
-            // Kotlin `chooseImportPath()`: the title is not translated.
-            openFile(message: "Import QSO (ADIF / Cabrillo)") { file in
+            // Kotlin `chooseImportPath()` (Kotlin left the title untranslated).
+            openFile(message: app.language.tr("Import QSO (ADIF / Cabrillo)")) { file in
                 app.exports.start { await $0.importQsos(from: file) }
             }
         case .openMerge:

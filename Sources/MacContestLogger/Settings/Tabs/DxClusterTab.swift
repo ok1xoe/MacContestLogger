@@ -136,7 +136,7 @@ struct DxClusterTab: View {
                 SettingsTextField(text: $draft.wheelStepHz, filter: .digits(limit: nil))
             }
             .frame(width: 150)
-            SettingsField(caption: "Krok se Shift (Hz)") {
+            SettingsField(caption: language.tr("Krok se Shift (Hz)")) {
                 SettingsTextField(text: $draft.wheelStepShiftHz, filter: .digits(limit: nil))
             }
             .frame(width: 150)
@@ -170,7 +170,7 @@ private struct FavoriteEditor: View {
                         .windowFont(12)
                 }
                 .toggleStyle(.checkbox)
-                SettingsButton("Smazat", action: onDelete)
+                SettingsButton(language.tr("Smazat"), action: onDelete)
             }
             HStack(alignment: .top, spacing: 8) {
                 SettingsField(caption: "Server (host)") {

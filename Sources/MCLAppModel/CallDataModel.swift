@@ -299,8 +299,7 @@ public final class CallDataModel {
             ? dataDir.appendingPathComponent("MASTER.SCP").path
             : configured
         let source: String = scpSource
-        // Kotlin sets this text without `tr`.
-        status.showVerbatim("Stahuji master.scp…")
+        status.show("Stahuji master.scp…")
         track { [weak self] in
             let outcome: Result<ScpDownloader.Result, any Error>
             do {

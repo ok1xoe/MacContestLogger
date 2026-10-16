@@ -24,7 +24,7 @@ public enum SettingsTexts {
     public static let keyNotAllowed = "%s nejde — bez Ctrl/Alt/Cmd by přebila psaní (povolené jsou F-klávesy, ; a ')"
     /// `KT:56` — an action without a key (not translated).
     public static let noKey = "—"
-    /// `KT:91` — the conflict prefix (not translated).
+    /// `KT:91` — the conflict prefix (a key; Kotlin left it untranslated).
     public static let conflictPrefix = "koliduje: "
 
     /// `DX:164-165` — the hint under a blacklist editor.

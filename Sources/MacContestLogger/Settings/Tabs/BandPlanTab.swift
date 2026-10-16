@@ -66,10 +66,10 @@ struct BandPlanTab: View {
             Text(verbatim: language.tr("Mód"))
                 .windowFont(12, weight: .bold)
                 .frame(width: 210, alignment: .leading)
-            Text(verbatim: "Od (kHz)")
+            Text(verbatim: language.tr("Od (kHz)"))
                 .windowFont(12, weight: .bold)
                 .frame(width: 90, alignment: .leading)
-            Text(verbatim: "Do (kHz)")
+            Text(verbatim: language.tr("Do (kHz)"))
                 .windowFont(12, weight: .bold)
                 .frame(width: 90, alignment: .leading)
         }
@@ -100,7 +100,7 @@ private struct SegmentRow: View {
                 SettingsText(language.tr("překryv!"), size: 11, isError: true)
                     .padding(.leading, 6)
             }
-            SettingsDeleteButton(help: "Smazat segment", action: onDelete)
+            SettingsDeleteButton(help: language.tr("Smazat segment"), action: onDelete)
                 .padding(.leading, 6)
             Spacer(minLength: 0)
         }

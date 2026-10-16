@@ -118,7 +118,7 @@ public struct NoKeyer: KeyerPort {
             case .none:
                 return EntryStatus.verbatim("CW: ").appending(.tr("CW klíč je vypnutý (Nastavení → CW klíč)"))
             case .cat:
-                return .verbatim("CW: CW přes CAT: TRX není připojený")
+                return EntryStatus.verbatim("CW: ").appending(.tr("CW přes CAT: TRX není připojený"))
             case .winkeyer:
                 if KotlinStrings.isBlank(settings.winkeyerPort) {
                     return EntryStatus.verbatim("CW: ").appending(.tr("Winkeyer: vyber port v Nastavení → CW klíč"))

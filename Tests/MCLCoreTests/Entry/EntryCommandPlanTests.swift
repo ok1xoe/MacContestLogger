@@ -66,7 +66,7 @@ import Testing
 
     @Test func qsyFormatsTheFieldAndTheStatus() {
         #expect(Self.body(.qsy(freqHz: 14_025_005)) == [
-            .setFrequency(text: "14025.01"), .rigQsy(hz: 14_025_005), .status(.verbatim("QSY na 14025.01 kHz")),
+            .setFrequency(text: "14025.01"), .rigQsy(hz: 14_025_005), Self.status("QSY na %s kHz", "14025.01"),
         ])
     }
 
@@ -75,10 +75,10 @@ import Testing
     @Test func negativeQsyGoesToTheSharedTuningOnly() {
         #expect(Self.body(.qsy(freqHz: -9_223_372_036_840_776_616)) == [
             .setFrequency(text: "-9223372036840776.00"), .rigQsy(hz: -9_223_372_036_840_776_616),
-            .status(.verbatim("QSY na -9223372036840776.00 kHz")),
+            Self.status("QSY na %s kHz", "-9223372036840776.00"),
         ])
         #expect(Self.body(.qsy(freqHz: 0)) == [
-            .setFrequency(text: "0.00"), .rigQsy(hz: 0), .status(.verbatim("QSY na 0.00 kHz")),
+            .setFrequency(text: "0.00"), .rigQsy(hz: 0), Self.status("QSY na %s kHz", "0.00"),
         ])
     }
 
@@ -111,7 +111,8 @@ import Testing
             (.esmOn, [.setEsm(true), Self.status("ESM zapnuto — Enter vysílá zprávy")]),
             (.esmOff, [.setEsm(false), Self.status("ESM vypnuto")]),
             (.openSettingsTab(tabKey: "winkey"), [.openSettingsTab("winkey")]),
-            (.cutNumbers(style: .tn), [.cutNumbers(.tn), Self.status("Cut čísla: %s", "T a N (097 → TN7)")]),
+            (.cutNumbers(style: .tn), [.cutNumbers(.tn), .status(EntryStatus([ContestMessage("Cut čísla: %s",
+                parts: [.message(ContestMessage("T a N (097 → TN7)"))])]))]),
             (.cutNumbers(style: nil), [.cutNumbers(nil), Self.status("Cut čísla vypnuta")]),
             (.invalid(message: "RIT: zadej posun"), [.status(.verbatim("RIT: zadej posun"))]),
         ]
@@ -141,7 +142,7 @@ import Testing
             (.cqRepeat, true, Self.status("Opakování CQ po %s (Esc nebo psaní volačky zastaví, Ctrl+R změní)", "2.5 s")),
             (.cqRepeat, false, Self.status("Opakování CQ vypnuto")),
             (.workDupes, true, Self.status("Dupe v Run se dělá jako nové QSO (WORKDUPE)")),
-            (.workDupes, false, .status(.verbatim("Dupe v Run: QSO B4 (NOWORKDUPE)"))),
+            (.workDupes, false, Self.status("Dupe v Run: QSO B4 (NOWORKDUPE)")),
             (.autoReload, true, Self.status("Při startu se otevře poslední závod (AUTORELOAD)")),
             (.autoReload, false, Self.status("Při startu úvodní dialog (NOAUTORELOAD)")),
             (.postContest, true, Self.status(
@@ -232,7 +233,7 @@ import Testing
     @Test func bonusRoverCountyLine() {
         #expect(Self.body(.bonusStations(calls: "")) == [.openDialog(.bonusStations)])
         #expect(Self.body(.bonusStations(calls: "w1aw, k1a")) == [
-            .setBonusStations(["W1AW", "K1A"], status: .verbatim("Bonusové stanice (2): W1AW K1A")),
+            .setBonusStations(["W1AW", "K1A"], status: .tr("Bonusové stanice (%s): %s", .int(2), .string("W1AW K1A"))),
         ])
         #expect(Self.body(.roverQth(county: "")) == [.openDialog(.roverQth)])
         #expect(Self.body(.roverQth(county: "ny")) == [.setRoverQth("NY"), .status(.verbatim("Rover QTH: NY"))])
@@ -242,7 +243,7 @@ import Testing
         #expect(Self.body(.countyLine(counties: "ny,ab")) == [
             .setCountyLine(["NY", "AB"]), Self.status("County line %s: každé QSO se zapíše %s×", "NY/AB", 2),
         ])
-        #expect(Self.body(.countyLineOff) == [.setCountyLine([]), .status(.verbatim("County line vypnuto"))])
+        #expect(Self.body(.countyLineOff) == [.setCountyLine([]), .status(.tr("County line vypnuto"))])
     }
 
     // MARK: - SCRIPT (`EP:438-454`)
@@ -250,15 +251,15 @@ import Testing
     @Test func scriptRunsLinesInOrder() {
         let ctx = Self.context(script: ["run": ["7025", "+5", "CW", "TOUR", "SCRIPT run", "OK1ABC", "99999999999999999"]])
         #expect(Self.body(.runScript(name: "run"), ctx) == [
-            .setFrequency(text: "7025.00"), .rigQsy(hz: 7_025_000), .status(.verbatim("QSY na 7025.00 kHz")),
+            .setFrequency(text: "7025.00"), .rigQsy(hz: 7_025_000), Self.status("QSY na %s kHz", "7025.00"),
             // `+5` is relative to the frequency the previous line set.
-            .setFrequency(text: "7030.00"), .rigQsy(hz: 7_030_000), .status(.verbatim("QSY na 7030.00 kHz")),
+            .setFrequency(text: "7030.00"), .rigQsy(hz: 7_030_000), Self.status("QSY na %s kHz", "7030.00"),
             .setMode(.cw), .rigMode(.cw, freqHz: 7_030_000), Self.status("Mód %s", "CW"),
             // `CW` reset the report to 599, which has no slash: TOUR shows the state.
             Self.status("TOUR vypnuto — zadej TOUR hhmm/mm (např. TOUR 1200/30) nebo hhmm/mm do pole Snt"),
             Self.status("SCRIPT: vnořený skript „%s“ přeskočen", "RUN"),
             Self.status("SCRIPT %s: „%s“ není příkaz", "run", "OK1ABC"),
-            .status(.verbatim("99999999999999999 kHz neleží v žádném pásmu")),
+            Self.status("%s kHz neleží v žádném pásmu", "99999999999999999"),
             Self.status("SCRIPT %s: provedeno %s příkazů", "run", 7),
         ])
     }

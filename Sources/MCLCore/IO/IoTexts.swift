@@ -51,9 +51,9 @@ public enum IoTexts {
     /// `AS:4040` — the contest name without an active definition (`metadata.name ?: tr("Deník")`).
     public static let defaultLogName = "Deník"
 
-    /// `AS:4051` — `"Export: ${written.joinToString(", ")} do $dir"`, without `tr`.
+    /// `AS:4051` — `"Export: ${written.joinToString(", ")} do $dir"` (translated; Kotlin left it Czech).
     public static func otherWritten(names: [String], dir: String) -> ContestMessage {
-        .verbatim("Export: " + names.joined(separator: ", ") + " do " + dir)
+        ContestMessage("Export: %s do %s", .string(names.joined(separator: ", ")), .string(dir))
     }
 
     // MARK: - printing (`AS:4025-4035`)
@@ -63,8 +63,8 @@ public enum IoTexts {
     /// `AS:4032`.
     public static let printCancelled = ContestMessage("Tisk zrušen")
 
-    /// `AS:4032` — `"Tisk selhal: ${it.message}"`, without `tr`.
+    /// `AS:4032` — `"Tisk selhal: ${it.message}"` (translated; Kotlin left it Czech).
     public static func printFailed(message: String?) -> ContestMessage {
-        .verbatim("Tisk selhal: " + template(message))
+        ContestMessage("Tisk selhal: %s", .string(template(message)))
     }
 }

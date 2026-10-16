@@ -18,11 +18,11 @@ extension SpotAnalyzer {
         var out: String = "\(call)   \(kHz) kHz"
         out += translator.translate("\nMód: ") + mode
         out += " (" + (category ?? translator.translate("neurčitelný"))
-        out += isColorRelevant(spot) ? ", vyhodnocuje se" : translator.translate(", ignorováno")
+        out += translator.translate(isColorRelevant(spot) ? ", vyhodnocuje se" : ", ignorováno")
         out += ")"
         if let grid {
             let field: String = JavaText.toUpperCase(JavaChar.string(Array(grid.utf16.prefix(2))))
-            out += "\nGrid: \(grid) → pole \(field)"
+            out += translator.translate("\nGrid: %s → pole %s", [.string(grid), .string(field)])
         }
         out += "\nSpotter: " + spot.spotter
         // Post-port: a spot on the QO-100 transponder says so (the band stays 3 cm).

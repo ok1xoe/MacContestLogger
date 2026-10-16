@@ -49,18 +49,18 @@ private struct SimulatorContent: View {
                                                                                   translate: language.translator)))
                 .accessibilityIdentifier("simulator.activity")
             HStack(spacing: 8) {
-                numberField("WPM od", text: filtered($form.minWpm, 2), width: 110, identifier: "simulator.minWpm")
-                numberField("WPM do", text: filtered($form.maxWpm, 2), width: 110, identifier: "simulator.maxWpm")
+                numberField(language.tr("WPM od"), text: filtered($form.minWpm, 2), width: 110, identifier: "simulator.minWpm")
+                numberField(language.tr("WPM do"), text: filtered($form.maxWpm, 2), width: 110, identifier: "simulator.maxWpm")
                 numberField(language.tr("Rozptyl tónů (Hz)"), text: filtered($form.spread, 4), width: 170,
                             identifier: "simulator.spread")
             }
-            Text(verbatim: SimulatorSession.noiseText(Float(form.noise)))
+            Text(verbatim: SimulatorSession.noiseText(Float(form.noise), translate: language.translator))
                 .windowFont(13, weight: .medium)
             Slider(value: Binding(get: { form.noise }, set: { value in
                 form.noise = value
                 model.setNoise(Float(value))
             }), in: 0...0.6)
-                .accessibilityLabel(Text(verbatim: SimulatorSession.noiseText(Float(form.noise))))
+                .accessibilityLabel(Text(verbatim: SimulatorSession.noiseText(Float(form.noise), translate: language.translator)))
                 .accessibilityIdentifier("simulator.noise")
             HStack(spacing: 16) {
                 Toggle(isOn: Binding(get: { model.qsb }, set: { model.qsb = $0 })) {
@@ -89,10 +89,10 @@ private struct SimulatorContent: View {
     private func controls(_ model: SimulatorModel) -> some View {
         HStack(spacing: 8) {
             if model.isOn {
-                Button("Zastavit") { model.stop() }
+                Button(app.language.tr("Zastavit")) { model.stop() }
                     .accessibilityIdentifier("simulator.stop")
             } else {
-                Button("Spustit") {
+                Button(app.language.tr("Spustit")) {
                     model.start(settings: SimulatorSession.settings(activity: Int(form.activity),
                                                                    minWpm: form.minWpm, maxWpm: form.maxWpm,
                                                                    spread: form.spread),
@@ -102,7 +102,8 @@ private struct SimulatorContent: View {
                 .buttonStyle(.borderedProminent)
                 .accessibilityIdentifier("simulator.start")
             }
-            Text(verbatim: SimulatorSession.counterText(qsos: model.qsos, errors: model.errors))
+            Text(verbatim: SimulatorSession.counterText(qsos: model.qsos, errors: model.errors,
+                                                         translate: app.language.translator))
                 .windowFont(15, weight: .medium)
                 .accessibilityIdentifier("simulator.counter")
         }
@@ -212,7 +213,7 @@ private struct BandNotesContent: View {
                             Text(verbatim: model.rowText(note))
                                 .windowFont(12, design: .monospaced)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            Button("Smazat") { model.remove(note) }
+                            Button(language.tr("Smazat")) { model.remove(note) }
                                 .buttonStyle(.borderless)
                                 .windowFont(12)
                         }

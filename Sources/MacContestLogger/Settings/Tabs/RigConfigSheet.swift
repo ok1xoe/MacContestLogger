@@ -62,7 +62,7 @@ struct RigConfigSheet: View {
     private var connectionGroup: some View {
         SettingsGroup(title: language.tr("Připojení")) {
             HStack(spacing: 16) {
-                SettingsRadio(label: "Spustit rigctld", selected: draft.rigMode == .launchDaemon) {
+                SettingsRadio(label: language.tr("Spustit rigctld"), selected: draft.rigMode == .launchDaemon) {
                     draft.rigMode = .launchDaemon
                 }
                 SettingsRadio(label: language.tr("Připojit k běžícímu"), selected: draft.rigMode == .connectRunning) {
@@ -107,7 +107,7 @@ struct RigConfigSheet: View {
             .disabled(settings.isSaving || settings.draft == nil)
             Spacer(minLength: 0)
             Button(action: onDone) {
-                Text(verbatim: "Hotovo")
+                Text(verbatim: language.tr("Hotovo"))
             }
             .buttonStyle(.borderedProminent)
         }
@@ -150,14 +150,14 @@ private struct RigChoiceGroup: View {
 
     private func scanLine(_ tools: SettingsToolsModel) -> some View {
         let state: SettingsToolsModel.ScanState = tools.scanState
-        let fallback: String = KotlinStrings.isBlank(draft.device) ? "Pro scan vyber port" : ""
+        let fallback: String = KotlinStrings.isBlank(draft.device) ? app.language.tr("Pro scan vyber port") : ""
         return HStack(spacing: 8) {
             SettingsButton(app.language.tr("Scan – najít rig")) {
                 tools.startScan(draft: draft)
             }
             .disabled(!tools.canStartScan(device: draft.device))
             if state.isScanning {
-                SettingsButton("Zastavit") { tools.stopScan() }
+                SettingsButton(app.language.tr("Zastavit")) { tools.stopScan() }
             }
             Text(verbatim: ifBlank(state.status, fallback))
                 .windowFont(12)
@@ -233,24 +233,24 @@ private struct SerialLineGroup: View {
     private func lineRow(_ language: LanguageModel, enabled: Bool) -> some View {
         let bauds: [Int] = Array(Set(ConfigurerCatalogs.baudRates + [draft.baud])).sorted()
         return HStack(alignment: .top, spacing: 8) {
-            SettingsField(caption: "Rychlost") {
+            SettingsField(caption: language.tr("Rychlost")) {
                 SettingsDropdown(label: String(draft.baud), options: bauds.map { String($0) }, language: language,
                                  enabled: enabled) { draft.baud = Int($0) ?? draft.baud }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            SettingsField(caption: "Parita") {
+            SettingsField(caption: language.tr("Parita")) {
                 SettingsDropdown(label: draft.parity.hamlib, options: Self.parities.map(\.hamlib), language: language,
                                  enabled: enabled) { picked in
                     draft.parity = Self.parities.first { $0.hamlib == picked } ?? draft.parity
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            SettingsField(caption: "Data bity") {
+            SettingsField(caption: language.tr("Data bity")) {
                 SettingsDropdown(label: String(draft.dataBits), options: ["7", "8"], language: language,
                                  enabled: enabled) { draft.dataBits = Int($0) ?? draft.dataBits }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            SettingsField(caption: "Stop bity") {
+            SettingsField(caption: language.tr("Stop bity")) {
                 SettingsDropdown(label: String(draft.stopBits), options: ["1", "2"], language: language,
                                  enabled: enabled) { draft.stopBits = Int($0) ?? draft.stopBits }
             }
@@ -275,9 +275,9 @@ private struct SerialLineGroup: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             SettingsField(caption: language.tr("Řízení toku")) {
-                SettingsDropdown(label: draft.flow.label, options: Self.flows.map(\.label), language: language,
-                                 enabled: enabled) { picked in
-                    draft.flow = Self.flows.first { $0.label == picked } ?? draft.flow
+                SettingsDropdown(label: language.tr(draft.flow.label), options: Self.flows.map { language.tr($0.label) },
+                                 language: language, enabled: enabled) { picked in
+                    draft.flow = Self.flows.first { language.tr($0.label) == picked } ?? draft.flow
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

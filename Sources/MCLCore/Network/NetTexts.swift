@@ -41,8 +41,7 @@ public enum NetTexts {
     public static let passHintEmpty = "Pass: napiš volačku do zadávacího okna, pak „Předat“ u cílové stanice (nebo Ctrl+Alt+P)."
     public static let passHintCallKey = "Pass: %s — klikni na „Předat“ u cílové stanice."
 
-    /// A column header: `translate` is false for the headers Kotlin writes without `tr` (`Stanice`, `kHz`, `QSO`,
-    /// `Stav`).
+    /// A column header: `translate` is false for the headers that are the same in every language (`kHz`, `QSO`).
     public struct Header: Sendable, Equatable {
         public let text: String
         public let translate: Bool
@@ -50,16 +49,16 @@ public enum NetTexts {
 
     /// The columns of the station table, in order (`HEADERS`).
     public static let headers: [Header] = [
-        Header(text: "Stanice", translate: false), Header(text: "Operátor", translate: true),
+        Header(text: "Stanice", translate: true), Header(text: "Operátor", translate: true),
         Header(text: "Pásmo", translate: true), Header(text: "Mód", translate: true),
         Header(text: "kHz", translate: false), Header(text: "Režim", translate: true),
-        Header(text: "QSO", translate: false), Header(text: "Stav", translate: false),
+        Header(text: "QSO", translate: false), Header(text: "Stav", translate: true),
     ]
 
-    /// `"Tato stanice: <id> · připojeno|odpojeno"` (the label is not translated, `odpojeno` neither).
+    /// `"Tato stanice: <id> · připojeno|odpojeno"` (translated; Kotlin left the label and `odpojeno` Czech).
     public static func thisStation(stationId: String, connected: Bool, translator: Translator) -> String {
-        let state: String = connected ? translator.translate(connectedKey) : "odpojeno"
-        return "Tato stanice: " + stationId + " · " + state
+        let state: String = translator.translate(connected ? connectedKey : "odpojeno")
+        return translator.translate("Tato stanice: %s", [.string(stationId)]) + " · " + state
     }
 
     /// The pass hint above the table: the call to pass (the pending one, else the typed one) or the empty hint.
@@ -127,7 +126,7 @@ public enum NetTexts {
     public static let chatMe = "já"
     public static let chatNotConnectedPlaceholder = "Síťový deník není připojený"
     public static let chatPlaceholder = "Zpráva (Enter odešle)"
-    /// The send button label (Kotlin: not translated).
+    /// The send button label (a key; Kotlin left it untranslated).
     public static let chatSend = "Odeslat"
 
     /// A chat row: `time  who[ → to]: text`, `who` is `já` for an own line.

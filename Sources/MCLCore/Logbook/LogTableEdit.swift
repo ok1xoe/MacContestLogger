@@ -105,7 +105,7 @@ public enum BulkAction: CaseIterable, Sendable {
         switch self {
         case .operator: return ContestMessage("Operátor…")
         case .mode: return ContestMessage("Mód…")
-        case .frequency: return .verbatim("Frekvence…")
+        case .frequency: return ContestMessage("Frekvence…")
         case .station: return ContestMessage("Stanice…")
         case .shiftTime: return ContestMessage("Posun času…")
         case .interpolate: return ContestMessage("Interpolovat čas")
@@ -118,7 +118,7 @@ public enum BulkAction: CaseIterable, Sendable {
         switch self {
         case .operator: return ContestMessage("Operátor")
         case .mode: return ContestMessage("Mód")
-        case .frequency: return .verbatim("Frekvence")
+        case .frequency: return ContestMessage("Frekvence")
         case .station: return ContestMessage("Stanice")
         case .shiftTime: return ContestMessage("Posun času")
         case .interpolate: return ContestMessage("Interpolace času")
@@ -204,7 +204,7 @@ public enum BulkAction: CaseIterable, Sendable {
             guard let hz = BulkEdit.parseFrequencyKHz(t) else {
                 return Outcome(edits: [], status: ContestMessage("Frekvence: „%s“ není v žádném pásmu", .string(t)))
             }
-            return Self.bulkUpdate(chosen, .verbatim("Frekvence")) { list in
+            return Self.bulkUpdate(chosen, ContestMessage("Frekvence")) { list in
                 BulkEdit.setFrequencyHz(&list, freqHz: hz)
                 return true
             }

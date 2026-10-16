@@ -110,7 +110,7 @@ struct DigitalInterfaceWindowView: View {
                     Button {
                         model.clear()
                     } label: {
-                        Text(verbatim: "Vymazat").windowFont(14)
+                        Text(verbatim: language.tr("Vymazat")).windowFont(14)
                     }
                     .buttonStyle(.borderless)
                     opModeMenu(model, language: language)

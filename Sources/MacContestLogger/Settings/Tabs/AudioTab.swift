@@ -125,7 +125,7 @@ struct AudioTab: View {
             FlowLayout(spacing: 12) {
                 SettingsCheckbox(label: language.tr("PTT přes CAT"), isOn: $draft.vkPttViaCat)
                     .frame(width: 220, alignment: .leading)
-                SettingsField(caption: "Prodleva PTT (ms)") {
+                SettingsField(caption: language.tr("Prodleva PTT (ms)")) {
                     SettingsTextField(text: $draft.vkPttDelay, filter: .digits(limit: nil))
                 }
                 .frame(width: 150)
@@ -139,7 +139,7 @@ struct AudioTab: View {
 
     private var filesGroup: some View {
         let wavDir: String = app.dataDir.appendingPathComponent("wav").path
-        return SettingsGroup(title: "Soubory") {
+        return SettingsGroup(title: language.tr("Soubory")) {
             SettingsCaption(language.tr(
                 "Adresář wav souborů (prázdné = %s). Písmena a číslice pro hlášení volačky a čísla (A.wav…Z.wav, 0.wav…9.wav, stroke.wav, query.wav, point.wav) jsou v podadresáři; {OPERATOR} = volačka operátora u klíče.",
                 .string(wavDir)))

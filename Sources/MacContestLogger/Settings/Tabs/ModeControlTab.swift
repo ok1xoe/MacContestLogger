@@ -43,7 +43,7 @@ struct ModeControlTab: View {
                 SettingsCaption(language.tr(
                     "PKTUSB = datový režim rigu (výchozí). USB/LSB pro rig bez datového režimu — mód do deníku pak určí pravidlo výše."))
             }
-            SettingsGroup(title: "RTTY do rigu") {
+            SettingsGroup(title: language.tr("RTTY do rigu")) {
                 HStack(spacing: 16) {
                     SettingsRadio(label: language.tr("FSK (RTTY mód rigu)"), selected: !draft.rttyAfsk) {
                         draft.rttyAfsk = false

@@ -173,7 +173,7 @@ public final class IntegrationsModel {
             scheduleSnapshotRefresh()
         case .failed(let message):
             if generation == broadcastGeneration {
-                deps.status.showVerbatim("Broadcast: start selhal (" + message + ")")
+                deps.status.show("Broadcast: start selhal (%s)", .string(message))
             }
         }
     }

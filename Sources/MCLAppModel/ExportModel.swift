@@ -113,7 +113,7 @@ extension ImportExportModel {
             status.show("Cabrillo: zápis selhal (%s)", .string(ErrorText.message(error)))
             return false
         }
-        messages.add(result.warnings.map { "Cabrillo: " + $0 }, at: now())
+        messages.add(result.warningMessages.map { "Cabrillo: " + $0.text(language.translator) }, at: now())
         let summary: String = "Cabrillo: " + String(result.qsoCount) + " QSO → " + file.lastPathComponent
         if result.warnings.isEmpty {
             status.showVerbatim(summary)

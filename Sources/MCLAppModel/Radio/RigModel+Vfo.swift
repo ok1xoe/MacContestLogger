@@ -130,7 +130,7 @@ extension RigModel {
         case .split(let txFreqHz)?:
             setSplit(txFreqHz)
         case .invalid(let message)?:
-            status.showVerbatim(message)
+            status.show(CallFieldCommand.invalidMessage(message))
         default:
             show(RigTexts.splitInvalid(text))
         }

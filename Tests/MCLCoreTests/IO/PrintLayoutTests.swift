@@ -49,7 +49,7 @@ import Testing
     @Test func statusTexts() {
         #expect(IoTexts.printSent.czech == "Deník odeslán na tiskárnu")
         #expect(IoTexts.printCancelled.czech == "Tisk zrušen")
-        #expect(IoTexts.printFailed(message: "no printer") == .verbatim("Tisk selhal: no printer"))
-        #expect(IoTexts.printFailed(message: nil) == .verbatim("Tisk selhal: null"))
+        #expect(IoTexts.printFailed(message: "no printer") == ContestMessage("Tisk selhal: %s", .string("no printer")))
+        #expect(IoTexts.printFailed(message: nil) == ContestMessage("Tisk selhal: %s", .string("null")))
     }
 }

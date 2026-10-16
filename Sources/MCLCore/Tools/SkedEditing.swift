@@ -46,11 +46,11 @@ public enum SkedEditing {
         return .success(entry)
     }
 
-    /// Status text after a successful add: `Sked <call> v <HHmm> UTC na <kHz> kHz` (not translated, like Kotlin).
-    public static func addedText(_ entry: SkedEntry) -> String {
+    /// Status text after a successful add: `Sked <call> v <HHmm> UTC na <kHz> kHz` (translated; Kotlin left it Czech).
+    public static func addedText(_ entry: SkedEntry, translator: Translator = .source) -> String {
         let when: String = skedTime(entry)
         let freq: String = CatStatusLine.khz(Int64(entry.freqHz))
-        return "Sked \(entry.call) v \(when) UTC na \(freq)"
+        return translator.translate("Sked %s v %s UTC na %s", [.string(entry.call), .string(when), .string(freq)])
     }
 
     /// Texts of `AppState.updateSetup` (`AS:3832-3842`) that a failed setup update shows instead of the added text.
@@ -88,24 +88,26 @@ public struct SkedWatch: Sendable {
     ///
     /// Kotlin lets a `DateTimeException` from `SkedPlanner.isDue` (time at the edge of the `Instant` range) kill the
     /// loop; here such a sked is simply not due (`try?`).
-    public mutating func due(skeds: [SkedEntry], now: JavaInstant) -> [String] {
+    public mutating func due(skeds: [SkedEntry], now: JavaInstant, translator: Translator = .source) -> [String] {
         var out: [String] = []
         for sked in skeds {
             guard (try? SkedPlanner.isDue(sked, now: now)) == true, reminded.insert(sked.id).inserted else { continue }
-            out.append(Self.text(sked))
+            out.append(Self.text(sked, translator: translator))
         }
         return out
     }
 
-    /// `SKED <call> v <HHmm> UTC na <kHz> kHz <mode>[ — <note>] (okno Skedy: klik = QSY)` (not translated).
-    public static func text(_ sked: SkedEntry) -> String {
+    /// `SKED <call> v <HHmm> UTC na <kHz> kHz <mode>[ — <note>] (okno Skedy: klik = QSY)` (translated; Kotlin left
+    /// it Czech).
+    public static func text(_ sked: SkedEntry, translator: Translator = .source) -> String {
         let when: String = SkedEditing.skedTime(sked)
         let freq: String = CatStatusLine.khz(Int64(sked.freqHz))
-        var out: String = "SKED \(sked.call) v \(when) UTC na \(freq) \(sked.mode)"
+        var out: String = translator.translate("SKED %s v %s UTC na %s %s",
+                                               [.string(sked.call), .string(when), .string(freq), .string(sked.mode)])
         if !KotlinText.isBlank(sked.note) {
             out += " — \(sked.note)"
         }
-        return out + " (okno Skedy: klik = QSY)"
+        return out + translator.translate(" (okno Skedy: klik = QSY)")
     }
 
     /// Status line form of a reminder (`⏰ <text>`); the message log gets the text without the prefix.

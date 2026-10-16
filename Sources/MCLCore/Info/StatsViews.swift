@@ -13,7 +13,7 @@ public struct StatisticsTable: Equatable, Sendable {
     public let rowHeader: String
     public let columns: [String]
     public let rows: [Row]
-    /// `Celkem` — the caption of the last column and of the totals row (a literal, not translated, as in Kotlin).
+    /// `Celkem` — the caption of the last column and of the totals row, translated (Kotlin left it Czech).
     public let totalLabel: String
     public let columnTotals: [String]
     public let grandTotal: String
@@ -121,20 +121,28 @@ public enum StatsViews {
 
     /// The pivot table (`SW:85-104`): zero counts are `·`, totals are the pivot's.
     public static func statisticsTable(qsos: [Qso], rowDim: LogStatistics.Dimension,
-                                       colDim: LogStatistics.Dimension) -> StatisticsTable {
-        statisticsTable(pivot: LogStatistics.pivot(qsos, rowDim, colDim), rowHeader: rowDim.label)
+                                       colDim: LogStatistics.Dimension,
+                                       translate: Translator = .source) -> StatisticsTable {
+        statisticsTable(pivot: LogStatistics.pivot(qsos, rowDim, colDim), rowHeader: rowDim.label,
+                        translate: translate)
     }
 
-    /// The table of a pivot with the given header of the first column.
-    public static func statisticsTable(pivot: LogStatistics.Pivot, rowHeader: String) -> StatisticsTable {
+    /// The table of a pivot with the given header of the first column. The totals caption and the single
+    /// `Celkem` row or column of the "none" dimension are translated.
+    public static func statisticsTable(pivot: LogStatistics.Pivot, rowHeader: String,
+                                       translate: Translator = .source) -> StatisticsTable {
+        let total: String = translate.translate("Celkem")
+        func label(_ key: String) -> String {
+            JavaText.equals(key, "Celkem") ? total : key
+        }
         let rows: [StatisticsTable.Row] = pivot.rows.map { row in
             let cells: [String] = pivot.cols.map { col in
                 let count: Int = pivot.count(row, col)
                 return count > 0 ? String(count) : "·"
             }
-            return StatisticsTable.Row(label: row, cells: cells, total: text(pivot.rowTotal(row)))
+            return StatisticsTable.Row(label: label(row), cells: cells, total: text(pivot.rowTotal(row)))
         }
-        return StatisticsTable(rowHeader: rowHeader, columns: pivot.cols, rows: rows, totalLabel: "Celkem",
+        return StatisticsTable(rowHeader: rowHeader, columns: pivot.cols.map(label), rows: rows, totalLabel: total,
                                columnTotals: pivot.cols.map { text(pivot.colTotal($0)) },
                                grandTotal: String(pivot.total))
     }
@@ -164,7 +172,7 @@ public enum StatsViews {
         let best: [String] = [10, 60].map { minutes -> String in
             guard let b = RateReports.bestRate(qsos, minutes) else { return "—" }
             let perHour: Int = (try? b.perHour()) ?? 0
-            return String(b.windowMinutes) + " min: " + String(b.qsos) + " QSO (" + String(perHour) + "/h) od "
+            return String(b.windowMinutes) + " min: " + String(b.qsos) + " QSO (" + String(perHour) + "/h) " + translate.translate("od") + " "
                 + timeText(b.start)
         }
         let offs: [RateReports.OffTime] = RateReports.offTimes(qsos, 30)
@@ -214,7 +222,7 @@ public enum StatsViews {
         if byMode {
             headers.append(translate.translate("Mód"))
         }
-        headers.append(contentsOf: ["QSO", "Dupe", "Body"])
+        headers.append(contentsOf: ["QSO", "Dupe", translate.translate("Body")])
         for id in mults {
             headers.append(b.multLabel(id) ?? "null")
         }
@@ -228,7 +236,8 @@ public enum StatsViews {
                 rows.append(cells([band], b.band(band), mults))
             }
         }
-        let total: [String] = cells(byMode ? ["Celkem", ""] : ["Celkem"], b.total, mults)
+        let totalLabel: String = translate.translate("Celkem")
+        let total: [String] = cells(byMode ? [totalLabel, ""] : [totalLabel], b.total, mults)
         var modesTitle: String?
         var modeRows: [[String]] = []
         if byMode && b.modes.count > 1 {

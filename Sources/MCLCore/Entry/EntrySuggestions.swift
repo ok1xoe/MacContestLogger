@@ -42,10 +42,12 @@ public enum EntrySuggestions {
         return result.anyWorked ? result : nil
     }
 
-    /// The strip's caption: `tr("Pracováno %s×", count)` + `", naposledy HHmmZ"` (not translated) + `":"`.
+    /// The strip's caption: `tr("Pracováno %s×", count)` + `", naposledy HHmmZ"` (translated; Kotlin left it
+    /// Czech) + `":"`.
     public static func workedBeforeCaption(_ result: WorkedBefore.Result) -> EntryStatus {
-        let last: String = result.last.map { ", naposledy " + EntryTexts.hhmmZ($0) } ?? ""
-        return EntryStatus.tr("Pracováno %s×", .int(result.count)).appending(.verbatim(last + ":"))
+        let head: EntryStatus = EntryStatus.tr("Pracováno %s×", .int(result.count))
+        guard let last = result.last else { return head.appending(.verbatim(":")) }
+        return head.appending(.tr(", naposledy %s", .string(EntryTexts.hhmmZ(last)))).appending(.verbatim(":"))
     }
 
     /// One band chip: `band.removeSuffix("m")` plus `" " + modes.joinToString("/")` when worked.

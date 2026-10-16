@@ -177,7 +177,7 @@ public final class OperatingModel {
         select(runMode(window: target) == .run ? .searchAndPounce : .run, freqHz: freqHz, window: target)
         if runMode(window: target) == .run {
             let kHz: String = EntryFormat.oneDecimal(Double(freqHz) / 1000.0)
-            status.showVerbatim("Run (CQ frekvence " + kHz + " kHz)")
+            status.show("Run (CQ frekvence %s)", .string(kHz + " kHz"))
         } else {
             status.showVerbatim("S&P")
         }
@@ -282,7 +282,7 @@ public final class OperatingModel {
         }
         config.config.runMode.repeatSeconds = value > 100 ? value / 1000.0 : value
         config.saveSilently()
-        status.showVerbatim("Pauza mezi CQ " + EntryTexts.repeatLabel(config.config.runMode.repeatSeconds))
+        status.show("Pauza mezi CQ %s", .string(EntryTexts.repeatLabel(config.config.runMode.repeatSeconds)))
     }
 
     /// POSTCONTEST / NOPOSTCONTEST without a status: entering it stops the CQ repeat (`AS:1832-1838`).

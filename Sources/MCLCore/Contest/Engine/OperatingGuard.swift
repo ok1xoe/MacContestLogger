@@ -41,8 +41,14 @@ public enum OperatingGuard {
     /// The texts are Java `String.format` (only `%d`/`%s`, locale-independent for ASCII digits).
     public static func check(_ stats: ContestStats, _ rules: ContestDefinition.BandChange?, _ newBand: Band?,
                              _ now: JavaInstant, _ type: StationType, _ newMultiplier: Bool) -> String? {
+        violation(stats, rules, newBand, now, type, newMultiplier)?.czech
+    }
+
+    /// `check` as a translatable message (the Czech key and its values; `czech` is the Java text).
+    public static func violation(_ stats: ContestStats, _ rules: ContestDefinition.BandChange?, _ newBand: Band?,
+                                 _ now: JavaInstant, _ type: StationType, _ newMultiplier: Bool) -> ContestMessage? {
         if type == .mult && !newMultiplier {
-            return "stanice MULT smí zapsat jen nový násobič"
+            return ContestMessage("stanice MULT smí zapsat jen nový násobič")
         }
         guard let rules, let newBand else {
             return nil
@@ -56,13 +62,14 @@ public enum OperatingGuard {
             let limit = Int64(min)
             if elapsed < limit {
                 let remaining: Int64 = limit &- elapsed
-                return "pravidlo \(min) minut: na \(last.adif) teprve \(elapsed) min (zbývá \(remaining))"
+                return ContestMessage("pravidlo %s minut: na %s teprve %s min (zbývá %s)", .int(min), .string(last.adif),
+                                      .int(Int(elapsed)), .int(Int(remaining)))
             }
         }
         if let perHour = rules.perHour, perHour > 0 {
             let used: Int = stats.bandChangesInClockHour(now)
             if used + 1 > perHour {
-                return "limit změn pásma: v této hodině už \(used)/\(perHour)"
+                return ContestMessage("limit změn pásma: v této hodině už %s/%s", .int(used), .int(perHour))
             }
         }
         return nil
