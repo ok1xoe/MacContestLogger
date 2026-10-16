@@ -21,7 +21,7 @@ Obdoba N1MM+ **Statistics** a DXLog **Summary / Statistics**. Otevírá se přes
 - **Tabulka / Graf** — stejná kontingenční tabulka jako skládané sloupce, jeden sloupec na řádek, barva na sloupec tabulky.
 - **Kopírovat vše** vloží tabulku do schránky jako text oddělený tabulátory (vloží se do
   tabulkového procesoru), **Uložit…** ji zapíše do textového souboru, **Tisk…** ji vytiskne.
-- Psaní písmen nebo číslic, když je okno Statistiky vpředu, pokračuje v poli značky vstupního okna,
+- Psaní písmen nebo číslic, když je okno Statistiky vpředu, pokračuje v poli volačky zadávacího okna,
   jako v N1MM.
 
 Typické pohledy: hodina × pásmo (kdy a kde), kontinent × pásmo (podmínky šíření), operátor ×

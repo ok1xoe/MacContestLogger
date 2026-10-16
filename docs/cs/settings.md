@@ -7,7 +7,7 @@ z nich navštívíte nejčastěji:
 
 ![Function Keys: ESM, Run/S&P a zprávy F-kláves](../img/settings-function-keys.png)
 
-![Klávesy: přemapování zkratek vstupního okna](../img/settings-keys.png)
+![Klávesy: přemapování zkratek zadávacího okna](../img/settings-keys.png)
 
 Všechny záložky Nastavení jsou funkční (dřívější makety rozvržení N1MM byly nahrazeny):
 
@@ -128,7 +128,7 @@ Každé nástrojové okno si pamatuje svou **polohu a velikost** (`windowGeometr
 CAT log, dostupné násobiče, DX cluster, bandmapa, blacklist, HamQTH log, Info,
 skedy, skóre, přesun násobičů, dupesheet (VFO A i VFO B), rotátor, statistiky, předpověď
 šíření, poznámky k pásmům, vodopád, editor definic, QTC, mapa (i v režimu DXCC)
-a okna násobičů (DXCC, zóny, okresy...). Druhé vstupní okno SO2V/SO2R
+a okna násobičů (DXCC, zóny, okresy...). Druhé zadávací okno SO2V/SO2R
 se otevře automaticky podle režimu v Nastavení → Hardware. Dialogy
 (Nový závod, operátor...) se neobnovují.
 
@@ -144,7 +144,7 @@ Obdoba Tools → Save / Restore Window Positions v N1MM:
 - **Okno → Přesunout ztracená okna na hlavní obrazovku** přenese
   každé okno, které je mimo všechny připojené displeje (odpojený monitor), do levého horního rohu hlavního
   displeje — obdoba obnovení přes Ctrl+Shift+klik v N1MM.
-- Přepínání mezi okny pomocí Ctrl+Tab z N1MM je v macOS **Cmd+`** (a Cmd+Shift+`); Ctrl+Tab ve vstupním
+- Přepínání mezi okny pomocí Ctrl+Tab z N1MM je v macOS **Cmd+`** (a Cmd+Shift+`); Ctrl+Tab v zadávacím
   okně si zachovává význam z N1MM.
 
 ### Přichytávání oken a převzetí fokusu
@@ -157,7 +157,7 @@ Dva přepínače v menu **Nastavení**, oba ve výchozím stavu vypnuté a pamat
   sama (obnovení rozložení), zůstanou beze změny. Písma titulkových pruhů z N1MM nemají v macOS obdobu.
 - **Převzít fokus od jiných aplikací při ladění rádia** (N1MM „Grab Focus From Other Apps When Radio Is Tuned“):
   když otočíte knoflíkem rádia, které aplikace ovládá, a vpředu je jiná aplikace, MacContestLogger se přesune
-  dopředu se vstupním oknem toho rádia (v SO2R pro rádio 2 okno rádia 2). Změna kmitočtu, kterou aplikace
+  dopředu se zadávacím oknem toho rádia (v SO2R pro rádio 2 okno rádia 2). Změna kmitočtu, kterou aplikace
   provedla sama (QSY, spot, šipky, prohození VFO), to nikdy neudělá a nic se nestane, když je otevřený dialog nebo list,
   nebo když aplikace fokus už má. macOS může přepnutí aplikací v některých případech přesto odmítnout.
 
@@ -178,7 +178,7 @@ Obdoba záložek **Colors**, **Fonts** a **Skins** v Configureru N1MM, rovněž 
   vestavěný (Výchozí, Klasický N1MM, Noční provoz, Vysoký kontrast), **Načíst skin…** ze
   souboru `.mclskin` nebo **Uložit skin…** a sdílejte svůj vzhled s jiným Macem. Skin se stává součástí
   nastavení; OK ho uloží.
-- **Barvy** — výběr barvy pro každou položku: barvy značky ve vstupním okně (nové QSO, násobič, dvojitý
+- **Barvy** — výběr barvy pro každou položku: barvy značky v zadávacím okně (nové QSO, násobič, dvojitý
   násobič), duplikát/chyba, informace o násobiči, pozadí QuickEditu, **pozadí pole s
   kurzorem** (barva fokusu v N1MM, ve výchozím stavu vypnutá), kontrolka připojeného rádia, barvy spotů v bandmapě
   a v okně Dostupné (nové QSO, jeden násobič, dva a více, duplikát), pruhy bandplánu a poznámky k pásmům. Změněná barva
@@ -235,7 +235,7 @@ a převezme vlastní stanici otevřené databáze. Databáze bez ní převezme a
 
 **Nastavení → Other → Jazyk / Language**: čeština (výchozí) nebo angličtina, plus jakýkoli další
 jazykový soubor nalezený v adresáři `language` (viz výše). V angličtině jsou přeložena menu,
-titulky oken, záložky Nastavení, záhlaví tabulky deníku a hlavní popisky vstupního
+titulky oken, záložky Nastavení, záhlaví tabulky deníku a hlavní popisky zadávacího
 okna a pruhu skóre; zprávy stavového řádku a dokumentace
 zůstávají česky. Klíčem je český text a chybějící překlad se zobrazí
 česky; test kontroluje, že je přeložené celé menu.
@@ -248,7 +248,7 @@ Synchronizace času**:
 - **NTP server** (výchozí `pool.ntp.org`, prázdné = vypnuto) — při startu, po uložení
   nastavení a každou půlhodinu se změří odchylka hodin počítače (SNTP),
 - odchylka nad 1 s: varování ve stavovém řádku a ve zprávách a `HODINY +2.3 s`
-  ve vstupním okně,
+  v zadávacím okně,
 - **Opravovat čas nově zapsaných QSO** — čas QSO se posune o
   změřenou odchylku (systémové hodiny se nemění; to vyžaduje práva
   správce — doporučuje se zapnout automatický čas v Nastavení systému). Ručně
@@ -272,15 +272,15 @@ Nastavení `Cmd+,` a Ukončit.
 | Menu | Položky |
 |---|---|
 | Soubor | Nový závod, Otevřít závod, Otevřít nedávné (posledních 9 závodů otevřené databáze), Nová / Otevřít databázi, Zkopírovat závod do jiné databáze, Import (QSO, Sloučit deník, Importovat call history), Export (ADIF, ADIF podle data, Cabrillo, EDI, CSV / text / souhrn, call history), Odeslat výsledek na 3830, Tisk deníku |
-| Úpravy | akce vstupního okna s vašimi aktuálními klávesami vedle nich (vymazat, vrátit, +1 k číslu, poznámka, najít, smazat poslední QSO), pak Zpět, Znovu, Vyjmout, Kopírovat, Vložit a Vybrat vše pro textová pole |
-| Zobrazení | Zobrazovat ? u neznámých volaček, Hledat volačku na QRZ.com, Hledat volačku na Google (značka napsaná v aktivním vstupním okně, otevře se v prohlížeči) |
+| Úpravy | akce zadávacího okna s vašimi aktuálními klávesami vedle nich (vymazat, vrátit, +1 k číslu, poznámka, najít, smazat poslední QSO), pak Zpět, Znovu, Vyjmout, Kopírovat, Vložit a Vybrat vše pro textová pole |
+| Zobrazení | Zobrazovat ? u neznámých volaček, Hledat volačku na QRZ.com, Hledat volačku na Google (značka napsaná v aktivním zadávacím okně, otevře se v prohlížeči) |
 | Závod | Dodatečné zadání, Nahrávat závod, Žádný (volné logování) |
 | Nástroje | Přepočítat skóre, Přepočítat posledních N hodin, Přepočítat DXCC v deníku, Přiřadit volačku k zemi, Stáhnout master.scp, Aktualizovat definice, Aktualizovat DXCC z Club Logu, Importovat / Odstranit seznam zemí ([Data DXCC](dxcc-data.md#import-seznamu-zemí-ze-souboru)), Aktualizovat call history, Vymazat call history, Načíst soubor majáků, Editor definic, Logování běhu programu, Otevřít složku diagnostiky, Zkontrolovat novou verzi programu, Kontrolovat novou verzi při spuštění, Stáhnout nejnovější PDF manuál (viz níže) |
-| Nastavení | Nastavení (všechny záložky), Klávesy, Profily nastavení, Zapnout dohledávání v call history (zaškrtávací položka, viz [Call history](call-history.md#zapnutí-dohledávání)), Zkratky výměny, Hlášení pro nevidomé (VoiceOver, viz [Vstupní okno](entry-window.md#hlášení-pro-nevidomé-operátory-voiceover)), Práh AutoSend, Převzít fokus při ladění rádia, Přichytávat okna k okrajům ([výše](#přichytávání-oken-a-převzetí-fokusu)), SO2R |
+| Nastavení | Nastavení (všechny záložky), Klávesy, Profily nastavení, Zapnout dohledávání v call history (zaškrtávací položka, viz [Call history](call-history.md#zapnutí-dohledávání)), Zkratky výměny, Hlášení pro nevidomé (VoiceOver, viz [Zadávací okno](entry-window.md#hlášení-pro-nevidomé-operátory-voiceover)), Práh AutoSend, Převzít fokus při ladění rádia, Přichytávat okna k okrajům ([výše](#přichytávání-oken-a-převzetí-fokusu)), SO2R |
 | Okno | okna aplikace, Multiplikátory a za oddělovačem **Vlastní** s okny okenních pluginů ([Okna pluginů](plugin-windows.md)) |
 | Nápověda | Dokumentace (`Alt+H`), Klávesové zkratky, Textové příkazy, Pravidla závodu (`officialUrl` definice otevřeného závodu), Kalendář závodů (WA7BNM), Nahlásit chybu (GitHub issues), Zobrazit chybový log, Otevřít datovou složku (respektuje `MCL_DATA_DIR`), Zkontrolovat aktualizace, Stáhnout nejnovější PDF manuál, Stáhnout nejnovější HTML manuál |
 
-Klávesy v menu Úpravy a Nápověda se jen zobrazují: reaguje na ně dál vlastní obsluha kláves vstupního okna
+Klávesy v menu Úpravy a Nápověda se jen zobrazují: reaguje na ně dál vlastní obsluha kláves zadávacího okna
 (Nastavení → Klávesy), takže přemapovaná klávesa se zobrazí jako přemapovaná.
 
 Vlastní `menu.json` (viz níže) nahradí vestavěné menu jako celek. Pokud jste si ho vytvořili před tímto

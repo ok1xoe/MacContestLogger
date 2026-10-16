@@ -5,8 +5,8 @@ Obdoba **Scripts** z DXLogu a externích aplikací v N1MM.
 ## Makroskripty
 
 Textový soubor `~/Library/Application Support/MacContestLogger/scripts/<name>.txt`,
-každý řádek jeden **textový příkaz pole značky** (viz [text-commands.md](text-commands.md)),
-`#` = komentář. Spuštění: do pole značky napište `SCRIPT name` a stiskněte Enter.
+každý řádek jeden **textový příkaz pole volačky** (viz [text-commands.md](text-commands.md)),
+`#` = komentář. Spuštění: do pole volačky napište `SCRIPT name` a stiskněte Enter.
 
 ```
 # scripts/run20.txt — přechod na Run na 20 m CW

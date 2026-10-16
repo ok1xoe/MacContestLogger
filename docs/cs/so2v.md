@@ -59,7 +59,7 @@ Box+, microHAM v režimu OTRSP). Zapíná se v **„Nastavení → Hardware → 
 | **Pause** (**F15** na Macu) | oba fokusy na druhé okno; když jsou rozdělené, fokus vysílání se připojí k fokusu zadávání |
 | **Cmd+Alt+← / →** | oba fokusy na VFO A / rádio 1 nebo VFO B / rádio 2 (N1MM Ctrl+←/→); v digitálním módu i s jeho Digitálním rozhraním |
 | **Ctrl+F1 … F12** | zpráva F-klávesy druhého okna, odvysílaná na jeho rádiu; fokus zadávání zůstává zde (N1MM Ctrl+Fn) |
-| **Ctrl+Enter** | další krok ESM druhého okna na jeho rádiu (se zapnutým ESM; kmitočet v poli značky dál nastavuje split) |
+| **Ctrl+Enter** | další krok ESM druhého okna na jeho rádiu (se zapnutým ESM; kmitočet v poli volačky dál nastavuje split) |
 | **Alt+F5** | prohození kmitočtu, módu a značky mezi rádii (SO2R) nebo VFO (SO2V); fokus zadávání přejde na druhé okno |
 | **Alt+F6** | SO2R: totéž prohození, fokus zůstává |
 | **`** | SO2R stereo poslech zap / vyp |
@@ -77,11 +77,11 @@ Všechny lze přemapovat v „Nastavení → Klávesy“, kromě Ctrl+F1–F12 a
 následují F-klávesy a Enter. macOS si některé kombinace Control+F-klávesa drží pro navigaci klávesnicí (Nastavení
 systému → Klávesnice → Klávesové zkratky → Klávesnice); vypněte je, chcete-li používat Ctrl+F1–F8. Klávesa Pause
 PC klávesnice dorazí do Macu jako F15. V SO2V má jedno rádio jeden vysílač, takže oba fokusy jsou vždy ve stejném
-okně: Ctrl+F1–F12 udělají druhé VFO pro zprávu aktivním a po jejím odvysílání se vrátí, pokud je v poli značky
+okně: Ctrl+F1–F12 udělají druhé VFO pro zprávu aktivním a po jejím odvysílání se vrátí, pokud je v poli volačky
 tohoto okna značka.
 
-- **Druhé rádio z mapy pásma a pole značky:** **Shift+klik** na spot (nebo kmitočet) v mapě pásma
-  naladí druhé rádio / VFO a vloží značku do jeho okna; `/14030` v poli značky naladí v SO2R druhé rádio
+- **Druhé rádio z bandmapy a pole volačky:** **Shift+klik** na spot (nebo kmitočet) v bandmapě
+  naladí druhé rádio / VFO a vloží značku do jeho okna; `/14030` v poli volačky naladí v SO2R druhé rádio
   (v SO1V / SO2V VFO B rádia). Fokus zůstane, kde je.
 - **Rotátor rádia s fokusem:** Alt+J / Alt+L otáčí rotátory používané antény; pokud tu anténu zvolilo
   druhé rádio na jiném pásmu, použije se první anténa pásma rádia s fokusem (Nastavení → Antény) a její

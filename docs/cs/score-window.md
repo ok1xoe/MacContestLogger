@@ -4,7 +4,7 @@
 
 Obdoba N1MM+ **Score Summary**
 ([Score Window](https://n1mmwp.hamdocs.com/manual-windows/score-window/)) a DXLog
-**Summary**. Otevřete ho přes **Okno → Skóre**, nebo klepnutím na pruh se skóre pod vstupním oknem.
+**Summary**. Otevřete ho přes **Okno → Skóre**, nebo klepnutím na pruh se skóre pod zadávacím oknem.
 
 - Tabulka **pásmo × mód** (přepínač „Jen pásma“ sloučí módy): QSO, dupy, body a
   **nové násobiče podle typu** (zóny, země, prefixy… podle definice

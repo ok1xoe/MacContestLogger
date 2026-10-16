@@ -57,9 +57,9 @@ Než začnete logovat, projděte **Nastavení** (`Cmd+,`): volací značku a
 údaje stanice, adresář s definicemi závodů, CAT, klíčovač a zprávy
 F-kláves. Vše je popsáno v [Nastavení (Configurer)](settings.md).
 
-## Vstupní okno
+## Zadávací okno
 
-![Vstupní okno](../img/entry-panel.png)
+![Zadávací okno](../img/entry-panel.png)
 
 Sem píšete volací značku a přijatou výměnu. Co vidíte:
 
@@ -74,7 +74,7 @@ Sem píšete volací značku a přijatou výměnu. Co vidíte:
 - **Dole** průběžné skóre a stav CAT.
 
 Klávesy, které ovládají všechno ostatní, jsou v
-[Klávesových zkratkách](keyboard-shortcuts.md); do pole volací značky můžete psát také
+[Klávesových zkratkách](keyboard-shortcuts.md); do pole volačky můžete psát také
 [textové příkazy](text-commands.md) (QSY, změna druhu provozu, `OPON`, `WIPELOG`...).
 
 ## Zápis spojení
@@ -94,7 +94,7 @@ Zapsaná spojení se objeví v [okně deníku](log-window.md), skóre v
 
 K logování závod nepotřebujete. Přes **Závod → Žádný (volné logování)**,
 příkaz `CLOSE` nebo jednoduše dřív, než závod otevřete, má
-vstupní okno jen reporty (odeslaný a přijatý; žádné pořadové číslo ani výměnu) a
+zadávací okno jen reporty (odeslaný a přijatý; žádné pořadové číslo ani výměnu) a
 **Enter** / **Log It** uloží QSO do otevřené databáze bez závodu — bez
 bodů a násobičů, země se doplní jako obvykle.
 
