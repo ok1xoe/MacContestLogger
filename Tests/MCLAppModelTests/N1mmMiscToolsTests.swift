@@ -271,7 +271,7 @@ import Testing
 
         #expect(MenuActions.perform("callhistory.clear", app: model) == nil)
         #expect(model.dialogs.confirmation == .clearCallHistory)
-        #expect(model.dialogs.confirmationButton == .verbatim("Vymazat"))
+        #expect(model.dialogs.confirmationButton == ContestMessage("Vymazat"))
         // Nothing happened yet.
         #expect(try Data(contentsOf: source) == original)
         #expect(model.dataTools.hasCallHistory)

@@ -37,8 +37,7 @@ public enum ClockCheck {
     }
 
     public static func result(offsetMs: Int64, server: String, correct: Bool) -> Result {
-        let head: String = "Hodiny: odchylka " + signedSeconds(offsetMs) + " s od " + server
-        var status: EntryStatus = .verbatim(head)
+        var status: EntryStatus = .tr("Hodiny: odchylka %s s od %s", .string(signedSeconds(offsetMs)), .string(server))
         if correct {
             status = status.appending(.tr(" (čas QSO opravován)"))
         }

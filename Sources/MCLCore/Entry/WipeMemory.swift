@@ -67,7 +67,7 @@ public struct WipeMemory: Equatable, Sendable {
             restored.exch = saved.exch
             restored.contestExchange = saved.contestExchange
             restored.rstRcvd = saved.rstRcvd
-            return Outcome(form: restored, memory: WipeMemory(), status: .verbatim("Obnoveno " + saved.call),
+            return Outcome(form: restored, memory: WipeMemory(), status: .tr("Obnoveno %s", .string(saved.call)),
                            wiped: false)
         }
         var memory = self

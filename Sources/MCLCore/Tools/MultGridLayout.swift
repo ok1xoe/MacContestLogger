@@ -25,14 +25,14 @@ public enum MultGridLayout {
         }
     }
 
-    /// `kindTitle`: the window title of a kind (`DXCC`, `Okresy` and `Section/States` are not translated).
+    /// `kindTitle`: the window title of a kind (`DXCC` and `Section/States` are the same in every language).
     public static func title(kind: String, translate: Translator) -> String {
         switch kind {
         case "dxcc": return "DXCC"
         case "grid": return translate.translate("Velké čtverce")
         case "itu": return translate.translate("ITU zóny")
         case "cq": return translate.translate("CQ zóny")
-        case "districts": return "Okresy"
+        case "districts": return translate.translate("Okresy")
         case "other": return translate.translate("Ostatní")
         case "sections": return "Section/States"
         default: return translate.translate("Multiplikátory")

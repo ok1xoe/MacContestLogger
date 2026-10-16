@@ -130,9 +130,9 @@ public enum ExternalQsoIngest {
         }
     }
 
-    /// `"<source>: import selhal (<message>)"` — Kotlin `"$sourceLabel: import selhal (${it.message})"`, not translated.
+    /// `"<source>: import selhal (<message>)"` — Kotlin `"$sourceLabel: import selhal (${it.message})"` (translated here).
     public static func failureStatus(source: String, message: String?) -> EntryStatus {
-        .verbatim(source + ": import selhal (" + (message ?? "null") + ")")
+        .tr("%s: import selhal (%s)", .string(source), .string(message ?? "null"))
     }
 
     /// `app == "MacContestLogger" || stationName == config.station.call` (exact, case-sensitive).

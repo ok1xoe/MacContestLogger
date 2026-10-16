@@ -194,7 +194,8 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
             let color: NSColor = SpotColors.plan(segment.category)
             color.withAlphaComponent(0.30).setFill()
             NSRect(x: axisX + 1, y: top, width: Self.planWidth, height: segmentHeight).fill()
-            let label: String = SpotColors.planLabel(segment.category)
+            let czech: String = SpotColors.planLabel(segment.category)
+            let label: String = language?.tr(czech) ?? czech
             let measured: NSSize = size(label, font: labelFont)
             guard measured.width + 6 <= segmentHeight else { continue }
             let centerX: CGFloat = axisX + 1 + Self.planWidth / 2
@@ -495,8 +496,8 @@ final class BandmapCanvas: NSView, NSViewToolTipOwner {
         menuActions = []
         if let spot {
             addItem(menu, language.tr("Blacklist volačky %s", .string(spot.dxCall))) { model.blacklistCall(spot) }
-            addItem(menu, "Blacklist spottera " + spot.spotter) { model.blacklistSpotter(spot) }
-            addItem(menu, "Odebrat spot") { model.remove(spot) }
+            addItem(menu, language.tr("Blacklist spottera %s", .string(spot.spotter))) { model.blacklistSpotter(spot) }
+            addItem(menu, language.tr("Odebrat spot")) { model.remove(spot) }
             // Same items and order as the log window's row menu (both open the call's page in the browser).
             addItem(menu, language.tr("Dohledat na %s", .string(CallbookService.hamQth.displayName))) {
                 model.openHamQth(spot)

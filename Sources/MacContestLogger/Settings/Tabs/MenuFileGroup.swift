@@ -22,7 +22,7 @@ struct MenuFileGroup: View {
         let tools: SettingsToolsModel = app.settingsTools
         let state: SettingsToolsModel.MenuFileState? = tools.menuFileState
         let message: String = openMessage ?? tools.menuMessage
-        SettingsGroup(title: "Menu aplikace") {
+        SettingsGroup(title: language.tr("Menu aplikace")) {
             SettingsCaption(language.tr(
                 language.tr("Nabídky se berou z %s. Dokud tam soubor není, platí vestavěné menu z aplikace."),
                 .string(state?.file ?? language.tr("datového adresáře"))))

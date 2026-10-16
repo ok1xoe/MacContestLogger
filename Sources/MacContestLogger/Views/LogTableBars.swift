@@ -161,8 +161,8 @@ struct DeletedQsosSheet: View {
 }
 
 /// Kotlin `SelectionBar` (`LT:439-472`), shown with two or more selected rows: „Vybráno N z M", „Vybrat vše",
-/// „Zrušit výběr", the bulk actions, „Smazat" (asks first) and „Hotovo" (ends the selection). „Smazat" and „Hotovo"
-/// are Kotlin literals outside `tr`.
+/// „Zrušit výběr", the bulk actions, „Smazat" (asks first) and „Hotovo" (ends the selection); all translated (Kotlin
+/// left „Smazat" and „Hotovo" Czech).
 struct LogSelectionBar: View {
     let app: AppModel
     let table: LogTableModel
@@ -191,14 +191,14 @@ struct LogSelectionBar: View {
             Button {
                 table.askDeleteSelection()
             } label: {
-                Text(verbatim: "Smazat")
+                Text(verbatim: language.tr("Smazat"))
                     .foregroundStyle(enabled ? Color(domain: DomainColors.dupe) : Color.secondary)
             }
             .disabled(!enabled)
             Button {
                 table.clearSelection()
             } label: {
-                Text(verbatim: "Hotovo")
+                Text(verbatim: language.tr("Hotovo"))
             }
         }
         .buttonStyle(.borderless)
@@ -301,7 +301,7 @@ struct DeleteSelectionSheet: View {
                 Button {
                     table.confirmDeleteSelection()
                 } label: {
-                    Text(verbatim: "Smazat")
+                    Text(verbatim: language.tr("Smazat"))
                         .foregroundStyle(Color(domain: DomainColors.dupe))
                 }
             }

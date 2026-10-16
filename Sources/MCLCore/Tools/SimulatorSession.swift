@@ -84,7 +84,7 @@ public final class SimulatorSession {
     /// Status after starting; without a callsign database a note that the callsigns are made up.
     public static func startText(scpSize: Int, translate: Translator) -> String {
         let head: String = translate.translate("Simulátor běží — zavolej CQ (F1)")
-        return head + (scpSize == 0 ? "; bez master.scp jsou volačky smyšlené" : "")
+        return head + (scpSize == 0 ? translate.translate("; bez master.scp jsou volačky smyšlené") : "")
     }
 
     /// Status when the sound output cannot be opened.
@@ -97,15 +97,15 @@ public final class SimulatorSession {
         translate.translate("Aktivita (volajících na CQ): %s", [.int(activity)])
     }
 
-    /// `Šum: n %` (percent truncated, not translated).
-    public static func noiseText(_ level: Float) -> String {
+    /// `Šum: n %` (percent truncated; translated, Kotlin left it Czech).
+    public static func noiseText(_ level: Float, translate: Translator = .source) -> String {
         let percent: Float = level * 100
-        return "Šum: \(Int(JavaMath.d2i(Double(percent)))) %"
+        return translate.translate("Šum: %s %%", [.int(Int(JavaMath.d2i(Double(percent))))])
     }
 
     /// `QSO: n   chyby: n`.
-    public static func counterText(qsos: Int, errors: Int) -> String {
-        "QSO: \(qsos)   chyby: \(errors)"
+    public static func counterText(qsos: Int, errors: Int, translate: Translator = .source) -> String {
+        translate.translate("QSO: %s   chyby: %s", [.int(qsos), .int(errors)])
     }
 
     /// The two-sentence note under the controls.

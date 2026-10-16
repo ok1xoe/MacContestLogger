@@ -14,7 +14,7 @@ struct ClusterTab: View {
         SettingsGroup(title: language.tr("Síťový multi-op deník")) {
             SettingsCheckbox(label: language.tr("Zapnout síťový multi-op deník"), isOn: $draft.clusterEnabled)
             HStack(alignment: .top, spacing: 8) {
-                SettingsField(caption: "Broker (IP/hostname cluster stroje)") {
+                SettingsField(caption: language.tr("Broker (IP/hostname cluster stroje)")) {
                     SettingsTextField(text: $draft.brokerHost)
                 }
                 .frame(maxWidth: .infinity)
@@ -32,7 +32,7 @@ struct ClusterTab: View {
                     SettingsTextField(text: $draft.username)
                 }
                 .frame(maxWidth: .infinity)
-                SettingsField(caption: "Heslo") {
+                SettingsField(caption: language.tr("Heslo")) {
                     SettingsTextField(text: $draft.password, isPassword: true)
                 }
                 .frame(maxWidth: .infinity)
@@ -52,7 +52,7 @@ struct ClusterTab: View {
                 label: language.tr("Čas QSO podle hodin master stanice (místo vlastní kontroly NTP)"),
                 isOn: $draft.timeFromMaster)
             choices
-            Text(verbatim: app.cluster.connected ? language.tr("Stav: připojeno") : "Stav: odpojeno")
+            Text(verbatim: app.cluster.connected ? language.tr("Stav: připojeno") : language.tr("Stav: odpojeno"))
                 .windowFont(12)
                 .accessibilityIdentifier("settings.cluster.status")
             SettingsCaption(language.tr("Uložení restartuje spojení ke clusteru."))
@@ -92,7 +92,7 @@ struct ClusterTab: View {
     }
 
     @ViewBuilder private var choices: some View {
-        SettingsText("Typ stanice (multi-op):", size: 14)
+        SettingsText(language.tr("Typ stanice (multi-op):"), size: 14)
         HStack(spacing: 12) {
             SettingsRadio(label: language.tr("Neurčen"), selected: draft.stationType == .none) {
                 draft.stationType = .none
@@ -116,16 +116,16 @@ struct ClusterTab: View {
             SettingsRadio(label: language.tr("Nehlídat"), selected: draft.ruleEnforcement == .off) {
                 draft.ruleEnforcement = .off
             }
-            SettingsRadio(label: "Upozornit", selected: draft.ruleEnforcement == .warn) {
+            SettingsRadio(label: language.tr("Upozornit"), selected: draft.ruleEnforcement == .warn) {
                 draft.ruleEnforcement = .warn
             }
-            SettingsRadio(label: "Nezapsat (Ctrl+Alt+Enter projde)", selected: draft.ruleEnforcement == .block) {
+            SettingsRadio(label: language.tr("Nezapsat (Ctrl+Alt+Enter projde)"), selected: draft.ruleEnforcement == .block) {
                 draft.ruleEnforcement = .block
             }
         }
         SettingsText(language.tr("TX interlock (nevysílat, když vysílá jiná stanice):"), size: 14)
         HStack(spacing: 12) {
-            SettingsRadio(label: "Vypnuto", selected: draft.interlock == .none) { draft.interlock = .none }
+            SettingsRadio(label: language.tr("Vypnuto"), selected: draft.interlock == .none) { draft.interlock = .none }
             SettingsRadio(label: language.tr("Kdekoli (jeden signál)"), selected: draft.interlock == .all) {
                 draft.interlock = .all
             }

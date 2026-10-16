@@ -185,3 +185,29 @@ fileprivate protocol EmptyInit {
 
 extension Array: EmptyInit {}
 extension LogWarnings.HashLevel: EmptyInit {}
+
+extension LogWarnings {
+
+    /// A warning in the language of `translator`: the texts are built in Czech (the Java texts); the known shapes
+    /// are translated with their values, anything else stays as it is.
+    public static func translate(_ message: String, _ translator: Translator) -> String {
+        if message == "volačka není v master.scp" {
+            return translator.translate(message)
+        }
+        let differs: String = " se liší na jiných QSO: "
+        if message.hasPrefix("výměna "), let range = message.range(of: differs) {
+            let field = String(message[message.index(message.startIndex, offsetBy: 7)..<range.lowerBound])
+            let values = String(message[range.upperBound...])
+            return translator.translate("výměna %s se liší na jiných QSO: %s", [.string(field), .string(values)])
+        }
+        for kind in ["CQ", "ITU"] {
+            let head: String = kind + " zóna "
+            guard message.hasPrefix(head), message.hasSuffix(")"),
+                  let open = message.range(of: " nesedí k zemi (") else { continue }
+            let zone = String(message[message.index(message.startIndex, offsetBy: head.count)..<open.lowerBound])
+            let list = String(message[open.upperBound..<message.index(before: message.endIndex)])
+            return translator.translate("%s zóna %s nesedí k zemi (%s)", [.string(kind), .string(zone), .string(list)])
+        }
+        return message
+    }
+}

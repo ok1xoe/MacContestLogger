@@ -158,7 +158,7 @@ import Testing
         #expect(IoTexts.ediWritten(names: ["A_2m.edi", "A_70cm.edi"], dir: "/x").czech
             == "EDI: zapsáno A_2m.edi, A_70cm.edi do /x")
         let other = IoTexts.otherWritten(names: ["a.csv", "a.txt"], dir: "/x")
-        #expect(other == .verbatim("Export: a.csv, a.txt do /x"))
+        #expect(other == ContestMessage("Export: %s do %s", .string("a.csv, a.txt"), .string("/x")))
         #expect(IoTexts.defaultLogName == "Deník")
     }
 

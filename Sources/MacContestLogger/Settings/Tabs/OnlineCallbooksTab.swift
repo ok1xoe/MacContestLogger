@@ -50,11 +50,11 @@ struct OnlineCallbooksTab: View {
 
     @ViewBuilder private var hamQth: some View {
         SettingsGroup(title: language.tr("HamQTH — přihlášení")) {
-            SettingsCheckbox(label: "Volat HamQTH (zapnuto)", isOn: $draft.hamQthEnabled)
+            SettingsCheckbox(label: language.tr("Volat HamQTH (zapnuto)"), isOn: $draft.hamQthEnabled)
             SettingsField(caption: language.tr("Uživatelské jméno")) {
                 SettingsTextField(text: $draft.hamQthUsername)
             }
-            SettingsField(caption: "Heslo") {
+            SettingsField(caption: language.tr("Heslo")) {
                 SettingsTextField(text: $draft.hamQthPassword, isPassword: true)
             }
             SettingsCaption(language.tr("Účet zdarma na hamqth.com. Bez údajů se z HamQTH nic nedohledává."))
@@ -73,11 +73,11 @@ struct OnlineCallbooksTab: View {
 
     @ViewBuilder private var qrz: some View {
         SettingsGroup(title: language.tr("QRZ.com — přihlášení")) {
-            SettingsCheckbox(label: "Volat QRZ.com (zapnuto)", isOn: $draft.qrzEnabled)
+            SettingsCheckbox(label: language.tr("Volat QRZ.com (zapnuto)"), isOn: $draft.qrzEnabled)
             SettingsField(caption: language.tr("Uživatelské jméno")) {
                 SettingsTextField(text: $draft.qrzUsername)
             }
-            SettingsField(caption: "Heslo") {
+            SettingsField(caption: language.tr("Heslo")) {
                 SettingsTextField(text: $draft.qrzPassword, isPassword: true)
             }
             SettingsCaption(language.tr(

@@ -84,7 +84,7 @@ public enum InfoTimers {
                 let cumulative: Int = stats.cumulativeOffMinutes(contestStart, now, minMinutes)
                 value = hm(Int64(cumulative) &* 60)
             }
-            label = "Off time celkem" + suffix(required)
+            label = translate.translate("Off time celkem") + suffix(required)
         default:
             label = translate.translate("Od posledního QSO")
             if let last = stats.lastQsoAt() {

@@ -39,7 +39,7 @@ struct CatLogWindowView: View {
                 Button {
                     app.catLog.clear()
                 } label: {
-                    Text(verbatim: "Vymazat")
+                    Text(verbatim: language.tr("Vymazat"))
                         .windowFont(14)
                 }
             }

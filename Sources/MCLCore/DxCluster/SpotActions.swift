@@ -172,7 +172,7 @@ public enum SpotActions {
         let point: String = JavaFormat.fixed(Double(spot.freqHz) / 1000, precision: 1)
         let freq: String = point.replacingOccurrences(of: ".", with: decimalSeparator)
         guard spot.rbn else {
-            return "Byl jsi spotnut: " + spot.spotter + " na " + freq + " kHz"
+            return translator.translate("Byl jsi spotnut: %s na %s kHz", [.string(spot.spotter), .string(freq)])
         }
         let head: String = translator.translate(rbnMessageKey, [.string(spot.spotter), .string(freq)],
                                                 decimalSeparator: decimalSeparator)

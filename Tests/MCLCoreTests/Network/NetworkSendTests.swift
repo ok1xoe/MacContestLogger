@@ -256,7 +256,7 @@ import Testing
     @Test func networkStatusWindowTexts() {
         let headers = NetTexts.headers.map { $0.text }
         #expect(headers == ["Stanice", "Operátor", "Pásmo", "Mód", "kHz", "Režim", "QSO", "Stav"])
-        #expect(NetTexts.headers.map { $0.translate } == [false, true, true, true, false, true, false, false])
+        #expect(NetTexts.headers.map { $0.translate } == [true, true, true, true, false, true, false, true])
         #expect(NetTexts.thisStation(stationId: "OP1", connected: true, translator: .source)
             == "Tato stanice: OP1 · připojeno")
         #expect(NetTexts.thisStation(stationId: "OP1", connected: false, translator: .source)

@@ -28,7 +28,7 @@ import Testing
             #expect(CountyLineSetting.bonusStations(input).calls == calls, "\(input)")
         }
         #expect(CountyLineSetting.bonusStations(" ").status == .tr("Bonusové stanice smazány"))
-        #expect(CountyLineSetting.bonusStations("a b").status == .verbatim("Bonusové stanice (2): A B"))
+        #expect(CountyLineSetting.bonusStations("a b").status == .tr("Bonusové stanice (%s): %s", .int(2), .string("A B")))
     }
 
     /// Probe `rover`: Kotlin `trim` at the ends (NBSP too), ASCII `\s+` removed inside.
@@ -55,7 +55,7 @@ import Testing
 
     /// The three county-line texts (`AS:3931-3939`).
     @Test func countyLineStatuses() {
-        #expect(CountyLineSetting.off().status == .verbatim("County line vypnuto"))
+        #expect(CountyLineSetting.off().status == .tr("County line vypnuto"))
         #expect(CountyLineSetting.off().counties.isEmpty)
         let notUsed = CountyLineSetting.apply(text: "a,b", usesRoverQth: false) { _ in false }
         #expect(notUsed.status == .tr("County line %s — pozor: závod okres ve výměně nemá, QSO se zapíše jen jednou",

@@ -201,10 +201,11 @@ import Testing
         // 2 keys of the combined contest's part scores and
         // 13 keys of the PDF manual download and
         // 5 keys of the Tailscale cluster search and
-        // 9 keys of the HTML manual download.
-        #expect(map.count == 2_541)
+        // 9 keys of the HTML manual download and
+        // 217 keys of the English UI audit (texts that still showed in Czech).
+        #expect(map.count == 2_758)
         let german = try Self.bundled("de")
-        #expect(german.count == 2_541)
+        #expect(german.count == 2_758)
         #expect(map["_name"] == "English")
         #expect(map["Čeština"] != nil)
         #expect(LanguageCatalog.bundledBytes("xx") == nil)

@@ -360,7 +360,7 @@ public final class ImportExportModel {
 
     /// Kotlin `exportOther(dir)`: `<base>.csv`, `<base>.txt` and `<base>-summary.txt` (UTF-8) into `directory`; the
     /// summary carries the score recounted from zero in an active contest. All three texts are built before the
-    /// first file is written; a file that cannot be written is left out silently. Status (no `tr`)
+    /// first file is written; a file that cannot be written is left out silently. Status
     /// `"Export: <names> do <dir>"`.
     public func exportOther(to directory: URL) async {
         let name: String = logName

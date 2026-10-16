@@ -20,12 +20,12 @@ import Testing
         #expect(KeyerTexts.fldigiFailure(nil, host: "h", port: 1).parts[1] == ContestMessage("nedostupné", parts: []))
         #expect(KeyerTexts.fldigiFailure("Connection refused", host: "h", port: 1)
                 == .verbatim("fldigi: ").appending(.verbatim("Connection refused"))
-                    .appending(.verbatim(" (běží fldigi s XML-RPC na h:1?)")))
+                    .appending(.tr(" (běží fldigi s XML-RPC na %s?)", .string("h:1"))))
         #expect(KeyerTexts.repeatLabel(2.25) == "2.3 s")
         #expect(KeyerTexts.cqRepeat(true, seconds: 1.8).czech
                 == "Opakování CQ po 1.8 s (Esc nebo psaní volačky zastaví, Ctrl+R změní)")
         #expect(KeyerTexts.cqRepeat(false, seconds: 1.8) == .tr("Opakování CQ vypnuto"))
-        #expect(KeyerTexts.repeatPause(2.5) == .verbatim("Pauza mezi CQ 2.5 s"))
+        #expect(KeyerTexts.repeatPause(2.5) == .tr("Pauza mezi CQ %s", .string("2.5 s")))
         #expect(KeyerTexts.postContest.czech == "Dodatečné zadání — nic se nevysílá (NOPOSTCONTEST ukončí)")
         // `String.format(Locale.US, "%.0f", hz / 1000.0)`: Java's HALF_UP.
         #expect(KeyerTexts.moveKHz(14_025_400) == "14025")

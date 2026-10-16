@@ -54,12 +54,17 @@ public enum ClusterTexts {
         return .tr(parallelKey, .string(joined))
     }
 
-    /// A macro button: the label, else the command, else `tr("(prázdné)")`.
+    /// A macro button: the label, else the command, else `tr("(prázdné)")`. The Czech labels of the default
+    /// buttons (`DxClusterConfig.defaultCommands`) are translated; a label the user typed is shown as typed.
     public static func macroLabel(_ command: DxClusterCommand, translator: Translator) -> String {
+        if defaultLabels.contains(command.label) { return translator.translate(command.label) }
         if !KotlinText.isBlank(command.label) { return command.label }
         if !KotlinText.isBlank(command.command) { return command.command }
         return translator.translate(emptyMacro)
     }
+
+    /// The Czech labels of the default buttons.
+    static let defaultLabels: Set<String> = ["Uživatelé", "Moje info", "Nápověda"]
 
     /// The edited button as saved: label and command Kotlin-trimmed.
     public static func editedMacro(label: String, command: String) -> DxClusterCommand {

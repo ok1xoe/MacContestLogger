@@ -11,10 +11,10 @@ public enum GoalEditing {
     /// The contest length when the definition has none (`DEFAULT_CONTEST_HOURS`).
     public static let defaultContestHours: Int = 48
 
-    /// `2. den 22:00` from the key `dhh` (`GW:59`). The word "den" is a literal, not translated (as in Kotlin);
-    /// the arithmetic is `Int`.
-    public static func hourLabel(_ key: Int32) -> String {
-        String(key / 100) + ". den " + JavaFormat.format("%02d", .int(Int(key % 100))) + ":00"
+    /// `2. den 22:00` from the key `dhh` (`GW:59`); "den" is translated (Kotlin left it Czech). The arithmetic is
+    /// `Int`.
+    public static func hourLabel(_ key: Int32, translator: Translator = .source) -> String {
+        translator.translate("%s. den %s:00", [.int(Int(key / 100)), .string(JavaFormat.format("%02d", .int(Int(key % 100))))])
     }
 
     /// The hour keys of the editor (`GW:72-75`): the hours of the active contest by the definition's length.
@@ -121,7 +121,7 @@ public enum GoalEditing {
     public static func helpText(translate: Translator = .source) -> String {
         translate.translate("Plánovaný počet QSO pro každou hodinu. Prázdné pole = s provozem ")
             + translate.translate("se nepočítá. Bez jediného vyplněného cíle platí ")
-            + String(GoalSet.defaultGoal) + " na hodinu."
+            + translate.translate("%s na hodinu.", [.int(Int(GoalSet.defaultGoal))])
     }
 
     /// The text when there is no running contest with a start date (`GW:114-117`).
@@ -160,7 +160,7 @@ public enum GoalEditing {
     public static func fromLogStatus(contestName: String, hours: Int, band: Band?,
                                      translate: Translator = .source) -> String {
         var text: String = translate.translate("Cíle převzaty ze závodu %s", [.string(contestName)])
-        text += " (" + String(hours) + " hodin"
+        text += " (" + translate.translate("%s hodin", [.int(hours)])
         if let band {
             text += translate.translate(", pásmo %s", [.string(band.adif)])
         }

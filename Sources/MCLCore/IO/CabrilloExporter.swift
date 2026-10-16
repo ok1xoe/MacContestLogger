@@ -60,12 +60,22 @@ public enum CabrilloExporter {
     public struct Result: Equatable, Sendable {
         public let text: String
         public let qsoCount: Int
-        public let warnings: [String]
+        /// The warnings as translatable messages (`warnings` is their Czech text).
+        public let warningMessages: [ContestMessage]
+
+        /// The warnings in Czech (the Java texts).
+        public var warnings: [String] {
+            warningMessages.map(\.czech)
+        }
 
         public init(text: String, qsoCount: Int, warnings: [String]) {
+            self.init(text: text, qsoCount: qsoCount, warningMessages: warnings.map { .verbatim($0) })
+        }
+
+        public init(text: String, qsoCount: Int, warningMessages: [ContestMessage]) {
             self.text = text
             self.qsoCount = qsoCount
-            self.warnings = warnings
+            self.warningMessages = warningMessages
         }
     }
 
@@ -114,10 +124,10 @@ public enum CabrilloExporter {
             throw CabrilloExportError.illegalArgument(
                 message: "Definice závodu nemá blok cabrillo: — export do Cabrilla není možný")
         }
-        var warnings: [String] = []
+        var warnings: [ContestMessage] = []
         let myCall = JavaText.trim(input.station.call).uppercased()
         if myCall.isEmpty {
-            warnings.append("Chybí volačka stanice (Nastavení → Station data → My Call)")
+            warnings.append(ContestMessage("Chybí volačka stanice (Nastavení → Station data → My Call)"))
         }
 
         let sorted = sortedByTime(input.qsos)
@@ -134,7 +144,7 @@ public enum CabrilloExporter {
         var xqso: [Bool] = []
         for q in sorted {
             guard let freq = frequency(q), let timestamp = q.timestampUtc, let stamp = utc(timestamp) else {
-                warnings.append("QSO " + q.call + " vynecháno — chybí pásmo/frekvence nebo čas")
+                warnings.append(ContestMessage("QSO %s vynecháno — chybí pásmo/frekvence nebo čas", .string(q.call)))
                 continue
             }
             var row: [String] = [freq, modeCode(q.mode), stamp.date, stamp.time, myCall.isEmpty ? missing : myCall]
@@ -145,8 +155,8 @@ public enum CabrilloExporter {
             // missing value — not an unfilled optional item.
             let incompleteExchange = received.contains(missing)
             if incompleteExchange {
-                warnings.append("QSO " + q.call + " " + stamp.date + " " + stamp.time
-                                + ": chybí část přijaté výměny — zapsáno jako X-QSO")
+                warnings.append(ContestMessage("QSO %s: chybí část přijaté výměny — zapsáno jako X-QSO",
+                                               .string(q.call + " " + stamp.date + " " + stamp.time)))
             }
             row.append(contentsOf: received)
             if byRadio {
@@ -167,13 +177,14 @@ public enum CabrilloExporter {
             // program does not claim it either. A manual user flag takes precedence.
             let modeNotInContest = !ModeEligibility.counts(input.definition.modes, q.mode?.rawValue)
             if modeNotInContest && !q.xqso {
-                warnings.append("QSO " + q.call + " v módu " + modeCode(q.mode) + " závod nemá — zapsáno jako X-QSO")
+                warnings.append(ContestMessage("QSO %s v módu %s závod nemá — zapsáno jako X-QSO", .string(q.call),
+                                               .string(modeCode(q.mode))))
             }
             xqso.append(q.xqso || modeNotInContest || incompleteExchange)
         }
         if multiTwo && transmitterIds.count > 2 {
-            warnings.append("Multi-Two: v deníku je " + String(transmitterIds.count)
-                            + " stanic, Cabrillo zná jen vysílače 0 a 1")
+            warnings.append(ContestMessage("Multi-Two: v deníku je %s stanic, Cabrillo zná jen vysílače 0 a 1",
+                                           .int(transmitterIds.count)))
         }
 
         var out = ""
@@ -184,7 +195,7 @@ public enum CabrilloExporter {
             out += "\n"
         }
         out += "END-OF-LOG:\n"
-        return Result(text: toAscii(out), qsoCount: rows.count, warnings: warnings)
+        return Result(text: toAscii(out), qsoCount: rows.count, warningMessages: warnings)
     }
 
     /// Cabrillo is an ASCII format: NFD, delete marks (`\p{M}+`), every remaining non-ASCII code point

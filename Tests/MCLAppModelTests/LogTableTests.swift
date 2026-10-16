@@ -95,7 +95,7 @@ import Testing
         table.select([try id(app, "W1AW"), try id(app, "OK1AA")])
         table.askDeleteSelection()
         #expect(table.confirmingDelete)
-        #expect(table.deleteTitle == .verbatim("Smazat 2 QSO?"))
+        #expect(table.deleteTitle == ContestMessage("Smazat %s QSO?", .int(2)))
         #expect(table.deleteText == ContestMessage("Vybraná spojení se odstraní z deníku. Akci nelze vzít zpět."))
         #expect(logbook.rows.count == 3)
         table.confirmDeleteSelection()
@@ -176,12 +176,12 @@ import Testing
                                         ContestMessage("Naladit na frekvenci QSO"),
                                         ContestMessage("Přepočítat od tohoto QSO"),
                                         ContestMessage("Rate k tomuto QSO v okně Info"), ContestMessage("Kopírovat jako ADIF"),
-                                        .verbatim("Smazat QSO")])
+                                        ContestMessage("Smazat QSO")])
         #expect(single.allSatisfy { $0.isEnabled })
         table.select([w1aw, dl])
         let bulk: [LogTableModel.MenuItem] = BulkAction.allCases.map { .bulk($0) } + [.copyAdif, .deleteSelection]
         #expect(table.menuItems(forRow: dl) == bulk)
-        #expect(LogTableModel.MenuItem.deleteSelection.title == .verbatim("Smazat"))
+        #expect(LogTableModel.MenuItem.deleteSelection.title == ContestMessage("Smazat"))
         // A row outside the selection gets its own items.
         #expect(table.menuItems(forRow: try id(app, "OK1AA")) == single)
         table.perform(.deleteSelection, row: dl)

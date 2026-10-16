@@ -115,9 +115,10 @@ public struct DefinitionUpdater: Sendable {
             files.filter { $0.status == status }.count
         }
 
-        public func summary() -> String {
-            "nové \(count(.new)), aktualizované \(count(.updated)), beze změny \(count(.unchanged)), "
-                + "ponechané lokální úpravy \(count(.skippedLocalChanges)), chyby \(count(.failed))"
+        public func summary(_ translator: Translator = .source) -> String {
+            translator.translate("nové %s, aktualizované %s, beze změny %s, ponechané lokální úpravy %s, chyby %s",
+                                 [.int(count(.new)), .int(count(.updated)), .int(count(.unchanged)),
+                                  .int(count(.skippedLocalChanges)), .int(count(.failed))])
         }
     }
 

@@ -740,7 +740,7 @@ public final class KeyerModel {
                                             noPortText: language.tr(KeyerTexts.winkeyerNoPort))
         request.options = keyerConfig.options
         request.noSerialPortText = language.tr(KeyerTexts.serialNoPort)
-        request.noRigText = "CW přes CAT: TRX není připojený"
+        request.noRigText = language.tr("CW přes CAT: TRX není připojený")
         request.potSpeed = { [weak self] wpm in
             Task { @MainActor [weak self] in
                 self?.potSpeedChanged(wpm)

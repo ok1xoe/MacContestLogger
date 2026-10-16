@@ -79,7 +79,7 @@ private struct StatisticsContent: View {
             dimensionPicker(model, model.rowChoices, selection: model.rowDimension, identifier: "statistics.rows") {
                 model.setRows($0)
             }
-            Text(verbatim: "Sloupce:").windowFont(13)
+            Text(verbatim: language.tr("Sloupce:")).windowFont(13)
             dimensionPicker(model, model.columnChoices, selection: model.columnDimension,
                             identifier: "statistics.columns") { model.setColumns($0) }
             Toggle(isOn: Binding(get: { model.includeDupes }, set: { model.setIncludeDupes($0) })) {

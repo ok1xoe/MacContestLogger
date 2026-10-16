@@ -119,3 +119,31 @@ public enum CallFieldCommand: Equatable, Sendable {
         case postContest = "POST_CONTEST"
     }
 }
+
+extension CallFieldCommand {
+
+    /// The patterns of the `invalid` texts with a value (`%s` = the entered number); the fixed texts are keys
+    /// themselves.
+    private static let invalidPatterns: [(prefix: String, suffix: String, key: String)] = [
+        ("Posun ", " kHz: aktuální frekvence není známá", "Posun %s kHz: aktuální frekvence není známá"),
+        ("Posun ", " kHz vede mimo pásmo", "Posun %s kHz vede mimo pásmo"),
+        ("", " kHz neleží v žádném pásmu", "%s kHz neleží v žádném pásmu"),
+    ]
+
+    /// The `invalid` text as a translatable message: a known text becomes its key (with the number as its value),
+    /// anything else is shown as is.
+    public static func invalidMessage(_ message: String) -> ContestMessage {
+        for pattern in invalidPatterns where message.hasPrefix(pattern.prefix) && message.hasSuffix(pattern.suffix)
+            && message.count > pattern.prefix.count + pattern.suffix.count {
+            let value = String(message.dropFirst(pattern.prefix.count).dropLast(pattern.suffix.count))
+            return ContestMessage(pattern.key, .string(value))
+        }
+        switch message {
+        case "SCRIPT: zadej jméno skriptu (soubor scripts/<jméno>.txt)",
+             "RIT: zadej posun v Hz, např. RIT 120 nebo RIT -50":
+            return ContestMessage(message)
+        default:
+            return .verbatim(message)
+        }
+    }
+}

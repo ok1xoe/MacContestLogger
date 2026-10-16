@@ -341,8 +341,8 @@ public final class DxClusterModel {
         }
     }
 
-    /// Kotlin `onSelfSpot`: RBN → `tr("RBN: %s tě slyší na %s kHz")` + SNR + WPM, otherwise the untranslated
-    /// „Byl jsi spotnut: …"; the frequency in the system's decimal format (Kotlin `"%.1f".format`).
+    /// Kotlin `onSelfSpot`: RBN → `tr("RBN: %s tě slyší na %s kHz")` + SNR + WPM, otherwise „Byl jsi spotnut: …"
+    /// (translated; Kotlin left it Czech); the frequency in the system's decimal format (Kotlin `"%.1f".format`).
     func selfSpotted(_ own: SelfSpot) {
         onSelfSpotted?(own)
         let text: String = SpotActions.selfSpotMessage(own, translator: language.translator,

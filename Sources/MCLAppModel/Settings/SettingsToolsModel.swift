@@ -199,7 +199,7 @@ public final class SettingsToolsModel {
         }
         scanListener = listener
         scanInFlight = true
-        scanState = ScanState(isScanning: true, status: SettingsTools.scanning)
+        scanState = ScanState(isScanning: true, status: language.tr(SettingsTools.scanning))
         let models: [HamlibRigModel] = rigModels
         let device: String = draft.device
         let model: Int = draft.rigModel
@@ -238,9 +238,9 @@ public final class SettingsToolsModel {
                 draft.baud = outcome.candidate.baud
                 settings.draft = draft
             }
-            scanState = ScanState(isScanning: false, status: SettingsTools.found(outcome))
+            scanState = ScanState(isScanning: false, status: SettingsTools.found(outcome, translator: language.translator))
         } else {
-            let text: String = listener.isCancelled() ? SettingsTools.scanStopped : SettingsTools.nothingAnswered
+            let text: String = language.tr(listener.isCancelled() ? SettingsTools.scanStopped : SettingsTools.nothingAnswered)
             scanState = ScanState(isScanning: false, status: text)
         }
     }

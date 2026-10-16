@@ -27,7 +27,7 @@ struct CwKeyerTab: View {
 
     private var methodGroup: some View {
         let ports: [String] = app.settingsTools.serialPorts
-        let noPort: String = ports.isEmpty ? language.tr("Žádný sériový port") : "Vyber port"
+        let noPort: String = ports.isEmpty ? language.tr("Žádný sériový port") : language.tr("Vyber port")
         let serial: Bool = draft.cwOptions.serialKeying
         return SettingsGroup(title: language.tr("Způsob klíčování")) {
             SettingsRadio(label: language.tr("Klíčovač rigu přes CAT (rigctld)"), selected: !serial && draft.cwMethod == .cat) {
@@ -41,7 +41,7 @@ struct CwKeyerTab: View {
                 draft.cwMethod = .winkeyer
                 draft.cwOptions.serialKeying = false
             }
-            SettingsField(caption: "Port Winkeyeru") {
+            SettingsField(caption: language.tr("Port Winkeyeru")) {
                 SettingsDropdown(label: ifBlank(app.settingsTools.portLabel(draft.cwPort), noPort), options: ports,
                                  language: language, enabled: !serial && draft.cwMethod == .winkeyer) { draft.cwPort = $0 }
             }
@@ -49,7 +49,7 @@ struct CwKeyerTab: View {
             SettingsRadio(label: language.tr("Linka DTR/RTS sériového portu (jednoduché rozhraní)"), selected: serial) {
                 draft.cwOptions.serialKeying = true
             }
-            SettingsRadio(label: "Vypnuto", selected: !serial && draft.cwMethod == .none) {
+            SettingsRadio(label: language.tr("Vypnuto"), selected: !serial && draft.cwMethod == .none) {
                 draft.cwMethod = .none
                 draft.cwOptions.serialKeying = false
             }
@@ -60,7 +60,7 @@ struct CwKeyerTab: View {
         let styles: [CutStyle] = CutStyle.allCases
         return SettingsGroup(title: language.tr("Rychlost a čísla")) {
             HStack(alignment: .center, spacing: 12) {
-                SettingsField(caption: "Rychlost (WPM)") {
+                SettingsField(caption: language.tr("Rychlost (WPM)")) {
                     SettingsTextField(text: $draft.cwSpeed, filter: .digits(limit: nil))
                 }
                 .frame(width: 140)
@@ -71,9 +71,9 @@ struct CwKeyerTab: View {
                     "Pořadová čísla s cut číslicemi (FULLABBREV / PROABBREV / SEMIABBREV / NOABBREV)"),
                 isOn: $draft.cwCutNumbers)
             SettingsField(caption: language.tr("Styl cut čísel")) {
-                SettingsDropdown(label: draft.cwCutStyle.label, options: styles.map(\.label), language: language,
-                                 enabled: draft.cwCutNumbers) { picked in
-                    if let style = styles.first(where: { $0.label == picked }) {
+                SettingsDropdown(label: language.tr(draft.cwCutStyle.label), options: styles.map { language.tr($0.label) },
+                                 language: language, enabled: draft.cwCutNumbers) { picked in
+                    if let style = styles.first(where: { language.tr($0.label) == picked }) {
                         draft.cwCutStyle = style
                     }
                 }
@@ -102,7 +102,7 @@ struct CwKeyerTab: View {
         let ports: [String] = app.settingsTools.serialPorts
         let lines: [CwKeyingOptions.SerialLine] = [.dtr, .rts]
         let pttLines: [CwKeyingOptions.SerialLine] = CwKeyingOptions.SerialLine.allCases
-        let noPort: String = ports.isEmpty ? language.tr("Žádný sériový port") : "Vyber port"
+        let noPort: String = ports.isEmpty ? language.tr("Žádný sériový port") : language.tr("Vyber port")
         let none: String = language.tr("— žádný —")
         return SettingsGroup(title: language.tr("Klíčování DTR/RTS a PTT")) {
             SettingsCaption(language.tr(

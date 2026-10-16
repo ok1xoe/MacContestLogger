@@ -51,7 +51,7 @@ struct HamQthLogWindowView: View {
                 }
                 .windowFont(13)
                 .accessibilityIdentifier("hamqthlog.copy")
-                Button("Vymazat") { model.clear() }
+                Button(language.tr("Vymazat")) { model.clear() }
                     .windowFont(13)
                     .accessibilityIdentifier("hamqthlog.clear")
             }

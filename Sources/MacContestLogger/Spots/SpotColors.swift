@@ -50,7 +50,7 @@ enum SpotColors {
         }
     }
 
-    /// `planLabel(category)`: Czech, as the rest of the UI (verbatim).
+    /// `planLabel(category)`: the Czech key of the segment caption (translated where it is drawn).
     static func planLabel(_ category: BandPlan.ModeCategory) -> String {
         switch category {
         case .cw: "CW"

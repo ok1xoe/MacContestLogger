@@ -154,9 +154,9 @@ public enum EntryTexts {
             : .tr("Dodatečné zadání ukončeno — QSO zase dostávají aktuální čas")
     }
 
-    /// `updateWorkDupes` — the "off" text is not translated in Kotlin.
+    /// `updateWorkDupes` (Kotlin left the "off" text untranslated).
     public static func workDupes(_ on: Bool) -> EntryStatus {
-        on ? .tr("Dupe v Run se dělá jako nové QSO (WORKDUPE)") : .verbatim("Dupe v Run: QSO B4 (NOWORKDUPE)")
+        on ? .tr("Dupe v Run se dělá jako nové QSO (WORKDUPE)") : .tr("Dupe v Run: QSO B4 (NOWORKDUPE)")
     }
 
     public static func autoReload(_ on: Bool) -> EntryStatus {
@@ -165,10 +165,10 @@ public enum EntryTexts {
             : .tr("Při startu úvodní dialog (NOAUTORELOAD)")
     }
 
-    /// `updateCutNumbers` — `CutStyle.label` is passed as an argument (not translated on its own in Kotlin).
+    /// `updateCutNumbers` — `CutStyle.label` is passed as an argument, translated first (Kotlin did not).
     public static func cutNumbers(_ style: CutStyle?) -> EntryStatus {
         guard let style else { return .tr("Cut čísla vypnuta") }
-        return .tr("Cut čísla: %s", .string(style.label))
+        return EntryStatus([ContestMessage("Cut čísla: %s", parts: [.message(ContestMessage(style.label))])])
     }
 
     /// `setOperator(call, persist)`.
@@ -247,9 +247,9 @@ public enum EntryTexts {
         return base + "-" + copyLogStamp(date) + ".sqlite"
     }
 
-    /// `reloadAll()`: the second half is not translated in Kotlin.
+    /// `reloadAll()` (Kotlin left the second half untranslated).
     public static func reloaded(contestOpen: Bool) -> EntryStatus {
         let base: EntryStatus = .tr("Definice závodů znovu načteny")
-        return contestOpen ? base.appending(.verbatim(" a závod otevřen")) : base
+        return contestOpen ? base.appending(.tr(" a závod otevřen")) : base
     }
 }

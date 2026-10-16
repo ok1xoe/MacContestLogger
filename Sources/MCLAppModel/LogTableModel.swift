@@ -60,11 +60,11 @@ public final class LogTableModel {
             case .sameGrid(let grid):
                 return ContestMessage("QSO ve čtverci %s", .string(grid))
             case .deleteOne:
-                return .verbatim("Smazat QSO")
+                return ContestMessage("Smazat QSO")
             case .bulk(let action):
                 return action.button
             case .deleteSelection:
-                return .verbatim("Smazat")
+                return ContestMessage("Smazat")
             }
         }
 
@@ -376,9 +376,9 @@ public final class LogTableModel {
     }
 
     /// The tooltip of a row's ⚠ cell (Kotlin `warnings.joinToString("\n")`), `nil` without warnings.
-    public func warningText(_ id: Int64?) -> String? {
+    public func warningText(_ id: Int64?, translator: Translator = .source) -> String? {
         guard let id, let messages = logbook.warnings[id], !messages.isEmpty else { return nil }
-        return messages.joined(separator: "\n")
+        return messages.map { LogWarnings.translate($0, translator) }.joined(separator: "\n")
     }
 
     // MARK: - cell actions
@@ -560,9 +560,9 @@ public final class LogTableModel {
         confirmingDelete = true
     }
 
-    /// Kotlin `"Smazat ${toDelete.size} QSO?"` (outside `tr`), read when shown.
+    /// Kotlin `"Smazat ${toDelete.size} QSO?"` (Kotlin left it outside `tr`), read when shown.
     public var deleteTitle: ContestMessage {
-        .verbatim("Smazat " + String(chosen.count) + " QSO?")
+        ContestMessage("Smazat %s QSO?", .int(chosen.count))
     }
 
     /// The confirmation's text (`LT:421`).

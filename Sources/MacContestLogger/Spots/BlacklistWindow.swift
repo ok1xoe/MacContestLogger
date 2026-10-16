@@ -84,7 +84,8 @@ struct BlacklistWindowView: View {
     /// `"${n} záznamů — ${volačky|spotteři}"` (the first part is not translated in Kotlin) and the add button.
     private func summary(language: LanguageModel, count: Int, isCall: Bool) -> some View {
         HStack(alignment: .center) {
-            Text(verbatim: "\(count) záznamů — " + (isCall ? language.tr("volačky") : language.tr("spotteři")))
+            Text(verbatim: language.tr("%s záznamů — ", .int(count))
+                 + (isCall ? language.tr("volačky") : language.tr("spotteři")))
                 .windowFont(13)
             Spacer(minLength: 0)
             IconButton(symbol: "plus", label: language.tr("Přidat na blacklist"), size: CGSize(width: 28, height: 28)) {
@@ -163,7 +164,7 @@ struct BlacklistWindowView: View {
                 head(isCall ? language.tr("Volačka") : "Spotter", widths[0])
                 head(language.tr("Přidáno"), widths[1])
                 head(language.tr("Poznámka"), widths[2])
-                head("Akce", widths[3])
+                head(language.tr("Akce"), widths[3])
             }
         }
         .frame(height: WindowFont.size(22, windowSize: session.fontSize))
@@ -236,7 +237,7 @@ struct BlacklistAddSheet: View {
         let isCall: Bool = state.callTab
         VStack(alignment: .leading, spacing: 8) {
             WindowTopBar(size: $state.sheetFontSize, language: language) {
-                Text(verbatim: "Přidat " + (isCall ? language.tr("volačku") : "spottera") + " na blacklist")
+                Text(verbatim: language.tr(isCall ? "Přidat volačku na blacklist" : "Přidat spottera na blacklist"))
                     .windowFont(15, weight: .semibold)
             }
             field(isCall ? language.tr("Volačka") : "Spotter", text: $state.addValue)

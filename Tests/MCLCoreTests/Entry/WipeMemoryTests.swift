@@ -39,7 +39,7 @@ import Testing
         wiped.freqKHz = "7025.00"
         let second = first.memory.wipeReversible(form: wiped, contestActive: true, rstFieldIds: Self.rstIds)
         #expect(!second.wiped)
-        #expect(second.status == .verbatim("Obnoveno OK1ABC"))
+        #expect(second.status == .tr("Obnoveno %s", .string("OK1ABC")))
         #expect(second.status?.czech == "Obnoveno OK1ABC")
         #expect(second.memory.lastWiped == nil)
         #expect(second.form.call == "OK1ABC")

@@ -77,17 +77,17 @@ private struct GoalEditorContent: View {
                 .textFieldStyle(.roundedBorder)
                 .windowFont(13)
                 .frame(width: 64)
-                .accessibilityLabel(Text(verbatim: "Vyplnit"))
+                .accessibilityLabel(Text(verbatim: app.language.tr("Vyplnit")))
                 .accessibilityIdentifier("goals.bulkValue")
-            Text(verbatim: "od").windowFont(11)
-            HourPicker(hours: goals.hours, selection: Binding(get: { goals.bulk.fromKey },
+            Text(verbatim: app.language.tr("od")).windowFont(11)
+            HourPicker(translator: app.language.translator, hours: goals.hours, selection: Binding(get: { goals.bulk.fromKey },
                                                               set: { goals.bulk.fromKey = $0 }),
                        identifier: "goals.from")
-            Text(verbatim: "do").windowFont(11)
-            HourPicker(hours: goals.hours, selection: Binding(get: { goals.bulk.toKey },
+            Text(verbatim: app.language.tr("do")).windowFont(11)
+            HourPicker(translator: app.language.translator, hours: goals.hours, selection: Binding(get: { goals.bulk.toKey },
                                                               set: { goals.bulk.toKey = $0 }),
                        identifier: "goals.to")
-            Button("Vyplnit") { goals.applyBulk() }
+            Button(app.language.tr("Vyplnit")) { goals.applyBulk() }
                 .windowFont(13)
                 .accessibilityIdentifier("goals.apply")
         }
@@ -96,7 +96,7 @@ private struct GoalEditorContent: View {
 
     private func hourRow(_ goals: GoalsModel, key: Int32) -> some View {
         HStack {
-            Text(verbatim: GoalEditing.hourLabel(key))
+            Text(verbatim: GoalEditing.hourLabel(key, translator: app.language.translator))
                 .windowFont(12, design: .monospaced)
                 .frame(width: WindowFont.size(120, windowSize: windowSize), alignment: .leading)
             TextField("", text: Binding(get: { goals.draft.text(for: key) },
@@ -104,13 +104,14 @@ private struct GoalEditorContent: View {
                 .textFieldStyle(.roundedBorder)
                 .windowFont(12)
                 .frame(width: 90)
-                .accessibilityLabel(Text(verbatim: GoalEditing.hourLabel(key)))
+                .accessibilityLabel(Text(verbatim: GoalEditing.hourLabel(key, translator: app.language.translator)))
         }
     }
 }
 
 /// Kotlin `HourPicker`: the hour of a range end as a menu.
 private struct HourPicker: View {
+    let translator: Translator
     let hours: [Int32]
     @Binding var selection: Int32
     let identifier: String
@@ -118,7 +119,7 @@ private struct HourPicker: View {
     var body: some View {
         Picker(selection: $selection) {
             ForEach(hours, id: \.self) { key in
-                Text(verbatim: GoalEditing.hourLabel(key)).tag(key)
+                Text(verbatim: GoalEditing.hourLabel(key, translator: translator)).tag(key)
             }
         } label: {
             EmptyView()

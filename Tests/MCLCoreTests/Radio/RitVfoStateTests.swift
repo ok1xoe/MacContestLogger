@@ -43,7 +43,7 @@ import Testing
     }
 
     @Test func ritTexts() {
-        #expect(RigTexts.rit(0) == .verbatim("RIT vypnut"))
+        #expect(RigTexts.rit(0) == .tr("RIT vypnut"))
         #expect(RigTexts.rit(40) == .verbatim("RIT +40 Hz"))
         #expect(RigTexts.rit(-9_999) == .verbatim("RIT -9999 Hz"))
         #expect(RigTexts.ritFailure("Timeout") == .verbatim("RIT: Timeout"))
@@ -99,7 +99,7 @@ import Testing
         #expect(RigTexts.activeRig(2, hasOtrsp: true).czech == "Aktivní rig 2")
         #expect(RigTexts.activeRig(2, hasOtrsp: false).czech == "Aktivní rig 2 (bez OTRSP kontroléru)")
         #expect(RigTexts.activeRig(2, hasOtrsp: false)
-                == EntryStatus.tr("Aktivní rig %s", .int(2)).appending(.verbatim(" (bez OTRSP kontroléru)")))
+                == EntryStatus.tr("Aktivní rig %s", .int(2)).appending(.tr(" (bez OTRSP kontroléru)")))
     }
 
     /// Losing the two windows while VFO B is active forces a return to VFO A (`AS:2268`).
@@ -125,14 +125,14 @@ import Testing
     @Test func vfoTexts() {
         #expect(RigTexts.activeVfo(b: true) == .tr("Aktivní VFO %s", .string("B")))
         #expect(RigTexts.so2vFailure("x") == .tr("SO2V: %s", .string("x")))
-        #expect(RigTexts.so2rStereo(true) == .verbatim("SO2R: stereo (oba rigy)"))
+        #expect(RigTexts.so2rStereo(true) == .tr("SO2R: stereo (oba rigy)"))
         #expect(RigTexts.so2rStereo(false) == .tr("SO2R: poslech jen aktivního rigu"))
         #expect(RigTexts.so2rOpenFailure("busy") == .verbatim("SO2R: busy"))
         #expect(RigTexts.otherVfoDone(14_025_050) == .verbatim("VFO B 14025.1 kHz"))
         #expect(RigTexts.splitOn(txFreqHz: 14_027_000) == .tr("Split: vysílám na %s", .string("14027.0 kHz")))
         #expect(RigTexts.splitOn(txFreqHz: 0) == .tr("Split zapnut (vysílám na VFO B)"))
-        #expect(RigTexts.splitOff == .verbatim("Split vypnut"))
-        #expect(RigTexts.swapped == .verbatim("VFO A ↔ B prohozena"))
+        #expect(RigTexts.splitOff == .tr("Split vypnut"))
+        #expect(RigTexts.swapped == .tr("VFO A ↔ B prohozena"))
         #expect(RigTexts.vfoNeedsCat("Split").czech
                 == "Split: připoj TRX (CAT) — bez něj druhé VFO ani split nejdou")
         #expect(RigTexts.vfoFailure("SWAP", "RPRT -1") == .verbatim("SWAP: RPRT -1"))
@@ -142,7 +142,7 @@ import Testing
     @Test func otherRigTexts() {
         #expect(RigTexts.noCqOnBand(.m20).czech == "Na pásmu 20m zatím nebylo CQ")
         #expect(RigTexts.noCqOnBand(nil).czech == "Na pásmu  zatím nebylo CQ")
-        #expect(RigTexts.runModeToggled(run: true, freqHz: 14_025_000) == .verbatim("Run (CQ frekvence 14025.0 kHz)"))
+        #expect(RigTexts.runModeToggled(run: true, freqHz: 14_025_000) == .tr("Run (CQ frekvence %s)", .string("14025.0 kHz")))
         #expect(RigTexts.runModeToggled(run: false, freqHz: 0) == .verbatim("S&P"))
         #expect(RigTexts.tuneFailure("x").czech == "Ladění: x")
         #expect(RigTexts.interfacesReset(wasConnected: true).czech == "Rozhraní resetována — připojuji TRX znovu")

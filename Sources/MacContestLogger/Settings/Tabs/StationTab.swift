@@ -25,7 +25,7 @@ struct StationTab: View {
     }
 
     private var identityGroup: some View {
-        SettingsGroup(title: "Identita") {
+        SettingsGroup(title: language.tr("Identita")) {
             row(language.tr("Volačka")) {
                 SettingsTextField(text: $draft.call, filter: .uppercase)
                 SettingsCaption(language.tr("Operátor"))
@@ -42,11 +42,11 @@ struct StationTab: View {
     }
 
     private var addressGroup: some View {
-        SettingsGroup(title: "Adresa") {
-            row("Adresa") {
+        SettingsGroup(title: language.tr("Adresa")) {
+            row(language.tr("Adresa")) {
                 SettingsTextField(text: $draft.address1)
             }
-            row("Adresa 2") {
+            row(language.tr("Adresa 2")) {
                 SettingsTextField(text: $draft.address2)
             }
             row(language.tr("Město")) {
@@ -87,7 +87,7 @@ struct StationTab: View {
 
     private var equipmentGroup: some View {
         SettingsGroup(title: language.tr("Vybavení")) {
-            row("Stanice TX/RX") {
+            row(language.tr("Stanice TX/RX")) {
                 SettingsTextField(text: $draft.stationTxRx)
                 SettingsCaption(language.tr("Výkon"))
                 SettingsTextField(text: $draft.power)
@@ -97,7 +97,7 @@ struct StationTab: View {
                     .layoutPriority(2)
                 SettingsCaption(language.tr("Výška"))
                 SettingsTextField(text: $draft.antHeight)
-                SettingsCaption("n.m.")
+                SettingsCaption(language.tr("n.m."))
                 SettingsTextField(text: $draft.asl)
             }
         }
@@ -108,7 +108,7 @@ struct StationTab: View {
         let second: String = language.tr("výpočtu skóre. Zem. šířka a délka se počítají ze středu lokátoru. ")
         let third: String = language.tr("Ostatní údaje se zatím jen ukládají.")
         return SettingsGroup(title: language.tr("Ostatní")) {
-            row("ARRL sekce") {
+            row(language.tr("ARRL sekce")) {
                 SettingsTextField(text: $draft.arrlSection)
                 SettingsCaption("Rover QTH")
                 SettingsTextField(text: $draft.roverQth)

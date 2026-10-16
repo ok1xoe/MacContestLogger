@@ -116,7 +116,7 @@ private struct ProfileList: View {
             Button(language.tr("Načíst")) {
                 Task { await profiles.load(name) }
             }
-            Button("Smazat") {
+            Button(language.tr("Smazat")) {
                 Task { await profiles.delete(name) }
             }
         }

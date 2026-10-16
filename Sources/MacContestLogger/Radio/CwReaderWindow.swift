@@ -58,7 +58,7 @@ struct CwReaderWindowView: View {
             toneRow(language, model)
                 .trailingFontStepper(size: $session.fontSize, language: language, shown: radio != 1)
             if let error = model.error {
-                Text(verbatim: RadioWindowTexts.readerAudioError(error))
+                Text(verbatim: language.tr("Zvuk: %s", .string(error)))
                     .windowFont(14)
                     .foregroundStyle(Color(domain: DomainColors.dupe))
             }
@@ -121,7 +121,7 @@ struct CwReaderWindowView: View {
             Button {
                 model.clear()
             } label: {
-                Text(verbatim: "Vymazat").windowFont(14)
+                Text(verbatim: language.tr("Vymazat")).windowFont(14)
             }
             .buttonStyle(.borderless)
         }

@@ -21,7 +21,7 @@ struct OtherTab: View {
             SkinsGroup(language: language, draft: $draft)
             ColorsGroup(language: language, draft: $draft)
             FontsGroup(language: language, draft: $draft)
-            SettingsGroup(title: "Volby") {
+            SettingsGroup(title: language.tr("Volby")) {
                 SettingsCheckbox(label: language.tr("Po zapsání QSO vynulovat RIT"), isOn: $draft.ritClearAfterLog)
                 SettingsCheckbox(label: language.tr("Ve splitu po zapsání Run QSO vrátit RX na TX frekvenci (Alt+S)"),
                                  isOn: $draft.resetRxAfterRunQso)
@@ -43,9 +43,9 @@ struct OtherTab: View {
     }
 
     private var stepsGroup: some View {
-        SettingsGroup(title: "Kroky") {
+        SettingsGroup(title: language.tr("Kroky")) {
             HStack(alignment: .top, spacing: 8) {
-                SettingsField(caption: "Krok rychlosti CW (PgUp/PgDn, WPM)") {
+                SettingsField(caption: language.tr("Krok rychlosti CW (PgUp/PgDn, WPM)")) {
                     SettingsTextField(text: $draft.cwSpeedStep, filter: .digits(limit: 2))
                 }
                 .frame(maxWidth: .infinity)
@@ -96,9 +96,9 @@ private struct LanguageGroup: View {
     var body: some View {
         let language: LanguageModel = app.language
         let languages: [LanguageCatalog.Language] = app.settingsTools.languages
-        SettingsGroup(title: "Jazyk / Language") {
+        SettingsGroup(title: language.tr("Jazyk / Language")) {
             FlowLayout(spacing: 8) {
-                SettingsField(caption: "Jazyk") {
+                SettingsField(caption: language.tr("Jazyk")) {
                     SettingsDropdown(label: LanguageChoice.selectedLabel(code: draft.language, in: languages),
                                      options: languages.map(LanguageChoice.label), language: language) { picked in
                         if let code = LanguageChoice.code(forLabel: picked, in: languages) {
@@ -147,7 +147,7 @@ private struct AppearanceGroup: View {
 
     var body: some View {
         let accents = ConfigurerCatalogs.accents
-        SettingsGroup(title: "Vzhled") {
+        SettingsGroup(title: language.tr("Vzhled")) {
             HStack(spacing: 16) {
                 ForEach(ConfigurerCatalogs.themeModes, id: \.key) { mode in
                     SettingsRadio(label: language.tr(mode.labelKey), selected: draft.themeMode == mode.key) {

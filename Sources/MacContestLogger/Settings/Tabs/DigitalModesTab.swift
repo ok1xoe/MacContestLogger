@@ -13,7 +13,7 @@ struct DigitalModesTab: View {
         let language: LanguageModel = app.language
         VStack(alignment: .leading, spacing: 12) {
             SettingsGroup(title: language.tr("Datový režim rigu")) {
-                SettingsField(caption: "PKTUSB / PKTLSB / DATA zapisovat jako") {
+                SettingsField(caption: language.tr("PKTUSB / PKTLSB / DATA zapisovat jako")) {
                     SettingsDropdown(label: draft.dataMode, options: ConfigurerCatalogs.dataModes, language: language) {
                         draft.dataMode = $0
                     }
@@ -101,7 +101,7 @@ private struct ModemGroup: View {
     var body: some View {
         let language: LanguageModel = app.language
         let tools: SettingsToolsModel = app.settingsTools
-        SettingsGroup(title: "Modem pro RTTY / PSK") {
+        SettingsGroup(title: language.tr("Modem pro RTTY / PSK")) {
             HStack(spacing: 16) {
                 SettingsRadio(label: language.tr("Žádný"), selected: draft.digiEngine == .none) {
                     draft.digiEngine = .none
@@ -117,7 +117,7 @@ private struct ModemGroup: View {
                 BuiltinModemOptions(app: app, draft: $draft)
             }
             HStack(alignment: .bottom, spacing: 8) {
-                SettingsField(caption: "fldigi — adresa") {
+                SettingsField(caption: language.tr("fldigi — adresa")) {
                     SettingsTextField(text: $draft.fldigiHost)
                 }
                 .frame(width: 200)

@@ -27,12 +27,17 @@ public enum KeyCaptureRules {
         /// The other actions on the same keys, in Java action order (non-empty = shown in the error colour).
         public let conflicts: [ShortcutAction]
 
-        /// `"koliduje: " + conflicts.joinToString { it.label() }` — neither part goes through `tr` in Kotlin; `nil`
+        /// `"koliduje: " + conflicts.joinToString { it.label() }` (Czech; Kotlin left it untranslated); `nil`
         /// without a conflict.
         public var conflictText: String? {
+            conflictText(.source)
+        }
+
+        /// `conflictText` in the language of `translator`.
+        public func conflictText(_ translator: Translator) -> String? {
             guard !conflicts.isEmpty else { return nil }
-            let labels: [String] = conflicts.map(\.label)
-            return SettingsTexts.conflictPrefix + labels.joined(separator: ", ")
+            let labels: [String] = conflicts.map { translator.translate($0.label) }
+            return translator.translate(SettingsTexts.conflictPrefix) + labels.joined(separator: ", ")
         }
     }
 

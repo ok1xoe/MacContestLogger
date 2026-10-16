@@ -501,7 +501,7 @@ struct PortedApp {
         await app.enter("WIPELOG")
         #expect(app.model.dialogs.confirmation == .wipeLog)
         #expect(app.model.dialogs.confirmationTitle == ContestMessage("Vymazat celý deník (%s QSO)?", .int(2)))
-        #expect(app.model.dialogs.confirmationButton == .verbatim("Vymazat"))
+        #expect(app.model.dialogs.confirmationButton == ContestMessage("Vymazat"))
         #expect(app.model.logbook.rows.count == 2)
         app.model.dialogs.confirm()
         await app.settle()

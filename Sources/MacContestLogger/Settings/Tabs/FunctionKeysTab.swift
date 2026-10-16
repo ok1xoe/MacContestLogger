@@ -350,7 +350,7 @@ private struct RunSpGroup: View {
             SettingsCheckbox(label: language.tr("Návrat na CQ frekvenci přepne do Run (vypnout pro sprinty)"),
                              isOn: $draft.runOnCqFrequency, enabled: draft.runAutoSwitch)
             HStack(alignment: .center, spacing: 12) {
-                SettingsField(caption: "Pauza mezi CQ (s)") {
+                SettingsField(caption: language.tr("Pauza mezi CQ (s)")) {
                     SettingsTextField(text: $draft.repeatSeconds, filter: .digitsAnd(extra: ".,"))
                 }
                 .frame(width: 150)

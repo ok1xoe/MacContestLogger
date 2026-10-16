@@ -16,6 +16,11 @@ public final class SkedModel {
     @ObservationIgnored private let rig: RigModel
     @ObservationIgnored private let now: @Sendable () -> Date
 
+    /// The current translator (the reminders are written in the UI language).
+    var translator: Translator {
+        language.translator
+    }
+
     struct Dependencies {
         let contest: ContestModel
         let status: StatusModel
@@ -89,7 +94,7 @@ public final class SkedModel {
         case .success(let entry):
             let stored: Bool = await contest.updateSetup { $0.skeds.append(entry) }
             guard stored else { return false }
-            status.showVerbatim(SkedEditing.addedText(entry))
+            status.showVerbatim(SkedEditing.addedText(entry, translator: language.translator))
             return true
         }
     }
@@ -169,7 +174,8 @@ public final class SkedWatcher {
     /// One check.
     func check() {
         let date: Date = now()
-        let due: [String] = watch.due(skeds: skeds.storedSkeds, now: JavaInstant(date: date))
+        let due: [String] = watch.due(skeds: skeds.storedSkeds, now: JavaInstant(date: date),
+                                      translator: skeds.translator)
         for text in due {
             status.showVerbatim(SkedWatch.statusLine(text))
             messages.add(text, at: date)

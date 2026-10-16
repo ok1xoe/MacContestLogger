@@ -23,7 +23,7 @@ struct BlacklistEditor: View {
                     Text(verbatim: value)
                         .windowFont(13)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    SettingsButton("Smazat") {
+                    SettingsButton(language.tr("Smazat")) {
                         guard index < items.count else { return }
                         items.remove(at: index)
                     }

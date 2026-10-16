@@ -36,7 +36,7 @@ public enum KeyerTexts {
         }
         let head = EntryStatus.verbatim("fldigi: ")
         let reason: EntryStatus = message.map { EntryStatus.verbatim($0) } ?? .tr("nedostupné")
-        let tail = EntryStatus.verbatim(" (běží fldigi s XML-RPC na " + host + ":" + String(port) + "?)")
+        let tail = EntryStatus.tr(" (běží fldigi s XML-RPC na %s?)", .string(host + ":" + String(port)))
         return head.appending(reason).appending(tail)
     }
 
@@ -51,9 +51,9 @@ public enum KeyerTexts {
             : .tr("Opakování CQ vypnuto")
     }
 
-    /// `promptRepeatTime` success: `"Pauza mezi CQ ${repeatLabel()}"` (not translated).
+    /// `promptRepeatTime` success: `"Pauza mezi CQ ${repeatLabel()}"` (translated; Kotlin left it Czech).
     public static func repeatPause(_ seconds: Double) -> EntryStatus {
-        .verbatim("Pauza mezi CQ " + repeatLabel(seconds))
+        .tr("Pauza mezi CQ %s", .string(repeatLabel(seconds)))
     }
 
     /// `requestMove`'s place (`AS:1632`): `String.format(Locale.US, "%.0f", hz / 1000.0)` — whole kHz.

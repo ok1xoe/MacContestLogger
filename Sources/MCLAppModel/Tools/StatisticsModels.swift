@@ -158,7 +158,7 @@ public final class StatisticsModel {
                 !qso.xqso && !(qso.id.flatMap { facts[$0] }?.dupe ?? false)
             }
             return StatisticsSnapshot(
-                table: StatsViews.statisticsTable(pivot: pivot, rowHeader: header),
+                table: StatsViews.statisticsTable(pivot: pivot, rowHeader: header, translate: translator),
                 chart: StatsViews.hourlyChart(qsos: counted, translate: translator),
                 reports: reports ? StatsViews.reports(qsos: counted, translate: translator) : [])
         }

@@ -14,10 +14,10 @@ struct DigiFreqTab: View {
                 Text(verbatim: language.tr("Mód"))
                     .windowFont(12, weight: .bold)
                     .frame(width: 140, alignment: .leading)
-                Text(verbatim: "Od (kHz)")
+                Text(verbatim: language.tr("Od (kHz)"))
                     .windowFont(12, weight: .bold)
                     .frame(width: 100, alignment: .leading)
-                Text(verbatim: "Do (kHz)")
+                Text(verbatim: language.tr("Do (kHz)"))
                     .windowFont(12, weight: .bold)
                     .frame(width: 100, alignment: .leading)
             }

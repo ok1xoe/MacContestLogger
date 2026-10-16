@@ -13,8 +13,7 @@ public enum CountyLineSetting {
         let counties: [String] = tokens(text, separators: countySeparators)
         let joined: String = counties.joined(separator: "/")
         if counties.isEmpty {
-            // Not translated in Kotlin.
-            return (counties, .verbatim("County line vypnuto"))
+            return (counties, .tr("County line vypnuto"))
         }
         if !usesRoverQth {
             return (counties, .tr("County line %s — pozor: závod okres ve výměně nemá, QSO se zapíše jen jednou",
@@ -40,8 +39,7 @@ public enum CountyLineSetting {
         if calls.isEmpty {
             return (calls, .tr("Bonusové stanice smazány"))
         }
-        // Not translated in Kotlin.
-        return (calls, .verbatim("Bonusové stanice (\(calls.count)): " + calls.joined(separator: " ")))
+        return (calls, .tr("Bonusové stanice (%s): %s", .int(calls.count), .string(calls.joined(separator: " "))))
     }
 
     /// `applyRoverQth(county)`: `county.trim().uppercase().replace(Regex("\\s+"), "")` (Kotlin `trim` removes Unicode

@@ -470,9 +470,9 @@ private struct AvailRowView: View {
     @ViewBuilder
     private var menu: some View {
         let language: LanguageModel = app.language
-        Button("Odebrat spot") { model.remove(row) }
+        Button(language.tr("Odebrat spot")) { model.remove(row) }
         Button(language.tr("Blacklist volačky %s", .string(row.call))) { model.blacklistCall(row) }
-        Button("Blacklist spottera " + row.spotter) { model.blacklistSpotter(row) }
+        Button(language.tr("Blacklist spottera %s", .string(row.spotter))) { model.blacklistSpotter(row) }
         Button("QRZ.com") { model.openQrz(row) }
         Button("HamQTH") { model.openHamQth(row) }
         Divider()
