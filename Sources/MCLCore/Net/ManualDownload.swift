@@ -4,21 +4,45 @@ import Foundation
 /// (built from `docs/` by `mcl-manual` in the release workflow) as a PDF or as one self-contained HTML file. Only on
 /// the user's click; the address is fixed to the project's releases, redirects are followed only to GitHub's own
 /// download hosts, the size is limited and the bytes must be of the requested format before anything is saved.
+/// The guide exists in English and Czech; the application's language picks one (Czech for Czech, English otherwise),
+/// and a release without the Czech files (older ones) gives the English guide.
 public enum ManualDownload {
+
+    /// The guide's languages.
+    public enum Language: String, Sendable, Equatable, CaseIterable {
+        case en
+        case cs
+
+        /// The guide for the application's language code: Czech for `cs`, English for any other.
+        public static func forApp(_ code: String) -> Language {
+            code.lowercased() == "cs" ? .cs : .en
+        }
+    }
 
     /// The manual's two formats.
     public enum Format: String, Sendable, Equatable, CaseIterable {
         case pdf
         case html
 
-        /// The release asset's file name (the same in every release, so `latest/download/` finds it).
+        /// The release asset's file name (the same in every release, so `latest/download/` finds it): the English
+        /// guide keeps the original name (`MacContestLogger-manual.pdf`), the Czech one is `MacContestLogger-manual-cs.pdf`.
+        public func assetName(_ language: Language) -> String {
+            "MacContestLogger-manual" + (language == .en ? "" : "-" + language.rawValue) + "." + rawValue
+        }
+
+        /// The English guide's asset name.
         public var assetName: String {
-            "MacContestLogger-manual." + rawValue
+            assetName(.en)
         }
 
         /// The newest published release's copy (drafts and pre-releases are left out by GitHub).
+        public func latestUrl(_ language: Language) -> String {
+            "https://github.com/ok1xoe/MacContestLogger/releases/latest/download/" + assetName(language)
+        }
+
+        /// The newest published release's English copy.
         public var latestUrl: String {
-            "https://github.com/ok1xoe/MacContestLogger/releases/latest/download/" + assetName
+            latestUrl(.en)
         }
 
         /// The request's `Accept` header.

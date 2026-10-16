@@ -101,10 +101,10 @@ enum ExportPanels {
             gatherWindows(app: app)
         case .openFile(let file):
             NSWorkspace.shared.open(file)
-        case .saveManual(let name, let format):
+        case .saveManual(let name, let format, let language):
             let message: String = format == .html ? app.language.tr("Uložit HTML manuál") : app.language.tr("Uložit PDF manuál")
             save(message: message, name: name) { file in
-                app.updates.downloadManual(to: file, format: format)
+                app.updates.downloadManual(to: file, format: format, language: language)
             }
         case .openCountryFile:
             openFile(message: app.language.tr("Seznam zemí (cty.dat)")) { file in

@@ -1,8 +1,9 @@
 # Universal (arm64 + x86_64) DMG, signed with Developer ID and notarized when the signing secrets are set.
 #
 # - Tag `v*`           : build, verify on Intel, create a DRAFT GitHub release (the owner publishes it) with the DMG,
-#                        its checksum and the user guide as PDF and HTML (`mcl-manual` over docs/; the app's Help menu
-#                        downloads `MacContestLogger-manual.pdf` / `.html` from the latest release).
+#                        its checksum and the user guide as PDF and HTML in English and Czech (`mcl-manual` over docs/
+#                        and docs/cs/; the app's Help menu downloads `MacContestLogger-manual.pdf` / `.html` (English) or
+#                        `MacContestLogger-manual-cs.pdf` / `.html` (Czech) from the latest release).
 # - workflow_dispatch  : build + verify, artifacts only (never a release); optional `version` input.
 # - pull_request       : the same dry run, only when a release-related file changes; artifacts only.
 # The tag is a version such as v0.9.0 or v1.2.3 (not all zero); a suffix (-rc1) stays in the file name and is cut off from the bundle version
@@ -235,23 +236,27 @@ jobs:
           codesign -dv "$MNT/MacContestLogger.app" 2>&1 | grep -E '^(Authority|TeamIdentifier|Timestamp|CodeDirectory)'
           spctl -a -vv "$MNT/MacContestLogger.app"
       # The user guide as one PDF (AppKit text layout + PDFKit, nothing to install) and as one self-contained HTML
-      # file; the names are the same in every release so `releases/latest/download/MacContestLogger-manual.pdf`
-      # (and `.html`) always finds the newest one.
+      # file, in English and Czech; the names are the same in every release so
+      # `releases/latest/download/MacContestLogger-manual.pdf` (English; `-cs.pdf` Czech, and `.html`) always finds the
+      # newest one. The English guide keeps the original names for the app versions that download those.
       - name: Build user guide PDF and HTML
         env:
           FILE_VERSION: ${{ steps.ver.outputs.fileVersion }}
         run: |
           set -euo pipefail
           swift build -c release --product mcl-manual
-          "$(swift build -c release --show-bin-path)/mcl-manual" --docs docs \
-            --out build/release/MacContestLogger-manual.pdf --html build/release/MacContestLogger-manual.html \
-            --version "$FILE_VERSION"
-          [ "$(head -c 5 build/release/MacContestLogger-manual.pdf)" = "%PDF-" ]
-          [ "$(head -c 15 build/release/MacContestLogger-manual.html)" = "<!DOCTYPE html>" ]
-          if grep -Eq 'src="(https?:|//)|<link |<script|@import' build/release/MacContestLogger-manual.html; then
-            echo "the HTML guide loads something from outside the file"; exit 1
-          fi
-          ls -lh build/release/MacContestLogger-manual.pdf build/release/MacContestLogger-manual.html
+          MANUAL="$(swift build -c release --show-bin-path)/mcl-manual"
+          "$MANUAL" --docs docs --lang en --out-dir build/manual --version "$FILE_VERSION"
+          "$MANUAL" --docs docs --lang cs --out-dir build/manual --version "$FILE_VERSION"
+          for name in MacContestLogger-manual MacContestLogger-manual-cs; do
+            [ "$(head -c 5 "build/manual/$name.pdf")" = "%PDF-" ]
+            [ "$(head -c 15 "build/manual/$name.html")" = "<!DOCTYPE html>" ]
+            if grep -Eq 'src="(https?:|//)|<link |<script|@import' "build/manual/$name.html"; then
+              echo "the HTML guide $name loads something from outside the file"; exit 1
+            fi
+            cp "build/manual/$name.pdf" "build/manual/$name.html" build/release/
+          done
+          ls -lh build/release/MacContestLogger-manual*.pdf build/release/MacContestLogger-manual*.html
       - name: Check DMG and checksum
         env:
           DMG: ${{ steps.ver.outputs.dmgName }}
@@ -268,6 +273,8 @@ jobs:
             build/release/${{ steps.ver.outputs.dmgName }}.sha256
             build/release/MacContestLogger-manual.pdf
             build/release/MacContestLogger-manual.html
+            build/release/MacContestLogger-manual-cs.pdf
+            build/release/MacContestLogger-manual-cs.html
           if-no-files-found: error
       # Always, also after a failure halfway through the import (the keychain path is fixed, not a step output).
       - name: Remove signing keychain
@@ -344,4 +351,5 @@ jobs:
           ls -lh dist
           gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
             --title "MacContestLogger $GITHUB_REF_NAME" --generate-notes \
-            "dist/$DMG" "dist/$DMG.sha256" dist/MacContestLogger-manual.pdf dist/MacContestLogger-manual.html
+            "dist/$DMG" "dist/$DMG.sha256" dist/MacContestLogger-manual.pdf dist/MacContestLogger-manual.html \
+            dist/MacContestLogger-manual-cs.pdf dist/MacContestLogger-manual-cs.html

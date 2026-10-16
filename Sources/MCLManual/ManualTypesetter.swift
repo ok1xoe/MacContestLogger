@@ -162,10 +162,10 @@ struct ManualTypesetter {
         text.append(NSAttributedString(string: "MacContestLogger\n", attributes: [
             .font: Self.font(30, .bold), .foregroundColor: Self.ink, .paragraphStyle: top,
         ]))
-        text.append(NSAttributedString(string: Self.subtitle(book.title) + "\n", attributes: [
+        text.append(NSAttributedString(string: Self.subtitle(book) + "\n", attributes: [
             .font: Self.font(16), .foregroundColor: Self.muted, .paragraphStyle: center,
         ]))
-        if let line = Self.editionLine(version: version, buildDate: buildDate) {
+        if let line = book.language.editionLine(version: version, buildDate: buildDate) {
             text.append(NSAttributedString(string: line + "\n", attributes: [
                 .font: Self.font(10.5, .medium), .foregroundColor: Self.muted, .paragraphStyle: center,
             ]))
@@ -180,7 +180,7 @@ struct ManualTypesetter {
                 first = false
             }
         }
-        text.append(NSAttributedString(string: "At a glance\n", attributes: [
+        text.append(NSAttributedString(string: book.language.atAGlance + "\n", attributes: [
             .font: Self.font(11, .semibold), .foregroundColor: Self.ink,
             .paragraphStyle: paragraphStyle(spacingBefore: 16, after: 4),
         ]))
@@ -220,29 +220,14 @@ struct ManualTypesetter {
         return subtitle
     }
 
-    /// `Version v0.9.0 · built 2026-10-16` (either part may be missing; `nil` when both are).
-    static func editionLine(version: String?, buildDate: Date?) -> String? {
-        var parts: [String] = []
-        if let version, !version.isEmpty {
-            parts.append("Version " + version)
-        }
-        if let buildDate {
-            parts.append("built " + isoDay(buildDate))
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
-
-    /// `2026-10-16` (UTC).
-    static func isoDay(_ date: Date) -> String {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC") ?? .current
-        let parts: DateComponents = calendar.dateComponents([.year, .month, .day], from: date)
-        return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
+    /// The title page's subtitle in the book's language (the English one from the README's heading).
+    static func subtitle(_ book: ManualBook) -> String {
+        book.language.fixedSubtitle ?? subtitle(book.title)
     }
 
     /// The contents: the parts and their chapters with right-aligned page numbers (linked to the chapter).
     func contents(into text: NSMutableAttributedString) {
-        heading(1, "Contents", anchor: nil, file: "", into: text)
+        heading(1, book.language.contents, anchor: nil, file: "", into: text)
         var part = ""
         for chapter in book.chapters {
             if chapter.part != part {

@@ -23,6 +23,7 @@ import Testing
     }
 
     nonisolated static let pdf = Data("%PDF-1.7\nmanual\n%%EOF\n".utf8)
+    nonisolated static let czechHtml = Data("<!DOCTYPE html>\n<html lang=\"cs\"><body>manuál</body></html>\n".utf8)
     nonisolated static let html = Data("<!DOCTYPE html>\n<html lang=\"en\"><body>manual</body></html>\n".utf8)
 
     static func app(_ fetches: Fetches, answer: ManualDownload.Outcome) async throws -> SpotApp {
@@ -41,12 +42,14 @@ import Testing
     @Test func theItemsAskWhereToSaveBeforeAnyDownload() async throws {
         let fetches = Fetches()
         let spot = try await Self.app(fetches, answer: .file(Self.pdf))
+        // The application is Czech: the Czech guide.
+        #expect(spot.model.language.code == "cs")
         #expect(MenuActions.perform("help.pdfManual", app: spot.model)
-                == .saveManual(suggestedName: "MacContestLogger-manual.pdf", format: .pdf))
+                == .saveManual(suggestedName: "MacContestLogger-manual-cs.pdf", format: .pdf, language: .cs))
         #expect(MenuActions.perform("tools.pdfManual", app: spot.model)
-                == .saveManual(suggestedName: "MacContestLogger-manual.pdf", format: .pdf))
+                == .saveManual(suggestedName: "MacContestLogger-manual-cs.pdf", format: .pdf, language: .cs))
         #expect(MenuActions.perform("help.htmlManual", app: spot.model)
-                == .saveManual(suggestedName: "MacContestLogger-manual.html", format: .html))
+                == .saveManual(suggestedName: "MacContestLogger-manual-cs.html", format: .html, language: .cs))
         await spot.model.updates.settle()
         #expect(fetches.urls.isEmpty, "the menu item alone downloads nothing")
         let file: URL = Self.target()
@@ -60,6 +63,54 @@ import Testing
         #expect(spot.model.updates.notice == nil)
         #expect(!spot.model.updates.isDownloadingManual)
         #expect(spot.opener.urls.isEmpty)
+    }
+
+    /// Any other language than Czech gets the English guide (under the original asset names).
+    @Test func theItemsFollowTheApplicationLanguage() async throws {
+        let fetches = Fetches()
+        let spot = try await Self.app(fetches, answer: .file(Self.pdf))
+        await spot.model.language.switchTo("en")
+        #expect(spot.model.language.code == "en")
+        #expect(MenuActions.perform("help.pdfManual", app: spot.model)
+                == .saveManual(suggestedName: "MacContestLogger-manual.pdf", format: .pdf, language: .en))
+        #expect(MenuActions.perform("help.htmlManual", app: spot.model)
+                == .saveManual(suggestedName: "MacContestLogger-manual.html", format: .html, language: .en))
+        #expect(ManualDownload.Language.forApp("de") == .en)
+        #expect(ManualDownload.Language.forApp("CS") == .cs)
+        #expect(ManualDownload.Format.pdf.latestUrl(.cs)
+                == "https://github.com/ok1xoe/MacContestLogger/releases/latest/download/MacContestLogger-manual-cs.pdf")
+        let file: URL = Self.target()
+        defer { try? FileManager.default.removeItem(at: file) }
+        spot.model.updates.downloadManual(to: file, format: .pdf, language: .cs)
+        await spot.model.updates.settle()
+        #expect(fetches.urls == [ManualDownload.Format.pdf.latestUrl(.cs)], "found: no fallback")
+        #expect(try Data(contentsOf: file) == Self.pdf)
+    }
+
+    /// A release without the Czech guide (404) gives the English one; any other failure of the Czech one is reported.
+    @Test func aMissingCzechGuideFallsBackToEnglish() async throws {
+        let fetches = Fetches()
+        let spot = try await SpotApp.make(adjust: { environment in
+            environment.network.fetchManual = { url, format in
+                fetches.add(url, format)
+                return url.hasSuffix("-cs.pdf") ? .notPublished : .file(Self.pdf)
+            }
+        })
+        let file: URL = Self.target()
+        defer { try? FileManager.default.removeItem(at: file) }
+        spot.model.updates.downloadManual(to: file, format: .pdf, language: .cs)
+        await spot.model.updates.settle()
+        #expect(fetches.urls == [ManualDownload.Format.pdf.latestUrl(.cs), ManualDownload.latestUrl])
+        #expect(try Data(contentsOf: file) == Self.pdf)
+        #expect(spot.model.updates.notice == nil)
+        try FileManager.default.removeItem(at: file)
+        let wrong = Fetches()
+        let other = try await Self.app(wrong, answer: .wrongFormat)
+        other.model.updates.downloadManual(to: file, format: .pdf, language: .cs)
+        await other.model.updates.settle()
+        #expect(wrong.urls == [ManualDownload.Format.pdf.latestUrl(.cs)], "only a 404 falls back")
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+        #expect(other.model.status.message == "PDF manuál nejde stáhnout: stažený soubor není PDF")
     }
 
     @Test func aFailureSavesNothingAndOffersTheOnlineDocs() async throws {
@@ -158,18 +209,44 @@ import Testing
             }
         })
         let base = "http://127.0.0.1:\(port)/"
-        spot.model.updates.manualUrls[.html] = base + "latest/MacContestLogger-manual.html"
+        spot.model.updates.manualUrls["MacContestLogger-manual.html"] = base + "latest/MacContestLogger-manual.html"
         let file: URL = FileManager.default.temporaryDirectory.appendingPathComponent("mcl-manual-\(UUID().uuidString).html")
         defer { try? FileManager.default.removeItem(at: file) }
         spot.model.updates.downloadManual(to: file, format: .html)
         await spot.model.updates.settle()
         #expect(try Data(contentsOf: file) == Self.html)
         try FileManager.default.removeItem(at: file)
-        spot.model.updates.manualUrls[.html] = base + "wrong/MacContestLogger-manual.html"
+        spot.model.updates.manualUrls["MacContestLogger-manual.html"] = base + "wrong/MacContestLogger-manual.html"
         spot.model.updates.downloadManual(to: file, format: .html)
         await spot.model.updates.settle()
         #expect(!FileManager.default.fileExists(atPath: file.path))
         #expect(spot.model.status.message == "HTML manuál nejde stáhnout: stažený soubor není HTML")
         #expect(server.requestedPaths == ["/latest/MacContestLogger-manual.html", "/wrong/MacContestLogger-manual.html"])
+        // The Czech guide: served → saved; not in the release (404) → the English one.
+        spot.model.updates.manualUrls["MacContestLogger-manual-cs.html"] = base + "latest/MacContestLogger-manual-cs.html"
+        spot.model.updates.manualUrls["MacContestLogger-manual.html"] = base + "latest/MacContestLogger-manual.html"
+        spot.model.updates.downloadManual(to: file, format: .html, language: .cs)
+        await spot.model.updates.settle()
+        #expect(try Data(contentsOf: file) == Self.html)
+        #expect(server.requestedPaths.suffix(2)
+                == ["/latest/MacContestLogger-manual-cs.html", "/latest/MacContestLogger-manual.html"])
+        try FileManager.default.removeItem(at: file)
+        let czech = try LocalHttpServer(routes: [
+            "/latest/MacContestLogger-manual-cs.html": .init(body: String(decoding: Self.czechHtml, as: UTF8.self)),
+        ])
+        defer { czech.stop() }
+        let czechPort: Int = czech.port
+        let local = try await SpotApp.make(adjust: { environment in
+            environment.network.fetchManual = { url, format in
+                await ManualDownloader(allow: { $0.host == "127.0.0.1" && $0.port == czechPort }, requestTimeout: 600,
+                                       timeout: 900).fetch(url, format: format)
+            }
+        })
+        local.model.updates.manualUrls["MacContestLogger-manual-cs.html"] =
+            "http://127.0.0.1:\(czechPort)/latest/MacContestLogger-manual-cs.html"
+        local.model.updates.downloadManual(to: file, format: .html, language: .cs)
+        await local.model.updates.settle()
+        #expect(try Data(contentsOf: file) == Self.czechHtml)
+        #expect(czech.requestedPaths == ["/latest/MacContestLogger-manual-cs.html"])
     }
 }

@@ -58,10 +58,13 @@ extension MenuActions {
             app.updates.checkNow()
         case "tools.pdfManual", "help.pdfManual":
             guard app.updates.canDownloadManual() else { return nil }
-            return .saveManual(suggestedName: ManualDownload.Format.pdf.assetName, format: .pdf)
+            let language: ManualDownload.Language = .forApp(app.language.code)
+            return .saveManual(suggestedName: ManualDownload.Format.pdf.assetName(language), format: .pdf, language: language)
         case "help.htmlManual":
             guard app.updates.canDownloadManual() else { return nil }
-            return .saveManual(suggestedName: ManualDownload.Format.html.assetName, format: .html)
+            let language: ManualDownload.Language = .forApp(app.language.code)
+            return .saveManual(suggestedName: ManualDownload.Format.html.assetName(language), format: .html,
+                               language: language)
         case "tools.checkVersionAtStart":
             app.updates.checksAtStart.toggle()
         case "help.contestRules":

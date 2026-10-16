@@ -63,7 +63,7 @@ public enum MenuActions {
         /// N1MM Import country list from downloaded file: a `cty.dat` → `DataToolsModel.importCountryFile`.
         case openCountryFile
         /// N1MM Download latest PDF manual (also as HTML): where to save it → `UpdateCheckModel.downloadManual(to:format:)`.
-        case saveManual(suggestedName: String, format: ManualDownload.Format)
+        case saveManual(suggestedName: String, format: ManualDownload.Format, language: ManualDownload.Language)
     }
 
     /// The ids of the file and export items (the first half of `perform`; split so no single `switch` is slow to

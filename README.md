@@ -104,24 +104,33 @@ SIGTERM, SIGINT and SIGHUP run the regular quit, and the transmitter is released
 
     swift run mcl-scorecheck --help    # recompute a Cabrillo log's score and compare it with CLAIMED-SCORE
     swift run mcl-synthlog --help      # generate synthetic logs
-    swift run mcl-manual --out build/manual/MacContestLogger-manual.pdf \
-        --html build/manual/MacContestLogger-manual.html                  # the user guide as a PDF and as HTML
+    swift run mcl-manual --lang en --out-dir build/manual   # the English user guide as a PDF and as HTML
+    swift run mcl-manual --lang cs --out-dir build/manual   # the Czech one (docs/cs/)
 
 `mcl-manual` turns `docs/*.md` into one PDF (order and parts from `docs/README.md`; title page, contents with page
 numbers, bookmarks, page numbers, links; a short chapter goes on below the previous one instead of leaving most of a
 page empty) using only AppKit's text layout and PDFKit, so it needs nothing installed. `--html` writes the same guide
 as one self-contained HTML file (images embedded as data URIs, linked contents, numbered chapters, light and dark
 screen styles, an A4 print style that breaks pages where the PDF does), meant to be adjusted and exported to PDF from
-a browser. Either or both can be requested in one run. It fails when a page or an image linked from the guide is
-missing; CI builds both on every pull request.
+a browser. Either or both can be requested in one run (`--out`, `--html`), or both by `--out-dir` as
+`MacContestLogger-manual-<lang>.pdf/.html` (the English guide also as `MacContestLogger-manual.pdf/.html`). It fails
+when a page or an image linked from the guide is missing; CI builds both languages on every pull request.
+
+The guide exists in two languages. `--lang en` (the default) reads `docs/*.md` and takes each screenshot
+`docs/img/<name>.png` from `docs/img/en/<name>.png` when that English screenshot exists; otherwise the Czech one is
+used, its caption says so and the introduction adds a note. `--lang cs` reads `docs/cs/README.md` (chapter order) and
+`docs/cs/*.md` with the Czech screenshots in `docs/img/`; a page not translated yet is taken from English with a
+warning, and `--strict-lang` turns that into an error (`ManualLanguageTests` checks the Czech guide strictly as soon as
+`docs/cs/README.md` exists). The title page, contents and dates follow the language.
 
 ## Release
 
 A release is built by `.github/workflows/release.yml`: pushing a version tag such as `v0.9.0` builds a
 universal (arm64 and x86_64) DMG, checks it on an Intel runner and creates a draft GitHub
 release with `MacContestLogger-<version>-macos-universal.dmg`, its `.sha256` and the user guide
-`MacContestLogger-manual.pdf` and `MacContestLogger-manual.html` (built by `mcl-manual`; the app's Help menu downloads
-them from the latest release). A suffix such as
+`MacContestLogger-manual.pdf` and `MacContestLogger-manual.html` (English) and `MacContestLogger-manual-cs.pdf` and
+`MacContestLogger-manual-cs.html` (Czech), built by `mcl-manual`; the app's Help menu downloads the one in the
+application's language from the latest release. A suffix such as
 `-rc1` stays in the file name; the bundle version is `0.9.0`. The version rules are in
 `scripts/release-version.sh`. Locally:
 
