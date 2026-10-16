@@ -1,10 +1,10 @@
 {
-  "about": "Screenshots of the user guide: docs/img/<name>.png (Czech) and docs/img/en/<name>.png (English). width/height = window size in points (images are 2x). rendered = scripts/shots.sh can render it offscreen; see docs/screenshots.md.",
+  "about": "Screenshots of the user guide: docs/img/<name>.png (Czech) and docs/img/en/<name>.png (English), captured from the running app by scripts/native-shots/shoot.py. width/height = window size in points (images are 2x). rendered = scripts/shots.sh can also render it offscreen; see docs/screenshots.md.",
   "shots": [
     {
       "name": "bandmap",
       "window": "bandmap",
-      "state": "Band map on 20 m CW, tuned to 14025.00 kHz, a dozen cluster spots",
+      "state": "Band map on 20 m CW, tuned to 14025.30 kHz, spots from the demo cluster",
       "width": 460,
       "height": 640,
       "languages": [
@@ -16,7 +16,7 @@
     {
       "name": "chat",
       "window": "chat",
-      "state": "Network chat window of a multi-op station with a few messages",
+      "state": "Network chat window of a multi-op station with messages from three fictitious stations",
       "width": 560,
       "height": 380,
       "languages": [
@@ -28,7 +28,7 @@
     {
       "name": "cw-keyboard",
       "window": "cw-keyboard",
-      "state": "CW keyboard window with typed text",
+      "state": "CW keyboard window with typed text (send on Enter)",
       "width": 560,
       "height": 220,
       "languages": [
@@ -40,7 +40,7 @@
     {
       "name": "definition-editor",
       "window": "definition-editor",
-      "state": "Contest definition editor: YAML, check and preview",
+      "state": "Contest definition editor with cq-ww-cw open: YAML, check and preview",
       "width": 1100,
       "height": 720,
       "languages": [
@@ -52,7 +52,7 @@
     {
       "name": "digital-interface",
       "window": "digital-interface",
-      "state": "Digital interface with decoded RTTY, callsigns underlined",
+      "state": "Digital interface with RTTY decoded by the built-in modem, callsigns underlined",
       "width": 826,
       "height": 455,
       "languages": [
@@ -64,7 +64,7 @@
     {
       "name": "dupesheet",
       "window": "dupesheet",
-      "state": "Dupesheet: worked callsigns in columns by digit",
+      "state": "Dupesheet of 20 m: worked callsigns in columns by digit",
       "width": 900,
       "height": 600,
       "languages": [
@@ -76,7 +76,7 @@
     {
       "name": "dx-cluster",
       "window": "dx-cluster",
-      "state": "DX cluster window with spots (offline, no node connected)",
+      "state": "DX cluster window connected to the demo cluster, spots and a WWV line",
       "width": 760,
       "height": 560,
       "languages": [
@@ -88,7 +88,7 @@
     {
       "name": "entry-panel",
       "window": "entry",
-      "state": "Entry window during CQ WW CW: call, exchange, info bar, function keys",
+      "state": "Entry window during CQ WW CW with a call and zone typed in",
       "width": 820,
       "height": 500,
       "languages": [
@@ -100,7 +100,7 @@
     {
       "name": "import-merge",
       "window": "import-merge",
-      "state": "Import of a log merged into the current one (status strip)",
+      "state": "Status strip after merging a copy of the log: added 0 QSOs, skipped 180 duplicates",
       "width": 650,
       "height": 71,
       "languages": [
@@ -112,7 +112,7 @@
     {
       "name": "log-window",
       "window": "log",
-      "state": "Log window (QSO overview) with the demo CQ WW CW log",
+      "state": "Log window of a 1650-QSO CQ WW CW log",
       "width": 900,
       "height": 450,
       "languages": [
@@ -124,7 +124,7 @@
     {
       "name": "map",
       "window": "worldmap",
-      "state": "World map with worked countries and the grey line",
+      "state": "World map in DXCC mode with worked and spotted countries and the grey line",
       "width": 969,
       "height": 587,
       "languages": [
@@ -136,7 +136,7 @@
     {
       "name": "move-multipliers",
       "window": "move-multipliers",
-      "state": "Move multipliers window",
+      "state": "Move multipliers window with stations that would be new multipliers on another band",
       "width": 900,
       "height": 500,
       "languages": [
@@ -148,7 +148,7 @@
     {
       "name": "multipliers",
       "window": "multipliers",
-      "state": "Multiplier window (CQ zones / countries per band)",
+      "state": "DXCC multiplier window: worked and spotted countries per band",
       "width": 620,
       "height": 871,
       "languages": [
@@ -160,7 +160,7 @@
     {
       "name": "network-status",
       "window": "network-status",
-      "state": "Network status of a multi-op station",
+      "state": "Network status of a multi-op station with three fictitious peer stations",
       "width": 760,
       "height": 320,
       "languages": [
@@ -172,7 +172,7 @@
     {
       "name": "partner",
       "window": "partner",
-      "state": "Partner window of a multi-op station",
+      "state": "Partner window with a runner selected and what it is typing",
       "width": 520,
       "height": 280,
       "languages": [
@@ -184,7 +184,7 @@
     {
       "name": "propagation",
       "window": "propagation",
-      "state": "Propagation forecast window",
+      "state": "Propagation forecast for the typed call",
       "width": 720,
       "height": 360,
       "languages": [
@@ -196,7 +196,7 @@
     {
       "name": "qtc",
       "window": "qtc",
-      "state": "QTC window (WAE DX Contest)",
+      "state": "QTC window (WAE DX Contest) receiving a series",
       "width": 620,
       "height": 560,
       "languages": [
@@ -208,7 +208,7 @@
     {
       "name": "score-window",
       "window": "score",
-      "state": "Score window: QSOs, points and multipliers per band of the demo log",
+      "state": "Score window: QSOs, points and multipliers per band",
       "width": 825,
       "height": 279,
       "languages": [
@@ -220,7 +220,7 @@
     {
       "name": "settings-function-keys",
       "window": "settings",
-      "state": "Settings → function key messages",
+      "state": "Settings → Function Keys",
       "width": 880,
       "height": 1000,
       "languages": [
@@ -232,7 +232,7 @@
     {
       "name": "settings-keys",
       "window": "settings",
-      "state": "Settings → keyboard shortcuts",
+      "state": "Settings → Keys (keyboard shortcuts)",
       "width": 880,
       "height": 1000,
       "languages": [
@@ -244,7 +244,7 @@
     {
       "name": "settings",
       "window": "settings",
-      "state": "Settings (Configurer), first page",
+      "state": "Settings → Hardware",
       "width": 880,
       "height": 1000,
       "languages": [
@@ -268,7 +268,7 @@
     {
       "name": "skeds",
       "window": "skeds",
-      "state": "Skeds window",
+      "state": "Skeds window with three skeds",
       "width": 640,
       "height": 420,
       "languages": [
@@ -280,7 +280,7 @@
     {
       "name": "startup-dialog",
       "window": "startup",
-      "state": "Start-up dialog: new or existing contest",
+      "state": "Start-up dialog: continue, new or existing contest",
       "width": 460,
       "height": 330,
       "languages": [
@@ -292,7 +292,7 @@
     {
       "name": "statistics",
       "window": "statistics",
-      "state": "Statistics: pivot of the demo log by band and hour with the rate chart",
+      "state": "Statistics: pivot of the demo log by hour and band with the rate chart",
       "width": 820,
       "height": 560,
       "languages": [
@@ -304,7 +304,7 @@
     {
       "name": "waterfall",
       "window": "waterfall",
-      "state": "Waterfall and receiver audio (demo spectrum, no audio device)",
+      "state": "Waterfall of synthetic CW receiver audio with spot labels",
       "width": 760,
       "height": 380,
       "languages": [

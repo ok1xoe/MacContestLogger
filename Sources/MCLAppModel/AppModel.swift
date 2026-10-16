@@ -123,6 +123,7 @@ public final class AppModel {
             if let demo = DemoMode.from(processEnvironment) {
                 environment.hardware = demo.hardware()
                 environment.network = demo.network()
+                DemoMode.builtinScope = demo.script.builtinScope ?? false
             }
             environment.programLog = .shared
             environment.diagnosticsAtStart = processEnvironment["MCL_DIAGNOSTICS"] == "1"

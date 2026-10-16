@@ -43,6 +43,8 @@ public struct DemoMode: Sendable {
         public var connectRigs: Bool?
         /// The DX cluster favourite (by name) connected at start (as `{CONN} name` would).
         public var connectCluster: String?
+        /// The built-in RTTY receivers open with the XY scope and the multi-channel receiver on.
+        public var builtinScope: Bool?
         /// Steps run in order after the entry text: what the operator would do through the menus.
         public var actions: [Action]?
     }
@@ -60,9 +62,32 @@ public struct DemoMode: Sendable {
         /// Text for the fields of an entry window (`vfo`: 0 = main, 1 = the second one).
         public var entry: [String: String]?
         public var vfo: Int?
+        /// Run (`RUN`) or S&P (`SEARCH_AND_POUNCE`) for the entry window `vfo`, as the Run / S&P buttons set it.
+        public var runMode: String?
+        /// Brings the app to the front with the window of this title as the key window (an active title bar in the
+        /// screenshot), as a click on the window does.
+        public var key: String?
         /// Makes this entry window (0 / 1) the active one, as a click into it does.
         public var activate: Int?
+        /// A sked added as in the Skeds window: call, kHz, mode, time (`HHmm`), note.
+        public var sked: [String]?
+        /// Text the next CW keyboard window opens with (sent only on Enter, which the demo never presses).
+        public var cwKeyboardText: String?
+        /// A contest definition (id) opened in the definition editor, as a click in its list does.
+        public var definition: String?
+        /// A QTC series being received, as typed into the QTC window: partner call, series (`3/10`), the lines.
+        public var qtcReceive: [String]?
+        /// The runner (station id) the next partner window opens with, as a click on its chip does.
+        public var partnerRunner: String?
     }
+
+    /// `Script.builtinScope` of the running demo (read by every built-in receiver pane as it opens).
+    @MainActor public static var builtinScope = false
+
+    /// The text of `Action.cwKeyboardText`, taken by the next CW keyboard window.
+    @MainActor public static var pendingCwKeyboardText: String?
+    /// The runner of `Action.partnerRunner`, taken by the next partner window.
+    @MainActor public static var pendingPartnerRunner: String?
 
     public let directory: URL
     public let script: Script

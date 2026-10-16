@@ -1,5 +1,6 @@
 import AppKit
 import MCLAppModel
+import MCLCore
 import Observation
 
 /// Owns the app model for the scenes. The model is bootstrapped only after the resource check passed (the delegate
@@ -156,8 +157,9 @@ final class AppHost {
         exit(0)
     }
 
-    /// The maintainers' screenshot demo (`DemoMode`, only with both inert switches): the QSO in progress of
-    /// `demo.json` typed into the entry windows a few seconds after start, once the contest is open.
+    /// The maintainers' screenshot demo (`DemoMode`, only with both inert switches): a few seconds after start the
+    /// demo rigs and the cluster connect, the QSO in progress of `demo.json` is typed into the entry windows and the
+    /// scripted actions run (menu items, Settings tabs, a merge, skeds), as the operator would do them.
     private static func demoEntry(_ app: AppModel) {
         guard let demo = DemoMode.from(ProcessInfo.processInfo.environment) else { return }
         Task {
@@ -193,8 +195,35 @@ final class AppHost {
                 if let fields = action.entry {
                     demoType(fields, into: app.panel(vfo: action.vfo ?? 0).entry)
                 }
+                if let title = action.key, let window = NSApp.windows.first(where: { $0.title == title }) {
+                    NSApp.activate(ignoringOtherApps: true)
+                    window.makeKeyAndOrderFront(nil)
+                }
+                if let mode = action.runMode.flatMap(RunMode.init(rawValue:)) {
+                    app.panel(vfo: action.vfo ?? 0).entry.runMode = mode
+                }
                 if let vfo = action.activate {
                     app.rig.activateVfo(vfo)
+                }
+                if let sked = action.sked, sked.count == 5 {
+                    await app.infoTools.skeds.add(call: sked[0], freqText: sked[1], mode: sked[2], timeText: sked[3],
+                                                  note: sked[4])
+                }
+                if let id = action.definition {
+                    await app.definitionEditor.open(id)
+                }
+                if let qtc = action.qtcReceive, qtc.count == 3 {
+                    let model: QtcModel = app.infoTools.qtc
+                    model.sendMode = false
+                    model.setPartner(qtc[0])
+                    model.group = qtc[1]
+                    model.received = qtc[2]
+                }
+                if let runner = action.partnerRunner {
+                    DemoMode.pendingPartnerRunner = runner
+                }
+                if let text = action.cwKeyboardText {
+                    DemoMode.pendingCwKeyboardText = text
                 }
             }
         }

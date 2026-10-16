@@ -1,0 +1,24 @@
+{
+ "log": {
+  "contest": "cq-ww-ssb",
+  "mode": "SSB",
+  "count": 180,
+  "gap": "40-150",
+  "seed": 3
+ },
+ "windows": [],
+ "geometry": {},
+ "config": {
+  "autoReloadLastContest": false
+ },
+ "demo": {
+  "connectRigs": false
+ },
+ "shots": [
+  {
+   "at": 12,
+   "title": "^(Databáze|Database)",
+   "name": "startup-dialog"
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "log": {
+  "contest": "wae-cw",
+  "mode": "CW",
+  "count": 500,
+  "gap": "40-150",
+  "seed": 17
+ },
+ "windows": [
+  "log",
+  "qtc"
+ ],
+ "geometry": {
+  "qtc": {
+   "x": 0,
+   "y": 40,
+   "width": 620,
+   "height": 560
+  }
+ },
+ "demo": {
+  "rigs": [
+   {
+    "freqHz": 14025300,
+    "mode": "CW"
+   }
+  ],
+  "entry": {
+   "call": "K3ZQX",
+   "nr": "412"
+  },
+  "actions": [
+   {
+    "wait": 2,
+    "qtcReceive": [
+     "K3ZQX",
+     "3/10",
+     "1402 DL7QXV 233\n1405 OH2ZQR 187\n1407 SP5QXZ 412\n"
+    ]
+   }
+  ]
+ },
+ "shots": [
+  {
+   "at": 18,
+   "title": "^QTC$",
+   "name": "qtc"
+  }
+ ]
+}

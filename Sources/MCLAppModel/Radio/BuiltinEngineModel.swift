@@ -57,6 +57,11 @@ public final class BuiltinEngineModel {
     public func start() {
         guard !open else { return }
         open = true
+        // The screenshot demo (`DemoMode.builtinScope`): the XY scope and the channels as if switched on.
+        if DemoMode.builtinScope {
+            setXY(true)
+            setChannels(true)
+        }
         refresh()
     }
 

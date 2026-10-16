@@ -1,0 +1,98 @@
+{
+ "log": {
+  "contest": "cq-ww-cw",
+  "mode": "CW",
+  "count": 180,
+  "gap": "30-120",
+  "seed": 9
+ },
+ "windows": [],
+ "geometry": {
+  "defeditor": {
+   "x": 100,
+   "y": 60,
+   "width": 1100,
+   "height": 720
+  },
+  "settings": {
+   "x": 800,
+   "y": 40,
+   "width": 880,
+   "height": 1000
+  }
+ },
+ "demo": {
+  "rigs": [
+   {
+    "freqHz": 14025300,
+    "mode": "CW"
+   }
+  ],
+  "entry": {
+   "call": "JA1QZX",
+   "zone": "25"
+  },
+  "actions": [
+   {
+    "wait": 6,
+    "settingsTab": "hardware"
+   },
+   {
+    "wait": 6,
+    "settingsTab": "function-keys"
+   },
+   {
+    "wait": 6,
+    "settingsTab": "keys"
+   },
+   {
+    "wait": 6,
+    "menu": "contest.editor"
+   },
+   {
+    "wait": 1,
+    "definition": "cq-ww-cw"
+   },
+   {
+    "wait": 1,
+    "merge": "$DATA/merge-copy.sqlite"
+   }
+  ]
+ },
+ "before": [
+  "cp \"$DATA/databases/CQWW CW 2026.sqlite\" \"$DATA/merge-copy.sqlite\""
+ ],
+ "shots": [
+  {
+   "at": 17,
+   "title": "astaven|ettings",
+   "name": "settings"
+  },
+  {
+   "at": 23,
+   "title": "astaven|ettings",
+   "name": "settings-function-keys"
+  },
+  {
+   "at": 29,
+   "title": "astaven|ettings",
+   "name": "settings-keys"
+  },
+  {
+   "at": 37,
+   "title": "efinic|efinition",
+   "name": "definition-editor"
+  },
+  {
+   "at": 41,
+   "title": "^MacContestLogger$",
+   "name": "import-merge",
+   "crop": [
+    0,
+    696,
+    1640,
+    118
+   ]
+  }
+ ]
+}
