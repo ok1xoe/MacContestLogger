@@ -86,9 +86,9 @@ final class ShotDemo {
         var config = AppConfig()
         config.contestDataDir = repository.appendingPathComponent("contest-data").path
         config.language = language
-        config.station.call = "OK1XOE"
+        config.station.call = "OK1DEMO"
         config.station.name = "Tom"
-        config.station.gridSquare = "JO70FD"
+        config.station.gridSquare = "JO70FC"
         try ConfigWriter.writeFile(config, to: dataDir.appendingPathComponent("config.json"))
         let clock = Clock(start)
         var environment = AppModel.Environment(
@@ -140,7 +140,7 @@ final class ShotDemo {
         ("DL1ABC", 14_012.0, "OK1RR"), ("K1LZ", 14_021.5, "DL8DYL"), ("VK2GR", 14_028.1, "OK2PVF"),
         ("JA1ZLO", 14_033.0, "OH6BG"), ("PY2YU", 14_038.4, "SP7GIQ"), ("ZS6EZ", 14_041.2, "G3SXW"),
         ("W1AW", 14_045.0, "OK1RR"), ("9A1A", 14_051.7, "S53M"), ("UN9L", 14_056.3, "RA3CW"),
-        ("CN8KD", 14_060.0, "EA5RM"), ("4X6TT", 14_064.9, "OK1XOE"), ("EA8AH", 14_070.2, "CT1BOH"),
+        ("CN8KD", 14_060.0, "EA5RM"), ("4X6TT", 14_064.9, "OK2DEMO"), ("EA8AH", 14_070.2, "CT1BOH"),
     ]
 
     /// A text command typed in the call field.

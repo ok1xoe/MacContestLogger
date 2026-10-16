@@ -1,0 +1,41 @@
+{
+ "log": {
+  "contest": "cq-ww-rtty",
+  "mode": "RTTY",
+  "count": 900,
+  "gap": "40-140",
+  "seed": 19
+ },
+ "windows": [
+  "log",
+  "digitalinterface"
+ ],
+ "geometry": {
+  "digitalinterface": {
+   "x": 0,
+   "y": 40,
+   "width": 826,
+   "height": 560
+  }
+ },
+ "config": {
+  "digital.builtinModem": true,
+  "digital.engine": "FLDIGI"
+ },
+ "demo": {
+  "rigs": [
+   {
+    "freqHz": 14085000,
+    "mode": "RTTY"
+   }
+  ]
+ },
+ "audio": "rtty",
+ "shots": [
+  {
+   "at": 62,
+   "title": "^(Digitální rozhraní|Digital Interface)$",
+   "name": "digital-interface"
+  }
+ ]
+}

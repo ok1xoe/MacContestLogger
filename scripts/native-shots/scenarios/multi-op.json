@@ -1,0 +1,76 @@
+{
+ "log": {
+  "contest": "cq-ww-cw",
+  "mode": "CW",
+  "count": 700,
+  "gap": "40-150",
+  "seed": 13
+ },
+ "windows": [
+  "log",
+  "netstatus",
+  "chat"
+ ],
+ "geometry": {
+  "netstatus": {
+   "x": 0,
+   "y": 40,
+   "width": 1180,
+   "height": 250
+  },
+  "chat": {
+   "x": 800,
+   "y": 400,
+   "width": 560,
+   "height": 380
+  },
+  "partner": {
+   "x": 0,
+   "y": 420,
+   "width": 520,
+   "height": 280
+  }
+ },
+ "config": {
+  "cluster.enabled": true,
+  "cluster.brokerHost": "broker.local",
+  "cluster.stationId": "RUN1",
+  "cluster.stationType": "RUN1"
+ },
+ "broker": true,
+ "chatAfter": 10,
+ "demo": {
+  "rigs": [
+   {
+    "freqHz": 14025300,
+    "mode": "CW"
+   }
+  ],
+  "actions": [
+   {
+    "wait": 8,
+    "partnerRunner": "RUN2"
+   },
+   {
+    "menu": "window.partner"
+   }
+  ]
+ },
+ "shots": [
+  {
+   "at": 28,
+   "title": "^(Stav sítě|Network)",
+   "name": "network-status"
+  },
+  {
+   "at": 28,
+   "title": "^Chat$",
+   "name": "chat"
+  },
+  {
+   "at": 28,
+   "title": "^Partner$",
+   "name": "partner"
+  }
+ ]
+}

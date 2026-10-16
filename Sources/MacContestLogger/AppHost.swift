@@ -1,5 +1,6 @@
 import AppKit
 import MCLAppModel
+import MCLCore
 import Observation
 
 /// Owns the app model for the scenes. The model is bootstrapped only after the resource check passed (the delegate
@@ -59,6 +60,7 @@ final class AppHost {
                 TwoKeyboardDispatcher.shared.keyboards = twoKeyboards
                 twoKeyboards.start()
                 QuitTrace.write("ready")
+                Self.demoEntry(app)
                 #if DEBUG
                 Self.smokeLanguageSwitch(app)
                 Self.smokeQuit()
@@ -153,6 +155,90 @@ final class AppHost {
         QuitTrace.write("exit without AppKit")
         AppDelegate.cleanUpBeforeExit()
         exit(0)
+    }
+
+    /// The maintainers' screenshot demo (`DemoMode`, only with both inert switches): a few seconds after start the
+    /// demo rigs and the cluster connect, the QSO in progress of `demo.json` is typed into the entry windows and the
+    /// scripted actions run (menu items, Settings tabs, a merge, skeds), as the operator would do them.
+    private static func demoEntry(_ app: AppModel) {
+        guard let demo = DemoMode.from(ProcessInfo.processInfo.environment) else { return }
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            if demo.script.connectRigs == true {
+                let vfos: [Int] = app.rig.rigConfig(vfo: 1) == app.rig.rigConfig(vfo: 0) ? [0] : [0, 1]
+                for vfo in vfos where !app.rig.connected(vfo: vfo) {
+                    app.rig.toggle(vfo: vfo)
+                }
+            }
+            if let name = demo.script.connectCluster {
+                app.dxCluster.connectNamed(name)
+            }
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            for (vfo, fields) in [(0, demo.script.entry), (1, demo.script.entry2)] {
+                if let fields {
+                    demoType(fields, into: app.panel(vfo: vfo).entry)
+                }
+            }
+            for action in demo.script.actions ?? [] {
+                if let wait = action.wait {
+                    try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+                }
+                if let id = action.menu {
+                    _ = MenuActions.perform(id, app: app)
+                }
+                if let tab = action.settingsTab {
+                    app.settings.open(tabKey: tab)
+                }
+                if let path = action.merge {
+                    await app.exports.merge(from: URL(fileURLWithPath: path))
+                }
+                if let fields = action.entry {
+                    demoType(fields, into: app.panel(vfo: action.vfo ?? 0).entry)
+                }
+                if let title = action.key, let window = NSApp.windows.first(where: { $0.title == title }) {
+                    NSApp.activate(ignoringOtherApps: true)
+                    window.makeKeyAndOrderFront(nil)
+                }
+                if let mode = action.runMode.flatMap(RunMode.init(rawValue:)) {
+                    app.panel(vfo: action.vfo ?? 0).entry.runMode = mode
+                }
+                if let vfo = action.activate {
+                    app.rig.activateVfo(vfo)
+                }
+                if let sked = action.sked, sked.count == 5 {
+                    await app.infoTools.skeds.add(call: sked[0], freqText: sked[1], mode: sked[2], timeText: sked[3],
+                                                  note: sked[4])
+                }
+                if let id = action.definition {
+                    await app.definitionEditor.open(id)
+                }
+                if let qtc = action.qtcReceive, qtc.count == 3 {
+                    let model: QtcModel = app.infoTools.qtc
+                    model.sendMode = false
+                    model.setPartner(qtc[0])
+                    model.group = qtc[1]
+                    model.received = qtc[2]
+                }
+                if let runner = action.partnerRunner {
+                    DemoMode.pendingPartnerRunner = runner
+                }
+                if let text = action.cwKeyboardText {
+                    DemoMode.pendingCwKeyboardText = text
+                }
+            }
+        }
+    }
+
+    private static func demoType(_ fields: [String: String], into entry: EntryModel) {
+        for (id, text) in fields.sorted(by: { $0.key < $1.key }) {
+            switch id {
+            case "call": entry.callChanged(text)
+            case "rstSent": entry.editRstSent(text)
+            case "rstRcvd": entry.editRstRcvd(text)
+            case "exchange": entry.editExchange(text)
+            default: entry.editContestField(id, text)
+            }
+        }
     }
 
     #if DEBUG

@@ -119,6 +119,12 @@ public final class AppModel {
             // serial or CoreAudio listing).
             environment.settingsToolPorts = environment.hardware.isInert ? SettingsToolPorts() : .live
             environment.network = .production(environment: processEnvironment)
+            // The maintainers' screenshot demo (`MCL_DEMO_DIR`, only together with both inert switches).
+            if let demo = DemoMode.from(processEnvironment) {
+                environment.hardware = demo.hardware()
+                environment.network = demo.network()
+                DemoMode.builtinScope = demo.script.builtinScope ?? false
+            }
             environment.programLog = .shared
             environment.diagnosticsAtStart = processEnvironment["MCL_DIAGNOSTICS"] == "1"
             environment.announce = AnnouncementsModel.systemPost

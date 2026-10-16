@@ -51,6 +51,13 @@ struct PartnerWindowView: View {
         }
         .padding(8)
         .environment(\.windowFontSize, session.fontSize)
+        .onAppear {
+            // The screenshot demo's runner (`DemoMode`).
+            if let runner = DemoMode.pendingPartnerRunner {
+                DemoMode.pendingPartnerRunner = nil
+                state.target = runner
+            }
+        }
     }
 
     @ViewBuilder private func runner(_ app: AppModel) -> some View {

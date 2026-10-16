@@ -111,11 +111,18 @@ extension AppModel {
 
     /// The CW keyboard window's model (`cwkeyboard`).
     public func makeCwKeyboard() -> CwKeyboardModel {
-        CwKeyboardModel(keyer: keyer, stop: { [weak self] in
+        let model = CwKeyboardModel(keyer: keyer, stop: { [weak self] in
             _ = self?.entry.stopSending()
         }, typedCall: { [weak self] in
             self?.typedCall ?? ""
         })
+        // The screenshot demo's text (`DemoMode`): shown, sent only on Enter.
+        if let text = DemoMode.pendingCwKeyboardText {
+            DemoMode.pendingCwKeyboardText = nil
+            model.wordByWord = false
+            model.textChanged(text)
+        }
+        return model
     }
 
     /// The CW reader window's model (`cwreader`).

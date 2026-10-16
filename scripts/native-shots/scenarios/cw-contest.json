@@ -1,0 +1,242 @@
+{
+ "log": {
+  "contest": "cq-ww-cw",
+  "mode": "CW",
+  "count": 1650,
+  "gap": "20-100",
+  "seed": 5
+ },
+ "windows": [
+  "log",
+  "dxCluster",
+  "mult:dxcc",
+  "worldmap-dxcc",
+  "movemults",
+  "dupesheet",
+  "propagation",
+  "skeds",
+  "waterfall",
+  "bandmap",
+  "score",
+  "statistics"
+ ],
+ "geometry": {
+  "dxCluster": {
+   "x": 0,
+   "y": 40,
+   "width": 760,
+   "height": 560
+  },
+  "mult-dxcc": {
+   "x": 770,
+   "y": 40,
+   "width": 620,
+   "height": 871
+  },
+  "worldmap": {
+   "x": 0,
+   "y": 620,
+   "width": 969,
+   "height": 587
+  },
+  "movemults": {
+   "x": 1000,
+   "y": 100,
+   "width": 900,
+   "height": 280
+  },
+  "dupesheet": {
+   "x": 1100,
+   "y": 600,
+   "width": 900,
+   "height": 600
+  },
+  "propagation": {
+   "x": 100,
+   "y": 100,
+   "width": 720,
+   "height": 300
+  },
+  "skeds": {
+   "x": 200,
+   "y": 200,
+   "width": 640,
+   "height": 420
+  },
+  "cwkeyboard": {
+   "x": 300,
+   "y": 300,
+   "width": 560,
+   "height": 220
+  },
+  "waterfall": {
+   "x": 400,
+   "y": 400,
+   "width": 760,
+   "height": 380
+  },
+  "simulator": {
+   "x": 500,
+   "y": 500,
+   "width": 620,
+   "height": 300
+  },
+  "bandmap": {
+   "x": 1560,
+   "y": 40,
+   "width": 460,
+   "height": 640
+  },
+  "log": {
+   "x": 20,
+   "y": 700,
+   "width": 900,
+   "height": 450
+  },
+  "score": {
+   "x": 900,
+   "y": 800,
+   "width": 825,
+   "height": 279
+  },
+  "statistics": {
+   "x": 1000,
+   "y": 300,
+   "width": 820,
+   "height": 560
+  }
+ },
+ "demo": {
+  "rigs": [
+   {
+    "freqHz": 14025300,
+    "mode": "CW"
+   },
+   {
+    "freqHz": 7012000,
+    "mode": "CW"
+   }
+  ],
+  "entry": {
+   "call": "K3ZQX",
+   "zone": "5"
+  },
+  "actions": [
+   {
+    "wait": 1,
+    "sked": [
+     "JA1QZX",
+     "7012.5",
+     "CW",
+     "2215",
+     "40m opening"
+    ]
+   },
+   {
+    "sked": [
+     "VK2ZQX",
+     "14018",
+     "CW",
+     "0630",
+     "LP"
+    ]
+   },
+   {
+    "sked": [
+     "PY2QZX",
+     "21025",
+     "CW",
+     "1400",
+     "needs 15m"
+    ]
+   },
+   {
+    "cwKeyboardText": "TU NICE QSO GL IN THE TEST "
+   },
+   {
+    "menu": "window.cwkeyboard"
+   },
+   {
+    "menu": "window.simulator"
+   }
+  ]
+ },
+ "audio": "cw",
+ "shots": [
+  {
+   "at": 30,
+   "title": "^MacContestLogger$",
+   "name": "entry-panel"
+  },
+  {
+   "at": 30,
+   "title": "^DX Cluster$",
+   "name": "dx-cluster"
+  },
+  {
+   "at": 30,
+   "title": "^DXCC$",
+   "name": "multipliers"
+  },
+  {
+   "at": 30,
+   "title": "^(Mapa|Map)$",
+   "name": "map"
+  },
+  {
+   "at": 30,
+   "title": "násobičů|ultipliers",
+   "name": "move-multipliers"
+  },
+  {
+   "at": 30,
+   "title": "^Dupesheet",
+   "name": "dupesheet"
+  },
+  {
+   "at": 30,
+   "title": "šíření|ropagation",
+   "name": "propagation"
+  },
+  {
+   "at": 30,
+   "title": "^(Skedy|Skeds)$",
+   "name": "skeds"
+  },
+  {
+   "at": 30,
+   "title": "^CW ",
+   "name": "cw-keyboard"
+  },
+  {
+   "at": 30,
+   "title": "^(Vodopád|Waterfall)$",
+   "name": "waterfall"
+  },
+  {
+   "at": 30,
+   "title": "imulát|imulator",
+   "name": "simulator"
+  },
+  {
+   "at": 30,
+   "title": "^(Bandmapa|Band map)$",
+   "name": "bandmap"
+  },
+  {
+   "at": 30,
+   "title": "^(Přehled spojení|Log)$",
+   "name": "log-window"
+  },
+  {
+   "at": 30,
+   "title": "^(Skóre|Score)",
+   "name": "score-window"
+  },
+  {
+   "at": 30,
+   "title": "^(Statistiky|Statistics)$",
+   "name": "statistics"
+  }
+ ]
+}

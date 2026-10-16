@@ -214,6 +214,46 @@ public final class AudioCapture: @unchecked Sendable {
         }
     }
 
+    /// The screenshot demo's input (`DemoMode`, inert hardware only): interleaved 16-bit stereo PCM at `sampleRate`,
+    /// played in a loop in real time from a thread of its own instead of a device, until `close()`. A running input
+    /// is left alone.
+    public func startFeed(stereoPcm: [UInt8]) {
+        let frameBytes = 4
+        let chunkFrames = Self.block
+        let total: Int = stereoPcm.count / frameBytes * frameBytes
+        guard total >= chunkFrames * frameBytes else { return }
+        let generation: UInt64? = state.withLock { s in
+            if s.running { return nil }
+            s.running = true
+            s.pending.removeAll()
+            s.pendingStereo.removeAll()
+            return s.generation
+        }
+        guard let generation else { return }
+        let thread = Thread { [weak self] in
+            let interval: Double = Double(chunkFrames) / Double(Self.sampleRate)
+            var offset = 0
+            var next: Date = Date()
+            while let self, self.state.withLock({ $0.running && $0.generation == generation }) {
+                var chunk: [UInt8] = []
+                chunk.reserveCapacity(chunkFrames * frameBytes)
+                while chunk.count < chunkFrames * frameBytes {
+                    let take: Int = min(chunkFrames * frameBytes - chunk.count, total - offset)
+                    chunk.append(contentsOf: stereoPcm[offset..<(offset + take)])
+                    offset = (offset + take) % total
+                }
+                self.acceptStereo(chunk, generation: generation)
+                next = next.addingTimeInterval(interval)
+                let wait: TimeInterval = next.timeIntervalSinceNow
+                if wait > 0 {
+                    Thread.sleep(forTimeInterval: wait)
+                }
+            }
+        }
+        thread.name = "audio-demo-feed"
+        thread.start()
+    }
+
     /// For tests: the "running" state without a device (PCM is then fed directly into `accept`). Returns the generation.
     func startWithoutDevice() -> UInt64 {
         state.withLock { s in
