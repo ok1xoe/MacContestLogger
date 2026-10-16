@@ -1,0 +1,317 @@
+{
+  "about": "Screenshots of the user guide: docs/img/<name>.png (Czech) and docs/img/en/<name>.png (English). width/height = window size in points (images are 2x). rendered = scripts/shots.sh can render it offscreen; see docs/screenshots.md.",
+  "shots": [
+    {
+      "name": "bandmap",
+      "window": "bandmap",
+      "state": "Band map on 20 m CW, tuned to 14025.00 kHz, a dozen cluster spots",
+      "width": 460,
+      "height": 640,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": true
+    },
+    {
+      "name": "chat",
+      "window": "chat",
+      "state": "Network chat window of a multi-op station with a few messages",
+      "width": 560,
+      "height": 380,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "cw-keyboard",
+      "window": "cw-keyboard",
+      "state": "CW keyboard window with typed text",
+      "width": 560,
+      "height": 220,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "definition-editor",
+      "window": "definition-editor",
+      "state": "Contest definition editor: YAML, check and preview",
+      "width": 1100,
+      "height": 720,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "digital-interface",
+      "window": "digital-interface",
+      "state": "Digital interface with decoded RTTY, callsigns underlined",
+      "width": 826,
+      "height": 455,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "dupesheet",
+      "window": "dupesheet",
+      "state": "Dupesheet: worked callsigns in columns by digit",
+      "width": 900,
+      "height": 600,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "dx-cluster",
+      "window": "dx-cluster",
+      "state": "DX cluster window with spots (offline, no node connected)",
+      "width": 760,
+      "height": 560,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "entry-panel",
+      "window": "entry",
+      "state": "Entry window during CQ WW CW: call, exchange, info bar, function keys",
+      "width": 820,
+      "height": 500,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "import-merge",
+      "window": "import-merge",
+      "state": "Import of a log merged into the current one (status strip)",
+      "width": 650,
+      "height": 71,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "log-window",
+      "window": "log",
+      "state": "Log window (QSO overview) with the demo CQ WW CW log",
+      "width": 900,
+      "height": 450,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": true
+    },
+    {
+      "name": "map",
+      "window": "worldmap",
+      "state": "World map with worked countries and the grey line",
+      "width": 969,
+      "height": 587,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "move-multipliers",
+      "window": "move-multipliers",
+      "state": "Move multipliers window",
+      "width": 900,
+      "height": 500,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "multipliers",
+      "window": "multipliers",
+      "state": "Multiplier window (CQ zones / countries per band)",
+      "width": 620,
+      "height": 871,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "network-status",
+      "window": "network-status",
+      "state": "Network status of a multi-op station",
+      "width": 760,
+      "height": 320,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "partner",
+      "window": "partner",
+      "state": "Partner window of a multi-op station",
+      "width": 520,
+      "height": 280,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "propagation",
+      "window": "propagation",
+      "state": "Propagation forecast window",
+      "width": 720,
+      "height": 360,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "qtc",
+      "window": "qtc",
+      "state": "QTC window (WAE DX Contest)",
+      "width": 620,
+      "height": 560,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "score-window",
+      "window": "score",
+      "state": "Score window: QSOs, points and multipliers per band of the demo log",
+      "width": 825,
+      "height": 279,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": true
+    },
+    {
+      "name": "settings-function-keys",
+      "window": "settings",
+      "state": "Settings → function key messages",
+      "width": 880,
+      "height": 1000,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "settings-keys",
+      "window": "settings",
+      "state": "Settings → keyboard shortcuts",
+      "width": 880,
+      "height": 1000,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "settings",
+      "window": "settings",
+      "state": "Settings (Configurer), first page",
+      "width": 880,
+      "height": 1000,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "simulator",
+      "window": "simulator",
+      "state": "Pileup simulator",
+      "width": 620,
+      "height": 520,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "skeds",
+      "window": "skeds",
+      "state": "Skeds window",
+      "width": 640,
+      "height": 420,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "startup-dialog",
+      "window": "startup",
+      "state": "Start-up dialog: new or existing contest",
+      "width": 460,
+      "height": 330,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    },
+    {
+      "name": "statistics",
+      "window": "statistics",
+      "state": "Statistics: pivot of the demo log by band and hour with the rate chart",
+      "width": 820,
+      "height": 560,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": true
+    },
+    {
+      "name": "waterfall",
+      "window": "waterfall",
+      "state": "Waterfall and receiver audio (demo spectrum, no audio device)",
+      "width": 760,
+      "height": 380,
+      "languages": [
+        "cs",
+        "en"
+      ],
+      "rendered": false
+    }
+  ]
+}
