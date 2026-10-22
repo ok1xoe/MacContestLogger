@@ -49,6 +49,7 @@ jobs:
   package:
     name: Package universal DMG
     runs-on: macos-15
+    timeout-minutes: 90
     permissions:
       contents: read
     outputs:
@@ -276,6 +277,7 @@ jobs:
             build/release/MacContestLogger-manual-cs.pdf
             build/release/MacContestLogger-manual-cs.html
           if-no-files-found: error
+          retention-days: 7
       # Always, also after a failure halfway through the import (the keychain path is fixed, not a step output).
       - name: Remove signing keychain
         if: always() && steps.mode.outputs.signed == 'true'
@@ -286,7 +288,10 @@ jobs:
   verify-intel:
     name: Launch check on Intel
     needs: package
+    # The Intel runner is the most expensive one: tags and manual runs only, never the pull request dry run.
+    if: github.event_name != 'pull_request'
     runs-on: macos-15-intel
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
