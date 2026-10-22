@@ -3,9 +3,20 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# A new push to a pull request cancels the run still going for the older commit (macOS minutes are billed ~10x);
+# runs on main always finish, they refresh the build cache.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
+    # Draft pull requests do not start the macOS run; mark the PR ready for review to run it.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: macos-15
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -15,7 +26,8 @@ jobs:
       # therefore match the cached build and only what really changed gets rebuilt.
       - name: File times from git
         run: scripts/restore-mtimes.sh
-      - uses: actions/cache@v4
+      # Restore only: just runs on main save the cache (below), so a pull request does not add a ~400 MB entry per push.
+      - uses: actions/cache/restore@v4
         with:
           path: .build
           key: build-${{ runner.os }}-${{ runner.arch }}-xcode16-${{ hashFiles('Package.swift') }}-${{ github.sha }}
@@ -69,3 +81,10 @@ jobs:
       # (inert hardware and network, temporary data, throwaway defaults domain; no input events).
       - name: Quit check
         run: scripts/quit-e2e.py --app build/app/MacContestLogger.app
+      # The build cache is written once per commit on main; pull requests restore the newest one.
+      - name: Save build cache
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: .build
+          key: build-${{ runner.os }}-${{ runner.arch }}-xcode16-${{ hashFiles('Package.swift') }}-${{ github.sha }}
