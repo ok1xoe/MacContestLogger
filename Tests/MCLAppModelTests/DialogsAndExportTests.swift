@@ -312,9 +312,10 @@ import Testing
         let app = try await TestApp.make()
         let model: AppModel = app.model
         let dialogs: DialogsModel = model.dialogs
+        // Opening the window reads the list itself: the window's `Window` scene outlives its closing, so a view
+        // `.task` does not run again on the next opening (MCL-151).
         dialogs.setOpen(.databaseOpen, true)
-        #expect(dialogs.databaseNames == nil)
-        await dialogs.loadDatabases()
+        await dialogs.settle()
         #expect(dialogs.databaseNames == [model.database.currentName])
 
         dialogs.setOpen(.databaseNew, true)
@@ -332,7 +333,7 @@ import Testing
 
         dialogs.setOpen(.databaseOpen, false)
         dialogs.setOpen(.databaseOpen, true)
-        await dialogs.loadDatabases()
+        await dialogs.settle()
         let names: [String] = try #require(dialogs.databaseNames)
         #expect(names.contains("Druhý"))
         let other: String = try #require(names.first { $0 != "Druhý" })
