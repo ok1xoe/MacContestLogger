@@ -36,6 +36,29 @@ import Testing
         #expect(reader.text == before)
     }
 
+    /// The decoded text itself is clickable (MCL-153): the calls and, in a contest, the exchange words are underlined
+    /// spans; a click on a call fills the call field, a click on the zone fills the exchange field.
+    @Test func clickingTheDecodedTextTakesTheCallAndTheExchange() async throws {
+        let app = try await KeyingApp.make()
+        try await app.app.startCqWwCw()
+        let reader: CwReaderModel = app.model.makeCwReader()
+        await reader.open()
+        try RadioSignals.feed(app, RadioSignals.cw("DL1ABC 14", wpm: 25, tone: 600))
+        app.radioClock.advance(by: 150)
+        let text: String = reader.shownText
+        let spans = reader.spans
+        let callSpan = try #require(spans.first { if case .call("DL1ABC") = $0.kind { true } else { false } },
+                                    "\(text) \(spans)")
+        let zoneSpan = try #require(spans.first { if case .exchange(let id, "14") = $0.kind { id == "zone" } else { false } },
+                                    "\(text) \(spans)")
+        reader.tap(offset: callSpan.start)
+        #expect(app.entry.form.call == "DL1ABC")
+        reader.tap(offset: zoneSpan.start)
+        await app.settle()
+        #expect(app.entry.form.contestExchange["zone"] == "14")
+        reader.close()
+    }
+
     /// N1MM "pause scrolling": the shown text and its calls stay while the decoder goes on; resuming shows everything.
     @Test func pausedScrollingKeepsTheShownTextWhileDecodingGoesOn() async throws {
         let app = try await KeyingApp.make()

@@ -4,7 +4,8 @@ import SwiftUI
 
 /// Kotlin `CwReaderWindow` (`cwreader` 620×300, `CwReaderWindow.kt:42-117`, DXLog CW Reader): the tone field
 /// (200…3000 Hz), the speed „~N WPM", „Vymazat", the audio error, up to six decoded calls (a click puts the call
-/// into the call field), the decoded text (or a hint while there is none) scrolled to its end, and the hint line.
+/// into the call field), the decoded text (or a hint while there is none) scrolled to its end — its calls and
+/// exchange words are underlined and a click puts them into the entry window — and the hint line.
 /// The window holds the receiver audio while it is open.
 ///
 /// `radio` 1 (`cwreader2`, N1MM's second reader in SO2V / SO2R) decodes radio 2's audio input — chosen in the window —
@@ -67,31 +68,28 @@ struct CwReaderWindowView: View {
                     SettingsChip(label: call, selected: false) { model.take(call) }
                 }
             }
-            ScrollViewReader { proxy in
-                ScrollView(.vertical) {
-                    Text(verbatim: model.shownText.isEmpty
-                         ? RadioWindowTexts.readerPlaceholder(model.pitchText)
-                            .text(language.translator, decimalSeparator: language.decimalSeparator)
-                         : model.shownText)
-                        .windowFont(16, design: .monospaced)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Color.clear.frame(height: 1).id(Self.bottom)
-                }
-                .onChange(of: model.shownText) {
-                    proxy.scrollTo(Self.bottom, anchor: .bottom)
-                }
+            if model.shownText.isEmpty {
+                Text(verbatim: RadioWindowTexts.readerPlaceholder(model.pitchText)
+                    .text(language.translator, decimalSeparator: language.decimalSeparator))
+                    .windowFont(16, design: .monospaced)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            } else {
+                // The calls and the words the contest takes as an exchange are underlined and clickable, as in the
+                // Digital Interface; a paused reader keeps the text still.
+                DigitalRxTextView(text: DigitalInterfaceWindowView.annotated(model.shownText, spans: model.spans,
+                                                                              size: session.fontSize),
+                                  accessibilityText: language.tr("Dekódovaný text"),
+                                  scrolling: !model.scrollPaused,
+                                  onTap: { offset, _ in model.tap(offset: offset) })
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxHeight: .infinity)
-            Text(verbatim: language.tr("Klik na volačku ji vloží do pole volačky."))
+            Text(verbatim: language.tr("Klik: volačka do pole volačky, jiné podtržené slovo do výměny."))
                 .windowFont(11)
                 .foregroundStyle(.secondary)
         }
         .padding(8)
         .environment(\.windowFontSize, session.fontSize)
     }
-
-    private static let bottom = "bottom"
 
     /// „Tón (Hz)", „~N WPM", „Vymazat".
     private func toneRow(_ language: LanguageModel, _ model: CwReaderModel) -> some View {

@@ -286,7 +286,7 @@
  "Kdekoli (jeden signál)": "Anywhere (one signal)",
  "kHz nebo pásmo (20m)": "kHz or a band (20m)",
  "Klik: volačka do pole volačky, jiné podtržené slovo do výměny · Option+klik: do zásobníku · Cmd+klik: slovo do pole s kurzorem · Shift+klik: převod Letters/Figs. Text dekóduje fldigi.": "Click: a callsign into the callsign field, another underlined word into the exchange · Option+click: onto the stack · Cmd+click: the word into the field with the cursor · Shift+click: Letters/Figs conversion. The text is decoded by fldigi.",
- "Klik na volačku ji vloží do pole volačky.": "Clicking a callsign puts it in the callsign field.",
+ "Klik: volačka do pole volačky, jiné podtržené slovo do výměny.": "Click: a callsign goes into the callsign field, another underlined word into the exchange.",
  "Klik vybere · Cmd+klik přidá · Shift+klik rozsah": "Click selects · Cmd+click adds · Shift+click a range",
  "Klik vybere · Ctrl+klik přidá · Shift+klik rozsah": "Click selects · Ctrl+click adds · Shift+click a range",
  "klikni do okna pro přepnutí": "click into the window to switch",
