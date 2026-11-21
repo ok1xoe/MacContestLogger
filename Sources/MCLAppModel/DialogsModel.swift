@@ -197,6 +197,9 @@ public final class DialogsModel {
         case .contests:
             if open && !showContestBrowser {
                 browserRows = nil
+                // Read here, not from the view: a `Window` scene outlives its closing, so a view `.task` does not
+                // run again on the next opening (MCL-151).
+                run { await $0.loadBrowser() }
             }
             showContestBrowser = open
         case .databaseNew:
@@ -207,6 +210,8 @@ public final class DialogsModel {
         case .databaseOpen:
             if open && !showOpenDatabase {
                 databaseNames = nil
+                // Read here, not from the view (see `.contests`): otherwise the reopened window stays empty.
+                run { await $0.loadDatabases() }
             }
             showOpenDatabase = open
         case .copyContest:
