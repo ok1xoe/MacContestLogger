@@ -45,7 +45,7 @@ public final class AudioSpectrumSource: SpectrumSource {
     }
 
     public func waterfallRows() -> [[Float]] {
-        waterfall.normalizedRows()
+        waterfall.displayRows()
     }
 
     /// A row every half FFT (50 % overlap).
