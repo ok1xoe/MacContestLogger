@@ -23,7 +23,18 @@ public final class Waterfall: Sendable {
         var history: [[Double]] = []
         /// Rows added so far (the spectrum display takes each new row once).
         var serial = 0
+        /// The displayed noise floor and top (dB), smoothed over the rows (`displayRows`); `nil` before the first row.
+        var shownFloor: Double?
+        var shownTop: Double = 0
     }
+
+    /// Display scale: the floor is a low percentile of a row (the median sits on the signals when a wide filter
+    /// passes a busy band), the top a high one, both smoothed over time so the brightness does not jump between rows.
+    static let floorPercentile = 0.2
+    static let topPercentile = 0.995
+    static let smoothing = 0.05
+    static let minSpanDb = 25.0
+    static let maxSpanDb = 60.0
 
     private let sampleRate: Double
     private let rows: Int32
@@ -58,6 +69,7 @@ public final class Waterfall: Sendable {
                     let db = (try? Fft.magnitudesDb(s.window)) ?? []
                     s.history.insert(Array(db[0..<count]), at: 0)
                     s.serial += 1
+                    Self.track(&s, row: s.history[0])
                     while s.history.count > limit && !s.history.isEmpty {
                         s.history.removeLast()
                     }
@@ -83,6 +95,33 @@ public final class Waterfall: Sendable {
             return s.history.map { row in
                 row.map { value in Float(JavaMath.max(0, JavaMath.min(1, (value - floor) / span))) }
             }
+        }
+    }
+
+    /// Rows from newest for the screen, values 0…1: the noise floor is a low percentile of the row smoothed over
+    /// time and the range follows the real dynamics (`minSpanDb`…`maxSpanDb`), so a wide filter does not turn the
+    /// band white. `normalizedRows` keeps the Java brightness (the measured values and the tests rely on it).
+    public func displayRows() -> [[Float]] {
+        state.withLock { s in
+            guard let floor = s.shownFloor, !s.history.isEmpty else { return [] }
+            let span = Swift.min(Self.maxSpanDb, Swift.max(Self.minSpanDb, s.shownTop - floor))
+            return s.history.map { row in
+                row.map { value in Float(Swift.max(0, Swift.min(1, (value - floor) / span))) }
+            }
+        }
+    }
+
+    private static func track(_ s: inout State, row: [Double]) {
+        let sorted = row.filter { $0.isFinite }.sorted()
+        guard !sorted.isEmpty else { return }
+        func at(_ q: Double) -> Double { sorted[Swift.min(sorted.count - 1, Int(Double(sorted.count) * q))] }
+        let floor = at(floorPercentile), top = at(topPercentile)
+        if let f = s.shownFloor {
+            s.shownFloor = f + (floor - f) * smoothing
+            s.shownTop += (top - s.shownTop) * smoothing
+        } else {
+            s.shownFloor = floor
+            s.shownTop = top
         }
     }
 
