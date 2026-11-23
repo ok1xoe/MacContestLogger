@@ -1,4 +1,6 @@
+import AudioToolbox
 import AVFoundation
+import CoreAudio
 import Foundation
 
 /// Streaming conversion of audio input buffers to 16-bit LE mono PCM at a given rate (a replacement for the Java
@@ -90,9 +92,56 @@ final class LazyConverter: @unchecked Sendable {
     }
 }
 
-/// Audio input via `AVAudioEngine` (Java `TargetDataLine` + reader thread): input node tap →
-/// `PcmStreamConverter` → `onPcm` on the caller's **own serial queue** (not on the audio thread and not in
-/// Swift's shared pool). Device by CoreAudio name (`CoreAudioDevices.deviceID`, otherwise default).
+/// What the render callback of the input unit needs (kept alive by `AudioInputEngine` between `start` and `stop`).
+private final class InputContext: @unchecked Sendable {
+    var unit: AudioUnit?
+    let buffer: AVAudioPCMBuffer
+    let bytesPerFrame: UInt32
+    let converter: LazyConverter
+    let queue: DispatchQueue
+    let onPcm: @Sendable ([UInt8]) -> Void
+
+    init(buffer: AVAudioPCMBuffer, bytesPerFrame: UInt32, converter: LazyConverter, queue: DispatchQueue,
+         onPcm: @escaping @Sendable ([UInt8]) -> Void) {
+        self.buffer = buffer
+        self.bytesPerFrame = bytesPerFrame
+        self.converter = converter
+        self.queue = queue
+        self.onPcm = onPcm
+    }
+}
+
+/// The input unit calls this on the audio thread for every block: it pulls the block, converts it and hands the PCM
+/// to the caller's queue.
+private let inputRenderCallback: AURenderCallback = { refCon, flags, timestamp, bus, frames, _ in
+    let context = Unmanaged<InputContext>.fromOpaque(refCon).takeUnretainedValue()
+    guard let unit = context.unit, frames <= context.buffer.frameCapacity else {
+        return noErr
+    }
+    let list = context.buffer.mutableAudioBufferList
+    list.pointee.mBuffers.mDataByteSize = frames * context.bytesPerFrame
+    let status = AudioUnitRender(unit, flags, timestamp, bus, frames, list)
+    guard status == noErr else {
+        return status
+    }
+    context.buffer.frameLength = frames
+    let bytes = context.converter.convert(context.buffer)
+    if !bytes.isEmpty {
+        let queue = context.queue
+        let onPcm = context.onPcm
+        queue.async { onPcm(bytes) }
+    }
+    return noErr
+}
+
+/// Audio input from one CoreAudio device through an **input-only** HAL unit (Java `TargetDataLine` + reader thread):
+/// the unit's render callback → `PcmStreamConverter` → `onPcm` on the caller's **own serial queue** (not on the
+/// audio thread and not in Swift's shared pool). Device by CoreAudio name (`CoreAudioDevices.deviceID`, otherwise the
+/// system default input).
+///
+/// Not `AVAudioEngine`: its graph also initialises the output side, which on some devices (a USB codec next to a
+/// different default output) fails with `-10868` (`FormatNotSupported`) at `start()`. The HAL unit with the output
+/// disabled has no such dependency (MCL-152).
 ///
 /// For the app: microphone access needs `NSMicrophoneUsageDescription` in `Info.plist`
 /// (without it macOS silences the input or rejects the start).
@@ -104,7 +153,8 @@ final class AudioInputEngine: @unchecked Sendable {
     private let queue: DispatchQueue
     private let onPcm: @Sendable ([UInt8]) -> Void
     private let lock = NSLock()
-    private var engine: AVAudioEngine?
+    private var unit: AudioUnit?
+    private var context: Unmanaged<InputContext>?
 
     /// `channels` 2 = interleaved left/right PCM (`PcmStreamConverter`).
     init(sampleRate: Double, channels: Int = 1, deviceName: String?, queue: DispatchQueue,
@@ -120,49 +170,99 @@ final class AudioInputEngine: @unchecked Sendable {
     func start() throws(AudioIOError) {
         lock.lock()
         defer { lock.unlock() }
-        let engine = AVAudioEngine()
-        let input = engine.inputNode
-        if let id = CoreAudioDevices.deviceID(named: deviceName, input: true), let unit = input.audioUnit {
-            let status = CoreAudioDevices.select(id, on: unit)
+        guard unit == nil else {
+            return
+        }
+        guard let deviceID = CoreAudioDevices.deviceID(named: deviceName, input: true)
+                ?? CoreAudioDevices.defaultInputDeviceID() else {
+            throw AudioIOError("žádný zvukový vstup")
+        }
+        var description = AudioComponentDescription(componentType: kAudioUnitType_Output,
+                                                    componentSubType: kAudioUnitSubType_HALOutput,
+                                                    componentManufacturer: kAudioUnitManufacturer_Apple,
+                                                    componentFlags: 0, componentFlagsMask: 0)
+        var created: AudioUnit?
+        guard let component = AudioComponentFindNext(nil, &description),
+              AudioComponentInstanceNew(component, &created) == noErr, let unit = created else {
+            throw AudioIOError("nelze otevřít zvukový vstup")
+        }
+        do throws(AudioIOError) {
+            let context = try configure(unit, deviceID: deviceID)
+            let status: OSStatus = AudioUnitInitialize(unit)
             guard status == noErr else {
-                throw AudioIOError("nelze vybrat zařízení (OSStatus " + String(status) + ")")
+                throw AudioIOError("nelze inicializovat zvukový vstup (OSStatus " + String(status) + ")")
+            }
+            let started: OSStatus = AudioOutputUnitStart(unit)
+            guard started == noErr else {
+                AudioUnitUninitialize(unit)
+                context.release()
+                throw AudioIOError("nelze spustit zvukový vstup (OSStatus " + String(started) + ")")
+            }
+            self.unit = unit
+            self.context = context
+        } catch {
+            AudioComponentInstanceDispose(unit)
+            throw error
+        }
+    }
+
+    /// Input enabled, output disabled, the device, the client format (the device's own rate and channels, 32-bit
+    /// float, interleaved — the sample-rate conversion is `PcmStreamConverter`'s) and the render callback.
+    private func configure(_ unit: AudioUnit, deviceID: AudioDeviceID) throws(AudioIOError) -> Unmanaged<InputContext> {
+        func check(_ what: String, _ status: OSStatus) throws(AudioIOError) {
+            if status != noErr {
+                throw AudioIOError("nelze nastavit zvukový vstup: " + what + " (OSStatus " + String(status) + ")")
             }
         }
-        // Hardware format after a device switch: `outputFormat(forBus:)` may remain from the old device
-        // and `installTap` with a mismatched format ends in an uncatchable NSException. Hence the tap with `format: nil`
-        // (hardware format) and the converter is built from the format of the first buffer (and again if the format changes).
-        let hardware = input.inputFormat(forBus: 0)
-        guard hardware.sampleRate > 0, hardware.channelCount > 0 else {
+        var on: UInt32 = 1
+        var off: UInt32 = 0
+        try check("vstup", AudioUnitSetProperty(unit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &on, 4))
+        try check("výstup", AudioUnitSetProperty(unit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &off, 4))
+        var device = deviceID
+        try check("zařízení", AudioUnitSetProperty(unit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0,
+                                                    &device, UInt32(MemoryLayout<AudioDeviceID>.size)))
+        var hardware = AudioStreamBasicDescription()
+        var size = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
+        try check("formát zařízení", AudioUnitGetProperty(unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 1,
+                                                          &hardware, &size))
+        guard hardware.mSampleRate > 0, hardware.mChannelsPerFrame > 0,
+              let layout = AVAudioChannelLayout(layoutTag: kAudioChannelLayoutTag_DiscreteInOrder | hardware.mChannelsPerFrame) else {
             throw AudioIOError("vstup nemá žádný kanál")
         }
-        let converter = LazyConverter(sampleRate: sampleRate, channels: channels)
-        let queue = self.queue
-        let onPcm = self.onPcm
-        input.installTap(onBus: 0, bufferSize: 4096, format: nil) { buffer, _ in
-            let bytes = converter.convert(buffer)
-            if !bytes.isEmpty {
-                queue.async { onPcm(bytes) }
-            }
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: hardware.mSampleRate,
+                                   interleaved: true, channelLayout: layout)
+        var client = format.streamDescription.pointee
+        try check("formát", AudioUnitSetProperty(unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &client,
+                                                 UInt32(MemoryLayout<AudioStreamBasicDescription>.size)))
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_384) else {
+            throw AudioIOError("nelze alokovat vyrovnávací paměť")
         }
-        engine.prepare()
-        do {
-            try engine.start()
-        } catch {
-            input.removeTap(onBus: 0)
-            throw AudioIOError(error.localizedDescription)
+        let context = Unmanaged.passRetained(InputContext(
+            buffer: buffer, bytesPerFrame: client.mBytesPerFrame,
+            converter: LazyConverter(sampleRate: sampleRate, channels: channels), queue: queue, onPcm: onPcm))
+        context.takeUnretainedValue().unit = unit
+        var callback = AURenderCallbackStruct(inputProc: inputRenderCallback, inputProcRefCon: context.toOpaque())
+        let status: OSStatus = AudioUnitSetProperty(unit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0,
+                                                    &callback, UInt32(MemoryLayout<AURenderCallbackStruct>.size))
+        if status != noErr {
+            context.release()
+            throw AudioIOError("nelze nastavit zvukový vstup: callback (OSStatus " + String(status) + ")")
         }
-        self.engine = engine
+        return context
     }
 
     /// Stops the input; no more PCM arrives (blocks already queued run to completion).
     func stop() {
         lock.lock()
         defer { lock.unlock() }
-        guard let engine else {
+        guard let unit else {
             return
         }
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
-        self.engine = nil
+        AudioOutputUnitStop(unit)
+        AudioUnitUninitialize(unit)
+        AudioComponentInstanceDispose(unit)
+        context?.release()
+        self.unit = nil
+        context = nil
     }
 }
