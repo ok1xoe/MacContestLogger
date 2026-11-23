@@ -127,7 +127,13 @@ extension AppModel {
 
     /// The CW reader window's model (`cwreader`).
     public func makeCwReader() -> CwReaderModel {
-        CwReaderModel(audio: audio, config: config, clock: radioWindowClock, prefill: { [weak self] call in
+        CwReaderModel(audio: audio, config: config, clock: radioWindowClock,
+                      exchange: CwReaderModel.ExchangeAccess(
+                        fields: { [weak self] call in self?.contest.exchangeFields(call: call) ?? [] },
+                        typedCall: { [weak self] in (self?.activeEntry ?? self?.entry)?.form.call ?? "" },
+                        current: { [weak self] in self?.currentExchange ?? JavaLinkedMap() },
+                        prefill: { [weak self] values in self?.prefillExchange(values) }),
+                      prefill: { [weak self] call in
             self?.prefillCall(call)
         })
     }
@@ -135,7 +141,19 @@ extension AppModel {
     /// The second CW reader (`cwreader2`, N1MM's two readers in SO2V / SO2R): radio 2's audio input, its calls go
     /// into the VFO B / rig 2 window.
     public func makeCwReader2() -> CwReaderModel {
-        CwReaderModel(audio: audio2, config: config, clock: radioWindowClock, prefill: { [weak self] call in
+        CwReaderModel(audio: audio2, config: config, clock: radioWindowClock,
+                      exchange: CwReaderModel.ExchangeAccess(
+                        fields: { [weak self] call in self?.contest.exchangeFields(call: call) ?? [] },
+                        typedCall: { [weak self] in self?.vfoB.entry.form.call ?? "" },
+                        current: { [weak self] in self?.vfoB.entry.form.contestExchange ?? JavaLinkedMap() },
+                        prefill: { [weak self] values in
+                            var map = JavaLinkedMap<String>()
+                            for item in values {
+                                map.put(item.id, item.value)
+                            }
+                            self?.vfoB.entry.prefillExchange(map)
+                        }),
+                      prefill: { [weak self] call in
             self?.vfoB.entry.prefillCall(call)
         })
     }
