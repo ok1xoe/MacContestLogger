@@ -5,8 +5,8 @@
 #                     [--skip-build] [--out DIR] [--sign IDENTITY [--entitlements FILE] [--timestamp]]
 #
 # Steps: `swift build --product MacContestLogger` → Contents/MacOS, Info.plist from packaging/Info.plist.in
-# (`plutil -lint`), every SwiftPM resource bundle of the app's targets into Contents/Resources (the app reads them
-# from there, see `CoreResources`), `codesign -s -` + `codesign --verify`, and finally `MacContestLogger --self-check`
+# (`plutil -lint`), the app icon packaging/AppIcon.icns and every SwiftPM resource bundle of the app's targets into
+# Contents/Resources (the app reads them from there, see `CoreResources`), `codesign -s -` + `codesign --verify`, and finally `MacContestLogger --self-check`
 # (resource check without a window; exit 1 = the app would start without its resources). Writes only into --out
 # (default build/app/).
 #
@@ -184,6 +184,10 @@ else
 fi
 sed "s/@VERSION@/$VERSION/g" packaging/Info.plist.in > "$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist"
+
+# App icon (CFBundleIconFile in Info.plist). Built from packaging/icon/*.svg by packaging/icon/build-icns.sh;
+# the .icns is committed so a build does not need librsvg.
+cp packaging/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
 # The resource bundles of the app's targets, by explicit name: a stale bundle left in a (cached) .build by a removed
 # target must not ship, and test-target bundles (fixtures) do not belong in the app. A new target with resources =

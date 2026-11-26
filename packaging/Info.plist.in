@@ -12,6 +12,8 @@
 	<string>MacContestLogger</string>
 	<key>CFBundleExecutable</key>
 	<string>MacContestLogger</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleInfoDictionaryVersion</key>
